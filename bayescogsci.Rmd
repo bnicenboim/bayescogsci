@@ -1,0 +1,1642 @@
+---
+title: "An Introduction to Bayesian Data Analysis for Cognitive Science"
+author: "Bruno Nicenboim, Daniel Schad, and Shravan Vasishth"
+date: "`r Sys.Date()`"
+knit: "bookdown::render_book"
+documentclass: krantz
+bibliography: ["BayesCogSci.bib", "packages.bib"]
+biblio-style: apalike
+link-citations: yes
+colorlinks: yes
+lot: false
+lof: false
+fontsize: 12pt
+monofont: "Source Code Pro"
+monofontoptions: "Scale=0.7"
+site: bookdown::bookdown_site
+description: "An introduction to Bayesian data analysis for Cognitive Science."
+url: 'https\://vasishth.github.io/Bayes_CogSci/'
+github-repo: https\://github.com/vasishth/Bayes_CogSci
+cover-image: images/temporarycover.jpg
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(cache = TRUE, autodep = TRUE,
+                      fold = FALSE,
+                      class.source = "fold-show")
+
+# same cutoff as print_warning
+cut_warning <- function(wrn) {
+  strwrap( paste0(wrn, collapse=""), 60, simplify = FALSE)[[1]]
+}
+
+# folding:
+local({
+  hook_source <- knitr::knit_hooks$get("source")
+  hook_warning <- knitr::knit_hooks$get("warning")
+
+  knitr::knit_hooks$set(source = function(x, options) {
+   splitline <- function(x)  stringr::str_split(x,"\n")[[1]]
+   x[any(nchar(splitline(x)) > 69)] <- paste0(x[any(nchar(splitline(x)) > 69)],"\n", warning("`## Warning: Line is too long.`"))
+    fold <- options$fold
+    if(is.null(fold)) fold <- FALSE
+    if(fold==TRUE){
+      if(knitr::is_html_output()){
+        # fold code here
+        foldb <- ""
+        folde <- ""
+        options$class.source = 'fold-hide'
+        hook_source(c(foldb,x, folde), options)
+    } else {
+      #empty code for pdf
+    }
+  } else {
+    #regular output elsewhere:
+    hook_source(x, options)
+  }
+  },
+  warning = function(x, options) {
+
+    txt <- strwrap(x, 60, simplify = TRUE)
+    txt <- stringr::str_remove_all(txt, "##") %>%
+      stringr::str_squish()
+   # for some reason the first line has an extra space that I can't remove
+    txt_1 <- paste("##", txt[1])
+    # I add the extra space later
+    txt_later <- paste(" ##", txt[-1])
+    txt <- paste0(c(txt_1, txt_later) , collapse ="\n")
+    paste("```\n", txt,"\n```\n")   }
+  )
+})
+
+
+
+## # wrap warnings
+## local({
+##   hook_warning = knitr::knit_hooks$get('warning')
+##   knitr::knit_hooks$set(warning = function(x, options) {
+##     x <-
+##       x %>%
+##       stringr::str_split( "\\n") %>%
+##       .[[1]] %>%
+##       strwrap(, width = 70) %>%
+##       stringr::str_squish() %>%
+##       map_chr( ~ {
+##               ifelse( .x  %>% stringr::str_detect("^##"), .x, paste0("## ", .x))
+##               }) %>%
+##       paste0(collapse = "\n")
+##     hook_warning(x, options)
+##   })
+## })
+
+#not sure why was this here, but it's messing things up!
+## local({
+##   r = getOption('repos')
+##   if (!length(r) || identical(unname(r['CRAN']), '@CRAN@'))
+##     r['CRAN'] = 'https://cran.rstudio.com'
+##   options(repos = r)
+## })
+
+## lapply(c('DT', 'citr', 'formatR', 'svglite'), function(pkg) {
+##   if (system.file(package = pkg) == '') install.packages(pkg)
+## })
+```
+
+```{r functions, include=FALSE, echo =FALSE}
+# USEFUL FUNCTIONS:
+# makes a separated by commas list from a vector
+list_str <- function(vector, and = TRUE, s = "`"){
+    vector <- paste0(s,vector,s)
+    if(and) {
+        paste0(vector,collapse = ", ")
+    } else {
+        paste0(paste0(vector[-length(vector)],collapse = ", "), ", and ", vector[length(vector)])
+    }
+}
+list_code <- function(vector){
+    toString(paste0('"', vector,'"'))
+}
+```
+
+# Preface {.unnumbered}
+
+\renewcommand{\chaptermark}[1]{\markboth{\uppercase{#1}}{\uppercase{#1}}}
+\chaptermark{Preface}
+
+```{r eval=FALSE,fig.align='center', echo=FALSE, include=identical(knitr:::pandoc_to(), 'html')}
+fig.link='https://www.crcpress.com/product/isbn/9781138700109'
+knitr::include_graphics('images/temporarycover.jpg', dpi = NA)
+```
+
+This book is intended to be a relatively gentle introduction to carrying out Bayesian data analysis and cognitive modeling using the probabilistic programming language Stan [@carpenter2017stan], and the front-end to Stan called `brms` [@R-brms]. Our target audience is cognitive scientists (e.g., linguists, psychologists, and computer scientists) who carry out planned behavioral experiments, and who are interested in learning the Bayesian data analysis methodology from the ground up and in a principled manner. Our aim is to make Bayesian statistics a standard part of the data analysis toolkit for experimental linguistics, psycholinguistics, psychology, and related disciplines.
+
+Many excellent introductory textbooks already exist for Bayesian data analysis. Why write yet another book? Our text is different from other attempts in two respects. First, our main focus is on showing how to analyze data from planned experiments involving repeated measures; this type of experimental data involves unique complexities. We provide many examples of data sets involving time measurements (e.g., self-paced reading, eye-tracking-while-reading, voice onset time), event-related potentials, pupil sizes, accuracies (e.g., recall tasks, yes-no questions), categorical answers (e.g., picture naming), choice-reaction time (e.g, Stroop task, motion detection task), etc.  Second, from the very outset, we emphasize a particular workflow that has as its centerpiece simulating data; we aim to teach a philosophy that involves thinking hard about the assumed underlying generative process, **even before the data are collected**. The data analysis approach that we hope to teach through this book involves a cycle of prior predictive and posterior predictive checks, sensitivity analyses, and model validation using simulated data. We try to inculcate a sense of how inferences can be drawn from the posterior distribution of theoretically interesting parameters without resorting to binary decisions like "significant" or "not-significant". We are hopeful that this will set a new standard for reporting and interpreting results of data analyses in a more nuanced manner, and lead to more measured claims in the published literature.
+
+Please report typos, errors, or suggestions for improvement at
+https://github.com/vasishth/bayescogsci/issues.
+
+## Why read this book, and what is its target audience? {-}
+
+A commonly-held belief in psychology, psycholinguistics, and other areas is that statistical data analysis is secondary to the science, and should be quick and easy. For example, a senior mathematical psychologist once told the last author of this book: "if you need to run anything more complicated than a paired t-test, you are asking the wrong question." We take a different perspective here: the science and the statistical modeling are one unitary thing. The statistical model should represent some reasonable approximation of the latent cognitive processes that are assumed to be in play.
+
+The target audience for this book is students and researchers who want to treat statistics as an equal partner in their scientific work. We expect that the reader is willing to take the time to both understand and to run the computational analyses.
+
+Any rigorous introduction to Bayesian data analysis requires at least a passive knowledge of probability theory, calculus, and linear algebra. However, we do not require that the reader has this background when they start the book. Instead, the relevant ideas are introduced informally and just in time, as soon as they are needed. The reader is never required to have an active ability to solve probability problems, to solve integrals or compute derivatives, or to carry out matrix computations (such as inverting matrices) by hand. There are a few places where the discussion becomes technical and requires some knowledge of calculus or related topics. However, the reader unfamiliar with the required mathematics can simply skip those sections, as these are not really necessary to follow the main thread of the book.
+
+What we do expect is familiarity with arithmetic, basic set theory and elementary probability theory (e.g., sum and product rules, conditional probability), simple matrix operations like addition and multiplication, and simple algebraic operations. A quick look through chapter 1 of @gill2006essential before starting this book is highly recommended. We also presuppose that, when the need arises, the reader is willing to look up concepts that that they might have forgotten (e.g., logarithms). We also provide a self-paced course on some basic concepts in mathematics (aimed at non-mathematicians) which the reader can work through: see https://vasishth.github.io/FoM/.
+
+We also expect that the reader already knows and/or is willing to learn enough of the programming language R [@R-base] to reproduce the examples presented and to carry out the exercises. If the reader is completely unfamiliar with R, before starting this book they should first consult books like [R for data science](https://r4ds.had.co.nz/), and [Efficient R programming](https://csgillespie.github.io/efficientR/).
+
+We also assume that the reader has encountered simple linear modeling, and linear mixed models [@R-lme4;@baayen2008mixed]. What this means in practice is that the reader should have used the `lm()` and `lmer()` functions in R. A passing acquaintance with basic statistical concepts, like the correlation between two variables, is also taken for granted.
+
+This book is not appropriate for complete beginners to data analysis. Newcomers to data analysis should start with a freely available textbook like @kerns2014introduction, and then read our introduction to frequentist data analysis, which is also available freely online [@VasishthEtAlFreq2021]. This latter book will prepare the reader well for the material presented here.
+
+## Developing the right mindset for this book {-}
+
+One very important characteristic that the reader should bring to this book is a can-do spirit. There will be many places where the going will get tough, and the reader  will have to slow down and play around with the material, or refresh their understanding of arithmetic or middle-school algebra.
+The basic principles of such a  can-do spirit are nicely summarized in the book by @burger; also see @danlevy. Although we cannot summarize all the insights from these books in a few words, inspired by the @burger book, here is a short enumeration of the kind of mindset the reader will need to cultivate:
+
+- Spend time on the basic, apparently easy material; make sure you understand it  deeply. Look for gaps in your understanding. Reading different presentations of the same material (in different books or articles) can yield new insights.
+- Let mistakes and errors be your teacher. We instinctively recoil from our mistakes, but errors are ultimately our friends; they have the potential to teach us more than our correct answers can. In this sense, a correct solution can be less interesting than an incorrect one.
+- When you are intimidated by some exercise or problem, give up and admit defeat immediately. This relaxes the mind; you've already given up, there's nothing more to do. Then, after a while, try to solve a simpler version of the problem. Sometimes, it is useful to break the problem down to smaller parts, each of which may be easier to solve.
+- Create your own questions. Don't wait  to be asked questions; develop your own problems and then try to solve them.
+- Don't expect to understand everything in the first pass. Just mentally note the gaps in your understanding, and return to them later and work on these gaps.
+- Step back periodically to try to sketch out a broader picture of what you are learning. Writing down what you know, without  looking up anything, is one helpful way to achieve this. Don't wait for the teacher to give you bullet-point summaries of what you should have learned; develop such summaries yourself.
+- Develop the art of finding information. When confronted with something you don't know, or with some obscure error message, use google to find some answers.
+- Do not hesitate to re-read a chapter; often, one only understands a topic after one revisits the material.
+
+As instructors, we have noticed over the years that students with such a mindset generally do very well. Some students already have that spirit, but others need to explicitly develop it. We firmly believe that everyone can develop such a mindset, but one may have to work on acquiring it. In any case, such an attitude is necessary for a book of this sort.
+
+## How to read this book {-}
+
+The chapters in this book are intended to be read in sequence, but during the first pass through the book, the reader should feel free to completely skip the boxes. These boxes provide a more formal development [useful to transition to more advanced textbooks like @Gelman14], or deal with tangential aspects of the topics presented in the chapter.
+
+Here are some suggested paths through this book, depending on the reader's goals:
+
+- For a short course for complete beginners, read chapters \@ref(ch-intro) to  \@ref(ch-hierarchical). We usually cover these five chapters in a five-day summer school course that we teach annually. Most of the material in this chapter is also covered in a free four-week course available online: https://open.hpi.de/courses/bayesian-statistics2023.
+- For a course that focuses on regression models with the  R package `brms`, read chapters \@ref(ch-intro) to  \@ref(ch-coding2x2) and, optionally, \@ref(ch-bf).
+- For an advanced course that focuses on complex models involving Stan, read chapters \@ref(ch-introstan) to  \@ref(ch-lognormalrace).
+
+## Some conventions used in this book {-}
+
+We adopt the following conventions:
+
+- All distribution names are lower-case unless they are also a proper name (e.g., Poisson, Bernoulli).
+- The univariate normal distribution is parameterized by the mean and standard deviation (not variance).
+- The code for figures is provided only in some cases, where we consider it to be pedagogically useful. In other cases, the code remains hidden, but it can be found in the web version of the book. Notice that all the R code from the book can be extracted from the Rmd source files for each chapter, which are released with the book.
+
+## Online materials {-}
+
+The entire book, including all data and source code, is available online for free on [https://vasishth.github.io/bayescogsci/book](https://vasishth.github.io/bayescogsci/book). The solutions to exercises will be made available on request.
+
+## Software needed {-}
+
+```{r packages, echo = FALSE, message = FALSE}
+library(dplyr)
+index <- readLines("index.Rmd")
+start <- which(stringr::str_detect(index, "```\\{r load")) + 1
+endings <- which(stringr::str_detect(index, "```$")) -1
+end <- min(endings[endings>start])
+
+to_install <- index[start:end] %>%
+    stringr::str_match("library\\((.*)\\)") %>%
+    {.[,2]} %>%
+    .[complete.cases(.)] %>%
+    .[. != "rstan"]
+
+installation <- paste0("install.packages(c(", list_code(to_install),"))")
+```
+
+Before you start, please install
+
+  - [R](https://cran.r-project.org/) and [RStudio](https://www.rstudio.com/), or any other Integrated Development Environment that you prefer, such as [Visual Studio Code](https://code.visualstudio.com/) and [Emacs Speaks Statistics](https://ess.r-project.org/).
+  - The R package `rstan`. At the time of writing this book, the CRAN version of `rstan` lags behind the latest developments in Stan so it is recommended to install `rstan` from `https://mc-stan.org/r-packages/` as indicated in  https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started
+  - The R packages  `dplyr`, `purrr`, `tidyr`, `extraDistr`, `brms`, `hypr` and `lme4`  are used in many chapters of the book and can be installed the usual way: ` install.packages(c("dplyr","purrr","tidyr", "extraDistr", "brms","hypr","lme4"))`. We use `ggplot2` for figures; please consult the relevant documentation if you are unfamiliar with `ggplot2` [e.g., @R-ggplot2].
+  - The following R packages are optional: `tictoc`, `rootSolve`,  `SHELF`, `cmdstanr`, and `SBC`.
+  - Some packages and their dependencies, such as `intoo`, `barsurf`, `bivariate`, and `SIN` could require manual installation from archived or github versions.
+  - The data and Stan models used in this book can be installed using `remotes::install_github("bnicenboim/bcogsci")`. This command uses the function `install_github` from the package `remotes`. (Thus this package should be in the system as well.)
+
+In every R session, load these packages, and set the options shown below for Stan.
+
+```{r load, cache = FALSE, message = FALSE, warning=FALSE}
+library(MASS)
+## be careful to load dplyr after MASS
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(extraDistr)
+library(ggplot2)
+library(loo)
+library(bridgesampling)
+library(brms)
+library(bayesplot)
+library(tictoc)
+library(hypr)
+library(bcogsci)
+library(lme4)
+library(rstan)
+# This package is optional, see https://mc-stan.org/cmdstanr/:
+library(cmdstanr)
+# This package is optional, see https://hyunjimoon.github.io/SBC/:
+library(SBC)
+library(SHELF)
+library(rootSolve)
+
+## Save compiled models:
+rstan_options(auto_write = FALSE)
+## Parallelize the chains using all the cores:
+options(mc.cores = parallel::detectCores())
+# To solve some conflicts between packages:
+select <- dplyr::select
+extract <- rstan::extract
+```
+
+```{r, include = FALSE, cache = FALSE, fig.show='hide'}
+## these libraries are not available anymore in CRAN:
+## install using:
+## devtools::install_version("intoo", version= "0.4.0")
+## devtools::install_version("kubik", version= "0.3.0")
+## devtools::install_version("barsurf", version= "0.7.0")
+## devtools::install_version("bivariate", version= "0.7.0")
+## devtools::install_version("SIN", version= "0.6.0")
+library(intoo)
+library(barsurf)
+library(bivariate)
+library(SIN)
+#this can installed regularly
+library(papaja)
+library(grid)
+library(gridExtra)
+
+library(kableExtra)
+library(cowplot)
+library(pdftools)
+
+## Force to load SHELF, so that the ggplto theme is active
+## suppressWarnings(dist_cons <- fitdist(vals=0,probs=0))
+## plotfit(dist_cons, returnPlot = TRUE)
+
+
+rstan_options(silent = TRUE,
+              open_progress = FALSE,
+              show_messages = FALSE)
+## Defauls values of some parameters
+# I don't want windows opening:
+formals(stan)$open_progress <- FALSE
+formals(stan)$chains <- 4
+# To be able to include full citations:
+## library(RefManageR)
+## bibl <- ReadBib("BayesCogSci.bib",check = "warn")
+## citetitle <- function(key){
+##     bibl[key= key]$title
+## }
+## fullcite <-  function(key){
+##         capture.output(print(bibl[key= key]))
+## }
+## library(bibtex)
+## bibl <- read.bib("BayesCogSci.bib")
+## fullcite <-  function(key){
+##     capture.output(print(bibl[key]))
+## }
+
+## Look and feel:
+# Plots
+set_plots<-  function(){
+bayesplot_theme_set(theme_light())
+theme_set(theme_light())
+
+# center all the plot titles?
+theme_update(plot.title = element_text(hjust = 0.5))
+
+if(knitr::is_html_output()) {
+## Good for black and white and color
+  options(ggplot2.continuous.colour = scale_color_viridis_c)
+  options(ggplot2.continuous.fill = scale_fill_viridis_c)
+  options(ggplot2.discrete.colour = scale_color_viridis_d)
+  options(ggplot2.discrete.fill = scale_fill_viridis_d)
+  color_scheme_set("viridis")
+}
+
+if(knitr::is_latex_output()){
+  scale_color_grey_c <- function(...)  scale_colour_gradient(..., low = "white", high = "black")
+  scale_fill_grey_c <- function(...)  scale_fill_gradient(..., low = "white", high = "black")
+  options(ggplot2.discrete.colour = scale_color_grey)
+  options(ggplot2.discrete.fill = scale_fill_grey)
+  options(ggplot2.continuous.colour =  scale_color_grey_c)
+  options(ggplot2.continuous.fill = scale_fill_grey_c)
+  color_scheme_set("gray")
+}
+}
+set_plots()
+## IMPORTANT: this needs to be set up again in priors chapter after the functions from SHELF are used
+
+
+if(0){
+#test the colors:
+
+  # Gradient color
+ggplot(iris, aes(Sepal.Length, Sepal.Width))+
+  geom_point(aes(color = Sepal.Length))
+
+# Discrete color. use the argument discrete = TRUE
+ggplot(iris, aes(Sepal.Length, Sepal.Width))+
+  geom_point(aes(color = Species)) +
+  geom_smooth(aes(color = Species, fill = Species), method = "lm")
+}
+
+
+## options(ggplot2.discrete.fill = function(...) scale_fill_viridis_d(..., option = "inferno"))
+
+# format
+options(
+    htmltools.dir.version = FALSE,
+    formatR.indent = 2,
+    width = 70,
+    digits = 3,
+    signif = 2,
+    warnPartialMatchAttr = FALSE,
+    warnPartialMatchDollar = FALSE,
+    # Don't use scientific notation:
+    scipen=10,
+    # tibbles:
+    tibble.width = Inf,
+    tibble.print_max = 3,
+    tibble.print_min = 3,
+    dplyr.summarise.inform = FALSE,
+  tinytex.clean = FALSE #keeps the aux file for xr package
+)
+# output:
+fixef.brmsfit <- function(...) {
+  brms:::fixef.brmsfit(...) %>%
+    round(2)
+}
+# print warning,
+# last warning should be saved, e.g., saveRDS(names(last.warning),"dataR/fit_mix_rt_w.RDS")
+print_warning <- function(wrn) {
+cat(paste0(map_chr(strwrap(paste("Warning:", wrn), 70, simplify = FALSE), ~ paste0(.x, collapse ="\n")),"\n\n"))
+}
+short_summary <- function (x, digits = 2, ...)
+{
+  x<- summary(x)
+  cat("...\n")
+    # cat(" Family: ")
+    # cat(summarise_families(x$formula), "\n")
+    # cat("  Links: ")
+    # cat(summarise_links(x$formula, wsp = 9), "\n")
+    # cat("Formula: ")
+    # print(x$formula, wsp = 9)
+    # cat(paste0("   Data: ", x$data_name, " (Number of observations: ",
+        # x$nobs, ") \n"))
+    if (!isTRUE(nzchar(x$sampler))) {
+        cat("\nThe model does not contain posterior samples.\n")
+    }
+    else {
+        final_samples <- ceiling((x$iter - x$warmup)/x$thin *
+            x$chains)
+        # cat(paste0("Samples: ", x$chains, " chains, each with iter = ",
+        #     x$iter, "; warmup = ", x$warmup, "; thin = ", x$thin,
+        #     ";\n", "         total post-warmup samples = ", final_samples,
+        #     "\n\n"))
+        if (nrow(x$prior)) {
+            cat("Priors: \n")
+            print(x$prior, show_df = FALSE)
+            cat("\n")
+        }
+        if (length(x$splines)) {
+            cat("Smooth Terms: \n")
+            brms:::print_format(x$splines, digits)
+            cat("\n")
+        }
+        if (length(x$gp)) {
+            cat("Gaussian Process Terms: \n")
+            brms:::print_format(x$gp, digits)
+            cat("\n")
+        }
+        if (nrow(x$cor_pars)) {
+            cat("Correlation Structures:\n")
+            brms:::print_format(x$cor_pars, digits)
+            cat("\n")
+        }
+        if (length(x$random)) {
+            cat("Group-Level Effects: \n")
+            for (i in seq_along(x$random)) {
+                g <- names(x$random)[i]
+                cat(paste0("~", g, " (Number of levels: ", x$ngrps[[g]],
+                  ") \n"))
+                brms:::print_format(x$random[[g]], digits)
+                cat("\n")
+            }
+        }
+        if (nrow(x$fixed)) {
+            cat("Population-Level Effects: \n")
+            brms:::print_format(x$fixed, digits)
+            cat("\n")
+        }
+        if (length(x$mo)) {
+            cat("Simplex Parameters: \n")
+            brms:::print_format(x$mo, digits)
+            cat("\n")
+        }
+        if (nrow(x$spec_pars)) {
+            cat("Family Specific Parameters: \n")
+            brms:::print_format(x$spec_pars, digits)
+            cat("\n")
+        }
+        if (length(x$rescor_pars)) {
+            cat("Residual Correlations: \n")
+            brms:::print_format(x$rescor, digits)
+            cat("\n")
+        }
+        # cat(paste0("Samples were drawn using ", x$sampler, ". "))
+        if (x$algorithm == "sampling") {
+            #cat(paste0("For each parameter, Bulk_ESS\n", "and Tail_ESS are effective sample size measures, ",
+             #   "and Rhat is the potential\n", "scale reduction factor on split chains ",
+              #  "(at convergence, Rhat = 1)."))
+        }
+        cat("...\n")
+    }
+    invisible(x)
+}
+```
+
+
+## Acknowledgments {-}
+
+We are grateful to the many generations of students at the University of Potsdam, various summer schools at ESSLLI, the LOT winter school, the Open HPI MOOC on Bayesian statistics (https://open.hpi.de/courses/bayesian-statistics2023), other short courses we have taught at various institutions, and the annual summer school on [Statistical Methods for Linguistics and Psychology (SMLP)](https://vasishth.github.io/smlp/) held annually at Potsdam, Germany. The participants in these courses helped us considerably in improving the material presented here. A special thanks to Anna Laurinavichyute, Paula Lissón, and Himanshu Yadav for co-teaching the the Bayesian courses at SMLP. We are also grateful to members of Vasishth lab, especially Dorothea Pregla, for comments on earlier drafts of this book. We would also like to thank Douglas Bates, Ben Bolker, Christian Robert (otherwise known as Xi'an), Robin Ryder, Nicolas Chopin, Michael Betancourt, Andrew Gelman, the Stan developers (especially Bob Carpenter and Paul-Christian Bürkner), and Leendert Van Maanen for their comments and advice; to Pavel Logačev for his feedback, and Athanassios Protopapas, Patricia Mirabile, Masataka Ogawa, Alex Swiderski, Andrew Ellis, Jakub Szewczyk, Chi Hou Pau, Alec Shaw, Patrick Wen, Riccardo Fusaroli, Abdulrahman Dallak, Elizabeth Pankratz, João Veríssimo, Jean-Pierre Haeberly, Chris Hammill, Florian Wickelmaier, Ole Seeth,  Jules Bouton, Siqi Zheng,  Michael Gaunt, Benjamin Senst, Chris Moreh, Richard Hatcher, Noelia Stetie, Robert Lew, Leonardo Cerliani, Stefan Riedel, Raluca Rilla, Arne Schernich, Sven Koch, Joy Sarow, Iñigo Urrestarazu-Porta, Jan Winkowski, Adrian Staub, Brian Dillon, Job Schepens, Katja Politt, Cui Ding,  Marc Tortorello, Michael Vrazitulis, Marisol Murujosa, and Ander Egurtzegi for catching typos, unclear passages, and errors in the book. A special thanks to Daniel Heck, Alexandre Cremers, Henrik Singmann, and  Martin Modrák for reading (parts of) the book and catching many mistakes and typos. Our apologies to anyone that we have forgotten to mention. Thanks also go to Jeremy Oakley and other statisticians at the School of Mathematics and Statistics, University of Sheffield, UK, for helpful discussions, and ideas for exercises that were inspired from the MSc program taught online at Sheffield.
+
+This book would have been impossible to write without the following software: `r papaja::cite_r("packages.bib")`.
+
+```{block2, type='flushright', html.tag='p'}
+Bruno Nicenboim (Tilburg, the Netherlands),
+Daniel Schad (Potsdam, Germany),
+Shravan Vasishth (Potsdam, Germany)
+```
+
+<!--chapter:end:index.Rmd-->
+
+# About the Authors {.unnumbered}
+
+Bruno Nicenboim (<https://bruno.nicenboim.me>) is an assistant professor in the department of Cognitive Science and AI at Tilburg University, the Netherlands, where he is the principal investigator (PI) of the Computational Psycholinguistics research line. He started studying Electronic Engineering at the National University of Rosario, Argentina, then transitioned to Human Sciences and spent eight years in Israel, where he completed a Bachelor's degree in Sociology and Linguistics and a Master's degree in Linguistics at Tel Aviv University. During this time, he also worked in several IT companies. He then moved to Germany, where he completed a PhD in Cognitive Science at the University of Potsdam and worked for two years as a postdoctoral researcher. His research interests include Bayesian methods, computational cognitive modeling, sentence comprehension, memory processes, decision making, and predictive processing. He regularly teaches short courses on Bayesian data analysis at workshops and summer schools, and he teaches Bayesian modeling and statistics courses in the master's programs Cognitive Science & AI and Data Science and Society at Tilburg University.
+
+Daniel J. Schad (<https://danielschad.github.io/>) is professor of Quantitative Methods in the Psychology department at the HMU Health and Medical University, at Potsdam, Germany. He studied Psychology at the University of Potsdam, Germany, and at the University of Michigan, Ann Arbor, USA. He did a PhD in Cognitive and Mathematical Psychology at the University of Potsdam, working on computational models of eye-movement control and on mindless reading. He then did a five-year post-doc in the field of Computational Psychiatry at the Charité - Universitätsmedizin Berlin, Germany (partly also at the University of Potsdam), with research visits at the ETH Zürich, Switzerland, and the University College London, UK, working on model-free and model-based decision-making and Pavlovian-instrumental transfer in alcohol dependence, and on the cognitive and brain mechanisms underlying Pavlovian conditioning. He has worked as a postdoctoral researcher at the University of Potsdam, conducting research on quantitative methods in Cognitive Science, including contrasts, properties of significance tests, Bayesian Workflow, and Bayes factor analyses, and has been assistant professor at the department of Cognitive Science and AI at Tilburg University.
+
+Shravan Vasishth (<http://vasishth.github.io>) is professor of Psycholinguistics at the University of Potsdam, Germany. He holds the  chair for Psycholinguistics and Neurolinguistics (Language Processing). After completing his Bachelors degree in Japanese from Jawaharlal Nehru University, New Delhi, India,  he spent a total of five years in Osaka, Japan, where he studied Japanese at the Osaka University of Foreign Studies, conducted research at Osaka University, and worked as an in-house translator in a patent law firm in Osaka. He completed an MS in Computer and Information Science (2000-2002) and a PhD in Linguistics (1997-2002) from the Ohio State University, Columbus, USA, and an MSc in Statistics (2011-2015) from the School of Mathematics and Statistics, University of Sheffield, UK. He is a chartered statistician (the Royal Statistical Society, UK; id 128307). He is on the editorial board of the open access journal Glossa: Psycholinguistics. His research focuses on computational modeling of sentence processing in unimpaired and impaired populations, and the application of mathematical, computational, experimental, and statistical methods (particularly Bayesian methods) in linguistics and psychology. He created an annual summer school, Statistical Methods in Linguistics and Psychology (SMLP), which started in 2017: vasishth.github.io/smlp. He regularly teaches short courses on statistical data analysis (Bayesian and frequentist methods). 
+
+\mainmatter
+
+<!--chapter:end:00-author.Rmd-->
+
+# (PART) Foundational ideas {-}
+# Introduction {#ch-intro}
+
+The central idea we will explore in this book is how to use Bayes' theorem to quantify uncertainty about our belief regarding a scientific question of interest, given some data. Before we delve into the details of the underlying theory and its application, it is important to have some familiarity with the following topics: basic concepts of probability, the concept of random variables, probability distributions, and the concept of likelihood. Therefore, we will begin with these topics.
+
+Some of these concepts might seem abstract at first, but they are very relevant for conducting a Bayesian analysis. When reading this book for the first time, it might be helpful to do a quick pass through this chapter and return to it as needed while progressing through the rest of the book.
+
+## Probability {#introprob}
+
+Informally, we all understand what the term \index{Probability} *probability* means. We routinely talk about things like the probability of it raining today. However, there are two distinct ways to think about probability. One can think of the probability of an event with reference to the \index{Frequency} frequency with which it might occur in repeated observations. Such a conception of probability is easy to imagine in cases where an event can, at least in principle, occur repeatedly. An example would be obtaining a 6 when tossing a die again and again. However, this frequentist view of probability is difficult to justify when talking about certain one-of-a-kind events, such as earthquakes. In such situations, probability is expressing our uncertainty about the event happening.
+
+Both the frequency-based and the uncertain-belief perspective have their place in statistical inference, and depending on the situation, we are going to rely on both ways of thinking.
+
+The probability of an event happening is defined to be constrained in the following way.  For now, we consider discrete events, such as obtaining a 6 when tossing a six-sided die. The statements below are not formal definitions of the axioms of probability theory; for more details (and more precise formulations), see @RossProb or @kolmogorov2018foundations. Another formal presentation is in @resnick2019probability.
+
+* The probability of an event must lie between 0 and 1, where 0 means that the event is impossible and cannot happen, and 1 means that the event is certain to happen.
+* For any two mutually exclusive events, the probability that one or the other occurs is the sum of their individual probabilities.
+* Two events are independent if and only if the probability of both happening is equal to the product of the probabilities of each event happening.
+* The probabilities of all possible events in the entire sample space must sum up to 1.
+
+The above definitions are based on the axiomatic definition of probability by @kolmogorov2018foundations.
+
+
+In the context of data analysis, we will talk about probability in the following way. Consider some data that we might have collected. This could be discrete 0,1 responses in a question-response accuracy task, or continuous measurements of reading times in milliseconds from an eyetracking study, etc. In any such cases, we will say that the data are being generated from a \index{Random variable} *random variable*, which we will designate with a capital letter such as $Y$.^[Here, we use $Y$, but we could have used any letter, such as $X, Z,...$. Later on, in some situations we will use Greek letters like $\theta, \mu, \sigma$ to represent a random variable.]
+
+The actually observed outcome (a 0,1 response; reading time, etc.) will be distinguished from the random variable that generated it by using lower case $y$. We can call $y$ an instance of $Y$; every new observed outcome will be slightly different due to random variability.
+
+We can summarize the above informal concepts relating to random variables very compactly if we re-state them in mathematical form. A mathematical statement has the advantage not only of brevity but also of reducing (and hopefully eliminating) ambiguity.
+
+So, stating the definition of random variables formally [following @blitzstein2014introduction], we define a random variable $Y$ as a function from a sample space of possible \index{outcome} outcomes $S$ to the real number system:^[The actual formal definition of random variable is more complex, and it is based on measure theory. A more rigorous definition can be found in, for example, @steyer2017probability and @resnick2019probability.]
+
+\begin{equation}
+Y : S \rightarrow \mathbb{R}
+\end{equation}
+
+The random variable associates to each outcome $\omega \in S$ exactly one number $Y(\omega) = y$. Suppose that $y$ represents all the possible values that the random  variable generates; these values are taken to belong to the support of the random variable $Y$: $y \in S_Y$.
+
+As a concrete example, consider an experiment where we ask subjects to respond to 10 questions that can either have a correct or incorrect answer. A possible outcome is the following sequence of correct (represented as c) and incorrect (represented as i) answers: $ciciccicci$. Another possible outcome is $cciicicici$. The random variable would associate a number with each possible outcome; for example, the number of correct responses. So, for outcome $ciciccicci$ the random variable could be defined to return the number 6 (the number of correct responses); and for $cciicicici$ the number 5.  The outcomes $\omega$ are the sequences of correct and incorrect answers: $S=\{cciicicici,ciciccicci,...\}$. And $y \in S_Y$ can have the values $0$ or $1$,..., $10$; thus, $S_Y$ is a subset of $\mathbb{R}$.
+
+An \index{event} event is distinguished from an outcome as follows: an event is a subset of the set of outcomes. For example, in a particular experiment with a particular subject, the actually observed event would be a set with only one element, an outcome, for example cciicicici. We will say that the event $\{cciicicici\}$ occurred.
+
+We will say that the number of correct responses from a subject is generated from a random variable $Y$. Because only discrete responses are possible (the number of correct responses can be $0, 1, 2, \ldots, 10$), this is an example of a *discrete random variable*.
+
+This random variable will be assumed to have a parameter $\theta$ that represents the probability of producing a correct response (as discussed below, you will see that the random variable in question is the binomial random variable). Given some observed data that is assumed to come from a particular distribution, typically our goal is to obtain an estimate of the (unknown) value of the parameter associated with that distribution. More generally, if there is more than one parameter involved in the distribution, then our goal is to obtain an estimate of these parameters.
+
+Now, suppose that in our above example, the random variable $Y$ gives us one correct answer; this will be written as $Y=1$. The  outcomes that could produce $1$ are any of this set of ten possible outcomes: $\{ciiiiiiiii,iciiiiiiii,iiciiiiiii,iiiciiiiii,...\}$.
+The set $\{ciiiiiiiii,iciiiiiiii,iiciiiiiii,iiiciiiiii,...\}$ is a subset of the sample space, so it is an event.
+The number $y=1$ thus represents this event (set of outcomes), and will have a probability of occurring associated with it; this is defined next.
+
+A discrete random variable $Y$ has associated with it a function called a \index{Probability mass function} *probability mass function* or PMF. This function, which is written $p(y)$,  gives us the probability of obtaining each of these $11$ possible values (from 0 correct responses to 10). We are using lower-case $p(y)$ here to denote a function of $y$. When we want to talk about the probability of observing $y$, we will use $P(y)$. In discrete random variables the value $p(y)$ will be the same as $P(y)$; but when we turn to continuous random variables, this equality will not hold.
+
+
+
+We will write that this PMF $p(y)$ depends on, or is conditional on, a particular fixed but unknown value for $\theta$; the PMF will be written  $p(y|\theta)$.^[A notational aside: In frequentist treatments, the PMF would be written $p(y;\theta)$, i.e., with a semi-colon rather than the conditional distribution marked by the vertical bar. The semi-colon is intended to indicate that in the frequentist paradigm, the parameters are fixed point values; by contrast, in the Bayesian paradigm, parameters are random variables. This has the consequence that for the Bayesian, the distribution of $y$, $p(y)$ is really a conditional distribution, conditional on a random variable, here $\theta$. For the frequentist, $p(y)$ requires some point value for $\theta$, but it cannot be a conditional distribution because $\theta$ is not a random variable. We define conditional distributions later in this section.]
+
+In frequentist approaches to data analysis, only the observed data $y$ are used to draw inferences about $\theta$. A typical question that we ask in the frequentist paradigm is: does $\theta$ have a particular value $\theta_0$? One can obtain estimates of the unknown value of $\theta$ from the observed data $y$, and then draw inferences about how different--or more precisely how far away--this estimate is from the hypothesized $\theta_0$. This is the essence of null hypothesis significance testing. The  conclusions from such a procedure are framed in terms of either rejecting the hypothesis that $\theta$ has value $\theta_0$, or failing to reject this hypothesis. Here, rejecting the null hypothesis is the primary goal of the statistical hypothesis test.
+
+Bayesian data analysis begins with a different question. What is common to the frequentist paradigm is the assumption that the data are generated from a random variable $Y$ and that there is a  function $p(y|\theta)$ that depends on the parameter $\theta$. Where the Bayesian approach diverges from the frequentist one is that an important goal is to express our uncertainty about $\theta$. In other words, we treat the parameter $\theta$ itself as a random variable, which means that we assign a probability distribution $p(\theta)$ to this random variable. This distribution $p(\theta)$ is called the \index{Prior distribution} *prior distribution* on $\theta$; such a distribution could express our belief about the probability of correct responses, before we observe the data $y$.
+
+In later chapters, we will spend some time trying to understand how such a prior distribution can be defined for a range of different research problems.
+
+Given such a prior distribution and some data $y$, the end-product of a Bayesian data analysis is what is called the \index{Posterior distribution} *posterior distribution* of the parameter (or parameters) given the data: $p(\theta | y)$. This posterior distribution is the probability distribution of $\theta$ after conditioning on $y$, i.e., after the data has been observed and is therefore known. All our statistical inference is based on this posterior distribution of $\theta$; we can even carry out hypothesis tests that are analogous (but not identical) to the likelihood ratio based frequentist hypothesis tests.
+
+We already mentioned conditional probability above when discussing the probability of the data given some parameter $\theta$, which we wrote as the PMF $p(y|\theta)$. Conditional probability is an important concept in Bayesian data analysis, not least because it allows us to derive Bayes' theorem. Let's look at the definition of conditional probability next.
+
+## \index{Conditional probability} Conditional probability {#condprob}
+
+Suppose that $A$ stands for some discrete event; an example would be "the streets are wet." Suppose also that $B$ stands for some other discrete event; an example is "it has been raining."  We can talk about the probability of the streets being wet given that it has been raining; or more generally, the probability of $A$ given that $B$ has happened.
+
+This kind of statement is written as $Prob(A|B)$ or more simply $P(A|B)$. This is the conditional probability of $A$ given $B$. Conditional probability is defined as follows.
+
+\begin{equation}
+P(A|B)= \frac{P(A,B)}{P(B)} \hbox{ where } P(B)>0
+\end{equation}
+
+The conditional probability of A given B is thus defined to be the joint probability of A and B, divided by the probability of B.
+We can rearrange the above equation so that we can talk about the \index{Joint probability} joint probability of both events $A$ and $B$ happening. This joint probability can be computed by first taking $P(B)$, the probability that event $B$ (it has been raining) happens, and multipling this by the probability that $A$ happens conditional on $B$, i.e., the probability that the streets are wet given it has been raining. This multiplication will give us $P(A,B)$, the joint probability of $A$ and $B$, i.e., that it has been raining and that the streets are wet. We will write the above description as: $P(A,B)=P(A|B)P(B)$.
+
+
+Now, since the probability $A$ and $B$ happening is the same as the probability of $B$ and $A$ happening, i.e., since $P(B,A)=P(A,B)$, we can equate the expansions of these two terms:
+
+\begin{equation}
+P(A,B) = P(A|B) P(B) \hbox{ and } P(B,A) = P(B|A)P(A)
+\end{equation}
+
+Equating the two expansions, we get:
+
+\begin{equation}
+P(A|B) P(B) = P(B|A)P(A)
+\end{equation}
+
+
+
+
+Dividing both sides by $P(B)$:
+
+\begin{equation}
+P(A|B)=\frac{P(B|A)P(A)}{P(B)}
+\end{equation}
+
+The above statement is \index{Bayes' rule} Bayes' rule, and is the basis for all the statistical inference we will do in this book.
+
+## The \index{Law of total probability} law of total probability
+
+Related to the above discussion of conditional probability is the law of total probability. Suppose that we have $A_1,\dots,A_n$ distinct outcomes that are pairwise disjoint which together make up the entire sample space $S$; see Figure \@ref(fig:lotp). Then, $P(B)$, the probability of $B$ happening, will be the sum of the probabilities $P(B\cap A_i)$, i.e., the sum of the joint probabilities of $B$ and each $A$ occurring (the symbol $\cap$ is the "and" operator used in set theory.)
+
+Formally:
+
+\begin{equation}
+P(B) = \sum_{i=1}^n P(B \cap A_i)
+\end{equation}
+
+Because of the conditional probability rule, we can rewrite this as:
+
+\begin{equation}
+P(B) = \sum_{i=1}^n P(B | A_i) P(A_i)
+\end{equation}
+
+Thus, the probability of $B$ is the sum of the conditional probabilities $P(B|A_i)$ weighted by the probability  $P(A_i)$. We  will see the law of total probability in action below when we talk about *marginal likelihood*.
+
+```{r lotp, fig.cap = "An illustration of the law of total probability.", out.width = "80%", echo = FALSE, fig.align = "center"}
+knitr::include_graphics("cc_figure/LOTPnoshadow.png", dpi = 1000)
+```
+
+For now, this is all the probability theory we need to know!
+
+The next sections expand on the idea of a random variable, the probability distributions associated with the random variable, what it means to specify a prior distribution on a parameter, and how the prior and data can be used to derive the posterior distribution of $\theta$.
+
+To make the discussion concrete, we will use an example of a discrete random variable, the binomial. After discussing this discrete random variable, we present another example, this time involving a continuous random variable, the normal random variable.
+
+
+
+
+The binomial and normal cases serve as the canonical examples that we will need in the initial stages of this book. We will introduce other random variables as needed: in particular, we will need the uniform and beta distributions. In other textbooks, you will encounter distributions like the Poisson, gamma, and the exponential. The most commonly used distributions and their properties are discussed in most textbooks on statistics (see Further Reading  at the end of this chapter).
+
+## \index{Discrete random variable} Discrete random variables: An example using the \index{Binomial distribution} binomial distribution {#sec-binomialcloze}
+
+Consider the following sentence:
+
+*"It's raining, I'm going to take the ...."*
+
+Suppose that our research goal is to estimate the probability, call it $\theta$, of the word "umbrella" appearing in this sentence, versus any other word. If the sentence is completed with the word "umbrella", we will refer to it as a success; any other completion will be referred to as a failure. This is an example of a binomial random variable: given $n$ trials, there can be only two possible outcomes in each trial, a success or a failure, and there is some true unknown probability $\theta$ of success that we want to estimate. When the number of trials $n$ is one, the random variable is called a \index{Bernoulli distribution} Bernoulli distribution. So the Bernoulli distribution is the binomial distribution with the number of trials $n=1$.
+
+
+One way to empirically estimate this probability of success is to carry out a \index{Cloze task} *cloze task*. In a cloze task, subjects are asked to complete a fragment of the original sentence, such as "It's raining, I'm going to take the ...".  The predictability or cloze probability of "umbrella" is then calculated as the proportion of times that the target word "umbrella" was produced as an answer by subjects.
+
+Assume for simplicity that $10$ subjects are asked to complete the above sentence; each subject does this task only once. This gives us $10$ independent trials that are either coded a success ("umbrella" was produced) or as a failure (some other word was produced). We can sum up the number of successes to calculate how many of the $10$ trials had "umbrella" as a response. For example, if $8$ instances of "umbrella" are produced in $10$ trials, we would estimate the cloze probability of producing "umbrella" to be $8/10$.
+
+We can repeatedly generate simulated sequences of the number of successes in `R` (later on we will demonstrate how to generate such random sequences of simulated data). Here is a case where we carry out  $20$ experiments, and each experiment will have $10$ trials.
+
+Before we look at the `R` code for generating such simulated data, some notational conventions are needed to avoid confusion. In the function we use below (`rbinom()`) for generating simulated data, `n` refers to the number of experiments, which in the `R` function's terminology is the number of observations. By contrast, `size` is the number of trials. This means that in the example below, `n` refers to the number of experiments conducted; because in `R`-speak these are called observations, we are also going to adopt this terminology. So, if $20$ experiments are done, each with $10$ trials, we will say that we have $20$ observations, each with $10$ trials.
+
+```{r}
+## n=the number of observations (no. of experiments)
+## size=the number of trials in each observation
+rbinom(n = 20, size = 10, prob = 0.5)
+```
+
+The number of successes in each of the $20$ simulated observations above is being generated by a discrete random variable $Y$ with a probability distribution $p(y|\theta)$ called the *binomial distribution*.
+
+For discrete random variables such as the binomial, the probability distribution $p(y|\theta)$ is called a \index{Probability mass function} probability mass function  \index{PMF} (PMF).  The PMF defines the probability of each possible event. In the above example, with the number of trials $\hbox{size}=10$, there are in principle $11$ possible events that could produce $y=0,1,2,...,10$ successes. Which of these is most probable depends on the parameter $\theta$ in the binomial distribution that represents the probability of success.
+
+The left-hand side plot in Figure \@ref(fig:binomplot) shows an example of a binomial PMF with $10$ trials, with the parameter $\theta$ fixed at $0.5$. Setting $\theta$ to $0.5$ leads to a PMF where the most probable outcome is $5$ successes out of $10$. If we had set $\theta$ to, say $0.1$, then the most probable outcome would be $1$ success out of $10$; and if we had set $\theta$ to $0.9$, then the most probable outcome would be $9$ successes out of $10$.
+
+(ref:binomplot) Probability mass functions of a binomial distribution assuming 10 trials, with 50%, 10%, and 90% probability of success.
+
+```{r binomplot, fig.cap = "(ref:binomplot)", echo=FALSE, fig.show="hold", out.width="30%" , fig.width = 2.2, fig.height =2.2 }
+
+ggplot(tibble(x = c(0, 10)), aes(x)) +
+   stat_function(fun = dbinom, geom = "col",
+                 args = list(size = 10, prob = 0.5), n = 11) +
+  xlab("Possible outcomes") +
+  ylab("Probability") +
+  ggtitle(expression(paste(theta, " = 0.5", sep = ""))) +
+  scale_x_continuous(breaks = 0:10)
+
+
+ggplot(tibble(x = c(0, 10)), aes(x)) +
+   stat_function(fun = dbinom, geom = "col",
+                 args = list(size = 10, prob = 0.1), n = 11) +
+  xlab("Possible outcomes") +
+  ylab("Probability") +
+  ggtitle(expression(paste(theta, " = 0.1", sep = ""))) +
+  scale_x_continuous(breaks = 0:10)
+
+
+ggplot(tibble(x = c(0, 10)), aes(x)) +
+   stat_function(fun = dbinom, geom = "col",
+                 args = list(size = 10, prob = 0.9), n = 11) +
+  xlab("Possible outcomes") +
+  ylab("Probability") +
+  ggtitle(expression(paste(theta, " = 0.9", sep = ""))) +
+  scale_x_continuous(breaks = 0:10)
+```
+
+The probability mass function for the binomial is written as follows. Here, it is again important to pay attention to the notation, as there is potential for confusion given the conventions in the `rbinom` function we saw earlier.
+
+\begin{equation}
+\mathit{Binomial}(k|n,\theta) =
+\binom{n}{k} \theta^{k} (1-\theta)^{n-k}
+\end{equation}
+
+Here, $n$ represents the total number of **trials**,
+and corresponds to `size` in the `rbinom` function; the confusion that can arise here is that in the `rbinom` function `n` is used to represent the number of observations (or the number of experiments). It is important to remember that in the definition of the probability mass function above, $n$ represents the total number of trials in a single observation (or experiment).
+
+The variable $k$ the number of successes (this could range from 0 to 10), and $\theta$ the probability of success. The term $\binom{n}{k}$, pronounced n-choose-k, represents the number of ways in which one can obtain $k$ successes in an experiment with $n$ trials. For example, $1$ success out of $10$ can occur in $10$ possible ways: the very first observation could be a $1$, or the second observation could be a $1$, etc.
+The term $\binom{n}{k}$ expands to $\frac{n!}{k!(n-k)!}$. In R, it is computed using the function `choose(n,k)`, with $n$ and $k$ representing positive integer values.
+
+When we want to express the fact that the data is assumed to be generated from a binomial random variable, we will write $Y \sim \mathit{Binomial}(n,\theta)$. If the data is generated from a random variable that has some other probability distribution $f(\theta)$, we will write $Y\sim f(\theta)$. In this book, we use  $f(\cdot)$ synonymously with $p(\cdot)$ to represent a probability density/mass function.
+
+### The mean and variance of the binomial distribution
+
+It is possible to analytically compute the mean (expectation) and variance of the PMF associated with the binomial random variable $Y$.
+
+The \index{Expectation} expectation of a discrete random variable $Y$ with probability mass function f(y), is defined as
+
+
+\begin{equation}
+E[Y] = y_1 \cdot f(y_1) + \dots +  y_n \cdot f(y_n) = \sum_{i=1}^n y_i \cdot f(y_i)
+\end{equation}
+
+As a simple example, suppose that we toss a fair coin once. The possible events are Tails (represented as $y_1 = 0$) and Heads (represented as $y_2 = 1$), each with equal probability, 0.5. The expectation is:
+
+\begin{equation}
+E[Y] = \sum_{i=1}^{2} y_i \cdot f(y_i) = 0\cdot 0.5 + 1\cdot 0.5 = 0.5
+\end{equation}
+
+The expectation has the interpretation that if we were to do the experiment a large number of times and calculate the sample mean of the observations, in the long run we would approach the value $0.5$. Another way to look at the above definition is that the expectation gives us the weighted mean of the possible outcomes, weighted by the respective probabilities of each outcome.
+
+Without getting into the details of how these are derived mathematically [@kerns2014introduction], we just state here that the mean of $Y$ (the expectation $E[Y]$) and the variance of $Y$ (written $Var(Y)$) of a binomial distribution with parameter $\theta$ and $n$ trials are $E[Y] = n\theta$ and $Var(Y) = n\theta (1-\theta)$, respectively.
+
+In the binomial example above, $n$ is a fixed number because we decide on the total number of trials before running the experiment. In the PMF, $\binom{n}{k} \theta^{k} (1-\theta)^{n-k}$, $\theta$ is also a fixed value; the only variable in a PMF is $k$. In real experimental situations, we never know the true point value of $\theta$. But $\theta$ can be estimated from the data. From the observed data, we can compute the estimate of $\theta$, $\hat \theta=k/n$. The quantity $\hat \theta$ is the observed proportion of successes, and is called the \index{Maximum likelihood estimate} *maximum likelihood estimate* of the true (but unknown) parameter $\theta$.^[Looking ahead to the rest of the book, in the Bayesian approach, the parameter of interest, $\theta$ in the present example, never has just a true unknown point value associated with it; instead, we use a probability distribution to express our belief about plausible values of the parameter. However, throughout this book, when generating simulated data, we will often use point values for parameters. These point values are adopted simply to evaluate the behavior of the model being investigated.]
+
+What does the term "maximum likelihood estimate" mean? In order to understand this term, it is necessary to first understand what a \index{Likelihood function} likelihood function is. Recall that in the discussion above, the PMF $p(k|n,\theta)$ assumes that $\theta$ and $n$ are fixed, and $k$ will have some value between $0$ and $10$ when the experiment is repeated multiple times.
+
+The  *likelihood function* refers to the PMF  $p(k|n,\theta)$, treated as a function of $\theta$. Once we have observed a particular value for $k$, this value  is now fixed, along with the number of trials $n$. Once $k$ and $n$ are fixed, the function $p(k|n,\theta)$ only depends on $\theta$. Thus, the likelihood function is the same function as the PMF, but assumes that the data from the completed experiment is fixed and only the parameter $\theta$ varies (from 0 to 1). The likelihood function is written $\mathcal{L}(\theta| k,n)$, or simply $\mathcal{L}(\theta)$.
+
+For example, suppose that we have $n=10$ trials, and observe $k=7$ successes. The likelihood function is:
+
+\begin{equation}
+\mathcal{L}(\theta|k=7,n=10)=
+\binom{10}{7} \theta^{7} (1-\theta)^{10-7}
+\end{equation}
+
+If we now plot the likelihood function for all possible values of $\theta$ ranging from $0$ to $1$, we get the plot shown in Figure \@ref(fig:binomlik).
+
+```{r, binomlik,echo=FALSE,fig.cap="The likelihood function for 7 successes out of 10." }
+ggplot(tibble(prob = c(0, 1)), aes(prob)) +
+  stat_function(fun = dbinom,
+                args = list(x = 7, size = 10)) +
+  xlab("theta") +
+  ylab("Likelihood") +
+  geom_vline(xintercept = .7, linetype = "dashed") +
+  annotate("text", x = .55, y =.05, label = "Max. value at: \n 0.7")+
+  ggtitle("Likelihood function")
+
+```
+
+What is important about this plot is that it shows that, given the data, the maximum point is at the point $0.7$, which corresponds to the estimated mean using the formula shown above: $k/n = 7/10$. Thus, the maximum likelihood estimate \index{MLE} (MLE) gives us the most likely value that the parameter $\theta$ has, given the data. In the binomial, the proportion of successes $k/n$ can be shown to be the maximum likelihood estimate of the parameter $\theta$ [e.g., see p. 339-340 of @millermiller].
+
+A crucial point: the "most likely" value of the parameter is with respect to the data at hand. The goal is to estimate an unknown parameter value from the data. This estimated parameter value is chosen such that the probability (discrete case) or probability density (continuous case) of getting the sample values (i.e., the data) is a maximum. This parameter value is the maximum likelihood estimate (MLE).
+
+This MLE from a particular sample of data need not invariably give us an accurate estimate of $\theta$. For example, if we run our experiment with $10$ trials and get $1$ success out of $10$, the MLE is $0.10$. We could have just happened to observe only one success out of ten by chance, even if the true $\theta$ were $0.7$. If we were to repeatedly run the experiment with increasing sample sizes, as the sample size increases, the MLE would converge to the true value of the parameter. Figure \@ref(fig:lawlargenos) illustrates this point. The key point here is that with a smaller sample size, the MLE from a particular data set may or may not point to the true value.
+
+```{r, lawlargenos,echo=FALSE,fig.cap="The plot shows the estimate of the mean proportion of successes sampled from a binomial distribution with true probability of success 0.7, with increasing sample sizes. As the sample size increases, the estimate converges to  the true value of 0.7." }
+n <- c(seq(10, 100, by = 1),
+       seq(100, 1000, by = 10),
+       seq(1000, 10000, by = 50),
+       seq(10000, 100000, by = 100))
+mean_store <- rep(NA, length(n))
+for (i in 1:length(n)) {
+  y <- rbinom(n = n[i], size = 1, prob = 0.7)
+  mean_store[i] <- mean(y)
+}
+
+mle <- data.frame(n = n, mean_store = mean_store)
+
+ggplot(mle, aes(x = n, y = mean_store)) +
+  geom_point() +
+  scale_x_log10() + ylim(0, 1) +
+  xlab("sample size n (log scale)") + ylab("estimate") +
+  geom_hline(yintercept = 0.7) +
+  ggtitle("The MLE  as a function of sample size")
+```
+
+### What information does a probability distribution provide?
+
+In Bayesian data analysis, we will constantly be asking the question: what information does a probability distribution give us? In particular, we will treat each parameter $\theta$ as a random variable; this will raise questions like: "what is the probability that the parameter $\theta$ lies between two values $a$ and $b$"; and "what is the range over which we can be 95% certain that the parameter lies"? In order to be able to answer questions like these, we need to know what information we can obtain once we have decided on a probability distribution that is assumed to have generated the data, and how to extract this information using R.  We therefore discuss the different kinds of information we can obtain from a probability distribution. For now we focus only on the binomial random variable introduced above.
+
+#### Compute the probability of a particular outcome (discrete case only)
+
+The binomial distribution shown in Figure \@ref(fig:binomplot) already shows the probability of each possible event under a different value for $\theta$. In `R`, there is a built-in function that allows us to calculate the probability of $k$ successes out of $n$, given a particular value of $k$ (this number constitutes our data), the number of trials $n$, and given a particular value of $\theta$; this is the `dbinom()` function. For example, the probability of 5 successes out of 10 when $\theta$ is $0.5$ is (note: we are using $k$ to represent the number of successes, but the `dbinom` function below uses $x$ instead):
+
+```{r dnormexample1}
+dbinom(x = 5, size = 10, prob = 0.5)
+```
+
+The probabilities of success when $\theta$ is $0.1$ or $0.9$ can be computed by replacing $0.5$ above by each of these probabilities. One can just do this by giving `dbinom()` a vector of probabilities:
+
+```{r}
+dbinom(x = 5, size = 10, prob = c(0.1, 0.9))
+```
+
+The probability of a particular outcome like $k=5$ successes is only computable in the discrete case. In the continuous case, the probability of obtaining a particular point value will always be zero (we discuss this when we turn to continuous probability distributions below).
+
+
+#### Compute the \index{Cumulative probability} cumulative probability of k or less (more) than k successes
+
+Using the `dbinom()` function, we can compute the cumulative probability of obtaining 1 or less, 2 or less successes, etc. This is done through a simple summation procedure:
+
+```{r cdfbinom1,echo=TRUE}
+## the cumulative probability of obtaining
+## 0, 1, or 2 successes out of 10 trials,
+## with theta=0.5:
+dbinom(x = 0, size = 10, prob = 0.5) +
+  dbinom(x = 1, size = 10, prob = 0.5) +
+  dbinom(x = 2, size = 10, prob = 0.5)
+```
+
+Mathematically, we could write the above summation as:
+
+\begin{equation}
+\sum_{k=0}^2 \binom{n}{k} \theta^{k} (1-\theta)^{n-k}
+\end{equation}
+
+An alternative to the cumbersome addition in the `R` code above is this more compact statement, which is identical to the above mathematical expression:
+
+```{r}
+sum(dbinom(0:2, size = 10, prob = 0.5))
+```
+
+`R` has a built-in function called `pbinom()` that does this summation for us.  If we want to know the probability of $2$ or fewer than $2$ successes as in the above example, we can write:
+
+```{r pbinomexample1,echo=TRUE}
+pbinom(2, size = 10, prob = 0.5, lower.tail = TRUE)
+```
+
+The specification `lower.tail = TRUE` (the default value) ensures that the summation goes from $2$ to numbers smaller than $2$ (which lie in the lower tail of the distribution in Figure \@ref(fig:binomplot)). If we wanted to know what the probability is of obtaining $3$ or more successes out of $10$, we can set `lower.tail` to `FALSE`:
+
+```{r pbinomexample2,echo=TRUE}
+pbinom(2, size = 10, prob = 0.5, lower.tail = FALSE)
+## equivalently:
+## sum(dbinom(3:10,size = 10, prob = 0.5))
+```
+
+The cumulative distribution function  \index{Cumulative distribution function} or CDF \index{CDF} for a random variable $Y$ is thus related to the corresponding probability mass/density function, and is written as follows:
+
+\begin{equation}
+F_Y(a) = P(Y\leq a)
+\end{equation}
+
+The CDF can be plotted by computing the cumulative probabilities for any value $k$ or less than $k$, where $k$ ranges from $0$ to $10$ in our running example. The CDF is shown in Figure \@ref(fig:binomcdf).
+
+
+```{r, binomcdf,echo=FALSE,fig.cap="The cumulative distribution function for a binomial distribution assuming 10 observations, with 50% probability of success." }
+ggplot(tibble(q = c(0, 10)), aes(q)) +
+  stat_function(fun = pbinom, geom = "col",
+                args = list(size = 10, prob = 0.5), n = 11) +
+  xlab("Possible outcomes k") +
+  ylab("Probab. of k or less successes") +
+  ggtitle("Cumulative distribution function") +
+  scale_x_continuous(breaks = 0:10)
+```
+
+#### Compute the inverse of the cumulative distribution function (the quantile function)
+
+We can also find out the value of the variable $k$ (the quantile) such that the probability of obtaining $k$ or less than $k$ successes is some specific probability value $p$. If we switch the x and y axes of Figure \@ref(fig:binomcdf), we obtain another very useful function, the inverse of the CDF.
+
+The \index{Inverse of the CDF} inverse of the CDF (known as the \index{Quantile function} quantile function in R because it returns the quantile, the value $k$) is available in `R` as the function `qbinom()`. The usage is as follows: to find out what the value $k$ of the outcome is such that the probability of obtaining $k$ or less successes is $0.37$, type:
+
+```{r qbinomexample,echo=TRUE}
+qbinom(p = 0.37, size = 10, prob = 0.5)
+```
+
+One can visualize the inverse CDF of the binomial as in Figure \@ref(fig:inverseCDFbinomial).
+
+(ref:inverseCDFbinomial) The inverse CDF for the binomial with 10 trials (size=10) and probability of $0.5$.
+
+```{r inverseCDFbinomial,echo=FALSE,fig.cap="(ref:inverseCDFbinomial)"}
+probs <- seq(0, 1, by = 0.01)
+invcdf<-data.frame(probs = probs,
+                   q= qbinom(probs,
+                             size = 10,
+                             prob = 0.5))
+
+ggplot(invcdf, aes(x = probs, y = q)) +
+  geom_line() +
+  xlim(0,1)+
+  xlab("probability")+ylab("quantile")+
+  ggtitle("Inverse CDF,  binomial(size=10,prob=0.5)")+
+  scale_y_continuous(breaks = seq(0, 10, by = 1))
+```
+
+#### Generate simulated data from a $\mathit{Binomial}(n,\theta)$ distribution
+
+We can generate \index{Simulate data} simulated data from a binomial distribution by specifying the number of observations or experiments (`n`), the number of trials (`size`), and the probability of success $\theta$. In `R`, we do this as follows:
+
+```{r rbinomexample,echo=TRUE}
+rbinom(n = 1, size = 10, prob = 0.5)
+```
+
+The above code generates the number of successes in an experiment with $10$ trials. Repeatedly run the above code; we will get different numbers of successes each time.
+
+As mentioned earlier, if there is only one trial, then instead of the binomial distribution, we have a \index{Bernoulli distribution} Bernoulli distribution. For example, if we have 10 experiments from a Bernoulli distribution, where the probability of success is 0.5, we can simulate data as follows using the function `rbern()` from the package `extraDistr`.
+
+```{r rbernoulliexample, echo=TRUE}
+rbern(n = 10, prob = 0.5)
+```
+
+ The above kind of output can also be generated by using the `rbinom()` function:  `rbinom(n = 10, size = 1, prob = 0.5)`.
+When the data are generated using the `rbinom()` function in this way, one can calculate the number of successes by just summing up the vector, or computing its mean and multiplying by the number of trials, here $10$:
+
+
+```{r rbinomexamplemean,echo=TRUE}
+(y <- rbinom(n = 10, size = 1, prob = 0.5))
+mean(y) * 10
+sum(y)
+```
+
+
+## \index{Continuous random variable} Continuous random variables: An example using the \index{Normal distribution} normal distribution
+
+We will now revisit the idea of the random variable using a \index{Continuous distribution} continuous distribution. Imagine that we have a vector of reading time data $y$ measured in milliseconds and coming from a normal distribution. The normal distribution is defined in terms of two parameters:  the \index{Location} *location*, its mean value $\mu$, which determines its center, and the \index{Scale} *scale*, its standard deviation, $\sigma$, which determines how much spread there is around this center point.
+
+The \index{Probability density function} probability density function \index{PDF} (PDF) of the normal distribution is defined as follows:
+
+\begin{equation}
+\mathit{Normal}(y|\mu,\sigma)=f(y)= \frac{1}{\sqrt{2\pi \sigma^2}} \exp \left(-\frac{(y-\mu)^2}{2\sigma^2} \right)
+\end{equation}
+
+Here, $\mu$ is some true, unknown mean, and $\sigma^2$ is some true, unknown variance of the normal distribution that the reading times have been sampled from. There is a built-in function in `R` that computes the above function once we specify the mean $\mu$ and the standard deviation $\sigma$ (in `R`, this parameter is specified in terms of the standard deviation rather than the variance).
+
+Figure \@ref(fig:normdistrn) visualizes the normal distribution for particular values of $\mu$ and $\sigma$, as a PDF (using `dnorm()`), a CDF (using `pnorm()`), and the inverse CDF (using `qnorm()`). It should be clear from the figure that these are three different ways of looking at the same information.
+
+```{r, normdistrn,echo=FALSE,fig.cap="The PDF, CDF, and inverse CDF for the $\\mathit{Normal}(\\mu=500,\\sigma=100)$." , fig.show="hold", out.width="30%", fig.width = 2.2, fig.height =2.2 }
+ggplot(tibble(x = c(200, 900)), aes(x)) +
+  stat_function(fun = dnorm,
+                args = list(mean = 500, sd = 100)) +
+  xlab("y") +
+  ylab("Density") +
+  ggtitle("PDF")
+
+ggplot(tibble(x = c(200, 900)), aes(x)) +
+  stat_function(fun = pnorm,
+                args = list(mean = 500, sd = 100)) +
+  xlab("y") +
+  ylab("Probability") +
+  ggtitle("CDF")
+
+ggplot(tibble(y = c(0, 1)), aes(y)) +
+  stat_function(fun = qnorm,
+                args = list(mean = 500, sd = 100)) +
+  xlab("Probability") +
+  ylab("y") +
+  ggtitle("Inverse CDF")
+```
+
+
+
+As in the discrete example, the PDF, CDF, and inverse of the CDF allow us to ask questions like:
+
+* What is the probability of observing values between $a$ and $b$ from a normal distribution with mean $\mu$ and standard deviation $\sigma$? Using the above example, we can ask what the probability is of observing values between $200$ and $700$ ms:
+
+```{r pnormexample}
+pnorm(700, mean = 500, sd = 100) - pnorm(200, mean = 500, sd = 100)
+```
+
+The probability that the random variable takes any specific point value is zero. This is because the probability in a continuous probability distribution is the area under the curve, and the area at any point on the x-axis is always zero. The implication here is that it is only meaningful to ask about probabilities between two different point values; e.g., the probability that $Y$ lies between $a$ and $b$, or $P(a<Y<b)$. Notice that $P(a<Y<b)$ is the same statement as $P(a\leq Y\leq b)$. Of course, for any particular point value, the PDF itself does not return the value zero; but the value returned by the PDF is not the probability of that particular value occurring. It is the density of that particular value; and if the PDF is seen as a function of the parameters, it is the likelihood of that particular value.
+
+
+* What is the \index{Quantile} quantile $q$ such that the probability is $p$ of observing that value $q$ or a value more extreme than $q$? For example, we can work out the quantile $q$ such that the probability of observing $q$ or some value less than it is $0.975$, in the $\mathit{Normal}(500,100)$ distribution. Formally, we would write this as $P(Y<a)$.
+
+```{r qnormexample}
+qnorm(0.975, mean = 500, sd = 100)
+```
+
+The above output says that the quantile value $q$ such that $Prob(X<q)=0.975$ is $q=696$.
+
+* Generate \index{Simulate data} simulated data. Given a vector of $n$ independent and identically distributed data $y$, i.e., given that each data point is being generated independently from  $Y \sim \mathit{Normal}(\mu,\sigma)$ for some values of the parameters, the sample mean and standard deviation^[`R` will compute the standard deviation by dividing by $n-1$, not $n$; this is because dividing by $n$ gives a biased estimate [chapter 10 of @millermiller]. This is not an important detail for our purposes, and in any case for large $n$ it doesn't really matter whether one divides by $n$ or $n-1$.] are:
+
+\begin{equation}
+\bar{y} =  \frac{\sum_{i=1}^n y_i}{n}
+\end{equation}
+
+\begin{equation}
+sd(y) = \sqrt{\frac{\sum_{i=1}^n (y_i-
+\bar{y})^2}{n}}
+\end{equation}
+
+
+For example, we can generate $10$ data points using the `rnorm()` function, and then use the simulated data to compute the mean and standard deviation:
+
+```{r rnormexample}
+y <- rnorm(10, mean = 500, sd = 100)
+mean(y)
+sd(y)
+```
+
+Again, the sample mean and sample standard deviation computed from a particular (simulated or real) data set need not necessarily be close to the true values of the respective parameters. Especially when sample size is small, one can end up with mis-estimates of the mean and standard deviation.
+
+Incidentally, simulated data can be used to generate all kinds of statistics. For example, we can compute the lower and upper quantiles such that 95% of the simulated data are contained within these quantiles:
+
+```{r}
+quantile(y, probs = c(0.025, 0.975))
+```
+
+Later on, this function will be used to generate summary statistics once we have obtained samples of a parameter after we have fit a model using Stan/brms.
+
+### An important distinction: probability vs. density in a continuous random variable
+
+In continuous distributions like the normal discussed above, it is important to understand that the \index{Probability density function} probability density function or \index{PDF} PDF, $p(y| \mu, \sigma)$ defines a mapping from the $y$ values (the possible values that the data can have) to a quantity called the density of each possible value. We can see this function in action when we use `dnorm()` to compute, say, the density value corresponding to $y=1$ and $y=2$ in the standard normal distribution, that is, a normal distribution with a mean of zero and a standard deviation of one.
+
+```{r}
+## density:
+dnorm(1, mean = 0, sd = 1)
+dnorm(2, mean = 0, sd = 1)
+```
+
+If the density at a particular point value like $1$ is high compared to some other value ($2$ in the above example) then this point value $1$ has a higher \index{Likelihood} likelihood than $2$ in the standard normal distribution.
+
+The quantity computed for the values $1$ and $2$ are *not* the probability of observing $1$ or $2$ in this distribution. As mentioned earlier, probability in a continuous distribution is defined as the area under the curve, and this area will always be zero at any point value (because there are infinitely many different possible values). If we want to know the probability of obtaining values between an upper and lower bound $b$ and $a$, i.e., $P(a<Y<b)$ where these are two distinct values, we must use the \index{Cumulative distribution function} cumulative distribution function or \index{CDF} CDF: in R, for the normal distribution, this is the `pnorm()` function. For example, the probability of observing a value between $+2$ and $-2$ in a normal distribution with mean $0$ and standard deviation $1$ is:
+
+```{r}
+pnorm(2, mean = 0, sd = 1) - pnorm(-2, mean = 0, sd = 1)
+```
+
+The situation is different in discrete random variables. These have a \index{Probability mass function} probability mass function \index{PMF} (PMF) associated with them---an example is the binomial distribution that we saw earlier. There, the PMF maps the possible $y$ values to the probabilities of those values occurring. That is why, in the binomial distribution, the probability of observing exactly $2$ successes when sampling from a $\mathit{Binomial}(n=10,\theta=0.5)$ can be computed using either `dbinom()` or `pbinom()`:
+
+```{r}
+dbinom(2, size = 10, prob = 0.5)
+pbinom(2, size = 10, prob = 0.5) - pbinom(1, size = 10, prob = 0.5)
+```
+
+In the second line of code above, we are computing the cumulative probability of observing two or less successes, minus the probability of observing one or less successes. This gives us the probability of observing exactly two successes. The `dbinom()` gives us this same information.
+
+### Truncating a normal distribution
+
+In the above discussion, the support for the normal distribution ranges from minus infinity to plus infinity.  One can define PDFs with a more limited support; an example would be a normal distribution whose PDF $f(x)$ is such that the lower bound is truncated at $0$ to allow only positive values. In such a case, the area under the range minus infinity to zero ($\int_{-\infty}^0 f(x) \, dx$) will be $0$ because the range lies outside the support of the truncated normal distribution. Also,  if one truncates a probability density function like the standard normal ($\mathit{Normal}(0,1)$) at $0$, in order to make the area between zero and plus infinity sum up to $1$, we would have to multiply the truncated distribution f(x) by some factor $k$ such that the following integral sums to $1$:
+
+\begin{equation}
+k \int_{0}^{\infty} f(x)\, dx = 1
+(\#eq:factork)
+\end{equation}
+
+Clearly, this factor is $k = \frac{1}{\int_{0}^{\infty} f(x)\, dx}$. For the standard normal, this integral is easy to compute using `R`; we just calculate the complement of the cumulative distribution (CCDF):
+
+```{r}
+pnorm(0, mean = 0, sd = 1, lower.tail = FALSE)
+## alternatively:
+1 - pnorm(0, mean = 0, sd = 1, lower.tail = TRUE)
+```
+
+Also, if we had truncated the distribution at 0 to the right instead of the left (allowing only negative values), we would have to find the factor $k$ in the same way as above, except that we would have to find $k$ such that:
+
+\begin{equation}
+k \int_{-\infty}^{0} f(x)\, dx = 1
+\end{equation}
+
+For the standard normal case, in `R`, this factor would require us to use the CDF:
+
+```{r}
+pnorm(0, mean = 0, sd = 1, lower.tail = TRUE)
+```
+
+Later in this book, we will be using such truncated distributions when doing Bayesian modeling, and when we use them, we will want to multiply the truncated distribution by the factor $k$ to ensure that it is still a proper PDF whose area under the curve sums to $1$. Truncated normal distributions will be discussed in more detail in Box \@ref(thm:truncation).
+
+## Bivariate and multivariate distributions
+
+So far, we have only discussed \index{Univariate} univariate distributions; these are distributions that involve only one variable. For example, when we talk about data generated from a Binomial distribution, or from a Normal distribution, these are univariate distributions.
+
+It is also possible to specify distributions with two or more dimensions. Some examples will make it clear what a bivariate (or more generally, multivariate) distribution is.
+
+### Example 1: \index{Discrete bivariate distribution} Discrete bivariate distributions
+
+Starting with the discrete case, consider the discrete \index{Bivariate distribution} bivariate distribution shown below. These are data from an experiment  where, inter alia, in each trial a Likert acceptability rating and a question-response accuracy were recorded [the data are from a study by @AnnaLphd, used with permission here]. Load the data by loading the `R` package `bcogsci`.
+
+```{r}
+data("df_discreteagrmt")
+```
+
+Figure \@ref(fig:bivardiscrete) shows the \index{Joint probability mass function} *joint probability mass function* of two random variables X and Y. The random variable $X$ consists of $7$ possible values (this is the $1-7$ Likert response scale), and the random variable $Y$ is question-response accuracy, with $0$ representing an incorrect response, and $1$ representing a correct response. One can also display Figure \@ref(fig:bivardiscrete) as a table; see Table \@ref(tab:discbivariatetabular).
+
+
+```{r bivardiscrete,message="FALSE",warning=FALSE,results="asis",fig.cap="Example of a discrete bivariate distribution. In these data, in every trial, two pieces of information were collected: Likert responses and yes-no question responses. The random variable X represents Likert scale responses on a scale of 1-7. and the random variable Y represents 0, 1 (incorrect, correct) responses to comprehension questions.", echo = FALSE}
+
+rating0 <- df_discreteagrmt %>% filter(accuracy == 0) %>%
+  count(rating) %>%
+  pull(n)
+rating1 <- df_discreteagrmt %>% filter(accuracy == 1) %>%
+  count(rating) %>%
+  pull(n)
+ratingsbivar <- tibble(`0` = rating0, `1` = rating1)
+## function from the bivariate package:
+gbvpmf(as.matrix(ratingsbivar)) %>%
+  plot(arrows = FALSE)
+
+rating0 <- df_discreteagrmt %>% filter(accuracy == 0) %>%
+  count(rating) %>%
+  pull(n)
+rating1 <- df_discreteagrmt %>% filter(accuracy == 1) %>%
+  count(rating) %>%
+  pull(n)
+ratingsbivar <- tibble(`0` = rating0, `1` = rating1)
+## function from the bivariate package:
+gbvpmf(as.matrix(ratingsbivar)) %>%
+  plot(arrows = FALSE)
+
+probs <- t(attr(gbvpmf(as.matrix(ratingsbivar)), "p"))
+colnames(probs) <- paste("x=",1:7,sep="")
+rownames(probs)<- paste("y=",0:1,sep="")
+```
+
+
+```{r discbivariatetabular,echo=FALSE, tidy = FALSE, results= "asis"}
+probs_f <- probs %>%
+                    apply(2, function(.x) paste0("$",round(.x,3), "$"))
+colnames(probs_f) <- paste0("$",colnames(probs), "$")
+rownames(probs_f) <- paste0("$",rownames(probs), "$")
+kableExtra::kable(probs_f,
+                  digits = 3, booktabs = TRUE,
+                  escape = FALSE,
+                  vline = "", # format="latex",
+  caption = "The joint PMF for two random variables X and Y.")
+```
+
+For each possible pair of values of $X$ and $Y$, we have a joint probability $p_{X,Y}(x,y)$. Given such a bivariate distribution, there are two useful quantities we can compute: the *marginal* distributions ($p_{X}$ and $p_Y$), and the *conditional* distributions ($p_{X|Y}$ and $p_{Y|X}$).  Table \@ref(tab:discbivariatetabular) shows the joint probability mass function $p_{X,Y}(x,y)$.
+
+#### Marginal distributions {#sec-marginalizing}
+
+The \index{Marginal  distribution} marginal  distribution $p_Y$ is defined as follows. $S_{X}$ is the support of $X$, i.e., all the possible values of $X$.
+
+\begin{equation}
+p_{Y}(y)=\sum_{x\in S_{X}}p_{X,Y}(x,y).\label{eq-marginal-pmf}
+\end{equation}
+
+Similarly, the marginal distribution $p_X$ is defined as:
+
+\begin{equation}
+p_{X}(x)=\sum_{y\in S_{Y}}p_{X,Y}(x,y).\label{eq-marginal-pmf2}
+\end{equation}
+
+$p_Y$ is computed, by summing up the rows; and $p_X$ by summing up the columns. We can see why this is called the marginal distribution; the result appears in the margins of the table. In the code below, the object `probs` contains bivariate PMF shown in Table \@ref(tab:discbivariatetabular).
+
+```{r}
+# P(Y)
+(PY <- rowSums(probs))
+sum(PY) ## sums to 1
+# P(X)
+(PX <- colSums(probs))
+sum(PX) ## sums to 1
+```
+
+The marginal probabilities sum to $1$, as they should. Table \@ref(tab:discbivariatetabularmarginal) shows the marginal probabilities.
+
+```{r discbivariatetabularmarginal,echo=FALSE, tidy = FALSE, results= "asis"}
+probs_f <- probs %>%
+  apply(2, function(.x) paste0("$",round(.x,3), "$"))
+
+## probs <- round(probs,3)
+## rownames(probs)[3]<-"P(X)"
+## colnames(probs)[8]<-"P(Y)"
+
+probs_f<-rbind(probs_f,paste0("$",round(PX,3),"$"))
+probs_f<-cbind(probs_f,c(paste0("$", round(PY,3),"$"),""))
+colnames(probs_f) <- paste0("$",c(colnames(probs),"P(Y)"), "$")
+rownames(probs_f) <- paste0("$",c(rownames(probs),"P(X)"), "$")
+
+kableExtra::kable(probs_f,
+                  escape = FALSE,
+                  digits = 3, booktabs = TRUE,
+                  vline = "", # format="latex",
+  caption = "The joint PMF for two random variables X and Y, along with the marginal distributions of X and Y.")
+```
+
+
+
+To compute the marginal distribution of $X$, one is summing over all the $Y$'s; and to compute the marginal distribution of $Y$, one sums over all the $X$'s. We say that we are *marginalizing out* the random variable that we are summing over. One can also visualize the two marginal distributions using barplots (Figure \@ref(fig:marginalbarplot)).
+
+```{r marginalbarplot,echo=FALSE,fig.cap="The marginal distributions of the random variables X and Y, presented as barplots."}
+op <- par(mfrow = c(1, 2), pty = "s")
+barplot(PX, main = "P(X)")
+barplot(PY, main = "P(Y)")
+```
+
+#### Conditional distributions
+
+For computing conditional distributions, recall that conditional probability (see section \@ref(condprob)) is defined as:
+
+\begin{equation}
+p_{X\mid Y}(x\mid y) = \frac{p_{X,Y}(x,y)}{p_Y(y)}
+\end{equation}
+
+and
+
+\begin{equation}
+p_{Y\mid X}(y\mid x) = \frac{p_{X,Y}(x,y)}{p_X(x)}
+\end{equation}
+
+The \index{Conditional distribution} conditional distribution of a random variable $X$ given that $Y=y$, where $y$ is some specific (fixed) value, is:
+
+\begin{equation}
+p_{X\mid Y} (x\mid y) = \frac{p_{X,Y}(x,y)}{p_Y(y)}	\quad \hbox{provided } p_Y(y)=P(Y=y)>0
+\end{equation}
+
+As an example, let's consider how $p_{X\mid Y}$ would be computed.
+The possible values of $y$ are $0,1$, and so we have to find the conditional distribution (defined above) for each of these values. That is, we have to find $p_{X\mid Y}(x\mid y=0)$, and $p_{X\mid Y}(x\mid y=1)$.
+
+Let's do the calculation for $p_{X\mid Y}(x\mid y=0)$.
+
+\begin{equation}
+\begin{split}
+p_{X\mid Y} (1\mid 0) =& \frac{p_{X,Y}(1,0)}{p_Y(0)}\\
+	=&  \frac{0.018}{0.291}\\
+	=& `r fractions(0.018/0.291)`
+\end{split}
+\end{equation}
+
+This conditional probability value will occupy the cell $X=1$, $Y=0$ in Table \@ref(tab:discbivariatetabularconditional) summarizing the conditional probability distribution $p_{X|Y}$. In this way, one can fill in the entire table, which will then represent the conditional distributions $p_{X|Y=0}$ and $p_{X|Y=1}$. The reader may want to take a few minutes to complete Table \@ref(tab:discbivariatetabularconditional). After the conditional probabilities have been computed, the rows should sum up to $1$.
+
+```{r discbivariatetabularconditional,echo=FALSE, tidy = FALSE, results= "asis"}
+y0<-c("$0.062$",rep("",6))
+y1<-rep("",7)
+conddistrn<-rbind(y0,y1)
+colnames(conddistrn)<-paste("$x=",1:7,"$",sep="")
+rownames(conddistrn)<-c("$p_{X|Y(x|y=0)}$","$p_{X|Y(x|y=1)}$")
+
+kableExtra::kable(conddistrn,
+                  digits = 3, booktabs = TRUE,
+                  escape = FALSE,
+                  vline = "", # format="latex",
+  caption = "A table for listing conditional distributions of X given Y.")
+```
+
+
+Similarly, one can construct a table that shows $p_{Y|X}$.
+
+#### Covariance and correlation
+
+Here, we briefly define the covariance and correlation of two discrete random variables. For detailed examples and discussion, see the references at the end of the chapter.
+Informally, if there is a high probability that large values of a random variable $X$ are associated with large values of another random variable $Y$, we will say that the \index{Covariance} covariance between the two random variable $X$ and $Y$, written $Cov(X,Y)$, is positive.
+
+The covariance of two (discrete) random variables $X$ and $Y$ is defined as follows. $E[\cdot]$ refers to the expectation of a random variable.
+
+\begin{equation}
+Cov(X,Y) = E[(X - E[X])(Y-E[Y])]
+\end{equation}
+
+It is possible to show that this is equivalent to:
+
+\begin{equation}
+Cov(X,Y) = E[XY] - E[X]E[Y]
+\end{equation}
+
+The \index{Expectation} expectation E[XY] is defined to be:
+
+\begin{equation}
+E[XY]=\sum_x \sum_y xy f_{X,Y}(x,y)
+\end{equation}
+
+If the standard deviations of the two random variables is $\sigma_X$ and $\sigma_Y$, the \index{Correlation} correlation between the two random variables, $\rho_{XY}$, is defined as:
+
+\begin{equation}
+\rho_{XY} = \frac{Cov(X,Y)}{\sigma_X\sigma_Y}
+\end{equation}
+
+
+
+### Example 2: \index{Continuous bivariate distribution} Continuous bivariate distributions {#sec-contbivar}
+
+Consider now the continuous bivariate case; this time, we will use simulated data. Consider two normal random variables $X$ and $Y$, each of which coming from, for example, a $\mathit{Normal}(0,1)$ distribution, with some correlation $\rho_{X,Y}$ between the two random variables.
+
+A bivariate distribution for two random variables $X$ and $Y$, each of which comes from a normal distribution, is expressed in terms of the means and standard deviations of each of the two distributions, and the correlation $\rho_{XY}$ between them. The standard deviations and correlation are expressed in a special form of a $2\times 2$ matrix called a \index{Variance-covariance matrix} variance-covariance matrix $\Sigma$. If $\rho_{XY}$ is the correlation between the two random variables, and $\sigma _{X}$ and $\sigma _{Y}$ the respective standard deviations, the variance-covariance matrix is written as:
+
+\begin{equation}\label{eq:covmatfoundations}
+\Sigma
+=
+\begin{pmatrix}
+\sigma _{X}^2  & \rho_{XY}\sigma _{X}\sigma _{Y}\\
+\rho_{XY}\sigma _{X}\sigma _{Y}    & \sigma _{Y}^2\\
+\end{pmatrix}
+\end{equation}
+
+The off-diagonals of this matrix contain the covariance between  $X$ and $Y$.
+
+The joint distribution of $X$ and $Y$ is defined as follows:
+
+\begin{equation}\label{eq:jointpriordistfoundations}
+\begin{pmatrix}
+  X \\
+  Y \\
+\end{pmatrix}
+\sim
+\mathcal{N}_2 \left(
+\begin{pmatrix}
+  0 \\
+  0 \\
+\end{pmatrix},
+\Sigma
+\right)
+\end{equation}
+
+The joint PDF is written with reference to the two variables $f_{X,Y}(x,y)$. It has the property that the volume under the surface that is bounded by the density function sums to 1---this sum-to-1 property is the same idea that we encountered in the univariate cases (the normal and binomial distributions), except that we are talking about a bivariate distribution here, so we talk about the volume under the surface rather than the area under the curve.
+
+Formally, we would write the volume as a double integral: we are summing up the volume under the surface representing the joint density for $X$ and $Y$ (hence the two integrals).
+
+\begin{equation}
+\iint_{S_{X,Y}} f_{X,Y}(x,y)\, dx dy = 1
+\end{equation}
+
+
+Here, the terms $dx$ and $dy$ express the fact that we are summing the volume under the surface.
+
+The joint CDF would be written as follows. The equation below gives us the probability of observing a value like $(u,v)$ or some value smaller than that (i.e., some $(u',v')$, such that $u'<u$ and $v'<v$).
+
+\begin{equation}
+\begin{split}
+F_{X,Y}(u,v) =& P(X<u,Y<v)\\
+             =& \int_{-\infty}^u \int_{-\infty}^v f_{X,Y}(x,y)\, dy dx\\
+\end{split}
+\end{equation}
+
+Just as in the discrete case, the \index{Marginal distribution} marginal distributions can be derived by marginalizing out the other random variable:
+
+\begin{equation}
+f_X(x) = \int_{S_Y} f_{X,Y}(x,y)\, dy, \quad f_Y(y) = \int_{S_X} f_{X,Y}(x,y)\, dx
+\end{equation}
+
+Here, $S_X$ and $S_Y$ are the respective supports.
+
+Here, the integral sign $\int$ is the continuous equivalent of the summation sign $\sum$ in the discrete case. Luckily, we will never have to compute such integrals ourselves; but it is important to appreciate how a marginal distribution arises from a bivariate distribution---by integrating out or marginalizing out the other random variable.
+
+A visualization will help. The figures below show a bivariate distribution with zero correlation (Figure \@ref(fig:zerocor)), a negative (Figure \@ref(fig:negcor)) and a positive correlation (Figure \@ref(fig:poscor)).
+
+```{r zerocor,echo=FALSE,fig.cap="A bivariate normal distribution with zero correlation. Shown are four plots: the top-right plot shows the three-dimensional bivariate density, the top-left plot the contour plot of the distribution (seen from above). The lower plots show the cumulative distribution function from two views, as a three-dimensional plot and as a contour plot."}
+f1 <- nbvpdf(0, 0, 1, 1, 0)
+# f1 %$% matrix.variances
+plot(f1,
+  all = TRUE, n = 20,
+  main = "No correlation"
+)
+```
+
+```{r negcor,echo=FALSE,fig.cap="A bivariate normal distribution with a negative  correlation of -0.6. Shown are four plots: the top-right plot shows the three-dimensional bivariate density, the top-left plot the contour plot of the distribution (seen from above). The lower plots show the cumulative distribution function from two views, as a three-dimensional plot and as a contour plot."}
+f3 <- nbvpdf(0, 0, 1, 1, -0.6)
+# f1 %$% matrix.variances
+plot(f3,
+  all = TRUE, n = 20,
+  main = "Correlation -0.6"
+)
+```
+
+
+```{r poscor,echo=FALSE,fig.cap="A bivariate normal distribution with a positive  correlation of 0.6. Shown are four plots: the top-right plot shows the three-dimensional bivariate density, the top-left plot the contour plot of the distribution (seen from above). The lower plots show the cumulative distribution function from two views, as a three-dimensional plot and as a contour plot."}
+f2 <- nbvpdf(0, 0, 1, 1, 0.6)
+# f1 %$% matrix.variances
+plot(f2,
+  all = TRUE, n = 20,
+  main = "Correlation 0.6"
+)
+```
+
+In this book, we will make use of such multivariate distributions a lot, and it will soon become important to know how to generate simulated bivariate or multivariate data that is correlated. So let's look at that next.
+
+### Generate \index{Simulate data} simulated bivariate \index{Multivariate} (multivariate) data {#sec-generatebivariatedata}
+
+Suppose we want to generate $100$ pairs of correlated continuous data, with correlation $\rho=0.6$. The two random variables both have a Normal PDF, and have mean $0$, and standard deviations $5$ and $10$, respectively.
+
+Here is how we would generate such data. First, define a variance-covariance matrix; then, use the multivariate analog of the `rnorm()` function, `mvrnorm()`, from the `MASS` package to generate $100$ data points.
+
+```{r}
+## define a variance-covariance matrix:
+Sigma <- matrix(c(5 ^ 2, 5 * 10 * 0.6, 5 * 10 * 0.6, 10 ^ 2),
+                byrow = FALSE, ncol = 2)
+## generate data:
+u <- mvrnorm(n = 100, mu = c(0, 0), Sigma = Sigma)
+head(u, n = 3)
+```
+
+Figure \@ref(fig:poscordata) confirms that the simulated data are positively correlated.
+
+```{r poscordata,echo=FALSE,fig.cap="The relationship between two positively correlated random variables, generated by simulating data using the R function mvrnorm from the MASS library."}
+ggplot(tibble(u_1 = u[, 1], u_2 = u[, 2]), aes(u_1, u_2)) +
+  geom_point()
+```
+
+
+One final useful fact about the variance-covariance matrix---one that we will need later---is that it can be decomposed into the component standard deviations and an underlying correlation matrix. For example, consider the matrix above:
+
+```{r}
+Sigma
+```
+
+One can decompose the matrix as follows. The matrix can be seen as the product of a diagonal matrix of the standard deviations and the correlation matrix:
+
+
+\begin{equation}
+\begin{pmatrix}
+5 &   0\\
+0 &  10\\
+\end{pmatrix}
+\begin{pmatrix}
+  1.0 & 0.6\\
+ 0.6  & 1.0\\
+\end{pmatrix}
+\begin{pmatrix}
+ 5 &   0\\
+0 &  10\\
+\end{pmatrix}
+\end{equation}
+
+One can reassemble the variance-covariance matrix by pre-multiplying and post-multiplying the correlation matrix with the diagonal matrix containing the standard deviations:^[There is a built-in convenience function, `sdcor2cov` in the `SIN` package that does this calculation, taking the vector of standard deviations (not the diagonal matrix) and the correlation matrix to yield the variance-covariance matrix: `sdcor2cov(stddev = sds, corr = corrmatrix)`.]
+
+\begin{equation}
+\begin{pmatrix}
+5 &   0\\
+0 &  10\\
+\end{pmatrix}
+\begin{pmatrix}
+  1.0 & 0.6\\
+ 0.6  & 1.0\\
+\end{pmatrix}
+\begin{pmatrix}
+ 5 &   0\\
+0 &  10\\
+\end{pmatrix}
+=
+\begin{pmatrix}
+25  & 30\\
+30  & 100\\
+\end{pmatrix}
+\end{equation}
+
+
+Using `R` (the symbol `%*%` is the matrix multiplication operator in `R`):
+
+```{r}
+## sds:
+(sds <- c(5, 10))
+## diagonal matrix:
+(sd_diag <- diag(sds))
+## correlation matrix:
+(corrmatrix <- matrix(c(1, 0.6, 0.6, 1), ncol = 2))
+
+sd_diag %*% corrmatrix %*% sd_diag
+```
+
+This decomposition and reassembly of the variance-covariance matrix will become important when we start building hierarchical models in Stan.
+
+## An important concept: The \index{Marginal likelihood} marginal likelihood \index{Integrating out a parameter} (integrating out a parameter) {#sec-marginal}
+
+Here, we introduce a concept that will turn up many times in this book. The concept we unpack here is called "integrating out a parameter". We will need this when we encounter Bayes' rule in the next chapter, and when we use Bayes factors later in the book (chapter \@ref(ch-bf)).
+
+Integrating out a parameter refers to the following situation. The example used here discusses the binomial distribution, but the approach is generally applicable for any distribution.
+
+Suppose we have a binomial random variable $Y$ with PMF $p(Y)$. Suppose also that this PMF is defined in terms of parameter $\theta$ that can have only three possible values, $0.1, 0.5, 0.9$, each with equal probability. In other words, the probability that  $\theta$ is $0.1, 0.5,$ or $0.9$ is $1/3$ each.
+
+We stick with our earlier example of $n=10$ trials and $k=7$ successes.
+The likelihood function then is
+
+\begin{equation}
+p(k=7,n=10|\theta) = \binom{10}{7} \theta^7 (1-\theta)^{3}
+\end{equation}
+
+There is a related concept of marginal likelihood, which we can write here as $p(k=7,n=10)$. Marginal likelihood is the likelihood computed by "marginalizing" out the parameter $\theta$: for each possible value that the parameter $\theta$ can have, we compute the likelihood at that value and multiply that likelihood with the probability/density of that $\theta$ value occurring. Then we  sum up each of the products computed in this way. Mathematically, this means that we carry out the following operation.
+
+In our example, there are three possible values of $\theta$,
+call them $\theta_1=0.1$, $\theta_2=0.5$, and $\theta_3=0.9$. Each has probability $1/3$; so $p(\theta_1)=p(\theta_2)=p(\theta_3)=1/3$. Given this information, we can compute the marginal likelihood as follows:
+
+\begin{equation}
+\begin{split}
+p(k=7,n=10) =& \binom{10}{7} \theta_1^7 (1-\theta_1)^{3} \times p(\theta_1) \\
+            +& \binom{10}{7} \theta_2^7 (1-\theta_2)^{3}\times p(\theta_2) \\
+            +& \binom{10}{7} \theta_3^7 (1-\theta_3)^{3}\times p(\theta_3)
+\end{split}
+\end{equation}
+
+Writing the $\theta$ values and their probabilities, we get:
+
+\begin{equation}
+\begin{split}
+p(k=7,n=10) =& \binom{10}{7} 0.1^7 (1-0.1)^{3} \times \frac{1}{3} \\
+            +& \binom{10}{7} 0.5^7 (1-0.5)^{3}\times \frac{1}{3} \\
+            +& \binom{10}{7} 0.9^7 (1-0.9)^{3}\times \frac{1}{3}
+\end{split}
+\end{equation}
+
+Taking the common factors ($\frac{1}{3}$ and $\binom{10}{7}$) out:
+
+\begin{equation}
+\begin{split}
+p(k=7,n=10) =& \frac{1}{3} \binom{10}{7}[ 0.1^7 (1-0.1)^{3} \\
++&  0.5^7 (1-0.5)^{3} \\
++&  0.9^7 (1-0.9)^{3}] \\
+=& `r sum(dbinom(7,size=10,prob=c(0.1,0.5,0.9)))/3`
+\end{split}
+\end{equation}
+
+Thus, a marginal likelihood is a kind of weighted sum of the likelihood, weighted by the possible values of the parameter.^[Where does the above formula come from? It falls out from the law of total probability discussed above.]
+
+The above example was contrived, because we stated that the parameter $\theta$ has only three possible values.
+
+Now consider the case where the parameter $\theta$ can have all possible values between $0$ and $1$; every possible value is equally likely. Formally, what this means is that the possible values of $\theta$ can be described in terms of the uniform distribution with lower bound $0$ and upper bound $1$ [for more details on this distribution, see section 5.2 in @blitzstein2014introduction]. This is a continuous distribution, and because the area under the distribution has to sum to $1$, the density of every possible value of $\theta$ is $1$.
+
+In this example, the summation now has to be done over a continuous space $[0,1]$. The way this summation is expressed in mathematics is through the \index{Integral} integral symbol:
+
+\begin{equation}
+p(k=7,n=10) = \int_0^1 \binom{10}{7} \theta^7 (1-\theta)^{3}\, p(\theta) d\theta
+\end{equation}
+
+Because $p(\theta)=1$ for all $\theta$ (in this particular case), we can just write:
+
+\begin{equation}
+p(k=7,n=10) = \int_0^1 \binom{10}{7} \theta^7 (1-\theta)^{3}\,  d\theta
+\end{equation}
+
+
+This statement is computing something similar to what we computed above with the three discrete parameter values, except that the summation is being done over a continuous space ranging from 0 to 1. We say that the parameter $\theta$ has been integrated out, or marginalized. Integrating out a parameter will be a very common operation in this book, but we will never have to do the calculation ourselves. For the above case, we can compute the integral in `R`:
+
+```{r}
+BinLik <- function(theta) {
+  choose(10, 7) * theta^7 * (1 - theta)^3
+}
+integrate(BinLik, lower = 0, upper = 1)$value
+```
+
+The value that is output by the `integrate()` function above is the marginal likelihood.
+
+This completes our discussion of random variables and probability distributions. We now summarize what we have learned so far.
+
+## Summary of useful R functions relating to distributions
+
+Table \@ref(tab:dpqrfunctions) summarizes the different functions relating to PMFs and PDFs, using the binomial and normal as examples.
+
+Table: (\#tab:dpqrfunctions) Important R functions relating to random variables.
+
+                                              Discrete                   Continuous
+  ------------------------------------ -------------------------------- ----------------------
+  Example:                              $\mathit{Binomial}(y|n,\theta)$ $\mathit{Norma}l(y|\mu,\sigma)$
+  Likelihood function                         `dbinom()`                     `dnorm()`
+  Prob Y=y                                    `dbinom()`                     always 0
+  Prob $Y\geq y, Y\leq y, y_1<Y<y_2$          `pbinom()`                     `pnorm()`
+  Inverse CDF                                 `qbinom()`                     `qnorm()`
+  Generate simulated data                     `rbinom()`                     `rnorm()`
+
+Later on, we will use other distributions, such as the uniform, beta, etc., and each of these has their own set of `d-p-q-r` functions in `R`. One can look up these different distributions in, for example, @blitzstein2014introduction.
+
+## Summary
+
+This chapter briefly reviewed some very basic concepts in probability theory, univariate discrete and continuous random variables, and bivariate distributions. An important set of functions we encountered are the d-p-q-r family of functions for different distributions; these are very useful for understanding the properties of commonly used distributions, visualizing distributions, and for simulating data. Distributions will play a central role in this book; for example, knowing how to visualize distributions will be important for deciding on prior distributions for parameters. Other important ideas we learned about were marginal and conditional probability, marginal likelihood, and how to define multivariate distributions; these concepts will play an important role in Bayesian statistics.
+
+
+
+## Further reading
+
+A quick review of the mathematical foundations needed for statistics is available in the short book by @fox2009mathematical, as well as @gill2006essential. @morin2016probability and @blitzstein2014introduction are accessible introductions to probability theory. @RossProb is a more advanced treatment which discusses random variable theory and illustrates applications of probability theory. Some basic results  about random variables are also discussed in the above-mentioned textbooks (for example, the expectation and variance of sums of random variables); some of these results will be needed in later chapters of the present book.
+A good formal introduction to mathematical statistics (covering classical frequentist theory) is @millermiller. The freely available book by @kerns2014introduction introduces frequentist and Bayesian statistics from the ground up in a very comprehensive and systematic manner; the source code for the book is available from https://github.com/gjkerns/IPSUR. The open-access book, *Probability and Statistics: a simulation-based introduction*, by Bob Carpenter is also worth studying: https://github.com/bob-carpenter/prob-stats. A thorough introduction to the matrix algebra needed for statistics, with examples using R, is provided in @fieller. Commonly used probability distributions are presented in detail in @millermiller, @blitzstein2014introduction, and @RossProb.
+
+## Exercises {#sec-Foundationsexercises}
+
+
+```{exercise, FoundationsexercisespnormPart1}
+Practice using the `pnorm()` function--Part 1
+```
+
+Given a normal distribution with mean 500 and standard deviation 100, use the `pnorm()` function to calculate the probability of obtaining values between 200 and 800 from this distribution.
+
+```{exercise, FoundationsexercisespnormPart2}
+Practice using the `pnorm()` function--Part 2
+```
+
+
+```{r echo=FALSE}
+mu <- round(rnorm(1, mean = 51, sd = 2), digits = 0)
+sigma <- round(runif(1, min = 2, max = 4), digits = 0)
+
+q <- round(runif(1, min = 40, max = 50))
+q1 <- round(runif(1, min = 51, max = 60))
+
+
+p1 <- round(pnorm(q, mean = mu, sd = sigma), digits = 3)
+p2 <- round(1 - pnorm(q, mean = mu, sd = sigma), digits = 3)
+p3 <- round(1 - pnorm(q1, mean = mu, sd = sigma), digits = 3)
+```
+
+Calculate the following probabilities.
+Given a normal distribution with mean 800 and standard deviation 150, what is the probability of obtaining:
+
+- a score of 700 or less
+- a score of 900 or more
+- a score of 800 or more
+
+```{exercise, FoundationsexercisespnormPart3}
+Practice using the `pnorm()` function--Part 3
+```
+
+
+Given a normal distribution with mean 600 and standard deviation 200, what is the probability of obtaining:
+
+- a score of 550 or less.
+- a score between 300 and 800.
+- a score of 900 or more.
+
+```{exercise, FoundationsexercisesqnormPart1}
+Practice using the `qnorm()` function--Part 1
+```
+
+
+Consider a normal distribution with mean 1 and standard deviation 1.
+Compute the lower and upper boundaries such that:
+
+- the area (the probability) to the left of the lower boundary is 0.10.
+- the area (the probability) to the left of the upper boundary is 0.90.
+
+```{exercise, FoundationsexercisesqnormPart2}
+Practice using the `qnorm()` function--Part 2
+```
+
+Given a normal distribution with mean 650 and standard deviation 125. There exist two quantiles, the lower quantile q1 and the upper quantile q2, that are equidistant from the mean 650, such that the area under the curve of the normal between q1 and q2  is 80%. Find q1 and q2.
+
+
+```{exercise, Foundationsexercisessamples1}
+Practice getting summaries from samples--Part 1
+```
+
+Given data that is generated as follows:
+
+```{r}
+data_gen1 <- rnorm(1000, mean = 300, sd = 200)
+```
+
+Calculate the mean, variance, and the lower quantile q1 and the upper quantile q2, that are equidistant and such that the range of probability between them is 80%.
+
+
+```{exercise, Foundationsexercisessamples2}
+Practice getting summaries from samples--Part 2.
+```
+
+This time we generate the data with a truncated normal distribution from the package `extraDistr`. The details of this distribution will be discussed later in section \@ref(sec-pupil) and in the Box \@ref(thm:truncation), but for now we can treat it as an unknown generative process:
+
+```{r}
+data_gen1 <- rtnorm(1000, mean = 300, sd = 200, a = 0)
+```
+
+Using the sample data, calculate the mean, variance, and the lower quantile q1 and the upper quantile q2, such that the probability of observing values between these two quantiles is 80%.
+
+```{exercise, Foundationsexercisesvcov1}
+Practice with a variance-covariance matrix for a bivariate distribution.
+```
+
+Suppose that you have a bivariate distribution where one of the two random variables comes from a normal distribution with mean $\mu_X=600$ and standard deviation $\sigma_X=100$, and the other from a normal distribution with mean $\mu_Y=400$ and standard deviation $\sigma_Y=50$. The correlation $\rho_{XY}$ between the two random variables is $0.4$. Write down the variance-covariance matrix of this bivariate distribution as a matrix (with numerical values, not mathematical symbols), and then use it to generate $100$ pairs of simulated data points. Plot the simulated data such that the relationship between the random variables $X$ and $Y$ is clear. Generate two sets of new data ($100$ pairs of data points each) with correlation $-0.4$ and $0$, and plot these alongside the plot for the data with correlation $0.4$.
+
+<!--chapter:end:01-introductionBayesCogSci.Rmd-->
+
