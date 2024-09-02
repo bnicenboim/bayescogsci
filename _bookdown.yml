@@ -1,6 +1,6 @@
 book_filename: bayescogsci
-output_dir: doc
-clean: [packages.bib, bookdown.bbl]
+output_dir: docs
+clean: ["bayescogsci.aux", "bayescogsci.idx", "bayescogsci.ilg","bayescogsci.ind","bayescogsci.log", "bayescogsci.toc"]
 delete_merged_file: true
 language:
   label:
