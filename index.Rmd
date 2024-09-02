@@ -1,0 +1,474 @@
+---
+title: "An Introduction to Bayesian Data Analysis for Cognitive Science"
+author: "Bruno Nicenboim, Daniel Schad, and Shravan Vasishth"
+date: "`r Sys.Date()`"
+knit: "bookdown::render_book"
+documentclass: krantz
+bibliography: ["BayesCogSci.bib", "packages.bib"]
+biblio-style: apalike
+link-citations: yes
+colorlinks: yes
+lot: false
+lof: false
+fontsize: 12pt
+monofont: "Source Code Pro"
+monofontoptions: "Scale=0.7"
+site: bookdown::bookdown_site
+description: "An introduction to Bayesian data analysis for Cognitive Science."
+url: 'https\://vasishth.github.io/Bayes_CogSci/'
+github-repo: https\://github.com/vasishth/Bayes_CogSci
+cover-image: images/temporarycover.jpg
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(cache = TRUE, autodep = TRUE,
+                      fold = FALSE,
+                      class.source = "fold-show")
+
+# same cutoff as print_warning
+cut_warning <- function(wrn) {
+  strwrap( paste0(wrn, collapse=""), 60, simplify = FALSE)[[1]]
+}
+
+# folding:
+local({
+  hook_source <- knitr::knit_hooks$get("source")
+  hook_warning <- knitr::knit_hooks$get("warning")
+
+  knitr::knit_hooks$set(source = function(x, options) {
+   splitline <- function(x)  stringr::str_split(x,"\n")[[1]]
+   x[any(nchar(splitline(x)) > 69)] <- paste0(x[any(nchar(splitline(x)) > 69)],"\n", warning("`## Warning: Line is too long.`"))
+    fold <- options$fold
+    if(is.null(fold)) fold <- FALSE
+    if(fold==TRUE){
+      if(knitr::is_html_output()){
+        # fold code here
+        foldb <- ""
+        folde <- ""
+        options$class.source = 'fold-hide'
+        hook_source(c(foldb,x, folde), options)
+    } else {
+      #empty code for pdf
+    }
+  } else {
+    #regular output elsewhere:
+    hook_source(x, options)
+  }
+  },
+  warning = function(x, options) {
+
+    txt <- strwrap(x, 60, simplify = TRUE)
+    txt <- stringr::str_remove_all(txt, "##") %>%
+      stringr::str_squish()
+   # for some reason the first line has an extra space that I can't remove
+    txt_1 <- paste("##", txt[1])
+    # I add the extra space later
+    txt_later <- paste(" ##", txt[-1])
+    txt <- paste0(c(txt_1, txt_later) , collapse ="\n")
+    paste("```\n", txt,"\n```\n")   }
+  )
+})
+
+
+
+## # wrap warnings
+## local({
+##   hook_warning = knitr::knit_hooks$get('warning')
+##   knitr::knit_hooks$set(warning = function(x, options) {
+##     x <-
+##       x %>%
+##       stringr::str_split( "\\n") %>%
+##       .[[1]] %>%
+##       strwrap(, width = 70) %>%
+##       stringr::str_squish() %>%
+##       map_chr( ~ {
+##               ifelse( .x  %>% stringr::str_detect("^##"), .x, paste0("## ", .x))
+##               }) %>%
+##       paste0(collapse = "\n")
+##     hook_warning(x, options)
+##   })
+## })
+
+#not sure why was this here, but it's messing things up!
+## local({
+##   r = getOption('repos')
+##   if (!length(r) || identical(unname(r['CRAN']), '@CRAN@'))
+##     r['CRAN'] = 'https://cran.rstudio.com'
+##   options(repos = r)
+## })
+
+## lapply(c('DT', 'citr', 'formatR', 'svglite'), function(pkg) {
+##   if (system.file(package = pkg) == '') install.packages(pkg)
+## })
+```
+
+```{r functions, include=FALSE, echo =FALSE}
+# USEFUL FUNCTIONS:
+# makes a separated by commas list from a vector
+list_str <- function(vector, and = TRUE, s = "`"){
+    vector <- paste0(s,vector,s)
+    if(and) {
+        paste0(vector,collapse = ", ")
+    } else {
+        paste0(paste0(vector[-length(vector)],collapse = ", "), ", and ", vector[length(vector)])
+    }
+}
+list_code <- function(vector){
+    toString(paste0('"', vector,'"'))
+}
+```
+
+# Preface {.unnumbered}
+
+\renewcommand{\chaptermark}[1]{\markboth{\uppercase{#1}}{\uppercase{#1}}}
+\chaptermark{Preface}
+
+```{r eval=FALSE,fig.align='center', echo=FALSE, include=identical(knitr:::pandoc_to(), 'html')}
+fig.link='https://www.crcpress.com/product/isbn/9781138700109'
+knitr::include_graphics('images/temporarycover.jpg', dpi = NA)
+```
+
+This book is intended to be a relatively gentle introduction to carrying out Bayesian data analysis and cognitive modeling using the probabilistic programming language Stan [@carpenter2017stan], and the front-end to Stan called `brms` [@R-brms]. Our target audience is cognitive scientists (e.g., linguists, psychologists, and computer scientists) who carry out planned behavioral experiments, and who are interested in learning the Bayesian data analysis methodology from the ground up and in a principled manner. Our aim is to make Bayesian statistics a standard part of the data analysis toolkit for experimental linguistics, psycholinguistics, psychology, and related disciplines.
+
+Many excellent introductory textbooks already exist for Bayesian data analysis. Why write yet another book? Our text is different from other attempts in two respects. First, our main focus is on showing how to analyze data from planned experiments involving repeated measures; this type of experimental data involves unique complexities. We provide many examples of data sets involving time measurements (e.g., self-paced reading, eye-tracking-while-reading, voice onset time), event-related potentials, pupil sizes, accuracies (e.g., recall tasks, yes-no questions), categorical answers (e.g., picture naming), choice-reaction time (e.g, Stroop task, motion detection task), etc.  Second, from the very outset, we emphasize a particular workflow that has as its centerpiece simulating data; we aim to teach a philosophy that involves thinking hard about the assumed underlying generative process, **even before the data are collected**. The data analysis approach that we hope to teach through this book involves a cycle of prior predictive and posterior predictive checks, sensitivity analyses, and model validation using simulated data. We try to inculcate a sense of how inferences can be drawn from the posterior distribution of theoretically interesting parameters without resorting to binary decisions like "significant" or "not-significant". We are hopeful that this will set a new standard for reporting and interpreting results of data analyses in a more nuanced manner, and lead to more measured claims in the published literature.
+
+Please report typos, errors, or suggestions for improvement at
+https://github.com/vasishth/bayescogsci/issues.
+
+## Why read this book, and what is its target audience? {-}
+
+A commonly-held belief in psychology, psycholinguistics, and other areas is that statistical data analysis is secondary to the science, and should be quick and easy. For example, a senior mathematical psychologist once told the last author of this book: "if you need to run anything more complicated than a paired t-test, you are asking the wrong question." We take a different perspective here: the science and the statistical modeling are one unitary thing. The statistical model should represent some reasonable approximation of the latent cognitive processes that are assumed to be in play.
+
+The target audience for this book is students and researchers who want to treat statistics as an equal partner in their scientific work. We expect that the reader is willing to take the time to both understand and to run the computational analyses.
+
+Any rigorous introduction to Bayesian data analysis requires at least a passive knowledge of probability theory, calculus, and linear algebra. However, we do not require that the reader has this background when they start the book. Instead, the relevant ideas are introduced informally and just in time, as soon as they are needed. The reader is never required to have an active ability to solve probability problems, to solve integrals or compute derivatives, or to carry out matrix computations (such as inverting matrices) by hand. There are a few places where the discussion becomes technical and requires some knowledge of calculus or related topics. However, the reader unfamiliar with the required mathematics can simply skip those sections, as these are not really necessary to follow the main thread of the book.
+
+What we do expect is familiarity with arithmetic, basic set theory and elementary probability theory (e.g., sum and product rules, conditional probability), simple matrix operations like addition and multiplication, and simple algebraic operations. A quick look through chapter 1 of @gill2006essential before starting this book is highly recommended. We also presuppose that, when the need arises, the reader is willing to look up concepts that that they might have forgotten (e.g., logarithms). We also provide a self-paced course on some basic concepts in mathematics (aimed at non-mathematicians) which the reader can work through: see https://vasishth.github.io/FoM/.
+
+We also expect that the reader already knows and/or is willing to learn enough of the programming language R [@R-base] to reproduce the examples presented and to carry out the exercises. If the reader is completely unfamiliar with R, before starting this book they should first consult books like [R for data science](https://r4ds.had.co.nz/), and [Efficient R programming](https://csgillespie.github.io/efficientR/).
+
+We also assume that the reader has encountered simple linear modeling, and linear mixed models [@R-lme4;@baayen2008mixed]. What this means in practice is that the reader should have used the `lm()` and `lmer()` functions in R. A passing acquaintance with basic statistical concepts, like the correlation between two variables, is also taken for granted.
+
+This book is not appropriate for complete beginners to data analysis. Newcomers to data analysis should start with a freely available textbook like @kerns2014introduction, and then read our introduction to frequentist data analysis, which is also available freely online [@VasishthEtAlFreq2021]. This latter book will prepare the reader well for the material presented here.
+
+## Developing the right mindset for this book {-}
+
+One very important characteristic that the reader should bring to this book is a can-do spirit. There will be many places where the going will get tough, and the reader  will have to slow down and play around with the material, or refresh their understanding of arithmetic or middle-school algebra.
+The basic principles of such a  can-do spirit are nicely summarized in the book by @burger; also see @danlevy. Although we cannot summarize all the insights from these books in a few words, inspired by the @burger book, here is a short enumeration of the kind of mindset the reader will need to cultivate:
+
+- Spend time on the basic, apparently easy material; make sure you understand it  deeply. Look for gaps in your understanding. Reading different presentations of the same material (in different books or articles) can yield new insights.
+- Let mistakes and errors be your teacher. We instinctively recoil from our mistakes, but errors are ultimately our friends; they have the potential to teach us more than our correct answers can. In this sense, a correct solution can be less interesting than an incorrect one.
+- When you are intimidated by some exercise or problem, give up and admit defeat immediately. This relaxes the mind; you've already given up, there's nothing more to do. Then, after a while, try to solve a simpler version of the problem. Sometimes, it is useful to break the problem down to smaller parts, each of which may be easier to solve.
+- Create your own questions. Don't wait  to be asked questions; develop your own problems and then try to solve them.
+- Don't expect to understand everything in the first pass. Just mentally note the gaps in your understanding, and return to them later and work on these gaps.
+- Step back periodically to try to sketch out a broader picture of what you are learning. Writing down what you know, without  looking up anything, is one helpful way to achieve this. Don't wait for the teacher to give you bullet-point summaries of what you should have learned; develop such summaries yourself.
+- Develop the art of finding information. When confronted with something you don't know, or with some obscure error message, use google to find some answers.
+- Do not hesitate to re-read a chapter; often, one only understands a topic after one revisits the material.
+
+As instructors, we have noticed over the years that students with such a mindset generally do very well. Some students already have that spirit, but others need to explicitly develop it. We firmly believe that everyone can develop such a mindset, but one may have to work on acquiring it. In any case, such an attitude is necessary for a book of this sort.
+
+## How to read this book {-}
+
+The chapters in this book are intended to be read in sequence, but during the first pass through the book, the reader should feel free to completely skip the boxes. These boxes provide a more formal development [useful to transition to more advanced textbooks like @Gelman14], or deal with tangential aspects of the topics presented in the chapter.
+
+Here are some suggested paths through this book, depending on the reader's goals:
+
+- For a short course for complete beginners, read chapters \@ref(ch-intro) to  \@ref(ch-hierarchical). We usually cover these five chapters in a five-day summer school course that we teach annually. Most of the material in this chapter is also covered in a free four-week course available online: https://open.hpi.de/courses/bayesian-statistics2023.
+- For a course that focuses on regression models with the  R package `brms`, read chapters \@ref(ch-intro) to  \@ref(ch-coding2x2) and, optionally, \@ref(ch-bf).
+- For an advanced course that focuses on complex models involving Stan, read chapters \@ref(ch-introstan) to  \@ref(ch-lognormalrace).
+
+## Some conventions used in this book {-}
+
+We adopt the following conventions:
+
+- All distribution names are lower-case unless they are also a proper name (e.g., Poisson, Bernoulli).
+- The univariate normal distribution is parameterized by the mean and standard deviation (not variance).
+- The code for figures is provided only in some cases, where we consider it to be pedagogically useful. In other cases, the code remains hidden, but it can be found in the web version of the book. Notice that all the R code from the book can be extracted from the Rmd source files for each chapter, which are released with the book.
+
+## Online materials {-}
+
+The entire book, including all data and source code, is available online for free on [https://vasishth.github.io/bayescogsci/book](https://vasishth.github.io/bayescogsci/book). The solutions to exercises will be made available on request.
+
+## Software needed {-}
+
+```{r packages, echo = FALSE, message = FALSE}
+library(dplyr)
+index <- readLines("index.Rmd")
+start <- which(stringr::str_detect(index, "```\\{r load")) + 1
+endings <- which(stringr::str_detect(index, "```$")) -1
+end <- min(endings[endings>start])
+
+to_install <- index[start:end] %>%
+    stringr::str_match("library\\((.*)\\)") %>%
+    {.[,2]} %>%
+    .[complete.cases(.)] %>%
+    .[. != "rstan"]
+
+installation <- paste0("install.packages(c(", list_code(to_install),"))")
+```
+
+Before you start, please install
+
+  - [R](https://cran.r-project.org/) and [RStudio](https://www.rstudio.com/), or any other Integrated Development Environment that you prefer, such as [Visual Studio Code](https://code.visualstudio.com/) and [Emacs Speaks Statistics](https://ess.r-project.org/).
+  - The R package `rstan`. At the time of writing this book, the CRAN version of `rstan` lags behind the latest developments in Stan so it is recommended to install `rstan` from `https://mc-stan.org/r-packages/` as indicated in  https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started
+  - The R packages  `dplyr`, `purrr`, `tidyr`, `extraDistr`, `brms`, `hypr` and `lme4`  are used in many chapters of the book and can be installed the usual way: ` install.packages(c("dplyr","purrr","tidyr", "extraDistr", "brms","hypr","lme4"))`. We use `ggplot2` for figures; please consult the relevant documentation if you are unfamiliar with `ggplot2` [e.g., @R-ggplot2].
+  - The following R packages are optional: `tictoc`, `rootSolve`,  `SHELF`, `cmdstanr`, and `SBC`.
+  - Some packages and their dependencies, such as `intoo`, `barsurf`, `bivariate`, and `SIN` could require manual installation from archived or github versions.
+  - The data and Stan models used in this book can be installed using `remotes::install_github("bnicenboim/bcogsci")`. This command uses the function `install_github` from the package `remotes`. (Thus this package should be in the system as well.)
+
+In every R session, load these packages, and set the options shown below for Stan.
+
+```{r load, cache = FALSE, message = FALSE, warning=FALSE}
+library(MASS)
+## be careful to load dplyr after MASS
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(extraDistr)
+library(ggplot2)
+library(loo)
+library(bridgesampling)
+library(brms)
+library(bayesplot)
+library(tictoc)
+library(hypr)
+library(bcogsci)
+library(lme4)
+library(rstan)
+# This package is optional, see https://mc-stan.org/cmdstanr/:
+library(cmdstanr)
+# This package is optional, see https://hyunjimoon.github.io/SBC/:
+library(SBC)
+library(SHELF)
+library(rootSolve)
+
+## Save compiled models:
+rstan_options(auto_write = FALSE)
+## Parallelize the chains using all the cores:
+options(mc.cores = parallel::detectCores())
+# To solve some conflicts between packages:
+select <- dplyr::select
+extract <- rstan::extract
+```
+
+```{r, include = FALSE, cache = FALSE, fig.show='hide'}
+## these libraries are not available anymore in CRAN:
+## install using:
+## devtools::install_version("intoo", version= "0.4.0")
+## devtools::install_version("kubik", version= "0.3.0")
+## devtools::install_version("barsurf", version= "0.7.0")
+## devtools::install_version("bivariate", version= "0.7.0")
+## devtools::install_version("SIN", version= "0.6.0")
+library(intoo)
+library(barsurf)
+library(bivariate)
+library(SIN)
+#this can installed regularly
+library(papaja)
+library(grid)
+library(gridExtra)
+
+library(kableExtra)
+library(cowplot)
+library(pdftools)
+
+## Force to load SHELF, so that the ggplto theme is active
+## suppressWarnings(dist_cons <- fitdist(vals=0,probs=0))
+## plotfit(dist_cons, returnPlot = TRUE)
+
+
+rstan_options(silent = TRUE,
+              open_progress = FALSE,
+              show_messages = FALSE)
+## Defauls values of some parameters
+# I don't want windows opening:
+formals(stan)$open_progress <- FALSE
+formals(stan)$chains <- 4
+# To be able to include full citations:
+## library(RefManageR)
+## bibl <- ReadBib("BayesCogSci.bib",check = "warn")
+## citetitle <- function(key){
+##     bibl[key= key]$title
+## }
+## fullcite <-  function(key){
+##         capture.output(print(bibl[key= key]))
+## }
+## library(bibtex)
+## bibl <- read.bib("BayesCogSci.bib")
+## fullcite <-  function(key){
+##     capture.output(print(bibl[key]))
+## }
+
+## Look and feel:
+# Plots
+set_plots<-  function(){
+bayesplot_theme_set(theme_light())
+theme_set(theme_light())
+
+# center all the plot titles?
+theme_update(plot.title = element_text(hjust = 0.5))
+
+if(knitr::is_html_output()) {
+## Good for black and white and color
+  options(ggplot2.continuous.colour = scale_color_viridis_c)
+  options(ggplot2.continuous.fill = scale_fill_viridis_c)
+  options(ggplot2.discrete.colour = scale_color_viridis_d)
+  options(ggplot2.discrete.fill = scale_fill_viridis_d)
+  color_scheme_set("viridis")
+}
+
+if(knitr::is_latex_output()){
+  scale_color_grey_c <- function(...)  scale_colour_gradient(..., low = "white", high = "black")
+  scale_fill_grey_c <- function(...)  scale_fill_gradient(..., low = "white", high = "black")
+  options(ggplot2.discrete.colour = scale_color_grey)
+  options(ggplot2.discrete.fill = scale_fill_grey)
+  options(ggplot2.continuous.colour =  scale_color_grey_c)
+  options(ggplot2.continuous.fill = scale_fill_grey_c)
+  color_scheme_set("gray")
+}
+}
+set_plots()
+## IMPORTANT: this needs to be set up again in priors chapter after the functions from SHELF are used
+
+
+if(0){
+#test the colors:
+
+  # Gradient color
+ggplot(iris, aes(Sepal.Length, Sepal.Width))+
+  geom_point(aes(color = Sepal.Length))
+
+# Discrete color. use the argument discrete = TRUE
+ggplot(iris, aes(Sepal.Length, Sepal.Width))+
+  geom_point(aes(color = Species)) +
+  geom_smooth(aes(color = Species, fill = Species), method = "lm")
+}
+
+
+## options(ggplot2.discrete.fill = function(...) scale_fill_viridis_d(..., option = "inferno"))
+
+# format
+options(
+    htmltools.dir.version = FALSE,
+    formatR.indent = 2,
+    width = 70,
+    digits = 3,
+    signif = 2,
+    warnPartialMatchAttr = FALSE,
+    warnPartialMatchDollar = FALSE,
+    # Don't use scientific notation:
+    scipen=10,
+    # tibbles:
+    tibble.width = Inf,
+    tibble.print_max = 3,
+    tibble.print_min = 3,
+    dplyr.summarise.inform = FALSE,
+  tinytex.clean = FALSE #keeps the aux file for xr package
+)
+# output:
+fixef.brmsfit <- function(...) {
+  brms:::fixef.brmsfit(...) %>%
+    round(2)
+}
+# print warning,
+# last warning should be saved, e.g., saveRDS(names(last.warning),"dataR/fit_mix_rt_w.RDS")
+print_warning <- function(wrn) {
+cat(paste0(map_chr(strwrap(paste("Warning:", wrn), 70, simplify = FALSE), ~ paste0(.x, collapse ="\n")),"\n\n"))
+}
+short_summary <- function (x, digits = 2, ...)
+{
+  x<- summary(x)
+  cat("...\n")
+    # cat(" Family: ")
+    # cat(summarise_families(x$formula), "\n")
+    # cat("  Links: ")
+    # cat(summarise_links(x$formula, wsp = 9), "\n")
+    # cat("Formula: ")
+    # print(x$formula, wsp = 9)
+    # cat(paste0("   Data: ", x$data_name, " (Number of observations: ",
+        # x$nobs, ") \n"))
+    if (!isTRUE(nzchar(x$sampler))) {
+        cat("\nThe model does not contain posterior samples.\n")
+    }
+    else {
+        final_samples <- ceiling((x$iter - x$warmup)/x$thin *
+            x$chains)
+        # cat(paste0("Samples: ", x$chains, " chains, each with iter = ",
+        #     x$iter, "; warmup = ", x$warmup, "; thin = ", x$thin,
+        #     ";\n", "         total post-warmup samples = ", final_samples,
+        #     "\n\n"))
+        if (nrow(x$prior)) {
+            cat("Priors: \n")
+            print(x$prior, show_df = FALSE)
+            cat("\n")
+        }
+        if (length(x$splines)) {
+            cat("Smooth Terms: \n")
+            brms:::print_format(x$splines, digits)
+            cat("\n")
+        }
+        if (length(x$gp)) {
+            cat("Gaussian Process Terms: \n")
+            brms:::print_format(x$gp, digits)
+            cat("\n")
+        }
+        if (nrow(x$cor_pars)) {
+            cat("Correlation Structures:\n")
+            brms:::print_format(x$cor_pars, digits)
+            cat("\n")
+        }
+        if (length(x$random)) {
+            cat("Group-Level Effects: \n")
+            for (i in seq_along(x$random)) {
+                g <- names(x$random)[i]
+                cat(paste0("~", g, " (Number of levels: ", x$ngrps[[g]],
+                  ") \n"))
+                brms:::print_format(x$random[[g]], digits)
+                cat("\n")
+            }
+        }
+        if (nrow(x$fixed)) {
+            cat("Population-Level Effects: \n")
+            brms:::print_format(x$fixed, digits)
+            cat("\n")
+        }
+        if (length(x$mo)) {
+            cat("Simplex Parameters: \n")
+            brms:::print_format(x$mo, digits)
+            cat("\n")
+        }
+        if (nrow(x$spec_pars)) {
+            cat("Family Specific Parameters: \n")
+            brms:::print_format(x$spec_pars, digits)
+            cat("\n")
+        }
+        if (length(x$rescor_pars)) {
+            cat("Residual Correlations: \n")
+            brms:::print_format(x$rescor, digits)
+            cat("\n")
+        }
+        # cat(paste0("Samples were drawn using ", x$sampler, ". "))
+        if (x$algorithm == "sampling") {
+            #cat(paste0("For each parameter, Bulk_ESS\n", "and Tail_ESS are effective sample size measures, ",
+             #   "and Rhat is the potential\n", "scale reduction factor on split chains ",
+              #  "(at convergence, Rhat = 1)."))
+        }
+        cat("...\n")
+    }
+    invisible(x)
+}
+```
+
+
+## Acknowledgments {-}
+
+We are grateful to the many generations of students at the University of Potsdam, various summer schools at ESSLLI, the LOT winter school, the Open HPI MOOC on Bayesian statistics (https://open.hpi.de/courses/bayesian-statistics2023), other short courses we have taught at various institutions, and the annual summer school on [Statistical Methods for Linguistics and Psychology (SMLP)](https://vasishth.github.io/smlp/) held annually at Potsdam, Germany. The participants in these courses helped us considerably in improving the material presented here. A special thanks to Anna Laurinavichyute, Paula Lissón, and Himanshu Yadav for co-teaching the the Bayesian courses at SMLP. We are also grateful to members of Vasishth lab, especially Dorothea Pregla, for comments on earlier drafts of this book. We would also like to thank Douglas Bates, Ben Bolker, Christian Robert (otherwise known as Xi'an), Robin Ryder, Nicolas Chopin, Michael Betancourt, Andrew Gelman, the Stan developers (especially Bob Carpenter and Paul-Christian Bürkner), and Leendert Van Maanen for their comments and advice; to Pavel Logačev for his feedback, and Athanassios Protopapas, Patricia Mirabile, Masataka Ogawa, Alex Swiderski, Andrew Ellis, Jakub Szewczyk, Chi Hou Pau, Alec Shaw, Patrick Wen, Riccardo Fusaroli, Abdulrahman Dallak, Elizabeth Pankratz, João Veríssimo, Jean-Pierre Haeberly, Chris Hammill, Florian Wickelmaier, Ole Seeth,  Jules Bouton, Siqi Zheng,  Michael Gaunt, Benjamin Senst, Chris Moreh, Richard Hatcher, Noelia Stetie, Robert Lew, Leonardo Cerliani, Stefan Riedel, Raluca Rilla, Arne Schernich, Sven Koch, Joy Sarow, Iñigo Urrestarazu-Porta, Jan Winkowski, Adrian Staub, Brian Dillon, Job Schepens, Katja Politt, Cui Ding,  Marc Tortorello, Michael Vrazitulis, Marisol Murujosa, and Ander Egurtzegi for catching typos, unclear passages, and errors in the book. A special thanks to Daniel Heck, Alexandre Cremers, Henrik Singmann, and  Martin Modrák for reading (parts of) the book and catching many mistakes and typos. Our apologies to anyone that we have forgotten to mention. Thanks also go to Jeremy Oakley and other statisticians at the School of Mathematics and Statistics, University of Sheffield, UK, for helpful discussions, and ideas for exercises that were inspired from the MSc program taught online at Sheffield.
+
+This book would have been impossible to write without the following software: `r papaja::cite_r("packages.bib")`.
+
+```{block2, type='flushright', html.tag='p'}
+Bruno Nicenboim (Tilburg, the Netherlands),
+Daniel Schad (Potsdam, Germany),
+Shravan Vasishth (Potsdam, Germany)
+```

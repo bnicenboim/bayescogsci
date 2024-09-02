@@ -1,0 +1,27 @@
+<script type="text/javascript">
+
+ /* Uncomment this and comment the next one to show the solutions */
+
+ /* $(document).ready(function() {
+  *     $folds = $(".solution");
+  *     $folds.wrapInner("<div class=\"solution-blck\">"); // wrap a div container around content
+  *     $folds.prepend("<button class=\"solution-btn\">Show solution</button>");  // add a button
+  *     $(".solution-blck").toggle();  // fold all blocks
+  *     $(".solution-btn").on("click", function() {  // add onClick event
+  *         $(this).text($(this).text() === "Hide solution" ? "Show solution" : "Hide solution");  // if the text equals "Hide solution", change it to "Show solution"or else to "Hide solution" 
+  *         $(this).next(".solution-blck").toggle("linear");  // "swing" is the default easing function. This can be further customized in its speed or the overall animation itself.
+  *     })
+  * }); */
+
+ $(document).ready(function() {
+     $folds = $(".solution");
+     $folds.wrapInner("<div class=\"solution-blck\">"); // wrap a div container around content
+     $folds.prepend("<button class=\"solution-btn\"></button>");  // add a button
+     $(".solution-blck").toggle();  // fold all blocks
+     $(".solution-btn").on("click", function() {  // add onClick event
+         /* $(this).text($(this).text() === "Hide solution" ? "Show solution" : "Hide solution");  // if the text equals "Hide solution", change it to "Show solution"or else to "Hide solution"  */
+         /* $(this).next(".solution-blck").toggle("linear");  // "swing" is the default easing function. This can be further customized in its speed or the overall animation itself. */
+     })
+ });
+
+</script>
