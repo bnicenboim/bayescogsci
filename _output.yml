@@ -1,0 +1,37 @@
+bookdown::gitbook:
+  dev: svglite
+  css: [css/style.css, css/toc.css]
+  split_by: chapter
+  config:
+    toc:
+      collapse: none
+      before: |
+        <li><a href="./">Bayesian Data Analysis for Cognitive Science (DRAFT)</a></li>
+      after: |
+        <li><a href="https://bookdown.org" target="_blank">Published with bookdown</a></li>
+    download: false
+    sharing:
+      github: yes
+      facebook: no
+  includes:
+    in_header: html/preamble_code.html
+bookdown::html_chapters:
+  code_fold: show
+  md_extensions: +fenced_divs
+bookdown::pdf_book:
+  includes:
+    in_header: latex/preamble.tex
+    before_body: latex/before_body.tex
+    after_body: latex/after_body.tex
+  keep_tex: yes
+  dev: "cairo_pdf"
+  latex_engine: xelatex
+  template: null
+  pandoc_args: --top-level-division=chapter
+  toc_depth: 3
+  toc_unnumbered: no
+  toc_appendix: yes
+  quote_footer: ["\\VA{", "}{}"]
+bookdown::epub_book:
+  dev: svglite
+  stylesheet: css/style.css
