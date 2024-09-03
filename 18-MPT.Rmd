@@ -1,0 +1,1020 @@
+# Multinomial processing trees {#ch-MPT}
+
+In this chapter, we introduce a widely-used class of cognitive models that can be implemented in Stan, the \index{Multinomial processing tree} multinomial processing tree. This model is useful in situations where the behavioral response from the subject is one of several possible \index{Categorical outcome} categorical outcomes. As an example, we will look into a word production task, where we ask individuals with \index{Aphasia} aphasia [a \index{Language impairment} language impairment that is usually due to a cerebrovascular accident or head trauma, @damasio1992aphasia], to name the object shown in a picture, e.g., a picture of a cat. The participant (hereafter, subject) could produce the correct name ("cat"), a semantically and phonologically related but incorrect name ("rat"), a semantically unrelated but phonologically related word ("hat"), or a non-word ("cag"). The researcher may have a theory about how each possible outcome ends up being probabilistically produced. Such a theoretical process model can be expressed as a multinomial processing tree. Before we dive into multinomial processing trees, we discuss the distributions that generalize the binomial and Bernoulli distribution for modeling more than two possible outcomes.
+
+
+## Modeling \index{Multiple categorical response} multiple categorical responses
+
+One way to model \index{Categorical response} categorical responses is using multinomial or categorical distributions.
+The categorical responses could be "yes" or "no"; "blue", "red" or "yellow"; "true", "false", or "I don't know"; or more complicated categories, but crucially the response of each observation can be coded as belonging to only one category. The multinomial and the categorical distribution represent two ways of characterizing the underlying \index{Generative process} generative process for such data.
+
+The \index{Multinomial distribution} *multinomial distribution* is the generalization of the \index{Binomial distribution} binomial distribution for more than two possible outcomes. Recall that the binomial works like this: in order to randomly generate the number of successes in an observation consisting of $10$ trials, with the probability of success of $0.5$, one can type:
+
+```{r, echo = FALSE}
+set.seed(123)
+```
+
+```{r}
+rbinom(1, size = 10, prob = 0.5)
+```
+
+
+
+It is possible to repeatedly generate multiple observations as follows. Suppose five simulated observations are needed, each with $10$ trials:
+
+```{r}
+rbinom(5, size = 10, prob = 0.5)
+```
+
+
+Now, suppose that there are N=3 possible answers to a question (yes, no, don't know), and suppose that the probabilities of producing each answer are:
+
+- $P($yes$)=0.1$
+- $P($no$)=0.1$
+- $P($don't know$)=0.8$
+
+The probabilities must sum to $1$, because those are the only three possible outcomes. Given such a situation, it is possible to simulate a single experiment with $10$ trials, where each of the three possibilities appears a certain number of times. We do this with \index{\texttt{rmultinom()}} `rmultinom()`:
+
+```{r, echo = FALSE}
+set.seed(123)
+```
+```{r}
+(random_sample <- rmultinom(1, size = 10, prob = c(0.1, 0.1, 0.8)))
+```
+
+The above call returns the result of the random sample: $`r random_sample[1]`$ cases of the first answer type, $`r random_sample[2]`$ cases of the second; and $`r random_sample[3]`$ cases of the third.
+
+Analogously to the binomial function shown above, five observations can be simulated, each having 10 trials:
+
+```{r}
+rmultinom(5, size = 10, prob = c(0.1, 0.1, 0.8))
+```
+
+The \index{Categorical distribution} *categorical distribution* is the generalization of the \index{Bernoulli distribution} Bernoulli distribution for more than two possible outcomes, and it is the special case of the multinomial distribution when we have only one trial. Recall that the Bernoulli distribution can be used as follows. If we carry out a coin toss (each coin toss counts as a single trial), we will either  get a heads or a tails:
+
+```{r}
+rbern(5, prob = 0.5)
+## equivalent rbinom command:
+rbinom(5, size = 1, prob = 0.5)
+```
+
+Thus, what the Bernoulli is to the binomial, the categorical is to the multinomial. For example, one can simulate five observations, each of which will give one of the three responses with the given probabilities. We do this with \index{\texttt{rcat}} `rcat` from the \index{\texttt{extraDistr}} `extraDistr` package.
+
+```{r}
+rcat(5, prob = c(0.1, 0.1, 0.8), labels = c("yes", "no", "dontknow"))
+```
+
+The above is analogous to using the multinomial with `size = 1` (a single trial in each experiment). In the output below, the `rmultinom()` function shows which of the three categories is produced.
+
+```{r}
+rmultinom(5, size = 1, prob = c(0.1, 0.1, 0.8))
+```
+
+With these distributions as background, consider now a simulated situation where multiple responses are possible.
+
+### A model for multiple responses using the multinomial likelihood {#sec-mult}
+
+Impaired \index{Picture naming} picture naming \index{Anomia} (anomia) is common in most cases of \index{Aphasia} aphasia. It is assessed as part of most comprehensive aphasia test batteries, since picture naming accuracy is relatively easily obtained and is a reliable test score; in addition, the types of errors that are committed can provide useful information for diagnosis.
+
+In this simulated experiment, the responses are categorized as shown in Table \@ref(tab:responses).
+
+Table: (\#tab:responses) Categorization of responses for the simulated experiment.
+
+| Category    |   Description                                                               | Example  |
+|:----------------|:-----------------------------------------------------------------------------------|:-------  |
+|Correct       | The response matches the target.                                                 |cat    |
+|Neologism     | The response is not a word, but it has a phonological relation to the target.    |cag    |
+|Formal         | The response is a word with only a phonological relation to the target.          |hat    |
+|Mixed          | The response is a word with both a semantic and phonological relation the target.|rat    |
+|NR             | All other responses, including omissions, descriptions, non-nouns, etc.          | --    |
+
+First, generate data assuming a multinomial distribution. The outcomes will be determined by a vector $\boldsymbol{\theta}$ (called `true_theta` below in the R code) that indicates the probability of each outcome:
+
+```{r, tidy = FALSE}
+(true_theta <- tibble(theta_NR = 0.2,
+                     theta_Neologism = 0.1,
+                     theta_Formal = 0.2,
+                     theta_Mixed = 0.08,
+                     theta_Correct =  1 -
+  (theta_NR + theta_Neologism + theta_Formal + theta_Mixed)))
+## The probabilities must sum to 1:
+sum(true_theta)
+```
+
+Given this vector of probabilities $\boldsymbol{\theta}$, generate values assuming a multinomial distribution of responses in 100 trials:
+
+```{r}
+N_trials <- 100
+(ans_mn <- rmultinom(1, N_trials, true_theta))
+```
+
+Now, we'll try to recover the probability of each answer with a model with the following likelihood:
+
+\begin{equation}
+ans \sim \mathit{Multinomial}(\boldsymbol{\theta})
+\end{equation}
+
+where $\boldsymbol{\theta} = \langle \theta_{nr}, \theta_{neol.}, \theta_{formal}, \theta_{mix}, \theta_{corr} \rangle$.
+
+A common prior for the vector of probability parameters of a multinomial distribution is the \index{Dirichlet distribution} Dirichlet distribution, which extends the \index{Beta distribution} Beta distribution to cases where more than two categories are available.
+
+\begin{equation}
+\boldsymbol{\theta} \sim \mathit{Dirichlet}(\boldsymbol{\alpha})
+\end{equation}
+
+The Dirichlet distribution has a parameter $\alpha$, called \index{Concentration parameter} concentration parameter, and it is a vector with the same length as $\boldsymbol{\theta}$. If we set $\boldsymbol{\alpha} = \langle2,2,2,2,2\rangle$, this is  analogous to $\sim \mathit{Beta}(2,2)$, that is, the intuition behind this concentration parameter is that the \index{Prior probability distribution} prior probability distribution of the vector $\boldsymbol{\theta}$ corresponds to having seen each outcome twice.
+
+A Stan model assuming a multinomial likelihood and Dirichlet prior is shown below. Since the elements of $\boldsymbol{\theta}$ should sum to one we declare this vector, `theta`, as a \index{\texttt{simplex}} `simplex`. The \index{Simplex type} simplex type ensures that its elements sum to one and also constrains them to have \index{Non-negative value} non-negative values. In order to generate the vector $\boldsymbol{\alpha}$ that contains five times the value two, we use `rep_vector(2, 5)` (which is similar to `rep(2, 5)` in R).
+
+
+```{r mpt-stan, echo = FALSE}
+multinom <- system.file("stan_models", "multinom.stan", package = "bcogsci")
+categorical <- system.file("stan_models", "categorical.stan", package = "bcogsci")
+mpt_mnm <- system.file("stan_models", "mpt_mnm.stan", package = "bcogsci")
+mpt_cat <- system.file("stan_models", "mpt_cat.stan", package = "bcogsci")
+mpt_h <- system.file("stan_models", "mpt_h.stan", package = "bcogsci")
+```
+
+
+```{stan output.var = "mn", code = readLines(multinom),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+
+
+Fit the model:
+
+```{r, results = "hide", message = "FALSE"}
+# Create a list:
+# c(ans_mn) makes a vector out of the matrix ans_mn
+data_mn <-  list(N_trials = N_trials,
+                 ans = c(ans_mn))
+str(data_mn)
+```
+
+```{r multinom, results = "hide", message = "FALSE", eval = !file.exists("dataR/fit_mn.RDS")}
+multinom <- system.file("stan_models",
+                        "multinom.stan",
+                        package = "bcogsci")
+fit_mn <- stan(multinom, data = data_mn)
+```
+
+```{r, echo= FALSE}
+if(!file.exists("dataR/fit_mn.RDS")){
+  saveRDS(fit_mn,"dataR/fit_mn.RDS")
+} else {
+  fit_mn <- readRDS("dataR/fit_mn.RDS")
+}
+```
+
+
+Print the posteriors:
+
+```{r}
+print(fit_mn, pars = c("theta"))
+```
+
+Next, use \index{\texttt{mcmc\_recover\_hist()}} `mcmc_recover_hist()` in the code below to confirm that the posterior distributions of the elements of $\boldsymbol{\theta}$ are close to the true point values that were set up when simulating the data. See Figure \@ref(fig:multin-posterior).
+
+
+(ref:multin-posterior) Posterior distributions and true means of theta for the multinomial model defined in `multinom.stan`.
+
+```{r multin-posterior, message = FALSE, tidy = FALSE, fig.cap = "(ref:multin-posterior)"}
+as.data.frame(fit_mn) %>%
+  select(starts_with("theta")) %>%
+  mcmc_recover_hist(true = unlist(true_theta)) +
+  coord_cartesian(xlim = c(0, 1))
+```
+
+We evaluate here whether our model is able to "recover" the true point values of its parameters. By "recover", we mean that the true point values are somewhere inside the posterior distribution of the model.
+
+The \index{Frequentist property} frequentist properties of Bayesian models guarantee that if we simulate data several times, 95% of the true values should be inside of the 95% CrI intervals generated by a "well-calibrated" model. Furthermore, if the true values of some parameters are consistently well above or below their posterior distribution, it may mean that there is some problem with the model specification. We follow @Cooketal2006 here, and for now we are going to verify that our model is roughly correct. A more principled (and computationally demanding) approach uses simulation based calibration (SBC) introduced in section \@ref(sec-validSBC) of chapter \@ref(ch-custom) [also see @talts2018validating; @schad2020toward].
+
+### A model for multiple responses using the categorical distribution {#sec-cat}
+
+Using the same information as above, we can model each response one at a time, instead of aggregating them. Using the \index{Categorical distribution} categorical distribution gives us more flexibility to define what happens at every trial. However, we are not using the additional flexibility for now, and hence the next model and the previous one are equivalent.
+
+```{stan output.var = "cat", code = readLines(categorical),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+Given the same set of probabilities $\boldsymbol{\theta}$ as above, generate $100$ individual observations using `rcat()` from the `extraDistr` package:
+
+```{r, results = "hide", message = "FALSE", tidy = FALSE}
+N_obs <- 100
+ans_cat <- rcat(N_obs, prob = as.matrix(true_theta))
+```
+
+
+The above output is how Stan expects to see the data. The data fed into the Stan model is defined as a list as usual:
+
+
+```{r}
+data_cat <-  list(N_obs = N_obs,
+                  w_ans = ans_cat)
+str(data_cat)
+```
+
+Fitting the Stan model (`categorical.stan`) should yield approximately the same $\boldsymbol{\theta}$ as with the multinomial likelihood defined in the  model `multinom.stan`.
+
+
+
+```{r catmodel, message = FALSE, results = "hide", eval = !file.exists("dataR/fit_cat.RDS")}
+categorical <- system.file("stan_models",
+                           "categorical.stan",
+                           package = "bcogsci")
+fit_cat <- stan(categorical, data = data_cat)
+```
+
+```{r, echo= FALSE}
+if(!file.exists("dataR/fit_cat.RDS")){
+  saveRDS(fit_cat,"dataR/fit_cat.RDS")
+} else {
+  fit_cat <- readRDS("dataR/fit_cat.RDS")
+}
+```
+
+```{r}
+print(fit_cat, pars = c("theta"))
+```
+
+The above models estimate the posterior distribution for the probability for each possible response.  The slightly different posteriors with the two methods are due to differences in the randomly generated data and the sampling process, not differences in grouping. If we had some experimental manipulation, we could even fit regressions to these parameters. This is called a \index{Multinomial logistic regression} multinomial logistic regression or \index{Categorical regression} categorical regression, see further reading for some examples.
+
+## Modeling picture naming abilities in aphasia with MPT models
+
+
+\index{Multinomial processing tree} Multinomial processing tree \index{MPT} (MPT) modeling is a method that estimates latent variables that have a psychological interpretation given categorical data [a review is provided in @BatchelderRiefer1999]. In other words, an MPT model is just one way to model \index{Categorical response} categorical responses following a multinomial or categorical distribution.  MPT models assume that the observed response categories result from a sequences of underlying cognitive events which are represented as a \index{Binary branching tree} binary branching tree. Each binary branching is associated with a parameter that represents the probability of going down either branch. Every successive node is assumed to be independent of the preceding node, allowing us to use the \index{Product rule} product rule from probability theory to compute the probability of going down a particular path. The leaves of the binary branching tree are the observed response in the data. The goal is to derive posterior distributions of the \index{Latent probability parameter} latent probability parameters specified for the binary branching in the model.
+
+ @WalkerEtAl2018 created an MPT model that specifies a set of possible internal errors that lead to the various possible response types during a \index{Picture naming} picture naming trial for \index{Aphasic patient} aphasic patients. Here we'll explore a simplification of the original model.
+
+The model assumes that when an attempt is made to produce a word, errors in production can arise at the whole word level \index{Lexical level} (lexical level) or the segmental level \index{Phonological level} (phonological level). \index{Semantic error} Semantic errors are assumed to arise from the \index{Lexical substitution} lexical substitutions, and \index{Neologism error} neologism errors from \index{Phonological substitution} phonological substitutions. \index{Real word} Real word responses that are phonologically related to the correct target word can arise from substitutions at the lexical or phonological level.
+
+The task for the subject is to view a picture and name the object represented in the picture. When an attempt is made to retrieve the word from memory, the following possible steps can unfold (this is a simplified version of the original model):
+
+- Either the subject will make some \index{Lexical selection} lexical selection, or fail to make a lexical selection, returning a non-response (NR). The probability of making some lexical selection is $a$, so the probability of a non-response is $1-a$, as these are only two possibilities at this initial stage of the binary branching tree. Example: the subject sees the picture of a cat, and either produces the response "I don't know", or starts the process of producing a word.
+- If a lexical selection is made, the target word is selected with probability $t$, or some other word is chosen with probability $1-t$.
+- Once a word is selected, either its \index{Phonological representation} phonological representation is selected with probability $f$, or some other (incorrect) phonological representation is selected with probability $1-f$.
+- Once a word is selected, there can be a phonological change that leads to a real, formally related  word with probability $c$, or a \index{Neologism} neologism with probability $1-c$. Example: the subjects produces either a formally related word "hat," or a neologism like "cag."
+
+The end-result of walking down this tree is that the subject either produces a non-response ("I don't know" or silence), a correct response, a related word, a mixed word, or a neologism. There is more than one way to produce a neologism or a related word, and the posterior probabilities of the various paths will determine the probability of each possible path.
+
+(ref:MPT-tikz) Representation of a simplification of the MPT used in @WalkerEtAl2018.
+
+```{r MPT-tikz,engine='tikz',fig.ext= if (knitr::is_html_output()) "svg" else "pdf", echo = FALSE, fig.cap = "(ref:MPT-tikz)"}
+\usetikzlibrary{shapes,arrows,shadows,positioning}
+\begin{tikzpicture}
+\node[draw=black,rectangle,inner sep=3pt]  (a) {Attempt};
+\node (NR)  [below left= of a] {NR};
+\node[draw=black,rectangle,inner sep=3pt]  (LexSel)  [below right= of a] {Lexical Selection};
+\draw[->, very thick] (a.south) -- (NR.north) node[above=1ex] {$1-a$};
+\draw[->, very thick] (a.south) -- (LexSel.north) node[above=1ex] {$a$};
+\node[draw=black,rectangle,inner sep=3pt]  (phon1)  [below left= of LexSel] {Phonology};
+\node[draw=black,rectangle,inner sep=3pt]  (phon2)  [below right= of LexSel] {Phonology};
+\draw[->, very thick] (LexSel.south) -- (phon1.north) node[above=1ex] {$1-t$};
+\draw[->, very thick] (LexSel.south) -- (phon2.north) node[above=1ex] {$t$};
+
+\node[draw=black,rectangle,inner sep=3pt]  (tword)  [below left= of phon1] {Target Word};
+\node  (mixed)  [below = of phon1] {Mixed};
+\draw[->, very thick] (phon1.south) -- (tword.north) node[above=1ex] {$1-f$};
+\draw[->, very thick] (phon1.south) -- (mixed.north) node[above right=1ex] {$f$};
+
+\node  (N1)  [below left= of tword] {Neologism};
+\node  (F1)  [below= of tword] {Formal};
+\draw[->, very thick] (tword.south) -- (N1.north) node[above=1ex] {$1-c$};
+\draw[->, very thick] (tword.south) -- (F1.north) node[above right=1ex] {$c$};
+
+
+\node[draw=black,rectangle,inner sep=3pt]  (tword2)  [below left= of phon2] {Target Word};
+\node  (correct)  [below right= of phon2] {Correct};
+\draw[->, very thick] (phon2.south) -- (tword2.north) node[above=1ex] {$1-f$};
+\draw[->, very thick] (phon2.south) -- (correct.north) node[above=1ex] {$f$};
+
+\node  (N2)  [below = of tword2] {Neologism};
+\node  (F2)  [below right= of tword2,inner sep=3pt] {Formal};
+\draw[->, very thick] (tword2.south) -- (N2.north) node[above left=1ex] {$1-c$};
+\draw[->, very thick] (tword2.south) -- (F2.north) node[above=1ex] {$c$};
+\end{tikzpicture}
+```
+
+
+
+
+Table: (\#tab:MPT-params) Psychological interpretation of the parameters of the MPT model.
+
+
+| Param. | Description |
+|:------|:------------------------------------------------------------------------------|
+|a      |Probability of  initiating an attempt|
+|t      |Probability of selecting a target word over competitors|
+|f      |Probability of retrieving correct phonemes|
+|c      |Probability of a phoneme change in the target creating a real word |
+
+
+
+### Calculation of the probabilities in the MPT branches
+
+By navigating through the branches of the MPT (Figure \@ref(fig:MPT-tikz)), we can calculate the probabilities of the five responses (the categorical outcomes), based on the four underlying parameters assumed in the MPT:
+
+* $P(\mathit{NR}| a,t,f,c)= 1-a$
+* $P(\mathit{Neologism}| a,t,f,c)= a \cdot (1-t) \cdot (1-f) \cdot (1-c) +  a \cdot t \cdot (1-f) \cdot (1-c)$
+* $P(\mathit{Formal}| a,t,f,c)= a \cdot (1-t) \cdot (1-f) \cdot c +  a \cdot t \cdot (1-f) \cdot c$
+* $P(\mathit{Mixed}| a,t,f,c)= a \cdot (1-t) \cdot f$
+* $P(\mathit{Correct}| a,t,f,c)= a \cdot t \cdot f$
+
+
+Given that
+
+\begin{multline}
+P(\mathit{NR}| a,t,f,c) + P(\mathit{Neologism}| a,t,f,c) + P(\mathit{Formal}| a,t,f,c) + \\
+P(\mathit{Mixed}| a,t,f,c) + P(\mathit{Correct}| a,t,f,c) = 1
+\end{multline}
+
+there is no need to characterize every outcome:  we can always calculate any one of the remaining responses as one minus the other responses.
+
+### A simple MPT model {#sec-mpt-data}
+
+
+
+First, simulate 200 trials assuming no variability between items and subjects. It is convenient to define functions to compute each outcome's probability, based on the previous MPT. One needs to assign "true values" to the underlying parameters of the MPT;  these point values are only for illustration. Ideally, one should simulate data using parameter values that are realistic; that is, one should use values based on the literature, including the uncertainty of these parameters.
+
+```{r, echo = FALSE}
+set.seed(123)
+```
+
+```{r, message = FALSE, tidy = FALSE}
+# The probabilities of the different answers:
+Pr_NR <- function(a, t, f, c)
+    1 - a
+Pr_Neologism <- function(a, t, f, c)
+    a * (1 - t) * (1 - f) * (1 - c) + a * t * (1 - f) * (1 - c)
+Pr_Formal <- function(a, t, f, c)
+    a * (1 - t) * (1 - f) * c +  a * t * (1 - f) * c
+Pr_Mixed <- function(a, t, f, c)
+    a * (1 - t) * f
+Pr_Correct <- function(a, t, f, c)
+    a * t * f
+# The true underlying values for simulated data:
+a_true <- 0.75
+t_true <- 0.9
+f_true <- 0.8
+c_true <- 0.1
+# The probability of the different answers:
+Theta <-
+  tibble(NR = Pr_NR(a_true, t_true, f_true, c_true),
+         Neologism = Pr_Neologism(a_true, t_true, f_true, c_true),
+         Formal = Pr_Formal(a_true, t_true, f_true, c_true),
+         Mixed = Pr_Mixed(a_true, t_true, f_true, c_true),
+         Correct = Pr_Correct(a_true, t_true, f_true, c_true))
+N_trials <- 200
+(ans <- rmultinom(1, N_trials, c(Theta)))
+```
+
+
+
+
+
+```{r echo=FALSE}
+mpt_h <- system.file("stan_models", "mpt_h.stan",  package = "bcogsci")
+```
+
+The above data can be modeled in Stan as discussed below (see `mpt_mnm.stan`). The probabilities of the different categories go into the `transformed parameters` section because they are derived from the probability parameters in the model. The data are modeled as coming from a multinomial likelihood. If priors are not specified, then a Beta distribution with $a=1$ and $b=1$ (a Uniform(0,1) distribution) is assumed for the parameters $a$, $t$, $f$, and $c$. Unlike $\boldsymbol{\theta}$, the values of these parameters are independent of each other and they do not sum to one. For this reason, we should not use a Dirichlet prior here.
+
+We define the following model:
+
+\begin{equation}
+\begin{aligned}
+\theta_{nr} &= 1-a \\
+\theta_{neol.} &= a \cdot (1-t) \cdot (1-f) \cdot (1-c) +  a \cdot t \cdot (1-f) \cdot (1-c)\\
+\theta_{formal} &= a \cdot (1-t) \cdot (1-f) \cdot c +  a \cdot t \cdot (1-f) \cdot c\\
+\theta_{mix} &= a \cdot (1-t) \cdot f\\
+\theta_{corr} &= a \cdot t \cdot f\\
+\boldsymbol{\theta} &= \langle\theta_{nr}, \theta_{neol.}, \theta_{formal}, \theta_{mix}, \theta_{corr}\rangle\\
+ans &\sim \mathit{Multinomial}(\theta)\\
+a,t,f,c &\sim \mathit{Beta}(2, 2)
+\end{aligned}
+\end{equation}
+
+This translates to the following code:
+
+```{stan output.var = "mpt3", code = readLines(mpt_mnm),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+Fit the model:
+```{r}
+data_sMPT <-  list(N_trials = N_trials,
+                   ans = c(ans))
+```
+```{r smptfit, results = "hide", message = "FALSE", eval = !file.exists("dataR/fit_sMPT.RDS")}
+mpt_mnm <- system.file("stan_models",
+                       "mpt_mnm.stan",
+                       package = "bcogsci")
+fit_sMPT <- stan(mpt_mnm, data = data_sMPT)
+```
+```{r, echo= FALSE}
+if(!file.exists("dataR/fit_sMPT.RDS")){
+  saveRDS(fit_sMPT,"dataR/fit_sMPT.RDS")
+} else {
+  fit_sMPT <- readRDS("dataR/fit_sMPT.RDS")
+}
+```
+
+
+Print out a summary of the posterior of the parameter of interest:
+
+```{r}
+print(fit_sMPT, pars = c("a", "t", "f", "c"))
+```
+
+What the model gives us is posterior distributions of each of the parameters `a`, `t`, `f`, `c`. From these we can derive the probabilities of producing the different observed responses, and the posterior predictive distributions, which could be used for model evaluation.
+
+An important sanity check in modeling is checking whether the model can in principle recover the true parameters that generated the data; see Figure \@ref(fig:sMPT-posterior).
+
+```{r sMPT-posterior, message = FALSE, tidy = FALSE, fig.cap = "Posterior distributions and true point values of the parameters of the simple MPT model (`mpt_mnm.stan`)."}
+as.data.frame(fit_sMPT) %>%
+  select(c("a","t","f","c")) %>%
+  mcmc_recover_hist(true = c(a_true, t_true, f_true, c_true)) +
+  coord_cartesian(xlim = c(0, 1))
+```
+
+The above figure shows that the model can indeed recover the true parameters fairly accurately.
+
+The posterior distributions of the $\boldsymbol{\theta}$ parameters can also be summarized:
+
+```{r}
+print(fit_sMPT, pars = c("theta"))
+```
+
+These posteriors tell us the probability of producing each of the possible responses.
+This model might be useful for estimating the latent parameters, $a$, $t$, $f$, $c$, but without further constraints it is unfalsifiable.
+
+Recall that for the multinomial likelihood in section \@ref(sec-mult), we had a simplex of size five, which means that we had four free parameters (since the fifth can be deduced based on the others). With five possible answers we can always estimate a vector of probabilities $\boldsymbol{\theta}$ that fits the data, in the same way that with two possible answers (e.g., zeros and ones), we can always estimate a single  probability $\theta$ that fits the data (using a Bernoulli or binomial likelihood).
+The MPT that we present here is just \index{Reparameterization} reparameterizing the vector $\boldsymbol{\theta}$ of the multinomial likelihood (with the same number of free parameters). This means that it will always achieve a perfect fit; see exercise \@ref(exr:mpt-mnm).  This doesn't mean that this MPT model is "useless": Under the assumption that the model is meaningful, one can estimate its latent parameters and this estimation can have theoretical implications. If we want to be able to falsify this model, we'll need to constrain it more, as we suggest below.
+
+
+
+### An MPT model assuming by-item variability {#sec-MPT-reg}
+
+
+The use of aggregated data implies the assumption that the estimated parameters do not vary too much between subjects and items. If this assumption is incorrect, the analysis of aggregated data may lead to erroneous conclusions: reliance on aggregated data in the presence of parameter heterogeneity may lead to biased parameter estimates and the underestimation of credible intervals [see also @schad2022data].
+
+
+If it is known that $f$ is affected by the phonological complexity of the individual word (e.g., *cat* is easier to produce than *umbrella*), the previous model does not have a way to include that information.
+
+Simulated data can be generated taking into account the `complexity` of the items. Assume here for simplicity that the complexity of items is given as data and it is scaled and centered; i.e., mean complexity is represented by $0$, and the standard deviation is assumed to be $1$. We will assume a regression model that determines the parameter, $f$, as a function of the phonological complexity of each trial.
+
+One important detail is that `f` is a probability and needs to be bounded between $0$ and $1$. To make sure that this property is met, the computation of `f` for each item  will be converted to probability space using the \index{Logistic function} logistic function. This  is achieved as follows.
+
+Suppose that $f'$ is a linear function of complexity. For example, two parameters $\alpha_f$ and $\beta_f$ (intercept and slope respectively) could determine how $f'$ is affected by complexity:
+
+$f'_j=\alpha_f + complexity_j\cdot \beta_f$.
+
+The parameters $\alpha_f$ and $\beta_f$ are defined in an unconstrained \index{Log-odds space} log-odds space (they can be any real number). The model that is fit then yields an $f'_j$ value for each item $j$ in log-odds space. The log-odds value $f'_j$ can be converted to a probability value $f_{true}$ by applying the logistic function (or the  \index{Inverse logit} inverse logit, $logit^{-1}$) to $f'$. Recall from the  generalized linear model discussed earlier that if  we have a model in log-odds space:
+
+\begin{equation}
+\log \left(\frac{p_j}{1-p_j}\right) = \alpha + \beta\cdot x_j = \mu_j
+\end{equation}
+
+Then we can recover the probability $p_j$ by solving for $p_j$:
+
+\begin{equation}
+p_j = \frac{\exp(\mu_j)}{1+\exp(\mu_j)} = \frac{1}{1+\exp(-\mu_j)}
+\end{equation}
+
+
+The above is the logistic or inverse logit function: it takes as input $\mu_j$ and returns the corresponding probability $p_j$. The \index{\texttt{plogis}} `plogis()` function in R carries out the calculation shown above.
+
+```{r, echo = FALSE}
+set.seed(123)
+```
+
+```{r}
+N_obs <- 50
+complexity <- rnorm(N_obs) # by default mean = 0, sd = 1
+## choose some hypothetical values:
+alpha_f <- 0.3
+# the negative sign indicates that
+# increased complexity will lead to a reduced value of f:
+beta_f <- -0.3
+# f' as a linear function of complexity:
+f_prime <- alpha_f + complexity * beta_f
+head(f_prime)
+## probabilities f for each item:
+f_true <- plogis(f_prime)
+head(f_true)
+```
+
+
+This change in our assumptions entails that the probability of each response changes depending on the item associated with each observation. The  parameters `theta` now have to be a matrix. This is in R; in Stan, we will code it as an \index{Array of simplexes} array of simplexes, i.e., an array of non-negative values that sums to 1.
+
+We continue with the functions defined in section \@ref(sec-mpt-data), and the same values for `a_true`, `t_true`, and `c_true` as defined in that section. Since most of the equations depend on `f`, and `f` is a vector now, the outcomes are automatically vectors. But this is not the case for `theta_NR_v`, and thus we need to repeat the value.
+
+```{r}
+theta_NR_v <- rep(Pr_NR(a_true, t_true, f_true, c_true), N_obs)
+theta_Neologism_v <- Pr_Neologism(a_true, t_true, f_true, c_true)
+theta_Formal_v <- Pr_Formal(a_true, t_true, f_true, c_true)
+theta_Mixed_v <- Pr_Mixed(a_true, t_true, f_true, c_true)
+theta_Correct_v <- Pr_Correct(a_true, t_true, f_true, c_true)
+theta_item <- matrix(c(theta_NR_v,
+                       theta_Neologism_v,
+                       theta_Formal_v,
+                       theta_Mixed_v,
+                       theta_Correct_v),
+                     ncol = 5)
+dim(theta_item)
+head(theta_item,n = 3)
+```
+
+Store this in a data frame:
+
+```{r}
+sim_data_cx <- tibble(item = 1:N_obs,
+                      complexity = complexity,
+                      w_ans = c(rcat(N_obs,theta_item)))
+sim_data_cx
+```
+
+
+
+The following model (saved in `mpt_cat.stan`) is essentially doing the same thing as the previous model but instead of fitting a multinomial to the summary of all the trials, it is fitting a categorical distribution to each individual observation. (This is analogous to the difference between the Bernoulli and binomial distributions).
+
+This is still not an appropriate model for the generative process that we are assuming in this section, because it still ignores the effect of complexity. But it is a good start.
+
+```{stan output.var = "mpt4", code = readLines(mpt_cat),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+An important aspect of the previous model is that `theta` is declared as \index{\texttt{simplex}} `array[N_obs] simplex[5] theta;`. This means that `theta` is an \index{Array of simplexes} array of simplexes and thus has now two dimensions: each element of the array (of length `N_obs`) is a simplex and sums to one. That's why we iterate over the `N_obs`. However, one limitation of the previous model is that the latent parameters `a`, `t`, `f`, `c` are declared as `real` and they do not vary in each iteration of the loop.  Before moving to the next section, you might want to do exercise \@ref(exr:edit-mpt-cat), where you are asked to edit the previous chunk of code to incorporate the fact that `f` is now a transformed parameter that depends on the trial information and two new parameters.
+
+### A \index{Hierarchical MPT} hierarchical MPT {#sec-MPT-h}
+
+The previous model doesn't take into account that subjects might vary  (and neither does the  modification to this model that is suggested in exercise \@ref(exr:edit-mpt-cat)). Let's focus on taking into account the differences between subjects.
+
+Different subjects might not be equally motivated to do the task. This can be accounted for by adding \index{Hierarchical structure} hierarchical structure to the parameter `a`, the probability of initiating an attempt. Begin by simulating some data that incorporates \index{By-subject variability} by-subject variability.
+
+First, define the number of items and subjects, and the number of observations:
+
+```{r, echo = FALSE}
+set.seed(123)
+```
+
+```{r}
+N_item <- 20
+N_subj <- 30
+N_obs <- N_item * N_subj
+```
+
+Then, generate a vector for subjects and for items. Assume here that each subject sees  each item.
+
+```{r}
+subj <- rep(1:N_subj, each = N_item)
+item <- rep(1:N_item, time = N_subj)
+```
+
+A vector representing complexity is created for the  number of items we have, and this vector is repeated as many times as there are subjects:
+
+```{r}
+complexity <- rep(rnorm(N_item), times = N_subj)
+```
+
+Next, create a data frame with all the above information:
+
+```{r}
+(exp_sim <- tibble(subj = subj,
+                  item = item,
+                  complexity = complexity))
+```
+
+To create subject-level variability in the data, a between-subject standard deviation needs to be defined. This standard deviation represents the deviations of subjects about the grand mean.  We are defining this adjustment in log-odds space.
+
+```{r}
+# New parameters, in log-odds space:
+tau_u_a <- 1.1
+## generate subject adjustments in log-odds space:
+u_a <- rnorm(N_subj, 0, tau_u_a)
+str(u_a)
+```
+
+Given the fixed `a_true` probability value of `r a_true`, the subject-level values for individual `a_true` can be derived by (a) first converting the overall `a_true` value to \index{Log-odds space} log-odds space, (b) adding the by-subject adjustment to this converted overall value, and (c) then converting back to \index{Probability space} probability space using the logistic or inverse logit \index{\texttt{plogis}} (`plogis()`) function. Essentially we generate data assuming the following:
+
+\begin{equation}
+\begin{aligned}
+a_{h,n}' &= \alpha_a + u_{a,subj[n]}\\
+a_{h,n} &= \text{logit}^{-1}(a_{h,n}')
+\end{aligned}
+\end{equation}
+
+Where $u_{a,subj[n]}$ is a vector with the same length as the total number of observations. The meaning of this notation was explained in the section \@ref(sec-hierstan).
+
+This is done in R as follows:
+
+```{r}
+a_true <- 0.75 # as before
+## convert the intercept to log-odds space:
+alpha_a <- qlogis(a_true)
+## a_h' in log-odds space:
+a_h_prime <-  alpha_a + u_a[subj]
+## convert back to probability space
+a_true_h <- plogis(a_h_prime)
+str(a_true_h)
+```
+
+What this achieves mathematically is adding varying intercepts by subjects to `alpha_a`, and then the values adjusted by subject are saved in probability space.
+
+
+As before, `f_true` is computed as a function of complexity:
+
+```{r}
+alpha_f <- 0.3; beta_f <- -0.3
+f_true <- plogis(alpha_f + complexity * beta_f)
+```
+
+We continue with the same probability functions and the rest of the true point values remain the same as well.
+
+```{r}
+t_true <- 0.9; c_true <- 0.1
+Pr_NR <- function(a, t, f, c)
+    1 - a
+Pr_Neologism <- function(a, t, f, c)
+    a * (1 - t) * (1 - f) * (1 - c) + a * t * (1 - f) * (1 - c)
+Pr_Formal <- function(a, t, f, c)
+    a * (1 - t) * (1 - f) * c +  a * t * (1 - f) * c
+Pr_Mixed <- function(a, t, f, c)
+    a * (1 - t) * f
+Pr_Correct <- function(a, t, f, c)
+    a * t * f
+```
+
+Now, we can define the probabilities of different outcomes:
+
+```{r}
+# Aux. parameters that define the probabilities:
+theta_NR_v_h <- Pr_NR(a_true_h, t_true, f_true, c_true)
+theta_Neologism_v_h <- Pr_Neologism(a_true_h, t_true, f_true, c_true)
+theta_Formal_v_h <- Pr_Formal(a_true_h, t_true, f_true, c_true)
+theta_Mixed_v_h <- Pr_Mixed(a_true_h, t_true, f_true, c_true)
+theta_Correct_v_h <- Pr_Correct(a_true_h, t_true, f_true, c_true)
+theta_h <- matrix(c(theta_NR_v_h,
+                    theta_Neologism_v_h,
+                    theta_Formal_v_h,
+                    theta_Mixed_v_h,
+                    theta_Correct_v_h),
+                  ncol = 5)
+dim(theta_h)
+```
+
+The probability specifications shown above can now generate the simulated data:
+
+```{r}
+(sim_data_h <- mutate(exp_sim,
+                      w_ans = rcat(N_obs,theta_h)))
+```
+
+Next, define the following model; we omit the steps with $f'$ and $a'$ and directly apply the logistic function to a regression. The parameters $t$, $c$ do not vary by item or subject and therefore do not have the subscript $_n$.  We start by defining relatively weak priors for all the parameters in the following model. (See how we decided on the priors of $\alpha$ and $\beta$ in the logistic regression example of section \@ref(sec-priorslogisticregression)).
+
+\begin{equation}
+\begin{aligned}
+\alpha_a, \alpha_f &\sim \mathit{Normal}(0, 1.5)\\
+\beta_f &\sim \mathit{Normal}(0, 1)\\
+t,c &\sim \mathit{Beta}(2, 2)\\
+\tau_u &\sim \mathit{Normal}(0, 1)\\
+u_a &\sim \mathit{Normal}(0, \tau_{u_a})\\
+a_n &= logit^{-1}(\alpha_a + u_{a,subj[n]})\\
+f_n &= logit^{-1}(\alpha_f + complexity_n \cdot \beta_f)\\
+\theta_{n,nr} &= 1 - a_n \\
+\theta_{n,neol.} &= a_n \cdot (1-t) \cdot (1-f_n) \cdot (1-c) +  a_n \cdot t \cdot (1-f_n) \cdot (1-c)\\
+\theta_{n,formal} &= a_n \cdot (1-t) \cdot (1-f_n) \cdot c +  a_n \cdot t \cdot (1-f_n) \cdot c\\
+\theta_{n,mix} &= a_n \cdot (1-t) \cdot f_n\\
+\theta_{n,corr} &= a_n \cdot t \cdot f_n\\
+\theta_n &= \langle\theta_{n, nr}, \theta_{n, neol.}, \theta_{n, formal}, \theta_{n, mix}, \theta_{n, corr}\rangle\\
+ans_n &\sim \mathit{Categorical}(\theta_n)
+\end{aligned}
+\end{equation}
+
+
+The corresponding Stan model `mpt_h.stan` will look like this:
+
+```{stan output.var = "mpt5", code = readLines(mpt_h),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+For ease of exposition, we are not using the non-centered parameterization discussed previously in section \@ref(sec-uncorrstan). We could also apply it here; that will speed up and improve the convergence of the model. See Exercise \@ref(exr:mpt).
+
+It would be a good idea to plot prior predictive distributions for this model, but we skip this step here. Next, fit the model to the simulated data, by first defining the data as a list:
+
+```{r, results = "hide", message = "FALSE", tidy = FALSE}
+sim_list_h <-  list(N_obs = nrow(sim_data_h),
+                    w_ans = sim_data_h$w_ans,
+                    N_subj = max(sim_data_h$subj),
+                    subj = sim_data_h$subj,
+                    complexity = sim_data_h$complexity)
+```
+
+```{r, results = "hide", message = "FALSE", eval = !file.exists("dataR/fit_mpt_h.RDS")}
+mpt_h <- system.file("stan_models",
+                     "mpt_h.stan",
+                     package = "bcogsci")
+fit_mpt_h <- stan(mpt_h, data = sim_list_h)
+```
+```{r, echo= FALSE}
+if(!file.exists("dataR/fit_mpt_h.RDS")){
+  saveRDS(fit_mpt_h,"dataR/fit_mpt_h.RDS")
+} else {
+  fit_mpt_h <- readRDS("dataR/fit_mpt_h.RDS")
+}
+```
+
+Print out a summary of the posterior:
+
+```{r}
+print(fit_mpt_h,
+      pars = c("t", "c", "tau_u_a", "alpha_a", "alpha_f", "beta_f"))
+```
+
+If we had fit this to real data, we would now conclude that:
+
+(i) given the value of `beta_f`, complexity has an adverse effect on the probability of retrieving the correct phonemes, and
+
+(ii)  given the posterior distribution of `tau_u_a`, there is a great deal of variation in the subjects' probability of initiating an attempt at each trial. Furthermore, if we had some expectation about $t$ and $c$ based on previous research, we could conclude that our results are in line (or not) with previous findings.
+
+
+One could inspect how one unit of complexity is affecting the probability of retrieving the correct phoneme ($f$). We first derive the value of `f` for an item of zero complexity (that is $\alpha_{f} + 0 \times \beta_{f}$) and then the value of `f` for an item with a complexity of one ($\alpha_{f} + 1 \times \beta_{f}$). We are interested in summarizing the difference between the two:
+
+```{r}
+as.data.frame(fit_mpt_h) %>%
+  select(alpha_f, beta_f) %>%
+  mutate(f_0 = plogis(alpha_f),
+         f_1 = plogis(alpha_f + beta_f),
+         diff_f = f_1 - f_0) %>%
+  summarize(Estimate = mean(diff_f),
+          `2.5%` = quantile(diff_f, 0.025),
+          `97.5%` = quantile(diff_f, 0.975))
+```
+
+
+It is worth highlighting that MPT models (like other cognitive models) should be experimentally validated before interpreting the parameters as measures of cognitive processes. Particularly powerful are tests of selective influence, where one demonstrates that each of the parameters can be selectively influenced as theoretically predicted, while all other parameters remain unaffected  [@SchmidtEtAl2023Howdeveloptest].
+
+
+ One further interesting step could be to develop a competing model that assumes a different latent process, and then comparing the performance of the MPT with this competing model, using Bayes factors or K-fold-CV (or both).
+
+Since we generated the data based on known latent parameters, we also plot the posteriors together with the true point values of the parameters in Figure \@ref(fig:mpt-h). This is something that we can only do with simulated data.
+
+```{r mpt-h, message = FALSE, tidy = FALSE, fig.cap = "Posterior of the hierarchical MPT with true point values as vertical lines (model `mpt_h.stan`).", tidy = FALSE}
+as.data.frame(fit_mpt_h) %>%
+  select(tau_u_a, alpha_a, t, alpha_f, beta_f, c) %>%
+  mcmc_recover_hist(true = c(tau_u_a,
+                             qlogis(a_true),
+                             t_true, alpha_f,
+                             beta_f, c_true))
+```
+
+
+If everything is correctly defined in the model, we should be able to generate posterior predictive data based on our estimates that looks quite similar to the simulated data; see Figure \@ref(fig:aggMPT-h). The error bars in $y_{rep}$  include 90% of the probability mass of the predictive distribution (this is a default of `ppc_bars()`). In a well-calibrated model,  the data ($y$, here the proportion of answers of each type) should be inside the error bars in 90% of the cases.
+
+
+```{r aggMPT-h, fig.cap = "A posterior predictive check for aggregated data in the hierarchical MPT model.", fig.height = 2}
+gen_data <- rstan::extract(fit_mpt_h)$pred_w_ans
+ppc_bars(sim_list_h$w_ans, gen_data) +
+  ggtitle ("Hierarchical model")
+```
+
+It is also useful to look at the individual subjects' posteriors; these are shown in Figure \@ref(fig:pMPT-h).
+
+
+```{r pMPT-h, fig.height=8, fig.cap= "Individual subjects in the hierarchical MPT model.", fig.pos = "H"}
+ppc_bars_grouped(sim_list_h$w_ans,
+                 gen_data, group = subj) +
+  ggtitle ("By-subject plot for the hierarchical model")
+```
+
+But what about the first *non-hierarchical* MPT model (`mpt_cat.stan`)?
+
+
+
+```{r fit:aphasia-smpt-cat, message = FALSE, results = "hide", eval = !file.exists("dataR/fit_sh.RDS")}
+mpt_cat <- system.file("stan_models",
+                       "mpt_cat.stan",
+                       package = "bcogsci")
+fit_sh <- stan(mpt_cat, data = sim_list_h)
+```
+
+
+```{r, echo= FALSE}
+if(!file.exists("dataR/fit_sh.RDS")){
+  saveRDS(fit_sh,"dataR/fit_sh.RDS")
+} else {
+  fit_sh <- readRDS("dataR/fit_sh.RDS")
+}
+```
+
+The aggregated data looks great (Figure \@ref(fig:aggMPT-nh)).
+
+
+```{r aggMPT-nh, fig.height =8, fig.cap = "Posterior predictive check for aggregated data in a non-hierarchical MPT model (`mpt_cat.stan`).", fig.height = 2}
+gen_data_sMPT <- rstan::extract(fit_sh)$pred_w_ans
+ppc_bars(sim_list_h$w_ans, gen_data_sMPT) +
+  ggtitle ("Non-hierarchical model")
+```
+
+
+However, in the non-hierarchical model, the fit to individual subjects is not as good (Figure \@ref(fig:pMPT)): The error bars of the predicted distribution
+is of course identical for each subject (up to sampling variability) and do not include the observed proportion of answers for many of the subjects.
+
+
+
+```{r pMPT, fig.height=8, fig.cap= "Individual subjects in the non-hierarchical MPT model (mpt_cat.stan).", fig.pos = "H"}
+ppc_bars_grouped(sim_list_h$w_ans, gen_data_sMPT, group = subj) +
+  ggtitle ("By-subject plot for the non-hierarchical model")
+```
+
+The hierarchical model does a better job of modeling individual-level variability.
+
+\newpage
+
+## Summary
+
+In this chapter, we learned to fit increasingly complex MPTs to model categorical responses by assuming underlying latent events that might or might not happen with a certain probability. We started with a simple model and ended with a hierarchical model. We saw how to generate simulated data and investigate parameter recovery to verify that the models were correctly implemented. Furthermore, we showed how one can carry out posterior predictive checks to evaluate the fit of the models, and how to interpret the posteriors of the parameters. MPTs have a lot of potential as stand-alone models or as parts of larger cognitive models [as in, for example, @paapevasishthmpt2022; @NicenboimVasishth2016; and @Klaueretal2018].
+
+
+## Further reading
+
+@Koster2017 present a tutorial on multinomial logistic regression/categorical regression in the context of behavioral ecology and anthropology.  Other tutorials on MPTs are presented by @matzkeBayesianEstimationMultinomial2015 and @SchmidtEtAl2023Howdeveloptest. For the complete implementation of an MPT relating to aphasia, see @WalkerEtAl2018. Some examples of cognitive models using MPTs are @lee2020application and @smith2010beta. An example of using MPTs to model garden-pathing processes in sentence processing appears in @paapevasishthmpt2022.
+Some extensions of MPT models that directly encode the temporal sequence of latent processes by accounting for response times have been developed as well [@HeckErdfelder2016Extendingmultinomialprocessing; @KlauerKellen2018RTMPTsProcess; @HeckEtAl2018GeneralizedProcessingTree].
+
+
+## Exercises
+
+```{exercise, mult}
+Modeling multiple categorical responses.
+```
+
+a. Re-fit the model presented in section \@ref(sec-cat), adding the assumption that you have more information about the probability of giving a correct response in the task. Assume that you know that subjects' answers have around 60% accuracy. Encode this information in the priors with two different degrees of certainty. (Hint: 1. As with the Beta distribution, you can increase the  pseudo-counts to increase the amount of information and reduce the "width" of the distribution; compare $Beta(9,1)$ with $Beta(900,100)$. 2. You'll need to use a column vector for the Dirichlet concentration parameters. `[.., .., ]` is a `row_vector` that can be transposed and converted into a column vector by adding the transposition symbol `'` after the right bracket.)
+b. What is the difference between the multinomial and categorical parameterizations?
+c. What can we learn about impaired picture naming from the models in sections \@ref(sec-mult) and \@ref(sec-cat)?
+
+```{exercise, mpt-mnm}
+An alternative MPT to model the picture recognition task.
+```
+
+Build *any* alternative tree with four parameters $w$, $x$, $y$, $z$ to fit the data generated in \@ref(sec-mpt-data). Compare the posterior distribution of the auxiliary vector `theta` (that goes in the `multinomial_lpmf()`) with the one derived in section \@ref(sec-mpt-data).
+
+```{exercise, edit-mpt-cat}
+A simple MPT model that incorporates phonological complexity in the picture recognition task.
+```
+
+Edit the Stan code `mpt_cat.stan` from `bcogsci` presented in section \@ref(sec-MPT-reg) to incorporate the fact that `f` is now a transformed parameter that depends on the trial information and two new parameters, $\alpha_f$ and $\beta_f$. The rest of the latent parameters do not need to vary by trial.
+
+\begin{equation}
+\begin{aligned}
+f'_j &=\alpha_f + complexity_j\cdot \beta_f\\
+f_j &= logit^{-1}(f'_j)
+\end{aligned}
+\end{equation}
+
+The inverse logit or logistic function is called `inv_logit()` in Stan. Fit the model to the data of \@ref(sec-MPT-reg) and report the posterior distributions of the latent parameters.
+
+
+
+```{exercise, mpt}
+A more hierarchical MPT.
+```
+
+Modify the hierarchical MPT presented in section \@ref(sec-MPT-h) so that all the parameters are affected by individual differences. Simulate data and fit it. How well can you recover the parameters? You should use the non-centered parameterization for the by-subject adjustments. (Hint: Convergence will be reached much faster if you don't assume that the adjustment parameters are correlated as in \@ref(sec-uncorrstan), but you could also assume a correlation between all (or some of) the adjustments by using the Cholesky factorization discussed in section \@ref(sec-corrstan).)
+
+
+
+
+
+```{exercise, mpt-adv}
+**Advanced**: Multinomial processing trees.
+```
+
+The data set `df_source_monitoring` in `bcogsci` contains data from the package `psychotools` coming from a source-monitoring experiment [@batchelder1990multinomial] performed by @wickelmaier2018using.
+
+In this type of experiment, subjects study items from (at least) two different sources, A and B. After the presentation of the study items, subjects are required to classify each item as coming from source A, B, or as new: N (that is, a distractor). In their version of the experiment, Wickelmaier and Zeileis used two different A-B pairs: Half of the subjects had to read items either quietly (source A = think) or aloud (source B = say). The other half had to write items down (source A = write) or read them aloud (source B = say).
+
+- `experiment`: write-say or think-say
+- `age`: Age of the respondent in years.
+- `gender`: Gender of the respondent.
+- `subj`: Subject id.
+- `source`: Item source, a, b or n (new)
+- `a`, `b`, `N`: Number of responses for each type of stimuli
+
+
+Fit a multinomial processing tree following Figures \@ref(fig:smtikz) and \@ref(fig:smtikz2) to investigate whether experiment type, age and/or gender affects the different processes assumed in the model.
+As in @batchelder1990multinomial, assume that $a = g$ (for identifiability) and that discriminability is equal for both sources ($d_1 = d_2$).
+
+
+(ref:sm-tikz) Multinomial processing tree  for the source A items from the source monitoring paradigm (Batchelder and Riefer, 1990). $D_1$ stands for the detectability of source A, $d_1$ stands for the source discriminabilities for source A items, $b$ stands for the bias for responding "old" to a nondetected item, $a$  stands for guessing that a detected but nondiscriminated item belongs to source A, and $g$ stands for guessing that the item is a source A item.
+
+```{r smtikz,engine='tikz',fig.ext= if (knitr::is_html_output()) "svg" else "pdf", echo = FALSE, fig.cap = "(ref:sm-tikz)" }
+\small
+\usetikzlibrary{shapes,arrows,shadows,positioning}
+\begin{tikzpicture}[
+        sibling distance=11em,
+        level distance = 4em,
+        every node/.style = {}]
+\node {Source A items}
+child { node [xshift=-5em]{$D_1$}
+  child { node {$d_1$}
+    child { node {Response $A$}}
+  }
+  child { node {$1 - d_1$}
+    child { node {$a$}
+      child { node {Response $A$}}
+    }
+    child { node [xshift=-5em]{$1 - a$}
+      child { node {Response $B$}}
+    }
+  }
+}
+child { node [xshift=5em] {$1-D_1$}
+  child { node {$b$}
+    child { node [xshift=5em]{$g$}
+      child { node {Response $A$}}
+    }
+    child { node {$1 - g$}
+      child { node {Response $B$}}
+    }
+  }
+  child { node [xshift=-.5em]{$1 - b$}
+    child { node [xshift=-.5em] {Response $N$}}
+  }
+};
+
+\end{tikzpicture}
+```
+
+
+(ref:sm-tikz2) Multinomial processing tree  for the source B items from source monitoring paradigm (Batchelder and Riefer, 1990). $D_2$ stand for the detectability of source B  items,  $d_2$ stands for the source discriminabilities for source B, $b$ stands for the bias for responding "old" to a nondetected item, $a$  stands for guessing that a detected but nondiscriminated item belongs to Source A, and $g$ stands for guessing that the item is a source A item.
+
+```{r smtikz2,engine='tikz',fig.ext= if (knitr::is_html_output()) "svg" else "pdf", echo = FALSE, fig.cap = "(ref:sm-tikz2)" }
+\begin{tikzpicture}[
+        sibling distance=11em,
+        level distance = 4em,
+        every node/.style = {}]
+\node {Source B items}
+child { node [xshift=-5em]{$D_2$}
+  child { node {$d_2$}
+    child { node {Response $B$}}
+  }
+  child { node {$1 - d_2$}
+    child { node {$a$}
+      child { node {Response $A$}}
+    }
+    child { node [xshift=-5em]{$1 - a$}
+      child { node {Response $B$}}
+    }
+  }
+}
+child { node [xshift=5em] {$1-D_2$}
+  child { node {$b$}
+    child { node [xshift=5em]{$g$}
+      child { node {Response $A$}}
+    }
+    child { node {$1 - g$}
+      child { node {Response $B$}}
+    }
+  }
+  child { node [xshift=-.5em]{$1 - b$}
+    child { node [xshift=-.5em]{Response $N$}}
+  }
+} ;
+\end{tikzpicture}
+```
+
+
+(ref:sm-tikz3)  Multinomial processing tree  for the new items in the source monitoring paradigm (Batchelder and Riefer, 1990). $b$ stands for the bias for responding "old" to a nondetected item, $a$  stands for guessing that a detected but nondiscriminated item belongs to source A, and $g$ stands for guessing that the item is a source A item.
+
+```{r sm-tikz3,engine='tikz',fig.ext= if (knitr::is_html_output()) "svg" else "pdf", echo = FALSE, fig.cap = "(ref:sm-tikz3)" }
+\begin{tikzpicture}[
+        sibling distance=11em,
+        level distance = 4em,
+        every node/.style = {}]
+\node {New items}
+child { node {$b$}
+  child { node [xshift=5em]{$g$}
+    child { node {Response $A$}}
+  }
+  child { node {$1 - g$}
+    child { node {Response $B$}}
+  }
+}
+child { node {$1 - b$}
+  child { node {Response $N$}}
+}
+;
+
+\end{tikzpicture}
+
+```
+
+Notice the following:
+
+- The data are aggregated at the level of source, so you should use `multinomial_lpmf` for every row of the data set rather than `categorical_lpmf()`.
+- In contrast to the previous example, `source` determines three different trees, this means that the parameter `theta` has to be defined in relationship to the item source.
+- All the predictors are between subject, this means that only a by-intercept adjustment (for every latent process) is possible.
+
+If you want some basis to start with, you can have a look at the incomplete code in `source.stan`, by typing the following in R:
+
+```{r, eval = FALSE}
+cat(readLines(system.file("stan_models",
+                     "source.stan",
+                     package = "bcogsci")),
+    sep = "\n")
+```

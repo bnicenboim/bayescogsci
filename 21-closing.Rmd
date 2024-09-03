@@ -1,0 +1,52 @@
+# In closing {#ch-closing}
+
+If you have made it this far into the book, congratulations!
+This book attempted to provide an introduction to Bayesian data analysis
+and Bayesian computational cognitive modeling specifically aimed at
+researchers working in cognitive science, construed broadly. 
+Hopefully, this book has provided a flavor and some hands-on examples of how useful, important, and tractable the Bayesian approach is for typical research problems encountered when analyzing data from planned (behavioral) experiments.
+
+A key idea in Bayesian modeling is \index{Uncertainty quantification} uncertainty quantification: we are not
+just interested in the estimates of our parameters, but also in how unsure
+we are about the parameter values. This shift in focus towards uncertainty
+quantification, and away from binary conclusions like "the effect is significant"
+or "the effect is not significant",  is useful because it furnishes a more realistic
+picture of what we can conclude from the model. Such a focus on uncertainty quantification
+also teaches us to embrace uncertainty as a fact of life. Journal articles from many different fields reporting the results
+of experiments often foster an illusion of robustness in their conclusions; the recent
+replication crisis [e.g., @nosek2022replicability] has underlined just how illusory this certainty is.
+
+There do arise situations where uncertainty quantification is not the primary
+question of interest. When the research question really has the form, is the effect present
+or is there evidence against it, the Bayesian methodology does provide
+a tool: Bayes factors analyses. However, as we have discussed in this book, the Bayes factor
+is a multiple-edged sword: the researcher has to spend some energy and time conducting a
+sensitivity analysis under a range of priors, and the conclusions from a Bayes factor
+analysis are often going to be much more nuanced than those based on frequentist $p$-values.
+Thus, even here, there is a different kind of uncertainty about what one learns
+from the data---a lot can depend on which priors one adopts for the target parameter being
+estimated. Moreover, even if the Bayes factor decisively shows evidence for or against
+an effect, how robust this conclusion would be under replication depends to a large extent
+on the design properties of the study that the conclusion is based on. Specifically, if the false-discovery rate is high (in frequentist statistics, this relates to the statistical power of the design), even a large Bayes factor in favor of an effect may not tell us much.
+A key take-away from this is to temper one's excitement when one finds strong evidence one way or another, to study the design properties of one's experiment, and to wait to see whether the results will replicate.
+
+Perhaps the greatest advantage of the Bayesian approach is that one can flexibly
+adapt one's model to the research problem at hand, and to use the model to specify the hypothesized generative process that is assumed to have produced the data. This is in stark contrast to the standard approach in psychology and linguistics, where canned statistical models are used to answer questions like "is the effect present or absent?", without specifying the latent processes that are assumed to have produced the data. Of course,
+if one specifies a detailed process model, this increases the complexity of the model. Such an increased complexity naturally comes with a cost. One has to think about
+how to formulate the model, and this can involve complications like reparameterization,
+and can cost a lot of time and effort. The computations can also take time. However,
+ the bottom line here is that one can either get fast answers to the wrong question, or
+ slow (albeit uncertain!) answers to the real question one wants to answer. There is no free lunch.
+
+ Bayesian modeling comes with another cost: one has to spend some time checking that the
+ software used works as intended. This means not ignoring the warnings that the
+ software issues, but it also means that we should carry out gold-standard checks
+ to make sure that the model recovers the parameters as it is supposed to. Simulation
+ of data is an important tool here. Although this model validation process can be
+ time-consuming and computationally expensive, it is important to make sure that
+ the model behaves as it should when we know what the ground truth is. Model validation is a process
+ that even frequentist modelers could benefit from; for example, it is rare in psychology and linguistics  for researchers to check whether the linear mixed models they use for inference could even in principle recover the model parameters accurately.
+
+In closing, we hope that the reader finds this book useful in their research,
+and we look forward to seeing more and more work in cognitive science that uses
+this powerful inferential tool.

@@ -1,0 +1,92 @@
+An Introduction to Bayesian Data Analysis for Cognitive Science
+
+Chapter 1: Introduction
+
+This chapter introduces the basics of probability theory informally, including
+important concepts such as the law of total probability, and conditional
+probability. The chapter also introduces the key properties of discrete and
+continuous random variables, focusing on the binomial and normal random
+variables. Two other important topics covered are bivariate/multivariate
+discrete and continuous distributions, and the idea of integrating out a
+variable.
+
+
+Chapter 2: Introduction to Bayesian data analysis
+
+This chapter introduces the foundations ideas behind Bayesian inference,
+starting with deriving Bayes' rule, and then showing, through a simple example
+involving the binomial likelihood and the beta distribution, how the posterior
+distribution of a parameter can be analytically derived given a likelihood
+function and a prior distribution for the parameter the parameter. The chapter
+also discusses how the prior, likelihood, and posterior can be graphically
+summarized. An important observation that is demonstrated is that the posterior
+mean is a compromise between the prior mean and the maximum likelihood estimate.
+
+Chapter 3: Computational Bayesian data analysis
+
+This chapter introduces the basic usage of the brms library in R, focusing on a
+simple regression model. The chapter demonstrates how the posterior distribution
+of a parameter can be derived using sampling rather than through the analytical
+approach discussed in chapter 2. The sensitivity of the posterior to the prior
+specification is discussed, and different categories of prior (ranging from
+flat, uninformative priors to informative priors) are summarized. Two other
+important concepts introduced are prior and posterior predictive distributions.
+The influence of the likelihood function in determining the posterior is also
+discussed.
+
+Chapter 4: Bayesian regression models
+
+Here, we extend the simple regression model to include a predictor variable, and
+decide on a likelihood and priors, implementing the model in brms. We introduce
+here the lognormal likelihood and show how to communicate the results of the
+modeling. Logistic regression is also introduced in this chapter, with a
+discussion of the implications of prior choice in logistic regression models;
+back-transformation of the estimated parameters from log-odds space to
+probability space is also discussed.
+
+Chapter 5: Bayesian hierarchical models
+
+This chapter introduces an important class of model, the hierarchical model. In
+particular, here we consider data with repeated measurements from a group (e.g.,
+subjects in an experiment), and show how the model can take into account the
+repeated measures nature of the data in an experiment design. Five types of
+hierarchical regression models are introduced: the no-pooling model, the varying
+intercepts model, and the varying intercepts and slopes model (with and without
+a correlation between them), and a distributional regression model, in which
+each grouping variable (e.g., subject) is assumed to have its own residual
+standard deviation parameter.
+
+Chapter 6: The Art and Science of Prior Elicitation
+
+Here we discuss how one can derive/elicit priors for parameters in a model. A
+practical example from psycholinguistics is presented: the priors for the
+parameters in a hierarchical regression model of self-paced reading data are
+developed step by step in order to illustrate how one can reason about the
+priors in a model. The chapter also discusses how one can systematically elicit
+priors from domain experts, or from meta-analyses, and using posteriors from
+previous experiments when planning the analysis for a future study.
+
+Chapter 7: Workflow
+
+This chapter discusses the process of model-building in detail, focusing on
+asking and answering questions such as: are the model assumptions consistent
+with domain knowledge; how sensitive is the model to prior choice; and does the
+model adequately characterize the data? An important model-validation method
+called simulation-based calibration is discussed.
+
+Chapter 8: Contrast coding
+
+This chapter introduces the theory behind contrast coding for planned
+experiments that usually have a factorial design. The central idea introduced
+here is that of the hypothesis matrix, and an R package called hypr is
+introduced for defining contrasts. Different types of contrast coding are
+discussed: sum contrasts, Helmert contrasts, sliding or successive difference
+contrasts, and polynomial contrasts.
+
+Chapter 9: Contrast coding for designs with two predictor variables
+
+This chapter introduces contrast coding for experiment designs that have
+multifactorial designs (the 2x2 factorial design is the most common example of
+these). Analysis of variance coding and nested contrast coding are introduced.
+
+Chapter 10: Introduction to the probabilistic programming language Stan

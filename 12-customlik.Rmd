@@ -1,0 +1,916 @@
+# Custom distributions in Stan {#ch-custom}
+
+\index{Custom distribution}
+
+Stan includes a large number of distributions, but what happens if we need a distribution that is not provided? In many cases, we can simply build a custom distribution by combining the ever-growing number of functions available in the Stan language.
+
+## A change of variables with the reciprocal normal distribution {#sec-change}
+
+In previous chapters, when faced with response times, we assumed a log-normal distribution. The log-normal distribution moves the inferences relating to the location parameter into a multiplicative frame (see Box \@ref(thm:lognormal)). Another alternative, however, is to assume a \index{Reciprocal-normal distribution} "reciprocal"-normal distribution of response times. This is referred to hereafter as rec-normal in the text, and as the  $\mathit{RecNormal}$ distribution in equations. That is, we may want to assume that the reciprocal of the response times are normally distributed. This assumption may be theoretically motivated [@HarrisEtAl2014; @Harris2012] or it may arise from the application of the Box-Cox variance stabilizing transform procedure [@box1964analysis]. An example from psycholinguistics of a data analysis with a reciprocal transform of reading time data appears in @WuKaiserVasishth2017.
+
+
+\begin{equation}
+\begin{aligned}
+1/y &\sim \mathit{Normal}(\mu, \sigma) \\
+y &\sim \mathit{RecNormal}(\mu, \sigma)
+\end{aligned}
+(\#eq:recip)
+\end{equation}
+ 
+An interesting aspect of the \index{Reciprocal-normal distribution} rec-normal is that it affords an interpretation of the location parameter in terms of \index{Rate} rate or speed rather than time. Analogously to the case of the log-normal, neither the location $\mu$ nor the scale $\sigma$ are  in the same scale as the dependent variable $y$. These parameters are in the same scale as the transformed dependent variable (here, $1/y$) that is assumed to be normally distributed. 
+
+By setting $\mu = 0.002$ and $\sigma = 0.0004$,  data can be generated from the rec-normal that looks right-skewed and not unlike a distribution of response times. The code below shows some summary statistics of the generated data. 
+
+```{r}
+N <- 100
+mu <- 0.002
+sigma <- 0.0004
+rt <- 1 / rnorm(N, mu, sigma)
+c(mean = mean(rt), sd = sd(rt), min = min(rt), max = max(rt))
+```
+
+Figure \@ref(fig:recnormalhist) shows the distribution generated with the code shown above.
+
+(ref:recnormalhist) Distribution of synthetic data with a rec-normal distribution with parameters $\mu = 0.002$ and $\sigma =0.0004$.
+
+```{r recnormalhist, echo = FALSE, fig.cap = "(ref:recnormalhist)", message = FALSE}
+ggplot(tibble(rt = rt), aes(rt)) +
+  geom_histogram()
+```
+
+We can fit the rec-normal distribution to the response times in a simple model with a normal likelihood, by storing the reciprocal of the \index{Response time} response times (`1/RT`) in the vector variable `recRT` (rather than storing the "raw" response times):
+
+
+```
+model {
+\\ priors go here
+target += normal_lpdf(recRT | mu, sigma); 
+}
+```
+
+One issue here is that the parameters of the likelihood, `mu` and `sigma` are going to be very far away from the \index{Unit scale} unit scale ($0.002$ and $0.0004$ respectively). Due to the way Stan's sampler is built, parameters that are too small (much smaller than 1) or too large (much larger than 1) can cause convergence problems. A straightforward solution is to fit the normal distribution to parameters in reciprocal of seconds rather than milliseconds; this would make the parameters have values that are $1000$ times larger ($2$ and $0.4$ respectively). We can do this using the \index{transformed parameters} `transformed parameters` block.^[In this specific case, we could also transform the dependent variable first, but as will become clear later, we want to avoid changing our dependent variable.] Although we use `mu` and `sigma` to fit the data, the priors are defined on the parameters `mu_s` and `sigma_s` ($\mu_s$ and $\sigma_s$). 
+
+Unless one can rely on previous estimates, finding good priors for $\mu_s$ and $\sigma_s$ is not trivial. To define appropriate priors, we would need to start with relatively arbitrary priors, inspect the prior predictive distributions, adjust the priors, and repeat the inspection of prior predictive distributions until these distributions start to look realistic. In the interest of conserving space, we skip this iterative process here, and assign the following priors:
+
+
+\begin{equation}
+\begin{aligned}
+\mu_s & \sim  \mathit{Normal}(2, 1)\\
+\sigma_s & \sim \mathit{Normal}_+(0.4, 0.2)
+\end{aligned}
+\end{equation}
+
+```{r normalrectstore, echo = FALSE}
+normal_recrt <- system.file("stan_models",
+  "normal_recrt.stan",
+  package = "bcogsci"
+)
+```
+
+This model is implemented in the file `normal_recrt.stan`, available in the `bcogsci` package: 
+
+```{stan output.var = "normal_recrt", code = readLines(normal_recrt),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+Fit and display the summary of the previous model:
+
+```{r normalrectrt, results = "hide", message = FALSE}
+normal_recrt <- system.file("stan_models",
+                            "normal_recrt.stan",
+                            package = "bcogsci")
+fit_rec <- stan(normal_recrt, data = list(N = N, recRT = 1 / rt))
+```
+
+```{r}
+print(fit_rec, pars = c("mu", "sigma"), digits = 4)
+```
+
+Is a rec-normal likelihood more appropriate than a log-normal likelihood? As things stand, we cannot compare the models with these two likelihoods. This is because the dependent variables are different: we cannot compare reciprocal response times with untransformed response times on the millisecond scale. \index{Model comparison} Model comparison with  the Bayes factor or cross-validation can only compare models with the same dependent variables; see chapters \@ref(ch-comparison)-\@ref(ch-cv).
+
+If we do want to compare the reciprocal-normal likelihood and the log-normal likelihood, we have to set up the models with the two likelihoods in such a way that the dependent measure is on the raw millisecond scale in each model. This means that for the reciprocal normal likelihood, the model will receive as data raw reading times in milliseconds, and these will be treated as a transformed random variable from reciprocal reading times. This approach is discussed next, but requires knowledge of the  Jacobian adjustment (see @RossProb).
+
+### Scaling a probability density with the Jacobian adjustment
+
+To work with the original dependent variable (`RT` rather than `1/RT`) we need to perform a \index{Change of variables} *change of variables*: If the random variable X represents the reciprocal reading times ($1/RT$), we can transform this random variable to a new one, $Y = 1/X = 1/(1/RT) = RT$, yielding a transformed random variable $Y$ which represents reading time. 
+
+This change of variables requires an adjustment to the (unnormalized log) posterior probability to account for the distortion caused by the transform.^[Not every transformation is valid, univariate changes of variables must be monotonic and differentiable, multivariate changes of variables must be surjective and differentiable.] The probability must be scaled by a \index{Jacobian adjustment} *Jacobian* adjustment, which, in the univariate case as this one, is the absolute value of the derivative of the transform.^[In the multivariate case, it is equal to the absolute determinant of the Jacobian, the matrix of all its first-order partial derivatives, of the transform; see section 6.7 of @RossProb, and p. 707 of @adams2018calculus.] The absolute value of any number is represented by enclosing it in two vertical bars: e.g., $|-2| = 2$.
+
+\begin{equation}
+\begin{aligned}
+p(\mathit{RT}_n | \mu, \sigma )& = \mathit{Normal}(1/\mathit{RT}_n | \mu, \sigma) \left| \frac{d}{d\mathit{RT}_n} 1/\mathit{RT}_n \right| = \\
+& \mathit{Normal}(1/\mathit{RT}_n | \mu, \sigma) \cdot \left| - 1/\mathit{RT}_n^2 \right| = \\
+& \mathit{Normal}(1/\mathit{RT}_n | \mu, \sigma) \cdot  1/\mathit{RT}_n^2 
+ \end{aligned}
+\end{equation}
+
+If we omit the Jacobian adjustment, we are essentially fitting a different and unnormalized probability density function (this will be shown later in this chapter). The discrepancy between the correct and incorrect posterior would depend on how large the Jacobian adjustment for our model is.
+
+Because Stan works in log space, rather than multiplying the Jacobian adjustment, we add its logarithm to the log-probability density ($\log(1/\mathit{RT}_n^2) =  - 2 \cdot \log(\mathit{RT}_n)$). The contribution to the log likelihood (of $\mu$ and $\sigma$) with its adjustment based from an individual observation, $\mathit{RT}_{n}$,  would be as follows.
+
+
+\begin{equation}
+\log(\mathit{Normal}(1/\mathit{RT}_n | \mu, \sigma)) - 2 \cdot \log(\mathit{RT}_n) 
+\end{equation}
+
+We obtain the log likelihood based on all the $N$ observations  by summing the log likelihood of individual observations. 
+
+\begin{equation}
+\log \mathcal{L} = \sum_{n=1}^N \log(\mathit{Normal}(1/\mathit{RT}_n | \mu, \sigma))  - \sum_{n=1}^N 2 \cdot \log(\mathit{RT}_n) 
+\end{equation}
+
+
+In Stan, this summing up is done as follows. The function `normal_lpdf` applied to a vector already returns the sum of the individual log-probability densities. The Jacobian adjustment `2*log(RT)`, which returns a vector of values, has to be summed up and added in manually (the term therefore becomes `-sum(2*log(RT))`).
+
+```
+target += normal_lpdf(1 ./ RT | mu, sigma) 
+          - sum(2 * log(RT));
+```
+
+
+
+Before fitting the model with the change of variables, we are going to truncate the distribution.
+We didn't encounter negative values in our synthetic data, but this was because the distribution was not too spread out; that is, the scale was much smaller than the location ($\sigma << \mu$). However, in principle we could end up generating negative values. For this reason, we truncate the underlying normal distribution (for more details, see Box \@ref(thm:truncation)). The \index{Reciprocal truncated normal distribution} reciprocal truncated normal distribution has been argued to be an appropriate model of \index{Response time} response times, neural \index{Inter-spike interval} inter-spike intervals, and \index{Latency distributions of saccades} latency distributions of saccades in a simple optimality model in which reward is maximized to yield an optimal response rate [@HarrisEtAl2014; @Harris2012].
+
+Because we have $N$ observations, the truncation consists of adding ` - N * normal_lccdf(0 | mu, sigma)` to `target`; also see section \@ref(sec-pupilstan). The complete model, `recnormal_rt.stan`, including the truncation is as follows:
+
+```{r, echo = FALSE}
+recnormal_rt <- system.file("stan_models", "recnormal_rt.stan", package = "bcogsci")
+```
+
+```{stan output.var = "recnormal_rt", code = readLines(recnormal_rt),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+Next, generate data from a reciprocal truncated normal distribution:
+
+```{r, echo = FALSE}
+set.seed(123)
+```
+```{r}
+N <- 500
+mu <- .002
+sigma <- .0004
+rt <- 1 / rtnorm(N, mu, sigma, a = 0) 
+```
+
+Fit the model to the data:
+
+```{r recnormalrt, results = "hide", message = FALSE, eval = !file.exists("dataR/fit_rec.RDS")}
+recnormal_rt <- system.file("stan_models",
+  "recnormal_rt.stan",
+  package = "bcogsci")
+fit_rec <- stan(recnormal_rt, data = list(N = N, RT = rt))
+```
+
+```{r, echo= FALSE, eval = TRUE}
+if(!file.exists("dataR/fit_rec.RDS")){
+  saveRDS(fit_rec, "dataR/fit_rec.RDS")
+} else {
+  fit_rec <- readRDS("dataR/fit_rec.RDS")
+}
+```
+
+
+
+Print the posterior summary:
+
+```{r}
+print(fit_rec, pars = c("mu", "sigma"), digits = 4) 
+```
+
+We get the same results as before, but now we could potentially compare this model to one that assumes a log-normal likelihood, for example.
+
+An important question is the following: Does every transformation of a random variable require a Jacobian adjustment? Essentially, if we assign a distribution to a random variable and then transform it, this does not require a Jacobian adjustment.
+
+Alternatively, if we apply a transformation on a random variable first, and then assign a distribution to the transformed random variable afterwards, we have a \index{Change of variables} change of variables. This requires a Jacobian adjustment. This is the reason why `1 ./ RT` requires a Jacobian adjustment, but not `mu_s`, `mu`, `sigma_s`, or `sigma_s` in the previous model.
+
+As a last step, we can encapsulate our new distribution in a function, and also create a \index{Random number generator} random number generator function. This is done in a \index{Block} block called \index{\texttt{functions}} `functions`. To create a function, we need to specify the type of every argument and the type that the function returns.
+
+As a simple example, if we would like a function to center a vector, we would do it as follows:
+\index{\texttt{num\_elements}}
+
+```
+functions {
+  vector center(vector x) {
+    vector[num_elements(x)] centered;
+    centered = x - mean(x);
+    return centered;
+  }
+}
+data {
+...
+}
+parameters {
+...
+}
+model {
+...
+}
+```
+
+We want to create a log(PDF) function, similar to the native Stan functions that end in `_lpdf`. Our function will take as arguments a vector `RT`, and  real numbers `mu` and `sigma`. In `_lpdf`  functions, (some of) the arguments (e.g., `RT`, `mu`, and `sigma`) can be vectorized, but the output of the function is always a real number: the sum of the log(PDF) evaluated at every value of the random variable at the left of the pipe.  As we show below, to do that we just move the right hand side of `target` in our original model inside our new function.  See the section entitled Further Reading at the end of this chapter for more about Stan functions. 
+
+For our custom random number generator function (which should end with `_rng`), we have the added complication that the function is truncated. We simply generate random values from a normal distribution, do the reciprocal transformation and if the number is above zero, this number is returned; otherwise, a new number is drawn. 
+This implementation may be inefficient when rejections occur frequently. Another, more complex implementation using the inverse CDF approach can be found in @Stan2023 (section 21.10 of the User's guide).
+
+The complete code can be found in `recnormal_rt_f.stan`, and is also shown below:
+
+```{r, echo = FALSE}
+recnormal_rt_f <- system.file("stan_models",
+  "recnormal_rt_f.stan",
+  package = "bcogsci")
+```
+
+```{stan output.var = "recnormal_rt_f", code = readLines(recnormal_rt_f),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+Fit the model to the simulated data:
+
+```{r recnormal_rt_f, results = "hide", message = FALSE,eval = !file.exists("dataR/fit_rec_f.RDS") }
+recnormal_rt_f <- system.file("stan_models",
+                              "recnormal_rt_f.stan",
+                              package = "bcogsci")
+fit_rec_f <- stan(recnormal_rt_f, data = list(N = N, RT = rt))
+```
+
+```{r, echo = FALSE}
+if (!file.exists("dataR/fit_rec_f.RDS")) {
+  saveRDS(fit_rec_f, "dataR/fit_rec_f.RDS")
+} else {
+  fit_rec_f <- readRDS("dataR/fit_rec_f.RDS")
+}
+```
+
+Print the summary:
+
+```{r}
+print(fit_rec_f, pars = c("mu", "sigma"), digits = 4)
+```
+
+## \index{Validation of a computed posterior distribution} Validation of a computed posterior distribution {#sec-validSBC}
+
+The model converged, but did it work? At the very least we expect that the simulated data that we used to test the model shows a very similar distribution to  the posterior predictive distributions. This is because we are fitting the data with the same function that we use to generate the data. Figure \@ref(fig:ppcheckrec) shows that the simulated data and the posterior predictive distributions are similar. 
+
+(ref:ppcheckrec) A posterior predictive check of `fit_rec` in comparison with the simulated data.
+
+```{r ppcheckrec, message = FALSE, fig.cap = "(ref:ppcheckrec)", fold = TRUE}
+ppc_dens_overlay(rt, yrep = extract(fit_rec_f)$rt_pred[1:500, ]) +
+  coord_cartesian(xlim = c(0, 2000))
+```
+
+Our synthetic data set was generated by first defining a \index{Ground truth} *ground truth* vector of parameters $\langle \mu; \sigma \rangle$. We would expect that the true values of the parameters $\mu$ and $\sigma$ should be well inside the bulk of the posterior distribution of our model. We investigate this by plotting the true values of the parameters together with their posterior distributions using the function \index{\texttt{mcmc\_recover\_hist}} `mcmc_recover_hist()` of `bayesplot` as shown below in Figure \@ref(fig:recoveryrec).
+
+(ref:recoveryrec)  Posterior distributions of the parameters of `fit_rec` together with their true values.
+
+```{r recoveryrec, message = FALSE, fig.cap = "(ref:recoveryrec)" }
+post_rec <- as.data.frame(fit_rec_f) %>%
+  select(mu, sigma)
+mcmc_recover_hist(post_rec, true = c(mu, sigma))
+```
+
+Even though this approach can capture serious misspecifications in our models, it has three important  shortcomings. 
+
+First, it's unclear what we should conclude if the true value of a parameter is not in the bulk of its posterior distribution. Even in a well-specified model, if we inspect enough parameters we will find that for some parameters, the bulks of their respective marginal posterior distributions can be relatively far away from their true values.
+
+
+The second shortcoming is that if the posteriors that we obtain are very wide, it might not be clear what to consider the bulk of the posterior distribution that needs to be inspected. 
+
+The third shortcoming is that regardless of how a successful recovery of parameters is defined, we might be able to  recover a posterior based on  data generated from some parts of the parameter space, but not based on data generated from other parts of parameter space [@talts2018validating]. However, inspecting the entire parameter space is infeasible.
+
+ 
+An alternative to our approach of plotting the true values of the parameters together with their posterior distributions is simulation-based calibration [@talts2018validating; @ModrakEtAl2023], which extends ideas of @Cooketal2006. This is discussed next.
+
+### The \index{Simulation-based calibration} simulation-based calibration procedure 
+   
+@talts2018validating suggest the simulation-based calibration as the procedure for validating a model. We check that the Bayesian computation is \index{Faithful} *faithful* in the sense that it is not \index{Bias} biased. Our goal is to ensure that our model neither overestimates nor underestimates, nor does it possess incorrect precision in the parameters, given the data and priors. As initial steps, we employ two different implementations of the same statistical model: (1-2) a generator capable of directly simulating draws from the prior predictive distribution, and (3) a probabilistic program that, when combined with a posterior approximation algorithm (such as a Stan sampler), samples from the posterior distribution. Finally, (4-5) we verify that the results from both implementations have the same distribution conditional on the data.
+
+
+1. Generate true values (i.e., a \index{Ground truth} ground truth) for the parameters of the model from the priors:
+
+\begin{equation}
+\tilde{\Theta}_n \sim p(\boldsymbol{\Theta})
+\end{equation}
+
+Here, $p(\boldsymbol{\Theta})$ represents a \index{Joint prior distribution} joint prior distributions of vector of parameters. In our previous example, the vector of parameters is  $\langle \mu; \sigma \rangle$, and the joint prior distribution is two independent distributions, a normal and a truncated normal. Crucially, the prior distributions should be meaningful; that is, one should use priors that are at least regularizing or weakly informative. The \index{Prior space} prior space plays a crucial role because it determines the parameter space where we will verify the correctness or faithfulness of the model.
+
+Assuming 150 samples (from the priors),  this step for our model would be as follows:
+
+```{r}
+N_sim <- 150
+mu_tilde <- rnorm(N_sim, 2, 1) / 1000
+sigma_tilde <- rtnorm(N_sim, 0.4, 0.2, a = 0) / 1000
+```
+
+2. Generate multiple (`N_sim`) data sets based on the probability density function used as the likelihood:
+
+\begin{equation}
+\tilde{D}_n \sim p(\boldsymbol{D} | \tilde{\Theta}_n)
+\end{equation}
+
+The previous equation indicates that each data set $\tilde{D}_n$ is sampled from each of the generated parameters, $\tilde{\Theta}_n$. Following our previous example, use the reciprocal truncated normal distribution to generate data sets of response times:
+
+```{r}
+## Create a place holder for all the simulated datasets
+rt_tilde <- vector(mode = "list", length = N_sim)
+# Number of observations
+N <- 500
+for (n in 1:N_sim) {
+  rt_tilde[[n]] <- 1 / rtnorm(N, mu_tilde[n], sigma_tilde[n], a = 0)
+}
+```
+Now, `rt_tilde`  consists of a list with `r N_sim`  vectors of `r N` observations each. Each list represents a \index{Simulate data} simulated data, which corresponds to $\tilde{D}_{n}$.
+
+
+3. Fit the same Bayesian model to each of the generated data sets.
+
+After fitting the same model to each data set, we should compare the recovered \index{Posterior distribution} posterior distribution for each parameter of each simulated data set; that is, $p(\Theta_n | \tilde{D}_{n})$, with the parameters that were used to generate the data, $\tilde{\Theta}_{n}$. This comparison is represented by `...` in the code below (that is, it is not yet implemented in the code shown below). This raises the question of how to compare the posterior distribution with the ground truth values of the parameters.
+
+```{r, eval = FALSE}
+for (i in 1:N_sim) {
+  fit <- stan(recnormal_rt,
+    data = list(N = N, rt = rt_tilde[[n]])
+  )
+  ...
+}
+```
+
+
+
+The procedure shown before (1-3) defines a natural condition for assessing whether the  computed posterior distributions match the exact posterior distributions [@talts2018validating; @Cooketal2006]. This condition is met if the generator, probabilistic program, and posterior approximation algorithm function match: The generator and the probabilistic program must accurately represent the same data-generating process, while the posterior approximation algorithm should yield samples that closely match the correct posterior for the probabilistic program, based on data simulated from the prior. Any discrepancy suggests a mismatch among the components [@ModrakEtAl2023].^[We are working under the assumption that Stan, which yields the posterior approximation,  works correctly. In principle, if we assume that our model is correct, we can also use simulation-based calibration to examine whether our approximation to the posterior distribution is correct (that is, whether Stan's sampler, or any posterior approximation method works correctly); for an example, see @yao2018yes.]
+
+The next two steps describe a well-defined comparison of the exact posterior and prior distribution [different calibration checking methods differ in how exactly they test for mismatches between the distributions; @ModrakEtAl2023].
+
+4. Generate an \index{Ensemble of rank statistics} ensemble of rank statistics of prior samples relative to corresponding posterior samples.
+
+@talts2018validating demonstrate that the match between the exact posterior and prior can be evaluated by examining whether, for each element of $\boldsymbol{\Theta}$ (e. g., $\langle \mu; \sigma \rangle$), the \index{Rank statistics} *rank statistics* of the prior sample relative to $S$ posterior samples will be \index{Uniformly distributed} uniformly distributed across $[0, S]$. In other words, for each sample of the prior (e.g., $\tilde{\mu}_{n}$), we calculate the number of samples of the posterior that is smaller than the corresponding value of the parameter sampled, and we examine its distribution. A mismatch between the exact posterior and our posterior would show up as a \index{Non-uniform distribution} non-uniform distribution.
+
+As a next step, we examine this new distribution visually using a histogram with $S + 1$ possible ranks (from $0$ to $S$). There are two issues that we need to take into account [@talts2018validating]: 
+
+(1) Regardless of our model, histograms will deviate from uniformity if the posterior samples are dependent. This can be solved by \index{Thinning} *thinning* the samples of the posterior, that is removing a number of intermediate samples [@talts2018validating recommend between 6 and 10]. 
+
+(2) To reduce the noise in the histogram, we should have \index{Bin} bins of equal size. If $S + 1$  are divisible by a large power of $2$, e.g, $1024$, we will be able to re-bin the histogram easily with bins of equal size. We complete the code shown in step 3 by generating an ensemble of ranks statistics as well.
+
+Here we encapsulate steps 1 to 4 into a function.
+
+```{r, message = FALSE, results = "hide", eval = !file.exists("dataR/df_rank.RDS")}
+gen_ranks <- function(...,
+                      N_sim = 150,
+                      N_s = 1024 * 6, # Total samples from the posterior
+                      N = 500 # Number of observations
+                      ){
+  mu_tilde <- rnorm(N_sim, 2, 1) / 1000
+  sigma_tilde <- rtnorm(N_sim, 0.4, 0.2, a = 0) / 1000
+  # Thin by 6, and remove one extra sample so that S + 1 = 1024
+  thinner <- seq(from = 1, to = N_s, by = 6)[-1]
+  # Placeholders
+  rank_mu <- rep(NA, N_sim)
+  rank_sigma <- rep(NA, N_sim)
+  rt_tilde <- vector(mode = "list", length = N_sim)
+  # Loop over the simulations
+  for (n in 1:N_sim) {
+    message("Fit number ", n)
+    # it will repeat the sampling unless the model converged
+    repeat{
+      rt_tilde[[n]] <- 1 / rtnorm(N,
+                                  mu_tilde[n],
+                                  sigma_tilde[n],
+                                  a = 0
+                                  )
+      # Fit is only stored temporarily
+      fit <- stan(...,
+                  data = list(N = N,
+                              RT = rt_tilde[[n]]),
+                  warmup = 2500,
+                  iter = 2500 + N_s / 4,
+                  refresh = -1,
+                  control = list(adapt_delta = .999,
+                                 max_treedepth = 14))
+      # continue if there are no divergent transitions
+      # and all Rhat are smaller than 1.05
+      if (!get_num_divergent(fit) &
+          all(monitor(fit)[,"Rhat"] <= 1.05)) break
+      message("Repeating fit ",n)
+    }
+    post <- extract(fit)
+    # Number of samples of the posterior that is smaller than
+    # the corresponding value of the parameter sampled
+    rank_mu[n] <- sum(post$mu[thinner] < mu_tilde[n])
+    rank_sigma[n] <- sum(post$sigma[thinner] < sigma_tilde[n])
+  }
+  #data frame with ranks:
+  tibble(sim = rep(1:N_sim, 2),
+         variable = rep(c("mu", "sigma"),
+                        each = N_sim),
+         rank = c(rank_mu, rank_sigma))
+}
+
+set.seed(123)
+# generate ranks with the default values:
+df_rank <- gen_ranks(recnormal_rt) 
+```
+
+```{r echo = FALSE}
+if (file.exists("dataR/df_rank.RDS")) {
+  df_rank <- readRDS("dataR/df_rank.RDS")
+} else {
+  saveRDS(df_rank, file = "dataR/df_rank.RDS")
+}
+```
+
+
+5. Graphically assess the \index{Correctness of the model} correctness of the model using \index{Rank histogram} rank histograms
+
+As a last step, we use a histogram for each parameter to identify deviations of uniformity. 
+If the posterior estimates are correct, then each of the $B$ bins has a probability of $1/B$ that a simulation (i.e., an individual rank) falls into it: $\mathit{Binomial}(N_{sim}, 1/B)$. This allow us to complement the histograms with confidence intervals, indicating where the variation expected from a uniform histogram should be.
+
+Use the code below to build the plot shown in Figure \@ref(fig:SBChand). We can conclude that the implementation of our model (in the parameter space determined by the priors) is correct.
+  
+(ref:SBChand) Rank histograms of $\mu$ and $\sigma$ from the reciprocal truncated normal distribution. The dashed lines represent the 99% confidence interval.
+
+```{r SBChand, message = FALSE, fig.cap = "(ref:SBChand)" }
+B <- 16
+bin_size <- 1024 / 16
+ci_l <- qbinom(0.005, size = N_sim, prob = 1 / B)
+ci_u <- qbinom(0.995, size = N_sim, prob = 1 / B)
+ggplot(df_rank, aes(x = rank)) +
+  geom_histogram(breaks = seq(0, to = 1023, length.out = B + 1),
+                 closed = "left", colour = "black") +
+  scale_y_continuous("count") +
+  geom_hline(yintercept = c(ci_l, ci_u), linetype = "dashed") +
+  facet_wrap(~variable, scales = "free_y")
+```
+
+Next, we consider an example where simulation-based calibration can reveal a problem.
+
+### An example where simulation-based calibration reveals a problem
+
+Let's assume that we made an error in the model implementation. We'll fit an \index{Incorrect model} **incorrect** model: rather than the complete likelihood including the normal PDF and the truncation and Jacobian adjustments, we will fit only the normal PDF evaluated at the reciprocal of the response times, that is `target += normal_lpdf(1 ./ RT | mu, sigma);`.
+
+
+```{r,  echo = FALSE}
+recnormal_code_bad <- "
+data {
+  int<lower = 1> N;
+  vector[N] RT;
+}
+parameters {
+  real mu_s;
+  real<lower = 0> sigma_s;
+}
+transformed parameters {
+  //aux pars so that it samples from pars that are not that small
+  real mu = mu_s / 1000;
+  real sigma = sigma_s / 1000;
+}
+model {
+  target += normal_lpdf(mu_s | 2, 1);
+  target += normal_lpdf(sigma_s | .4, .2)
+            - normal_lccdf(0 | .4, .2);
+  target += normal_lpdf(1 ./ RT | mu, sigma)
+  //   - N * normal_lccdf(0 | mu, sigma)
+ //    - sum(2 * log(RT))
+;
+}
+"
+```
+
+```{r, echo = FALSE, message = FALSE, results = "hide"}
+fit_bad <- stan(model_code = recnormal_code_bad,
+  data = list(N = N, RT = rt),
+  control = list(adapt_delta = .99, max_treedepth = 14))
+```
+
+Assessing the correctness of the model by looking at the recovery of the parameters is misleading in this case, as it is evident from Figure \@ref(fig:recoverybad). One could conclude that the model is fine based on this plot, since the true values of the parameters are well inside the bulk of their posterior distributions.
+
+(ref:recoverybad)  Posterior distributions of the parameters of an incorrect model (truncation and Jacobian adjustments missing) together with their true values.
+
+```{r recoverybad, message = FALSE, fig.cap = "(ref:recoverybad)", echo = FALSE }
+post_rec <- as.data.frame(fit_bad) %>%
+  select("mu", "sigma")
+mcmc_recover_hist(post_rec, true = c(mu, sigma))
+```
+
+```{r, message = FALSE, results = "hide", eval = !file.exists("dataR/df_rank_bad.RDS"), echo = FALSE}
+set.seed(123)
+df_rank_bad <- gen_ranks(model_code = recnormal_code_bad) 
+saveRDS(df_rank_bad, file = "dataR/df_rank_bad.RDS")
+```
+
+```{r, message = FALSE, results = "hide", eval = file.exists("dataR/df_rank_bad.RDS"), echo = FALSE}
+df_rank_bad <- readRDS("dataR/df_rank_bad.RDS")
+```
+
+However, the rank histograms produced by the simulation-based calibration procedure in Figure \@ref(fig:SBCbad) show very tall bins at the left and at the right of each histogram, exceeding the 99% CI. This is a very clear indication that there is a problem with the \index{Model specification} model specification: our incorrect model is overestimating $\mu$ and underestimating $\sigma$. This example illustrates the importance of simulation-based calibration.
+
+
+(ref:SBCbad) Rank histograms of $\mu$ and $\sigma$ from the **incorrect** implementation of the reciprocal truncated normal distribution. The dashed lines represent the 99% confidence interval.
+
+```{r SBCbad, message = FALSE, fig.cap = "(ref:SBCbad)" , echo = FALSE}
+ggplot(df_rank_bad, aes(x = rank)) +
+  geom_histogram(breaks =
+      seq(0, to = 1023, length.out = B + 1),
+    closed = "left", colour = "black") +
+  scale_y_continuous("count") +
+  geom_hline(yintercept = c(ci_l, ci_u), linetype = "dashed") +
+  facet_wrap(~variable, scales = "free_y")
+```
+
+
+
+### Issues with and limitations of simulation-based calibration
+
+In the previous sections, we have used only rank histograms. Even though histograms are a very intuitive means of visualization to assess model correctness,  they might not be sensitive enough for small deviations [@talts2018validating]. Other visualizations might be better suited. Another limitation of histograms is that they are sensitive to the number of bins [@sailynoja2022graphical]. One could bin the histograms multiple times, but this approach is difficult to interpret when there are many parameters, and can be vulnerable to multiple testing biases [@talts2018validating]. One alternative to rank histograms is visualizations based on the  \index{Empirical cumulative density function of the ranks} empirical cumulative density function of the ranks. This is briefly presented in Box \@ref(thm:sbc).
+ 
+\newpage
+
+\Begin{extra}
+<div class="extra">
+
+```{theorem, sbc}
+**Different rank visualizations and the `SBC` package.**
+```
+
+Implementing the simulation-based calibration algorithm "by hand" introduces a new source of potential errors. Fortunately, the R package  \index{SBC} `SBC` [@R-SBC] provides tools to validate a Stan model (or any sampling algorithm) by allowing us to run simulation-based calibrations easily.
+The package is in active development at the moment^[Even though the package is already fully functional, function names and arguments might change by the time this book is published.] and can be installed with the following command.
+
+```{r,eval = FALSE}
+remotes::install_github("hyunjimoon/SBC")
+```
+
+One of the main advantages of this package is that it provides several ways to visualize the results of the simulation-based calibration procedure; see https://hyunjimoon.github.io/SBC/. Figure \@ref(fig:sbchist) shows rank histograms produced by `SBC` of a correct model and several different incorrect models. An alternative to rank histograms is to use an \index{Empirical cumulative distribution function} empirical cumulative distribution function (ECDF)-based method, as proposed by @sailynoja2022graphical. The idea behind this method is that if the ranks produced by the simulation-based calibration algorithm are uniform the ECDF of the ranks should be close to the CDF of a uniform distribution. Figure \@ref(fig:sbcecdf) shows the difference between the ECDF of the ranks and the CDF of a uniform distribution together with 95% confidence bands (this is the default in the `SBC` package) for a correct model and different incorrect ones.
+
+```{r, echo = FALSE}
+set.seed(123)
+library(SBC)
+res <- SBC_example_results("visualizations", n_sims = 200)
+```
+
+(ref:sbchist) Rank histograms produced by the R package `SBC` showing the outcome one would expect for a correct model and for several different incorrect ones together with 95% confidence bands (these are the default bands in the package).
+
+```{r sbchist, fig.cap="(ref:sbchist)", echo = FALSE, fig.pos = "H", out.extra = '', fig.height = 2.8}
+plot_rank_hist(res)
+```
+
+
+(ref:sbcecdf) Difference between the perfectly uniform CDF and empirical cumulative distribution function  (ECDF) of the ranks produced by the `SBC` R package together with 95% confidence bands. The figure shows the outcome one would expect for a correct model and for several different incorrect ones.
+
+
+```{r sbcecdf, fig.cap="(ref:sbcecdf)", echo = FALSE, fig.pos = "H", out.extra = '', fig.height = 2.8}
+plot_ecdf_diff(res) + theme(legend.position = "bottom")
+```
+
+\End{extra}
+</div>
+
+Even though simulation-based calibration is a comprehensive approach to test model correctness, it has several drawbacks, regardless of the means of visualization:
+
+(i) This approach requires fitting a model many times, which can be too time intensive for complex models.  It's worth bearing in mind that code with errors can sometimes show clear \index{Catastrophic failure} "catastrophic" failures in the recovery of the parameters. For this reason, one could start the verification of model correctness with a simple \index{Recovery of parameters} recovery of parameters [see @talts2018validating; @gelman2020bayesian], and then proceed with the simulation-based calibration procedure for at least some suspect aspects of the model (e.g., when working with a custom likelihood).
+
+(ii) Another  major limitation of simulation-based calibration is that it is concerned exclusively with the computational aspects of the analysis and offers no guarantee for any single observation. A complete Bayesian workflow should include prior and posterior predictive checks, see chapter \@ref(ch-workflow) and @schad2020toward. 
+
+(iii) Finally, it's important to apply simulation-based calibration only after appropriate priors are set. This is important because only the priors determine the parameter space that will be inspected. Weak priors that may be good enough for estimation may nevertheless lead to a parameter space that is unrealistically large since, during the calibration stage, there are no independent data to constrain the space. This means that it is important to conduct prior predictive checks before assessing the correctness of the model with simulation-based calibration.
+
+## Another \index{Custom distribution} custom distribution: The exponential distribution \index{exponential distribution} implemented manually
+
+There are cases when one needs a random variable with a distribution that is not included in Stan. Many times one can find the PDF (or a CDF)  derived in a paper, and one needs to implement it manually by writing the log PDF in the Stan language.
+Even though the exponential distribution is included in Stan, we demonstrate how we would  include it step-by-step as if it weren't available. This example extends what is demonstrated in @Stan2023 (section 22.1 of the User's guide).
+
+
+The exponential distribution is used to model \index{Waiting time} waiting times until a certain event occurs. Its PDF is the following:
+
+\begin{equation}
+f(x |  \lambda )={
+\begin{cases}
+\lambda e^{-\lambda x} & x\geq 0,\\0&x<0.
+\end{cases}} 
+\end{equation}
+
+The parameter $\lambda$ is often called the rate parameter and must be positive. A higher value for the rate parameter leads to shorter waiting times on average.  The mean of the distribution is  $1/\lambda$. The exponential distribution has the key property of being \index{Memoryless} *memoryless*.  What this means is explained in @RossProb as follows: Suppose that $X$ is a random variable with an exponential distribution as a PDF; the random variable represents the lifetime of an item (e.g., $X$ could represent the time it takes for a radioactive particle to completely decay). If the item is $t$ time-units old, then the remaining life $s$ of that item has the same probability distribution as the life of a new item. Mathematically, this amounts to stating that
+
+\begin{equation}
+P(X>s + t | X> t)= P(X>s)
+\end{equation}
+
+The implication of the memoryless property is that we do not need to know the age of an item to know what the distribution of its remaining life is.
+
+To give another example of memorylessness, the conditional probability that a certain event will happen in the next 100 ms is the same regardless of whether we have been already waiting 1000 ms, 10 ms, or 0 ms. Although the exponential distribution is not commonly used for modeling response times in cognitive science, it has been used in the past [@ashby1980decomposing; @ashby1982testing]. We focus on this distribution because of its simple analytical form.
+
+
+As a first step,  we make our own version of the \index{PDF} PDF in R, and then check that it integrates to 1 to verify that this is actually a proper distribution (and that we haven't introduced a typo in the formula).
+
+To avoid \index{Underflow} underflow, that is getting a zero instead of a very small number, we'll work in the log-scale. This will also be useful when we implement this function in Stan, thus the log PDF  is
+
+\begin{equation}
+\log(f(x| \lambda ))= \log(\lambda) -\lambda  x
+\end{equation}
+
+where $x >0$.
+
+Implement this function in R with the same arguments as the `d*` family of functions:  if `log = TRUE` the output is a log density; call this new function `dexp2`.
+
+```{r}
+dexp2 <- function(x, lambda = 1, log = FALSE) {
+  log_density <- log(lambda) - lambda * x
+  if (log == FALSE) {
+    exp(log_density)
+  } else {
+    log_density
+  }
+}
+```
+
+Verify that this function integrates to 1 for some point values of its parameter $\lambda$ (here, $\lambda = 1$ and $\lambda = 20$):
+
+```{r}
+dexp2_l1 <- function(x) dexp2(x, 1)
+integrate(dexp2_l1, lower = 0, upper = Inf)$value
+dexp2_l20 <- function(x) dexp2(x, 20)
+integrate(dexp2_l20, lower = 0, upper = Inf)$value
+```
+
+To test our function, we'll also need to generate random values from the exponential distribution. If the \index{Quantile function} quantile function  of the distribution exists, the \index{Inverse transform sampling} inverse transform sampling is a relatively straightforward way to get pseudo random numbers sampled from a target distribution [for an accessible introduction to inverse sampling, see @lynch2007introduction]. Given a target distribution with a PDF $f$, and a quantile function $F^{-1}$ (the inverse of the CDF), the inverse transform sampling method consists of the following:
+
+1. Sample one number $u$ from $\mathit{Uniform}(0,1)$. 
+2. Then $z=F^{-1}(u)$ is a draw from $f(x)$.
+
+In this case, the quantile function (the \index{Inverse of the CDF} inverse of the CDF) is the following:
+
+\begin{equation}
+- \log(1-p)/\lambda
+\end{equation}
+
+Here is how one can derive this inverse of the CDF. First, consider the fact that the CDF of the exponential distribution is as follows. The term $q$ is some quantile of the distribution:
+
+\begin{equation}
+F(q) = \int_0^q \lambda \exp(-\lambda x)\, dx
+\end{equation}
+
+We can solve this \index{Integral} integral by using the \index{U-substitution method} $u$-substitution method [@salas2003calculus]. First, define
+
+\begin{equation}
+u = g(x) = -\lambda x
+\end{equation}
+
+Then, the derivative $du/dx$ is:
+
+\begin{equation}
+\frac{du}{dx} = -\lambda
+\end{equation}
+
+This implies that $du = - \lambda dx$, or that $- du = \lambda dx$.
+
+In the CDF, replace the term $\lambda dx$ with $-du$:
+
+\begin{equation}
+F(q) = \int_0^q \lambda \exp(-\lambda x)\, dx = \int_0^{-\lambda q} (- \exp(-\lambda x)\, du)
+\end{equation}
+
+Rewriting $-\lambda x$ as $u$, the CDF simplifies to:
+
+\begin{equation}
+F(q) = \int_0^q \lambda \exp(-\lambda x)\, dx = \int_0^q (- \exp(u)\, du)
+\end{equation}
+
+We know from calculus that the integral of $-\exp(u)$ is $-\exp(u)$. So, the integral becomes:
+
+\begin{equation}
+F(q) = \left[ - \exp(u) \right]_0^q
+\end{equation}
+
+Replacing $u$ with $-\lambda x$, we get:
+
+\begin{equation}
+F(q) = \left[ - \exp(-\lambda x) \right]_0^q = 
+1- \exp(-\lambda q)
+\end{equation}
+
+Thus, we know that the CDF is $F(t) = 1- \exp(-\lambda q) = p$, where $p$ is the probability of observing the quantile $q$ or some value smaller than $q$. To derive the inverse of the CDF, solve the equation below for $q$:
+
+\begin{equation}
+\begin{aligned}
+p &= 1- e^{-\lambda q}\\
+p-1 &= - e^{-\lambda q}\\
+-p+1 &=  e^{-\lambda q}\\
+\log(1-p) &=  -\lambda q\\
+- \log(1-p)/\lambda &=  q\\
+\end{aligned}
+\end{equation}
+
+Write the quantile function (the inverse of the CDF) and the random number generator for the exponential distribution in R. To differentiate it from the built-in function in R, we will call it `qexp2`:
+
+```{r}
+qexp2 <- function(p, lambda = 1) {
+  -log(1 - p) / lambda
+}
+rexp2 <- function(n, lambda = 1) {
+  u <- runif(n, 0, 1)
+  qexp2(u, lambda)
+}
+```
+
+
+The functions that we would use in a Stan model are relatively faithful to the R code, but follow Stan conventions: The expression `log1m(p)` is more arithmetically stable than `log(1 - .)` for values of `p` close to one, the function `exp_lpdf` stores the sum of the log(PDF) evaluated at each value of x, this would be analogous to doing `sum(dexp2(x, lambda, log = TRUE))`; the function `exp_rng` implements a non-vectorized version of `rexp2` and uses the auxiliary function `exp_icdf` (icdf stands for inverse CDF), which is similar to `qexp2`. 
+
+```{r, echo = FALSE}
+exponential <- system.file("stan_models",
+                           "exponential.stan",
+                           package = "bcogsci")
+```
+
+```{stan output.var = "exponential", code = readLines(exponential)[1:13],  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+
+We are now ready to generate synthetic data and fit the distribution in Stan. Generate 1000 observations.
+
+```{r, echo=FALSE}
+set.seed(123)
+```
+
+```{r}
+N <- 1000
+lambda <- 1 / 200
+rt <- rexp2(N, lambda)
+```
+
+Use `exponential.stan`, which includes the function block shown earlier, and the following obligatory blocks:
+
+```{stan output.var = "exponential", code = readLines(exponential)[14:30],  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+
+Fit the data with Stan.
+
+```{r exp, message = FALSE, results = "hide"}
+exponential <- system.file("stan_models",
+                           "exponential.stan",
+                           package = "bcogsci")
+fit_exp <- stan(exponential, data = list(N = N, RT = rt))
+```
+
+
+Print the summary:
+
+```{r}
+print(fit_exp, pars = c("lambda"))
+```
+
+Carry out a quick check first, verifying that the true value of the parameter $\lambda$ is reasonably inside the bulk of the posterior distribution. This is shown in Figure \@ref(fig:recoveryexp)(a).
+Figure \@ref(fig:recoveryexp)(b) shows the results of the simulation-based calibration procedure, and shows that our implementation was correct.
+
+
+
+```{r ranklambda, message = FALSE, results = "hide", eval = !file.exists("dataR/df_rank_lambda.RDS"), echo = FALSE, fold = TRUE}
+gen_ranks_lambda <- function(...,
+                            N_sim = 200,
+                            N_s = 1024 * 6, # Total samples from the posterior
+                            N = 500 # Number of observations
+                            ){
+  lambda_tilde <- rtnorm(N_sim, 0, .1, a = 0)
+
+  # Thin by 6, and remove one extra sample so that S + 1 = 1024
+  thinner <- seq(from = 1, to = N_s, by = 6)[-1]
+  # Placeholders
+  rank_lambda <- rep(NA, N_sim)
+  rt_tilde <- vector(mode = "list", length = N_sim)
+  # Loop over the simulations
+  for (n in 1:N_sim) {
+    message("Fit number ", n)
+    # it will repeat the sampling unless the model converged
+    repeat{
+      rt_tilde[[n]] <- rexp2(N, lambda_tilde[[n]])
+      # Fit is only stored temporarily
+      fit <- stan(...,
+                  data = list(N = N,
+                              RT = rt_tilde[[n]]),
+                  warmup = 2500,
+                  iter = 2500 + N_s / 4,
+                  refresh = -1,
+                  control = list(adapt_delta = .999,
+                                 max_treedepth = 14)
+                  )
+      # continue if there are no divergent transitions
+      # and all Rhat are smaller than 1.05
+      if (!get_num_divergent(fit) &
+          all(monitor(fit)[,"Rhat"] <= 1.05)) break
+      message("Repeating fit ",n)
+    }
+    post <- extract(fit)
+    rank_lambda[n] <- sum(post$lambda[thinner] < lambda_tilde[n])
+    
+  }
+  #data frame with ranks:
+  tibble(sim = 1:N_sim,
+         variable = rep("lambda", each = N_sim),
+         rank = rank_lambda)
+}
+
+set.seed(123)
+# remove the rng block to speed up
+exponential_s <- paste(readLines(exponential)[1:25],collapse = "\n")
+df_rank_lambda <- gen_ranks_lambda(model_code = exponential_s)
+```
+
+```{r echo = FALSE}
+if (file.exists("dataR/df_rank_lambda.RDS")) {
+  df_rank_lambda <- readRDS("dataR/df_rank_lambda.RDS")
+} else {
+  saveRDS(df_rank_lambda, file = "dataR/df_rank_lambda.RDS")
+}
+```
+
+
+
+(ref:recoveryexp) a) Posterior distribution of the parameter $\lambda$ of `fit_exp` together with its true values as a black line. b) Rank histograms of $\lambda$ and from our hand-made implementation of the exponential distribution. The dashed lines represent the 99% confidence interval. 
+
+```{r recoveryexp, message = FALSE, fig.cap = "(ref:recoveryexp)", fig.show="hold", out.width="45%", fig.width = 3, fig.height = 3 , fold = TRUE}
+# Plot a
+post_exp <- as.data.frame(fit_exp) %>%
+  select("lambda")
+mcmc_recover_hist(post_exp, true = lambda) +
+  # make it similar to plot b:
+  ggtitle("a") +
+  xlab("lamda") +
+  theme(plot.title = element_text(hjust = 0),
+        legend.position="none",
+        strip.text.x = element_blank())
+# Plot b
+B <- 16
+bin_size <- 1024 / 16
+N_sim = 200
+ci_l <- qbinom(0.005, size = N_sim, prob = 1 / B)
+ci_u <- qbinom(0.995, size = N_sim, prob = 1 / B)
+ggplot(df_rank_lambda, aes(x = rank)) +
+  geom_histogram(breaks =
+                   seq(0, to = 1023, length.out = B + 1),
+                 closed = "left", colour = "black") +
+  scale_y_continuous("count") +
+  geom_hline(yintercept = c(ci_l, ci_u), linetype = "dashed") +
+  ggtitle("b") +
+    theme(plot.title = element_text(hjust = 0))
+```
+
+
+## Summary
+
+In this chapter, we learned how to create a PDF that is not provided by Stan. We learned how to do this by doing a change of variables (with its Jacobian adjustment) and by building the distribution from scratch in a function ending in `_lpdf`. We also learned how to verify the correctness of the new functions by recovering the true values of the parameters and by using simulation-based calibration.
+
+## Further reading
+ 
+
+\index{Jacobian adjustment} Jacobian adjustments in Bayesian models are an ongoing source of confusion and there are several posts in blogs and study cases that try to shed light on them:
+
+- https://rstudio-pubs-static.s3.amazonaws.com/486816_440106f76c944734a7d4c84761e37388.html
+- https://betanalpha.github.io/assets/case_studies/probability_theory.html#42_probability_density_functions
+- https://jsocolar.github.io/jacobians/
+- https://mc-stan.org/documentation/case-studies/mle-params.html
+
+Jacobian adjustments are also relevant for adjusting priors for order constraints, which is especially important for Bayes factors [@Heck2016].
+
+A complete tutorial of \index{Simulation-based calibration} simulation-based calibration using the \index{SBC} `SBC` package was given in the online event \index{Stanconnect} Stanconnect 2021, and it is available in https://www.martinmodrak.cz/post/2021-sbc_tutorial/. The ideas that predate this technique can be found in @Cooketal2006 and were extended in @talts2018validating. The use of ECDF-based visualizations is discussed in @sailynoja2022graphical. The role of simulation-based calibration in the Bayesian workflow is discussed in @schad2020toward. Examples of the use of simulation-based calibration to validate novel models used in cognitive science are @hartmann2020rtmpt and @burkner2020modelling. The extension of this procedure to validate Bayes factors is discussed in @SchadEtAlBF.
+
+Custom functions in general and custom probability functions are treated in  @Stan2023 (chapter 21 of the User's guide).
+
+## Exercises {#sec-customexercises}
+
+```{exercise, shiftedlogn}
+Fitting a \index{Shifted log-normal distribution} shifted log-normal distribution.
+```
+
+A random variable $Y$ has a shifted log-normal distribution with shift $\psi$, location $\mu$, and scale $\sigma$, if $Z = Y-\psi$ and $Z \sim \mathit{LogNormal}(\mu,\sigma)$. 
+
+1. Implement a `shifted_lognormal_ldpf` function in Stan with three parameters, `mu`, `sigma`, and `psi`. Tip: One can use the regular log-normal distribution and apply a change of variable. In this case the adjustment of the Jacobian would be 
+$|\frac{d}{dY} Y - \psi|=1$, which in log-space is conveniently zero. 
+
+2. Verify the correctness of the model by recovering the true values of (your choice) of the parameters of the model and by using simulation-based calibration.  In order to use simulation-based calibration, you will need to decide on sensible priors; assume that $\psi \sim \mathit{Normal}_+(100,50)$, and choose priors for $\mu$ and $\sigma$ so that the prior predictive distributions are adequate for response times.
+
+
+```{exercise, wald}
+Fitting a Wald distribution.
+```
+The \index{Wald distribution} Wald distribution (or inverse Gaussian distribution) and its variants have been proposed as another useful distribution for \index{Response time} response times [see for example @heathcote2004fitting].
+
+The probability density function of the Wald distribution is the following.
+
+\begin{equation}
+f(x;\mu ,\lambda )={\sqrt {\frac {\lambda }{2\pi x^{3}}}}\exp {\biggl (}-{\frac {\lambda (x-\mu )^{2}}{2\mu ^{2}x}}{\biggr )}
+\end{equation}
+    
+
+1. Implement this distribution in Stan as `wald_lpdf`. In order to do this, you will need to derive the logarithm of the PDF presented above. You can adapt the code of the following R function.
+
+
+```{r}
+dwald <- function(x, lambda, mu, log = FALSE) {
+  log_density <- 0.5 * log(lambda / (2 * pi())) -
+    1.5 * log(x) -
+    0.5 * lambda * ((x - mu) / (mu * sqrt(x)))^2
+  if (log == FALSE) {
+    exp(log_density)
+  } else {
+    log_density
+  }
+}
+```
+
+2. Verify the correctness of the model by recovering the true values of (your choice) of the parameters of the model and by using simulation-based calibration.  As with the previous exercise, you will need to decide on sensible priors by deriving prior predictive distributions that are adequate for response times.
+

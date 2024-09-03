@@ -1,0 +1,1416 @@
+# Mixture models {#ch-mixture}
+
+\index{Mixture model} Mixture models integrate \index{Multiple data generating process} multiple data generating processes into a single model. This is especially useful in cases where the data alone don't allow us to fully identify which observations belong to which process.
+Mixture models are important in cognitive science because many theories of cognition assume that the behavior of subjects in certain tasks is  determined by an interplay of different cognitive processes [e.g., response times in schizophrenia in @levy1993eye; retrieval from memory in sentence processing in @Mcelree2000;@nicenboimModelsRetrievalSentence2018; fast choices in @Ollman1966; @DutilhEtAl2011; generalized processing tree models in @HeckEtAl2018GeneralizedProcessingTree].  It is important to stress that a mixture distribution of observations is an *assumption* of the latent process developing trial by trial based on a given theory---it doesn't necessarily represent the true generative process. The role of Bayesian modeling is to help us understand the extent to which this assumption is well-founded, by using posterior predictive checks and comparing different models.
+
+We focus here on the case where we have only two components; each component represents a distinct cognitive process based on the domain knowledge of the researcher. The vector $\mathbf{z}$ serves as a latent \index{Indicator variable} *indicator variable* that indicates which of the mixture components an observation $y_n$ belongs to ($n=1,\dots,N$ is the number of data points). We assume two components, and thus each $z_n$ can be either $0$ or $1$ (this will allows us to generate $z_n$ with a \index{Bernoulli distribution} Bernoulli distribution).  We also assume two different generative processes, $p_1$ and $p_2$, which generate different distributions of the observations based on a vector of parameters indicated by $\Theta_{1}$ and $\Theta_{2}$, respectively. These two processes occur with probability $\theta$ and $1-\theta$, and each observation is generated as follows:
+
+\begin{equation}
+\begin{aligned}
+z_n \sim \mathit{Bernoulli}(\theta)\\
+y_n \sim
+\begin{cases}
+p_1(\Theta_1), & \text{ if } z_n =1 \\
+p_2(\Theta_2), & \text{ if } z_n=0
+\end{cases}
+\end{aligned}
+(\#eq:mixz)
+\end{equation}
+
+We focus on only two components because this type of model is already hard to fit and as we show in this chapter, it requires plenty of prior information to being able to sample from the posterior in most applied situations. However, the approach presented here can in principle be extended to a larger number of mixtures by replacing the Bernoulli distribution by a categorical one. This can be done if the number of components in the mixture is finite and also determined by the researcher.
+
+In order to fit this model, we need to estimate the posterior of each of the parameters contained in the vectors $\Theta_{1}$ and $\Theta_{2}$ (intercepts, slopes, group-level effects, etc.), the probability $\theta$, and the indicator variable that corresponds to each observation $z_n$. One issue that presents itself here is that $z_n$ must be a \index{Discrete parameter} discrete parameter, and Stan only allows \index{Continuous parameter} continuous parameters. This is because Stan's algorithm requires the \index{Derivative} derivatives of the (log) posterior distribution with respect to all parameters, and discrete parameters are not \index{Differentiable} differentiable (since they have "breaks"). In probabilistic programming languages like WinBUGS [@lunn2012bugs],  JAGS [@plummer2016jags], PyMC3 [@Salvatier2016] and Turing [@turing], discrete parameters are possible to use; but not in Stan. In Stan, we can circumvent this issue by \index{Marginalize} marginalizing out the indicator variable $z$.^[See section \@ref(sec-marginalizing) in chapter \@ref(ch-intro) for a review on the concept of marginalization.] If $p_1$ appears in the mixture with probability $\theta$, and $p_2$ with probability $1-\theta$, then the joint likelihood  is defined as a function of $\Theta$ (which concatenates the mixing probability, $\theta$, and the parameters of the $p_{1}$ and $p_{2}$, $\Theta_1$ and $\Theta_2$), and importantly $z_n$ "disappears":
+
+\begin{equation}
+p(y_n | \Theta) = \theta \cdot p_1(y_n| \Theta_1) + (1-\theta) \cdot p_2(y_n | \Theta_2)
+\end{equation}
+
+
+The intuition behind this formula is that each \index{Likelihood function} likelihood function, $p_1$, $p_2$ is weighted by its probability of being the relevant generative process. For our purposes, it  suffices to say that marginalization works; the reader interested in the mathematics behind marginalization is directed to the further reading section at the end of the chapter.^[As mentioned above, other probabilistic languages that do not rely on Hamiltonian dynamics (exclusively) are able to deal with this. However, even when sampling discrete parameters is possible, marginalization is more efficient  [@YackulicEtAl2020]: when $z_n$ is omitted we are fitting a model with $n$ fewer parameters.]
+
+Even though Stan cannot fit a model with the discrete indicator of the latent class $\mathbf{z}$ that we used in equation \@ref(eq:mixz), this equation will prove very useful when we want to generate \index{Synthetic data} synthetic data.
+
+
+
+
+
+In the following sections, we model a well-known phenomenon (i.e., the speed-accuracy trade-off)  assuming an underlying \index{Finite mixture process} finite mixture process. We start from the verbal description of the model, and then implement the model in Stan step by step.
+
+## A mixture model of the speed-accuracy trade-off: The fast-guess model account
+
+When we are faced with multiple choices that require an immediate decision, we can speed up the decision at the expense of accuracy and become more accurate at the expense of speed; this is called the \index{Speed-accuracy trade-off} speed-accuracy trade-off [@wickelgren1977speed]. The most popular class of models that can incorporate both response times and accuracy, and give an account for the speed-accuracy trade-off is the class of \index{Sequential sampling model} sequential sampling models, which include the drift diffusion model [@Ratcliff1978], the linear ballistic accumulator [@brownSimplestCompleteModel2008], and the log-normal race model [@HeathcoteLove2012; @RouderEtAl2015], which we discuss in chapter  \@ref(ch-lognormalrace); for a review see @Ratcliff2016.
+
+
+
+However, an alternative model that has been proposed in the past is Ollman's simple \index{Fast-guess model} fast-guess model [@Ollman1966; @Yellott1967; @Yellott1971].^[Ollman's  original model was meant to be relevant only for means; Yellott [-@Yellott1967; -@Yellott1971] generalized it to a distributional form.] Although it has mostly fallen out of favor [but see @DutilhEtAl2011; and @HeckErdfelder2020Benefitsresponsetime for more modern variants of this model], it presents a very simple framework using finite mixture modeling that can also account for the speed-accuracy trade-off. In the next sections, we'll use this model to exemplify the use of finite mixtures to represent different cognitive processes.
+
+### The global motion detection task
+
+One way to examine the behavior of human and primate subjects when faced with two-alternative forced choices is the detection of the global motion of a \index{Random dot kinematogram} random dot kinematogram [@britten_shadlen_newsome_movshon_1993]. In this task, a subject sees a number of \index{Random dots} random dots on the screen. A proportion of dots move in a single direction (e.g., right) and the rest move in random directions. The subject's goal is to estimate the overall direction of the movement. One of the reasons for the popularity of this task is that it permits the fine-tuning of the difficulty of trials [@Dutilh2019quality]: The task is harder when the proportion of dots that move coherently (the level of \index{Coherence} *coherence*) is lower; see Figure \@ref(fig:globalmotionpng).
+
+(ref:glob) Three levels of difficulty of the global motion detection task. The figures show a consistent  movement to the right with three levels of coherence (10%, 50%, and 100%). The subjects see the dots moving in the direction indicated by the arrows. The subjects do not see the arrows and all the dots look identical in the actual task. Adapted from @DingEtAl; licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
+
+```{r globalmotionpng, fig.cap = "(ref:glob)", out.width = "100%", echo = FALSE, fig.align = "center"}
+knitr::include_graphics("cc_figure/globalmotion_lr.PNG", dpi =1000)
+```
+
+
+Ollman's [-@Ollman1966] fast-guess model assumes that the behavior in this task (and in any other choice task) is governed by two distinct cognitive processes: (i) a \index{Guessing mode} guessing mode, and (ii) a \index{Task-engaged mode} task-engaged mode. In the guessing mode, responses are fast and accuracy is at chance level. In the task-engaged mode, responses are slower and accuracy approaches 100%. This means that intermediate values of response times and accuracy can only be achieved by \index{Mixing responses} mixing responses from the two modes. Further assumptions of this model are that response times depend on the difficulty of the choice, and that the probability of being on one of the two states depend on the speed incentives during the instructions.
+
+To simplify matters, we ignore the possibility that the accuracy of the choice is also affected by the difficulty of the choice. Also, we ignore the possibility that subjects might be biased to one specific response in the guessing mode, but see exercise \@ref(exr:mixbias).
+
+
+
+#### The data set
+
+We implement the assumptions behind Ollman's fast-guess model and examine its fit to data of a global motion detection task from @Dutilh2019quality.
+
+The data set from @Dutilh2019quality contains approximately 2800 trials of each of the 20 subjects participating in a global motion detection task and can be found in `df_dots` in the `bcogsci` package. There were two level of coherence, yielding hard and easy trials (`diff`), and the trials where done under instructions that emphasized either accuracy or speed (`emphasis`). More information about the data set can be found by accessing the documentation for the data set (by typing `?df_dots` in the R console, assuming that the `bcogsci` package is installed).
+
+```{r, message = FALSE}
+data("df_dots")
+df_dots
+```
+
+We might think that if the fast-guess model were true, we would see a \index{Bimodal distribution} bimodal distribution, when we plot a histogram of the data. Unfortunately, when two similar distributions are mixed, we won't necessarily see any apparent bimodality; see Figure \@ref(fig:dfdots).
+
+(ref:dfdots) Distribution of response times in the data of the global motion detection task in @Dutilh2019quality.
+
+```{r dfdots, message = FALSE, fig.cap = "(ref:dfdots)", fold = TRUE}
+ggplot(df_dots, aes(rt)) +
+  geom_histogram()
+```
+
+However, Figure \@ref(fig:dfaccrt) reveals that incorrect responses were generally faster, and this was especially true when the instructions emphasized accuracy.
+
+(ref:dfaccrt) The distribution of response times by \index{Accuracy} accuracy in the data of the global motion detection task in @Dutilh2019quality.
+
+```{r dfaccrt, fig.cap = "(ref:dfaccrt)", fold = TRUE}
+ggplot(df_dots, aes(x = factor(acc), y = rt)) +
+  geom_point(position = position_jitter(width = .4, height = 0),
+             alpha = 0.5) +
+  facet_wrap(diff ~ emphasis) +
+  xlab("Accuracy") +
+  ylab("Response time")
+```
+
+
+
+
+
+
+```{r, eval = FALSE, echo = FALSE}
+#to complete
+probs <- c(0, 0.1,0.3,0.5,0.7,0.9)
+
+df_lp <- df_dots %>% group_by(diff, emphasis) %>%
+  mutate(q = cut(rt, breaks = quantile(rt, probs = probs), labels = probs[-1]))%>%
+  group_by(diff, emphasis, q) %>%
+  summarize(rt = max(rt), acc = mean(acc))
+
+df_dots %>% group_by(diff, emphasis) %>%
+  mutate(art = mean(rt),
+         lrt = quantile(rt, .025),
+         hrt = quantile(rt, .975),
+         acc = mean(acc)) %>%
+  ggplot(aes(x = acc, y = art, ymin = lrt, ymax = hrt)) +
+  geom_point() +
+  facet_grid(~emphasis)
++
+  geom_errorbar()
+
+
+
+df_lp
+
+df_dots %>% filter(diff == "easy", emphasis == "accuracy") %>% {quantile(.$rt, probs = probs)}
+
+df_dots %>% group_by(diff, emphasis) %>%
+   mutate(rtq = quantile(rt, probs = .1)) %>%
+   filter(diff == "easy", emphasis == "accuracy")
+x <- 1:100
+x[ntile(1:100,4)==10]
+quantile(1:100)
+```
+
+### A very simple implementation of the fast-guess model {#sec-simplefastguess}
+
+The description of the model makes it clear that an ideal subject who never guesses has a response time that depends only on the difficulty of the trial. As we did in previous chapters, we assume that response times are log-normally distributed, and for simplicity we start by modeling the behavior of a single subject:
+
+\begin{equation}
+rt_n \sim \mathit{LogNormal}(\alpha + \beta \cdot x_n, \sigma)
+\end{equation}
+
+In the previous equation, $x$ is larger for difficult trials. If we center $x$, $\alpha$ represents the average logarithmic transformed response time for a subject engaged in the task, and $\beta$ is the effect of \index{Trial difficulty} trial difficulty on log-response time. We assume a non-deterministic process, with a noise parameter $\sigma$. See also Box \@ref(thm:lognormal) for more information about log-normally distributed response times.
+
+Alternatively, a subject that guesses in every trial would show a response time distribution that is independent of the difficulty of the trial:
+
+\begin{equation}
+rt_n \sim \mathit{LogNormal}(\gamma, \sigma_2)
+\end{equation}
+
+Here $\gamma$ represents the the average logarithmic transformed response time when a subject only guesses. We assume that responses from the guessing mode might have a different noise component than from the task-engaged mode.
+
+The fast-guess model makes the assumption that during a task, a single subject would behave in these two ways: They would be engaged in the task a proportion of the trials and would guess on the rest of the trials. This means that for a single subject, there is an underlying probability of being engaged in the task, $p_{task}$, that determines whether they are actually choosing ($z=1$) or guessing ($z=0$):
+
+\begin{equation}
+z_n \sim \mathit{Bernoulli}(p_{task})
+\end{equation}
+
+The value of the parameter $z$ in every trial determines the behavior of the subject. This means that the distribution that we observe is a mixture of the two distributions presented before:
+
+\begin{equation}
+rt_n \sim
+\begin{cases}
+\mathit{LogNormal}(\alpha + \beta \cdot x_n, \sigma), & \text{ if } z_n =1 \\
+\mathit{LogNormal}(\gamma, \sigma_2), & \text{ if } z_n=0
+\end{cases}
+(\#eq:dismix)
+\end{equation}
+
+In order to have a Bayesian implementation, we also need to define some priors. We use priors that encode what we know about response time experiments. These priors are slightly more informative than the ones that we used in section \@ref(sec-trial), but they still can be considered \index{Regularizing prior} regularizing priors. One can verify this by performing prior predictive checks. As we increase the complexity of our models, it's worth spending some time designing more realistic priors. These will speed up computation and in some cases they will be crucial for solving convergence problems.
+
+\begin{equation}
+\begin{aligned}
+\alpha &\sim \mathit{Normal}(6, 1)\\
+\beta &\sim \mathit{Normal}(0, 0.1)\\
+\sigma &\sim \mathit{Normal}_+(0.5, 0.2)
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}
+\gamma &\sim \mathit{Normal}(6, 1)\\
+\sigma_2 &\sim \mathit{Normal}_+(0.5, 0.2)
+\end{aligned}
+\end{equation}
+
+For now, we allow all values for the probability of having an engaged response equal likelihood; we achieve this by setting the following prior to $p_{task}$:
+
+\begin{equation}
+p_{task} \sim \mathit{Beta}(1, 1)
+\end{equation}
+
+This represents a flat, \index{Uninformative prior} uninformative prior over the probability parameter $p_{task}$.
+
+Before we fit our model to the real data, we generate \index{Synthetic data} synthetic data to make sure that our model is working as expected.
+
+We first define the number of observations, predictors, and fixed point values for each of the parameters. We assume $1000$ observations and two levels of difficulty, $x$, coded $-0.5$ (easy) and $0.5$ (hard). The point values chosen for the parameters are relatively realistic (based on our previous experience on response time experiments). Although in the priors we try to encode the range of possible values for the parameters, in this simulation we assume only one instance of this possible range:
+
+```{r, echo = FALSE}
+set.seed(123)
+```
+
+```{r}
+N <- 1000
+# level of difficulty:
+x <- c(rep(-0.5, N/2), rep(0.5, N/2))
+# Parameters true point values:
+alpha <- 5.8
+beta <- 0.05
+sigma <- 0.4
+sigma2 <- 0.5
+gamma <- 5.2
+p_task <- 0.8
+# Median time
+c("engaged" = exp(alpha), "guessing" = exp(gamma))
+```
+
+For generating a mixture of response times, we use the indicator of a latent class, `z`.
+
+```{r}
+z <- rbern(n = N, prob = p_task)
+rt <- if_else(z == 1,
+             rlnorm(N,
+                    meanlog = alpha + beta * x,
+                    sdlog = sigma),
+             rlnorm(N,
+                    meanlog = gamma,
+                    sdlog = sigma2))
+df_dots_simdata1 <- tibble(trial = 1:N, x = x, rt = rt)
+```
+
+We verify that our simulated data is realistic, that is, it's in the same range as the original data; see Figure \@ref(fig:simmix).
+
+(ref:simmix) Response times in the simulated data (`df_dots_simdata1`) that follows the fast-guess model.
+
+```{r simmix, fig.cap = "(ref:simmix)", message = FALSE}
+ggplot(df_dots_simdata1, aes(rt)) +
+  geom_histogram()
+```
+
+To implement the mixture model defined in equation \@ref(eq:logpriorsunif) in Stan, the discrete parameter $z$ needs to be marginalized out:
+
+\begin{equation}
+\begin{aligned}
+p(rt_n | \Theta) &= p_{task} \cdot LogNormal(rt_n | \alpha + \beta \cdot x_n, \sigma) +\\
+    & (1 - p_{task}) \cdot LogNormal(rt_n | \gamma, \sigma_2)
+\end{aligned}
+\end{equation}
+
+In addition, Stan requires the likelihood to be defined  in log-space:
+
+\begin{equation}
+\begin{aligned}
+\log(p(rt | \Theta)) &= \log(p_{task} \cdot LogNormal(rt_n | \alpha + \beta \cdot x_n, \sigma) +\\
+    & (1 - p_{task}) \cdot LogNormal(rt_n | \gamma, \sigma_2))
+\end{aligned}
+\end{equation}
+
+
+```{r mixtures-stan, echo = FALSE}
+mixture_rt <- system.file("stan_models", "mixture_rt.stan", package = "bcogsci")
+mixture_rt2 <- system.file("stan_models", "mixture_rt2.stan", package = "bcogsci")
+mixture_rtacc <- system.file("stan_models", "mixture_rtacc.stan", package = "bcogsci")
+mixture_rtacc2 <- system.file("stan_models", "mixture_rtacc2.stan", package = "bcogsci")
+mixture_h <- system.file("stan_models", "mixture_h.stan", package = "bcogsci")
+mixture_h2_gen <- system.file("stan_models", "mixture_h2_gen.stan", package = "bcogsci")
+```
+
+A "naive" implementation in Stan would look like the following (recall that `_lpdf` functions provide log-transformed densities):
+
+```
+target += log(
+        p_task * exp(lognormal_lpdf(rt[n] | alpha + x[n] * beta, sigma)) +
+              (1-p_task) * exp(lognormal_lpdf(rt[n] | gamma, sigma2)));
+```
+
+However, we need to take into account that $log(A \pm B)$ can be \index{Numerical instability} numerically unstable [i.e., prone to \index{Underflow} underflow/\index{Overflow} overflow, see @BlanchardEtAl2020]. Stan provides several functions to deal with different special cases of logarithms of sums and differences.  Here we need \index{\texttt{log\_sum\_exp}} `log_sum_exp(x, y)` that corresponds to  `log(exp(x) + exp(y))`  and \index{\texttt{log1m}} `log1m(x)` that corresponds to `log(1-x)`.
+
+First, we need to take into account that the first summand of the logarithm, `p_task * exp(lognormal_lpdf(rt[n] | alpha + x[n] * beta, sigma))` corresponds to `exp(x)`, and the second one, `(1-p_task) * exp(lognormal_lpdf(rt[n] | gamma, sigma2))` to `exp(y)` in `log_sum_exp(x, y)`. This means that we need to first apply the logarithm to each of them to use them as arguments of `log_sum_exp(x, y)`:
+
+```
+target += log_sum_exp(
+              log(p_task) + lognormal_lpdf(rt[n] | alpha +
+              x[n] * beta, sigma),
+              log(1-p_task) + lognormal_lpdf(rt[n] | gamma, sigma2));
+```
+
+Now we can just replace `log(1-p_task)` by the more stable `log1m(p_task)`:
+
+```
+target += log_sum_exp(
+               log(p_task) + lognormal_lpdf(rt[n] | alpha +
+               x[n] * beta, sigma),
+               log1m(p_task) + lognormal_lpdf(rt[n] | gamma, sigma2));
+```
+
+The complete model (`mixture_rt.stan`) is shown below:
+
+```{stan output.var = "mix1_stan", code = readLines(mixture_rt),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+
+Call the Stan model `mixture_rt.stan`, and fit it to the simulated data. First, we set up the simulated data as a list structure:
+
+```{r}
+ls_dots_simdata <- list(N = N, rt = rt, x = x)
+```
+
+Then fit the model:
+
+
+```{r fitmixture_rt, results = "hide", message = "FALSE", eval = !file.exists("dataR/fit_mix_rt.RDS"), warning = FALSE}
+mixture_rt <- system.file("stan_models",
+                          "mixture_rt.stan",
+                          package = "bcogsci")
+fit_mix_rt <- stan(mixture_rt, data = ls_dots_simdata)
+```
+
+```{r, echo= FALSE}
+if(!file.exists("dataR/fit_mix_rt.RDS")){
+# hardcoded warnings, because last.warning doesn't work inside knitr:
+#  saveRDS(names(last.warning),"dataR/fit_mix_rt_w.RDS")
+  saveRDS(fit_mix_rt, "dataR/fit_mix_rt.RDS")
+} else {
+  fit_mix_rt <- readRDS("dataR/fit_mix_rt.RDS")
+  # wrn <- readRDS("dataR/fit_mix_rt_w.RDS")
+wrn <- c("The largest R-hat is 1.74, indicating chains have not mixed.\nRunning the chains for more iterations may help. See\nhttps://mc-stan.org/misc/warnings.html#r-hat",
+"Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.\nRunning the chains for more iterations may help. See\nhttps://mc-stan.org/misc/warnings.html#bulk-ess",
+"Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.\nRunning the chains for more iterations may help. See\nhttps://mc-stan.org/misc/warnings.html#tail-ess"
+)
+
+  print_warning(wrn)
+ }
+```
+
+
+There are a lot of warnings, the Rhats are too large, and number of effective samples is too low:
+
+```{r}
+print(fit_mix_rt)
+```
+
+The traceplots show clearly that the chains aren't mixing; see Figure \@ref(fig:traceplotsmix1).
+
+(ref:traceplotsmix1) Traceplots from the model `mixture_rt.stan` fit to simulated data.
+
+```{r traceplotsmix1, fig.cap = "(ref:traceplotsmix1)"}
+traceplot(fit_mix_rt) +
+  scale_x_continuous(breaks = NULL)
+```
+
+The problem with this model is that the \index{Mixture component} mixture components  (i.e., the fast-guesses and the engaged mode) are underlyingly \index{Exchangeable} exchangeable and thus the posterior is \index{Multi-modal} multi-modal and the model does not converge. Each chain (and each iteration) doesn't know how each component was identified by the rest of the chains (e.g., in some chains and iterations, $z=0$ corresponds to fast guesses, whereas in other cases, it corresponds to deliberate responses). However, we do have information that can identify the components: According to the theoretical model, we know that the average response in the engaged mode, represented by $\alpha$, should be slower than the average response in the guessing mode, $\gamma$.
+
+Even though the theoretical model assumes that guesses are faster than engaged responses, this is not explicit in our computational model. That is, our model lacks some of the theoretical information that we have, namely that the distribution of engaged \index{Response time} response times should be slower than the distribution of guesses times. This can be encoded with \index{order constraints} \index{inequality constraints} *order constraints* or *inequality constraints*, that is a \index{Strong prior} strong prior for $\gamma$, where we assume that its prior distribution is truncated on an upper  bound by the value of $\alpha$:
+
+
+\begin{equation}
+\gamma \sim \mathit{Normal}(6, 1), \text{for } \gamma < \alpha
+\end{equation}
+
+This would be enough to make the model to converge.
+
+Another softer constraint that we could add to our implementation is the assumption that subjects are generally more likely to be trying to do the task than just guessing. If this assumption is correct, we also improve the accuracy of our estimation of the posterior of the model. (The opposite is also true: If subjects are not trying to do the task, this assumption will be unwarranted and our prior information will lead us further from the "true" values of the parameters). The following prior has the probability density concentrated near $1$.
+
+\begin{equation}
+p_{task} \sim \mathit{Beta}(8, 2)
+\end{equation}
+
+Plotting this prior confirms where most of the probability mass lies; see Figure \@ref(fig:dbeta).
+
+(ref:dbeta) A density plot for the $Beta(8,2)$ prior on $p_{task}$.
+
+```{r dbeta, fold = TRUE, fig.cap = "(ref:dbeta)"}
+plot(function(x) dbeta(x, 8, 2), ylab = "density" , xlab= "probability")
+```
+
+The Stan code for this model is shown below as `mixture_rt2.stan`.
+
+```{stan output.var = "mix2_stan", code = readLines(mixture_rt2),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+Once we change the upper bound of `gamma` in the `parameters` block, we also need to truncate the distribution in the `model` block by correcting the PDF with its CDF. This correction is carried out using the CDF because we are truncating the distribution at the right-hand side; recall that earlier we used the complement of the CDF when we truncate a distribution at the left-hand side); see Box \@ref(thm:truncation).
+
+```
+  target += normal_lpdf(gamma | 6, 1) -
+    normal_lcdf(alpha | 6, 1);
+```
+
+Fit this model (call it `mixture_rt2.stan`) to the same simulated data set that we used before:
+
+```{r fitmixture_rt2, results = "hide", message = "FALSE", eval = !file.exists("dataR/fit_mix_rt2.RDS")}
+mixture_rt2 <- system.file("stan_models",
+                           "mixture_rt2.stan",
+                           package = "bcogsci")
+fit_mix_rt2 <- stan(mixture_rt2, data = ls_dots_simdata)
+```
+
+
+```{r, echo= FALSE}
+if(!file.exists("dataR/fit_mix_rt2.RDS")){
+  saveRDS(fit_mix_rt2,"dataR/fit_mix_rt2.RDS")
+} else {
+  fit_mix_rt2 <- readRDS("dataR/fit_mix_rt2.RDS")
+}
+```
+
+
+Now the summaries and traceplots look fine; see Figure \@ref(fig:traceplotsmix2).
+
+(ref:traceplotsmix2) Traceplots from the model `mixture_rt2.stan` fit to simulated data.
+
+```{r traceplotsmix2, fig.cap = "(ref:traceplotsmix2)"}
+print(fit_mix_rt2)
+traceplot(fit_mix_rt2) +
+  scale_x_continuous(breaks = NULL)
+```
+
+###  A \index{Multivariate implementation} multivariate implementation of the fast-guess model {#sec-multmix}
+
+A problem with the previous implementation of the fast-guess model is that we ignore the accuracy information in the data. We can implement a version that is closer to the verbal description of the model:
+In particular, we also want to model the fact that accuracy is at chance level in the fast-guessing mode and that accuracy approaches 100% during the task-engaged mode.
+
+This means that the mixture affects two pairs of distributions:
+
+\begin{equation}
+z_n \sim \mathit{Bernoulli}(p_{task})
+\end{equation}
+
+The response time distribution
+
+\begin{equation}
+rt_n \sim
+\begin{cases}
+\mathit{LogNormal}(\alpha + \beta \cdot x_n, \sigma), & \text{ if } z_n =1 \\
+\mathit{LogNormal}(\gamma, \sigma_2), & \text{ if } z_n=0
+\end{cases}
+(\#eq:dismix2)
+\end{equation}
+
+and an accuracy distribution
+
+\begin{equation}
+acc_n \sim
+\begin{cases}
+\mathit{Bernoulli}(p_{correct}), & \text{ if } z_n =1 \\
+\mathit{Bernoulli}(0.5), & \text{ if } z_n=0
+\end{cases}
+(\#eq:dismix3)
+\end{equation}
+
+We have a new parameter $p_{correct}$, which represent the probability of making a correct answer in the engaged mode. The verbal description says that it is closer to 100%, and here we have the freedom to choose whatever prior we believe represents for us values that are close to 100% accuracy. We translate this belief into a prior as follows; our prior choice is relatively informative but does not impose a hard constraint; if a subject consistently shows relatively low (or high) accuracy, $p_{correct}$ will change accordingly:
+
+\begin{equation}
+p_{correct} \sim \mathit{Beta}(995, 5)
+\end{equation}
+
+In our simulated data, we assume that the global motion detection task is done by a very accurate subject, with an accuracy of 99.9%.
+
+First, simulate response times, as done earlier:
+
+```{r}
+N <- 1000
+x <- c(rep(-0.5, N/2), rep(.5, N/2)) # difficulty
+alpha <- 5.8
+beta <- 0.05
+sigma <- 0.4
+sigma2 <- 0.5
+gamma <- 5.2 # fast guess location
+p_task <- 0.8 # prob of being on task
+z <- rbern(n = N, prob = p_task)
+rt <- if_else(z == 1,
+             rlnorm(N,
+                    meanlog = alpha + beta * x,
+                    sdlog = sigma),
+             rlnorm(N,
+                    meanlog = gamma,
+                    sdlog = sigma2))
+```
+
+Simulate \index{Accuracy} accuracy and include both response times and accuracy in the simulated data set:
+
+```{r}
+p_correct <- 0.999
+acc <- ifelse(z, rbern(n = N, p_correct),
+                  rbern(n = N, 0.5))
+df_dots_simdata3 <- tibble(trial = 1:N,
+                           x = x,
+                           rt = rt,
+                           acc = acc) %>%
+                    mutate(diff = if_else(x == 0.5, "hard", "easy"))
+```
+
+Plot the simulated data in Figure \@ref(fig:simdata3). This time we can see the effect of task difficulty on the simulated response times and accuracy:
+
+(ref:simdata3) Response times by accuracy accounting for task difficulty in the simulated data (`df_dots_simdata3`) that follows the fast-guess model.
+
+```{r simdata3, message = FALSE, fig.cap="(ref:simdata3)"}
+ggplot(df_dots_simdata3, aes(x = factor(acc), y = rt)) +
+  geom_point(position = position_jitter(width = .4, height = 0),
+             alpha = 0.5) +
+  facet_wrap(diff ~ .) +
+  xlab("Accuracy") +
+  ylab("Response time")
+```
+
+Next, we need to marginalize out the discrete parameters from the joint distribution of accuracy and response times. However, we assume that conditional on the latent indicator parameter $z$, response times and accuracy are independent. For this reason, we can multiply the likelihoods for `rt` and `acc` within each component.
+
+\begin{equation}
+\begin{aligned}
+p(rt, acc | \Theta) = & p_{task} \cdot \\
+& LogNormal(rt_n | \alpha + \beta \cdot x_n, \sigma) \cdot \\
+& Bernoulli(acc_n | p_{correct}) \\
+& +\\
+& (1 - p_{task}) \cdot \\
+& LogNormal(rt_n | \gamma, \sigma_2) \cdot\\
+& Bernoulli(acc_n | 0.5)
+\end{aligned}
+\end{equation}
+
+In  log-space:
+
+\begin{equation}
+\begin{aligned}
+\log(p(rt, acc | \Theta)) =  \log(\exp(&\\
+& \log(p_{task}) +\\
+  &\log(LogNormal(rt_n | \alpha + \beta * x_n, \sigma)) + \\
+  &\log(Bernoulli(acc_n | p_{correct})))\\
+  +&\\
+ \exp(&\\
+ & \log(1 - p_{task}) + \\
+ & \log(LogNormal(rt_n |\gamma, \sigma_2)) + \\
+ & \log(Bernoulli(acc_n | 0.5)))\\
+    )& \\
+\end{aligned}
+\end{equation}
+
+Our model translates to the following Stan code (`mixture_rtacc.stan`):
+
+```{stan output.var = "mix3_stan", code = readLines(mixture_rtacc),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+Next, set up the data in list format:
+
+```{r}
+ls_dots_simdata <- list(N = N,
+                        rt = rt,
+                        x = x,
+                        acc = acc)
+```
+
+Then fit the model:
+
+```{r fitmixture_rtacc, results = "hide", message = "FALSE", eval = !file.exists("dataR/fit_mix_rtacc.RDS")}
+mixture_rtacc <- system.file("stan_models",
+                             "mixture_rtacc.stan",
+                             package = "bcogsci")
+fit_mix_rtacc <- stan(mixture_rtacc, data = ls_dots_simdata)
+```
+
+```{r, echo= FALSE}
+if(!file.exists("dataR/fit_mix_rtacc.RDS")){
+  saveRDS(fit_mix_rtacc,"dataR/fit_mix_rtacc.RDS")
+} else {
+  fit_mix_rtacc <- readRDS("dataR/fit_mix_rtacc.RDS")
+}
+```
+
+We see that our model can be fit to both response times and accuracy, and its parameters estimates have sensible values (given the fixed parameters we used to generate our simulated data).
+
+```{r}
+print(fit_mix_rtacc)
+```
+
+We will evaluate the recovery of the parameters more carefully when we deal with the hierarchical version of the fast-guess model in section \@ref(sec-fastguessh). Before we extend this model hierarchically, let us also take into account the instructions given to the subjects.
+
+###  An implementation of the fast-guess model that takes instructions into account
+
+The actual global motion detection experiment that we started with has another manipulation that can help us to evaluate better the fast-guess model. In some trials, the instructions emphasized accuracy (e.g., "Be as accurate as possible.") and in others speed (e.g., "Be as fast as possible."). The fast-guess model also assumes that the probability of being in one of the two states depends on the speed incentives given during the instructions. This entails that now $p_{task}$ depends on the instructions $x_2$, where we encode a speed incentive with $-0.5$ and an accuracy incentive with $0.5$. Essentially, we need to fit the following regression:
+
+\begin{equation}
+\alpha_{task} + x_2 \cdot \beta_{task}
+\end{equation}
+
+As we did with MPT models in the previous chapter (in section \@ref(sec-MPT-reg)), we need to bound the previous regression between 0 and 1; we achieve this using the \index{Logit} logistic or \index{Inverse logit} inverse logit function:
+
+\begin{equation}
+p_{task} = logit^{-1}(\alpha_{task} + x_2 \cdot \beta_{task})
+\end{equation}
+
+This means that we need to interpret $\alpha_{task} + x_2 \cdot \beta_{task}$ in \index{Log-odds space} log-odds space, which has the range $(-\infty, \infty)$ rather than the probability space $[0,1]$; also see section \@ref(sec-MPT-reg).
+
+The likelihood (defined before in section \@ref(sec-multmix)) now depends on the value of $x_{2}$ for the specific row:
+
+\begin{equation}
+z_n \sim \mathit{Bernoulli}(p_{{task}_n})
+\end{equation}
+
+A response time distribution is defined:
+
+\begin{equation}
+rt_n \sim
+\begin{cases}
+\mathit{LogNormal}(\alpha + \beta \cdot x_n, \sigma), & \text{ if } z_n =1 \\
+\mathit{LogNormal}(\gamma, \sigma_2), & \text{ if } z_n=0
+\end{cases}
+\end{equation}
+
+and an accuracy distribution is defined as well:
+
+\begin{equation}
+acc_n \sim
+\begin{cases}
+\mathit{Bernoulli}(p_{correct}), & \text{ if } z_n =1 \\
+\mathit{Bernoulli}(0.5), & \text{ if } z_n=0
+\end{cases}
+\end{equation}
+
+The only further change in our model is that rather than a prior on $p_{task}$, we now need priors for $\alpha_{task}$ and $\beta_{task}$, which are on the log-odds scale.
+
+For $\beta_{task}$, we assume an effect that can be rather large and we won't assume a direction a priori (for now):
+
+\begin{equation}
+\beta_{task} \sim \mathit{Normal}(0, 1)
+\end{equation}
+
+
+This means that the subject could be affected by the instructions in the expected way, with an increased probability to be task-engaged, leading to better accuracy when the instructions  emphasize  accuracy ($\beta_{task} >0$). Alternatively, the subject might be behaving in an unexpected way, with a decreased probability to be task-engaged, leading to worse accuracy when the instructions emphasize accuracy ($\beta_{task} <0$). The latter situation, $\beta_{task} <0$, could represent the instructions being misunderstood. It's certainly possible to include priors that encode the expected direction of the effect instead: $\mathit{Normal}_{+}(0,1)$. Unless there is a compelling reason to constrain the prior in this way, following Cromwell's rule (Box \@ref(thm:cromwell)), we leave open the possibility of the $\beta$ parameter having negative values.
+
+How can we choose a prior for $\alpha_{task}$ that encodes the same information that we had in the previous model in $p_{task}$? One possibility is to create an auxiliary parameter $p_{btask}$, that represents the baseline probability of being engaged in the task, with the same prior that we use in the previous section, and then transform it to an unconstrained space for our regression with the logit function:
+
+\begin{equation}
+\begin{aligned}
+&p_{btask} \sim \mathit{\mathit{Beta}}(8, 2)\\
+&\alpha_{task} = logit(p_{btask})
+\end{aligned}
+\end{equation}
+
+To verify that our priors make sense, in Figure \@ref(fig:emphasis) we plot the difference in prior predicted probability of being engaged in the task under the two emphasis conditions:
+
+```{r}
+Ns <- 1000 # number of samples for the plot
+# Priors
+p_btask <- rbeta(n = Ns, shape1 = 8, shape2 = 2)
+beta_task <- rnorm(n = Ns, mean = 0, sd = 1)
+# Predicted probability of being engaged
+p_task_easy <- plogis(qlogis(p_btask) + 0.5 * beta_task)
+p_task_hard <- plogis(qlogis(p_btask) + -0.5 * beta_task)
+# Predicted difference
+diff_p_pred <- tibble(diff = p_task_easy - p_task_hard)
+```
+
+(ref:emphasis) The difference in prior predicted probability of being engaged in the task under the two emphasis conditions for the simulated data (`diff_p_pred`) that follows the fast-guess model.
+
+```{r emphasis, fig.cap ="(ref:emphasis)", message = FALSE}
+diff_p_pred %>%
+  ggplot(aes(diff)) +
+  geom_histogram()
+```
+
+Figure \@ref(fig:emphasis) shows that we are predicting a priori that the difference in $p_{task}$ will tend to be smaller than $\pm 0.3$, which seems to make sense intuitively. If we had more information about the likely range of variation, we could of course have adapted the prior to reflect that belief.
+
+We are ready to generate a new data set, by deciding on some fixed values for $\beta_{task}$ and $p_{btask}$:
+
+```{r, echo = FALSE}
+set.seed(123)
+```
+```{r}
+N <- 1000
+x <- c(rep(-0.5, N/2), rep(0.5, N/2)) # difficulty
+x2 <- rep(c(-0.5, 0.5), N/2) # instructions
+# Verify that the predictors are crossed in a 2x2 design :
+predictors <- tibble(x, x2)
+xtabs(~ x + x2, predictors)
+alpha <- 5.8
+beta <- 0.05
+sigma <- 0.4
+sigma2 <- 0.5
+gamma <- 5.2
+p_correct <- 0.999
+# New true point values:
+p_btask <- 0.85
+beta_task <- 0.5
+# Generate data:
+alpha_task <- qlogis(p_btask)
+p_task <- plogis(alpha_task + x2 * beta_task)
+z <- rbern(N, prob = p_task)
+rt <- ifelse(z,
+             rlnorm(N, meanlog = alpha + beta * x, sdlog = sigma),
+             rlnorm(N, meanlog = gamma, sdlog = sigma2))
+acc <- ifelse(z, rbern(N, p_correct),
+                 rbern(N, 0.5))
+df_dots_simdata4 <- tibble(trial = 1:N,
+                           x = x,
+                           rt = rt,
+                           acc = acc,
+                           x2 = x2) %>%
+          mutate(diff = if_else(x == 0.5, "hard", "easy"),
+                 emphasis = ifelse(x2 == 0.5, "accuracy", "speed"))
+```
+
+We can generate a plot now where both the difficulty of the task and the instructions are manipulated; see Figure \@ref(fig:taskinstr).
+
+(ref:taskinstr) Response times and accuracy by the difficulty of the task and the instructions type for the simulated data (`df_dots_simdata4`) that follows the fast-guess model.
+
+```{r taskinstr, fig.cap ="(ref:taskinstr)", message = FALSE}
+ggplot(df_dots_simdata4, aes(x = factor(acc), y = rt)) +
+  geom_point(position = position_jitter(width = .4, height = 0),
+             alpha = 0.5) +
+  facet_wrap(diff ~ emphasis) +
+  xlab("Accuracy") +
+  ylab("Response time")
+```
+
+In the Stan implementation, \index{\texttt{log\_inv\_logit}} `log_inv_logit(x)` is applying the logistic (or inverse logit) function to `x` to transform it into a probability and then applying the logarithm; \index{\texttt{log1m\_inv\_logit}} `log1m_inv_logit(x)` is applying the logistic function to `x`,  and then applying the logarithm to its complement $(1 - p)$. We do this because rather than having `p_task` in probability space, we have `lodds_task` in log-odds space:
+
+```
+real lodds_task = logit(p_btask) + x2[n] * beta_task;
+```
+The parameter `lodds_task` estimates the mixing probabilities in log-odds:
+```
+target += log_sum_exp(log_inv_logit(lodds_task) + ...,
+                      log1m_inv_logit(lodds_task) + ...)
+```
+
+We also add a \index{\texttt{generated quantities}} `generated quantities` block that can be used for further (prior or posterior) predictive checks. In this block we do use `z` as an indicator of the latent class (task-engaged mode or fast-guessing mode), since we do not estimate `z`, but rather generate it based on the parameter's posteriors.
+
+We use the dummy variable \index{\texttt{onlyprior}} `onlyprior` to indicate whether we use the data or we only sample from the priors.  One can always do the predictive checks in R, transforming the code that we wrote for the simulation into a function, and writing the priors in R. However, it can be simpler to take advantage of Stan output format and rewrite the code in Stan. One downside of this is that the `stanfit` object that stores the model output can become too large for the memory of the computer. Another downside is reduced robustness, as it is more likely to overlook an error if we only work in Stan than if we implemented the code in different programming languages (R and Stan).
+
+```{stan output.var = "mix4_stan", code = readLines(mixture_rtacc2),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+
+We save the code as `mixture_rtacc2.stan`, and before fitting it to the simulated data, we perform \index{Prior predictive check} prior predictive checks.
+
+#### Prior predictive checks
+
+Generate prior predictive distributions, by setting `onlyprior` to `1`.
+
+```{r, results = "hide", message = FALSE}
+ls_dots_simdata <- list(N = N,
+                        rt = rt,
+                        x = x,
+                        x2 = x2,
+                        acc = acc,
+                        onlyprior = 1)
+mixture_rtacc2 <- system.file("stan_models",
+                              "mixture_rtacc2.stan",
+                              package = "bcogsci")
+```
+```{r fitmixture_rtacc2pp, results = "hide", message = "FALSE", eval = !file.exists("dataR/fit_mix_rtacc2_priors.RDS")}
+fit_mix_rtacc2_priors <- stan(mixture_rtacc2,
+                              data = ls_dots_simdata)
+```
+```{r, echo= FALSE}
+if(!file.exists("dataR/fit_mix_rtacc2_priors.RDS")){
+  saveRDS(fit_mix_rtacc2_priors,"dataR/fit_mix_rtacc2_priors.RDS")
+} else {
+  fit_mix_rtacc2_priors <- readRDS("dataR/fit_mix_rtacc2_priors.RDS")
+}
+```
+
+
+We plot prior predictive distributions of response times as follows in Figure \@ref(fig:ppcmix4), by setting `y = rt` using `ppd_dens_overlay()`.
+
+(ref:ppcmix4) Prior predictive distributions of response times (using `mixture_rtacc2.stan`) that follows the fast-guess model.
+
+```{r ppcmix4, message = FALSE, fig.cap = "(ref:ppcmix4)"}
+rt_pred <- extract(fit_mix_rtacc2_priors)$rt_pred
+ppd_dens_overlay(rt_pred[1:100,]) +
+  coord_cartesian(xlim = c(0, 2000))
+```
+
+Some of the predictive data sets contain responses that are too large, and some of them have too much probability mass close to zero, but there is nothing clearly wrong in the prior predictive distributions (considering that the model hasn't "seen" the data yet).
+
+If we want to plot the prior predicted distribution of differences in response time conditioning on task difficulty, we need to define a new function. Then we use the `bayesplot` function `ppc_stat()` that takes as an argument of `stat` any summary function; see Figure \@ref(fig:ppdiff).
+
+(ref:ppdiff) Prior predicted distribution (using `mixture_rtacc2.stan`) of differences in response time, conditioning on task difficulty.
+```{r ppdiff, message = FALSE, fig.cap = "(ref:ppdiff)"}
+meanrt_diff <- function(rt){
+  mean(rt[x == 0.5]) -
+    mean(rt[x == -0.5])
+}
+ppd_stat(rt_pred, stat = meanrt_diff)
+```
+
+
+
+```{r, echo = FALSE, eval = FALSE}
+acc_pred <- extract(fit_mix_rtacc2_priors)$acc_pred
+```
+
+We find that the range of response times look reasonable. There are, however, always more checks that can be done;  examples are plotting other summary statistics, or predictions conditioned on other aspects of the data.
+
+#### Fit to simulated data
+
+Fit the model to data, by setting `onlyprior = 0`:
+
+```{r}
+ls_dots_simdata <- list(N = N,
+                        rt = rt,
+                        x = x,
+                        x2 = x2,
+                        acc = acc,
+                        onlyprior = 0)
+```
+```{r fitmixture_rtacc2, results = "hide", message = "FALSE", eval = !file.exists("dataR/fit_mix_rtacc2.RDS")}
+fit_mix_rtacc2 <- stan(mixture_rtacc2, data = ls_dots_simdata)
+```
+```{r, echo= FALSE}
+if(!file.exists("dataR/fit_mix_rtacc2.RDS")){
+  saveRDS(fit_mix_rtacc2,"dataR/fit_mix_rtacc2.RDS")
+} else {
+  fit_mix_rtacc2 <- readRDS("dataR/fit_mix_rtacc2.RDS")
+}
+```
+
+
+```{r}
+print(fit_mix_rtacc2,
+      pars = c("alpha", "beta", "sigma", "gamma", "sigma2",
+               "p_correct", "p_btask", "beta_task"))
+```
+
+We see that we fit the model without problems. Before we evaluate the recovery of the parameters more carefully, we implement a hierarchical version of the fast-guess model.
+
+### A \index{Hierarchical implementation} hierarchical implementation of the fast-guess model {#sec-fastguessh}
+
+So far we have evaluated the behavior of one simulated subject.
+We discussed before (in the context of distributional regression models, in section \@ref(sec-distrmodel), and in the MPT modeling chapter \@ref(ch-MPT)) that, in principle, every parameter in a model can be made hierarchical. However, this doesn't guarantee that we'll learn anything from the data for those parameters, or that our model will converge. A safe approach here is to start simple, using simulated data. Despite the fact that convergence with simulated data does not guarantee the convergence of the same model with real data, in our experience the reverse is in general true.
+
+For our hierarchical version, we assume that both response times and the effect of task difficulty  vary by subject, and that different subjects have different guessing times. This entails the following change to the response time distribution:
+
+
+\begin{equation}
+rt_n \sim
+\begin{cases}
+\mathit{LogNormal}(\alpha + u_{subj[n],1} +  x_n \cdot  (\beta +  u_{subj[n], 2}), \sigma), & \text{ if } z_n =1 \\
+\mathit{LogNormal}(\gamma + u_{subj[n], 3}, \sigma_2), & \text{ if } z_n=0
+\end{cases}
+\end{equation}
+
+
+We assume that the three vectors of $u$ (adjustment to the intercept and slope of the task-engaged distribution, and the adjustment to the guessing time distribution) follow a \index{Multivariate normal distribution} multivariate normal distribution centered on zero. For simplicity and lack of any prior knowledge about this experiment design and method, we assume the same (weakly informative) prior distribution for the three variance components and the same regularizing \index{LKJ prior} LKJ prior for the three correlations between the adjustments ($\rho_{u_{1,2}}, \rho_{u_{1,3}}, \rho_{u_{2,3}}$):
+
+\begin{equation}
+\begin{aligned}
+\boldsymbol{u} &\sim\mathcal{N}(0, \Sigma_u)\\
+\tau_{u_{1}}, \tau_{u_{2}}, \tau_{u_{3}} & \sim \mathit{ \mathit{Normal}}_+(0, 0.5)\\
+\mathbf{R_u} &\sim \mathit{LKJcorr}(2)
+\end{aligned}
+\end{equation}
+
+Before we fit the model to the real data set, we simulate data again; this time we simulate 100 trials of each of 20 subjects.
+
+```{r fake-data-pars-mix, message = FALSE, tidy = FALSE}
+# Build the fake stimuli
+N_subj <- 20
+N_trials <- 100
+# Parameters' true point values
+alpha <- 5.8
+beta <- 0.05
+sigma <- 0.4
+sigma2 <- 0.5
+gamma <- 5.2
+beta_task <- 0.1
+p_btask <- 0.85
+alpha_task <- qlogis(p_btask)
+p_correct <- 0.999
+tau_u <- c(0.2, 0.005, 0.3)
+rho <- 0.3
+```
+```{r fake-data-mix, message = FALSE, tidy = FALSE}
+## Build the data set here:
+N <- N_subj * N_trials
+stimuli <- tibble(x = rep(c(rep(-0.5, N_trials / 2),
+                            rep(0.5, N_trials / 2)), N_subj),
+                  x2 = rep(rep(c(-0.5, 0.5), N_trials / 2), N_subj),
+                  subj = rep(1:N_subj, each = N_trials),
+                  trial = rep(1:N_trials, N_subj))
+stimuli
+# Build the correlation matrix for the adjustments u:
+Cor_u <- matrix(rep(rho, 9), nrow = 3)
+diag(Cor_u) <- 1
+Cor_u
+# Variance covariance matrix for subjects:
+Sigma_u <- diag(tau_u, 3, 3) %*% Cor_u %*% diag(tau_u, 3, 3)
+# Create the correlated adjustments:
+u <- mvrnorm(n = N_subj, c(0, 0, 0), Sigma_u)
+# Check whether they are correctly correlated
+# (There will be some random variation,
+# but if you increase the number of observations and
+# the value of the correlation, you'll be able to obtain
+# a more exact value below):
+cor(u)
+# Check the SDs:
+sd(u[, 1]); sd(u[, 2]); sd(u[, 3])
+# Create the simulated data:
+df_dots_simdata <- stimuli %>%
+  mutate(z = rbern(N, prob = plogis(alpha_task + x2 * beta_task)),
+         rt = ifelse(z,
+             rlnorm(N, meanlog = alpha + u[subj, 1] +
+                             (beta + u[subj, 2]) * x,
+                    sdlog = sigma),
+             rlnorm(N, meanlog = gamma + u[subj, 3],
+                    sdlog = sigma2)),
+         acc = ifelse(z, rbern(n = N, p_correct),
+              rbern(n = N, 0.5)),
+         diff = if_else(x == 0.5, "hard", "easy"),
+         emphasis = ifelse(x2 == 0.5, "accuracy", "speed"))
+```
+
+```{r, echo = FALSE}
+simdata_dots <- function(N_subj = 20,
+                         N_trials = 100,
+                         # Parameters true point values:
+                         alpha = 5.8,
+                         beta = 0.05,
+                         sigma = 0.4,
+                         sigma2 = 0.5,
+                         gamma = 5.2,
+                         beta_task = 0.1,
+                         p_btask = 0.8,
+                         alpha_task = qlogis(p_btask),
+                         p_correct = 0.995,
+                         tau_u = c(0.2,0.005, 0.3),
+                         rho = 0.3){
+  N <- N_subj * N_trials
+  stimuli <- tibble(x = rep(c(rep(-0.5,N_trials/2), rep(0.5, N_trials/2)), N_subj),
+                  x2 = rep(rep(c(-0.5,0.5), N_trials/2), N_subj),
+                  subj = rep(1:N_subj, each = N_trials),
+                  trial = rep(1:N_trials, N_subj)
+                  )
+  <<fake-data-mix>>
+  ## # This matrix is symmetric, so it won't matter, but
+  ## # be careful with how R arranges the matrix values
+  ## Cor_u <- matrix(rep(rho, 9), nrow = 3)
+  ## diag(Cor_u) <- 1
+  ## Cor_u
+  ## # Variance covariance matrix for 'subj':
+  ## Sigma_u <- diag(tau_u,3,3) %*% Cor_u %*% diag(tau_u,3,3)
+  ## # Create the correlated adjustments
+  ## u <- mvrnorm(n = N_subj, c(0, 0, 0), Sigma_u)
+  ## # Create the data
+  ## stimuli %>%
+  ##   mutate(z = rbern(n = N, prob = plogis(alpha_task + x2 * beta_task)),
+  ##          rt = ifelse(z,
+  ##                      rlnorm(n = N, meanlog = alpha + u[subj, 1] +
+  ##                                      (beta + u[subj, 2]) * x, sdlog = sigma),
+  ##                      rlnorm(n = N, meanlog = gamma + u[subj, 3], sdlog = sigma2)),
+  ##          acc = ifelse(z, rbern(n = N, p_correct),
+  ##                       rbern(n = N, 0.5)),
+  ##          diff = if_else(x == .5, "hard", "easy"),
+  ##          emphasis = ifelse(x2 == 0.5, "accuracy", "speed"))
+  df_dots_simdata
+}
+```
+
+Verify that the distribution of the simulated response times conditional on the simulated accuracy and the experimental manipulations make sense with the plot shown in Figure \@ref(fig:simdatartacc).
+
+(ref:simdatartacc) The distribution of response times conditional on the simulated accuracy and the experimental manipulations for the simulated hierarchical data (`df_dots_simdata`) that follows the fast-guess model.
+```{r simdatartacc, fig.cap = "(ref:simdatartacc)",message = FALSE}
+ggplot(df_dots_simdata, aes(x = factor(acc), y = rt)) +
+  geom_point(position = position_jitter(width = .4,
+                                        height = 0), alpha = 0.5) +
+  facet_wrap(diff ~ emphasis) +
+  xlab("Accuracy") +
+  ylab("Response time")
+```
+
+We implement the model in Stan as follows in  `mixture_h.stan`. The hierarchical extension uses the Cholesky factorization for the group-level effects (as we did in section \@ref(sec-corrstan)).
+
+```{stan output.var = "mixh_stan", code = readLines(mixture_h),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+Save the model code and fit it to the simulated data:
+
+```{r fitmixture_hsim, results = "hide", message = "FALSE", eval = !file.exists("dataR/fit_mix_h.RDS")}
+ls_dots_simdata <- list(N = N,
+                        rt = df_dots_simdata$rt,
+                        x = df_dots_simdata$x,
+                        x2 = df_dots_simdata$x2,
+                        acc = df_dots_simdata$acc,
+                        subj = df_dots_simdata$subj,
+                        N_subj = N_subj)
+mixture_h <- system.file("stan_models",
+                         "mixture_h.stan",
+                         package = "bcogsci")
+fit_mix_h <- stan(file = mixture_h,
+                  data = ls_dots_simdata,
+                  iter = 3000,
+                  control = list(adapt_delta = .9))
+```
+
+
+
+```{r, echo= FALSE}
+if(!file.exists("dataR/fit_mix_h.RDS")){
+  saveRDS(df_dots_simdata,"dataR/df_dots_simdata.RDS")
+  saveRDS(fit_mix_h,"dataR/fit_mix_h.RDS")
+} else {
+  fit_mix_h <- readRDS("dataR/fit_mix_h.RDS")
+  df_dots_simdata <- readRDS("dataR/df_dots_simdata.RDS")
+}
+```
+
+Print the posterior summary:
+
+```{r}
+print(fit_mix_h, pars = c("alpha", "beta", "sigma", "gamma",
+                          "sigma2", "p_correct", "p_btask",
+                          "beta_task", "tau_u",
+                          "rho_u[1,2]", "rho_u[1,3]",
+                          "rho_u[2,3]"))
+```
+
+We see that we can fit the hierarchical extension of our model to simulated data. Next we'll evaluate whether we can recover the true point values of the parameters.
+
+#### \index{Parameter recovery} Recovery of the parameters
+
+By "recovering" the true values of the parameters, we mean that the true point values are somewhere inside the bulk of the posterior distribution of the model.
+
+```{r hackmix, echo = FALSE}
+select <- dplyr::select
+```
+
+We use `mcmc_recover_hist()` to compare the posterior distributions of the relevant parameters of the model with their true point values in Figure \@ref(fig:recovermixt).
+
+(ref:recovermixt) Posterior distributions of the main parameters of the mixture model `fit_mix_h` together with their true point values.
+
+```{r recovermixt, message = FALSE, fig.cap = "(ref:recovermixt)"}
+df_fit_mix_h <- fit_mix_h %>% as.data.frame() %>%
+  select(c("alpha", "beta", "sigma", "gamma", "sigma2",
+           "p_correct","p_btask", "beta_task", "tau_u[1]",
+           "tau_u[2]", "tau_u[3]", "rho_u[1,2]", "rho_u[1,3]",
+           "rho_u[2,3]"))
+true_values <- c(alpha, beta, sigma, gamma, sigma2,
+                p_correct, p_btask, beta_task, tau_u[1],
+                tau_u[2], tau_u[3], rep(rho,3))
+mcmc_recover_hist(df_fit_mix_h, true_values)
+```
+
+The model seems to be underestimating the probability of subjects being correct  (`p_correct`) and the amount of noise (`sigma`). However, the numerical differences are relatively small. We can be relatively certain that the model is not seriously misspecified. As mentioned in previous chapters, a more principled (and computationally demanding) approach uses simulation based calibration introduced in section \@ref(sec-validSBC) of chapter \@ref(ch-custom) [also see @talts2018validating; @schad2020toward]. An intermediate approach would be to re-run the simulation above a few times with a larger number of observations and/or with different true, data-generating parameters to see whether the estimates behave as expected.
+
+```{r fitmixture_h, echo = FALSE, results = "hide", message = "FALSE", eval = FALSE}
+!file.exists("dataR/fit_mix_hl.RDS")
+df_dots_simdatal <- simdata_dots(N_trials = 2800)
+ls_dots_simdatal <- list(N = N,
+                         rt = df_dots_simdatal$rt,
+                         x = df_dots_simdatal$x,
+                         x2 = df_dots_simdatal$x2,
+                          acc = df_dots_simdatal$acc,
+                          subj = df_dots_simdatal$subj,
+                         N_subj = N_subj)
+# This model needs more samples than the usual to get good ESS:
+fit_mix_hl <- stan(file = mixture_h,
+                   data = ls_dots_simdatal)
+```
+
+```{r, eval = FALSE, echo = FALSE}
+if(!file.exists("dataR/fit_mix_h.RDS")){
+  saveRDS(ls_dots_simdatal,"dataR/ls_dots_simdatal.RDS")
+  saveRDS(fit_mix_hl,"dataR/fit_mix_hl.RDS")
+} else {
+  fit_mix_hl <- readRDS("dataR/fit_mix_hl.RDS")
+}
+```
+
+```{r, message = FALSE, echo = FALSE, eval = FALSE}
+df_fit_mix_h <- fit_mix_hl %>% as.data.frame() %>%
+  select(c("alpha", "beta", "sigma", "gamma", "sigma2",
+           "p_correct","p_btask", "beta_task", "tau_u[1]",
+           "tau_u[2]", "tau_u[3]", "rho_u[1,2]", "rho_u[1,3]",
+           "rho_u[2,3]"))
+true_values <- c(alpha, beta, sigma, gamma, sigma2,
+                p_correct, p_btask, beta_task, tau_u[1],
+                tau_u[2], tau_u[3], rep(rho,3))
+mcmc_recover_hist(df_fit_mix_h, true_values)
+```
+
+
+
+#### Fitting the model to real data
+
+After verifying that our model works as expected, we are ready to fit it to real data. We code the predictors $x$ and $x_2$ as we did for the simulated data:
+
+```{r}
+df_dots <- df_dots %>%
+  mutate(x = if_else(diff == "easy", -0.5, 0.5),
+         x2 = if_else(emphasis == "accuracy", 0.5, -0.5))
+```
+
+The main obstacle now is that fitting the entire data set takes around 12 hours! We'll sample 600 observations of each subject as follows:
+
+```{r, echo = FALSE}
+set.seed(123)
+```
+```{r}
+df_dots_data_short <- df_dots %>%
+  group_by(subj) %>%
+  sample_n(600)
+```
+
+```{r,  eval = !file.exists("dataR/stanfit_short.RDS"), warning = FALSE}
+ls_dots_data_short <-
+  list(N = nrow(df_dots_data_short),
+       rt = df_dots_data_short$rt,
+       x = df_dots_data_short$x,
+       x2 = df_dots_data_short$x2,
+       acc = df_dots_data_short$acc,
+       subj = as.numeric(df_dots_data_short$subj),
+       N_subj = length(unique(df_dots_data_short$subj)))
+fit_mix_data <- stan(file = mixture_h,
+                     data = ls_dots_data_short,
+                     control = list(adapt_delta = .9,
+                                    max_treedepth = 12))
+```
+
+```{r ,echo = FALSE}
+if(!file.exists("dataR/stanfit_short.RDS")){
+  saveRDS(fit_mix_data,"dataR/stanfit_short.RDS")
+  saveRDS(ls_dots_data_short, "dataR/dots_short.RDS")
+# last.warning not working in knitr
+#  saveRDS(names(last.warning),"dataR/stanfit_short_w.RDS")
+} else {
+  fit_mix_data <- readRDS("dataR/stanfit_short.RDS")
+  ls_dots_data_short <- readRDS("dataR/dots_short.RDS")
+  ## wrn <- readRDS("dataR/stanfit_short_w.RDS")
+wrn <- c("The largest R-hat is NA, indicating chains have not mixed.\nRunning the chains for more iterations may help. See\nhttps://mc-stan.org/misc/warnings.html#r-hat",
+"Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.\nRunning the chains for more iterations may help. See\nhttps://mc-stan.org/misc/warnings.html#bulk-ess",
+"Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.\nRunning the chains for more iterations may help. See\nhttps://mc-stan.org/misc/warnings.html#tail-ess"
+)
+  print_warning(wrn)
+}
+```
+
+The model has not converged at all!
+
+```{r}
+print(fit_mix_data,
+      pars = c("alpha", "beta", "sigma", "gamma", "sigma2",
+               "p_correct","p_btask", "beta_task", "tau_u",
+               "rho_u[1,2]", "rho_u[1,3]", "rho_u[2,3]"))
+```
+
+
+The traceplots in Figure \@ref(fig:traceplotmulti) show that the chains are not mixing at all. It seems that the posterior is \index{Multimodal} multimodal, and there are at least three combinations of parameters that would fit the data equally well.
+
+(ref:traceplotmulti) Traceplots from the hierarchical model (`mixture_h.stan`) fit to (a subset) of the real data. The traceplot shows clearly that the posterior has at least three modes.
+
+```{r traceplotmulti, fig.cap = "(ref:traceplotmulti)", message = FALSE }
+traceplot(fit_mix_data) +
+  scale_x_continuous(breaks = NULL)
+```
+
+What should we do now? It can be a good idea to back off and simplify the model. Once the simplified model converges, we can think about adding further complexity. The verbal description of our model says that the accuracy in the task-engaged mode should be close to 100%. To simplify the model, we'll assume that it's exactly 100%. This entails the following:
+
+
+\begin{equation}
+p_{correct} = 1
+\end{equation}
+
+We adapt our Stan code in `mixture_h2.stan`, reflecting the assumption that `p_correct` has a fixed value; this parameter is now in a block called `transformed data`. There, we assign to `p_correct` the value of `1`.
+
+```{r mixture_hs, echo = FALSE}
+mixture_h2 <- system.file("stan_models",
+                          "mixture_h2.stan",
+                          package = "bcogsci")
+```
+
+```{stan output.var = "mixh_stan", code = readLines(mixture_h2),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+Fit the model again to the same data:
+
+```{r fitmixsdata, eval = !file.exists("dataR/stanfit_s.RDS")}
+fit_mixs_data <- stan(file = mixture_h2,
+                     data = ls_dots_data_short,
+                     control = list(adapt_delta = .99,
+                                    max_treedepth = 12))
+```
+
+```{r ,echo = FALSE}
+if(!file.exists("dataR/stanfit_s.RDS")){
+  saveRDS(fit_mixs_data,"dataR/stanfit_s.RDS")
+} else {
+  fit_mixs_data <- readRDS("dataR/stanfit_s.RDS")
+}
+```
+
+The model has now converged:
+
+```{r}
+print(fit_mixs_data,
+      pars = c("alpha", "beta", "sigma", "gamma", "sigma2",
+               "p_btask", "beta_task", "tau_u",
+               "rho_u[1,2]", "rho_u[1,3]", "rho_u[2,3]"))
+```
+
+
+The traceplots in Figure \@ref(fig:traceplotnomulti) show that this times the chains are mixing well.
+
+(ref:traceplotnomulti) Traceplots from the simplified hierarchical model (`mixture_h2.stan`, assuming that `p_correct = 1`) fit to (a subset) of the real data. The traceplot shows that chains are mixing well.
+
+```{r traceplotnomulti, fold=TRUE, fig.cap = "(ref:traceplotnomulti)", message = FALSE }
+traceplot(fit_mixs_data) +
+  scale_x_continuous(breaks = NULL)
+
+```
+
+
+What can we say about the fit of the model now?
+
+*Under the assumptions that we have made* (e.g., that there are two processing modes, response times are affected by the difficulty of the task in the task-engaged mode, accuracy is not affected by the difficulty of the task and is perfect  at the task-engaged mode, etc.), we can look at the parameters and conclude the following:
+
+
+- The instructions seemed to have a strong effect on the processing mode of the subjects (`beta_task` is relatively high), and in the expected direction (emphasis in accuracy led to a higher probability to be in the task engaged mode).
+- The guessing mode seemed to be much noisier than the task-engaged mode (compare `sigma` with `sigma2`).
+
+
+If we want to know whether our model achieves descriptive adequacy, we need to look at the posterior predictive distributions of the model. However, by using posterior predictive checks, we won't be able to conclude that our model is not overfitting. Our success in fitting the fast-guess model to real data does not entail that the model is a good account of the data. It just means that it's flexible enough to fit the data. One further step would be to test whether each parameter can be selectively influenced by specific experimental manipulations as theoretically predicted. Another step could be to develop a competing model and then compare the performance of the models using Bayes factors or cross-validation.
+
+#### Posterior predictive checks {#sec-ppdmixture}
+
+For the \index{Posterior predictive check} posterior predictive checks, we can write the generated quantities block in a new file. The advantage is that we can generate as many observations as needed *after estimating the parameters*. There is no model block in the following Stan program and the parameters together with all the transformed parameters appear in the `parameters` block. We use  the `gqs()` function in the `rstan` library, which allows us to use the posterior draws from a previously fitted model to generate posterior predicted data.
+
+```{stan output.var = "mixh_stan_showcode", code = readLines(mixture_h2_gen),  tidy = TRUE, comment="", eval = TRUE, cache = FALSE, cache.lazy = FALSE}
+```
+
+Generate responses from 500 simulated experiments as follows:
+
+```{r mixh2gen, eval = FALSE, eval = !file.exists("dataR/gen_mix_data.RDS")}
+mixture_h2_gen <- system.file("stan_models",
+                              "mixture_h2_gen.stan",
+                              package = "bcogsci")
+gen_model <- stan_model(mixture_h2_gen)
+# The argument of the matrix `drop` needs to be set to FALSE,
+# otherwise R will simplify the matrix into a vector.
+# The two commas in the line below are not a mistake!
+draws_par <- as.matrix(fit_mixs_data)[1:500, , drop = FALSE]
+gen_mix_data <- gqs(gen_model,
+                    data = ls_dots_data_short,
+                    draws = draws_par)
+```
+
+```{r , echo = FALSE}
+if(!file.exists("dataR/gen_mix_data.RDS")){
+  saveRDS(gen_mix_data,"dataR/gen_mix_data.RDS")
+} else {
+  gen_mix_data <- readRDS("dataR/gen_mix_data.RDS")
+}
+```
+
+First, take a look at the general distribution of response times generated by the posterior predictive model and by our real data in Figure \@ref(fig:postpmix).
+
+(ref:postpmix) The posterior predictive distribution of the hierarchical fast-guess model (using `mixture_h2_gen.stan`) in comparison with the observed response times.
+
+```{r postpmix, message = FALSE, fig.cap = "(ref:postpmix)"}
+rt_pred <- extract(gen_mix_data)$rt_pred
+ppc_dens_overlay(y = ls_dots_data_short$rt, yrep = rt_pred[1:100,]) +
+  coord_cartesian(xlim = c(0, 2000))
+```
+
+We see that the distribution of the observed response times is narrower than the predictive distribution. We are generating response times that are more spread out than the real data.
+
+Next, examine the effect of the experimental manipulation in Figure \@ref(fig:postpmanip): The posterior predictive check reveals that the model underestimates the observed effect of the experimental manipulation: the observed difference between response times is well outside the bulk of the predictive distribution.
+
+(ref:postpmanip) Posterior predictive distribution (using `mixture_h2_gen.stan`) of the difference in response time due to the experimental manipulation. The vertical bar shows the observed difference in the data.
+
+```{r postpmanip, message = FALSE, fig.cap = "(ref:postpmanip)"}
+meanrt_diff <- function(rt){
+  mean(rt[ls_dots_data_short$x == 0.5]) -
+    mean(rt[ls_dots_data_short$x == -0.5])
+}
+ppc_stat(ls_dots_data_short$rt,
+         yrep = rt_pred,
+         stat = meanrt_diff)
+```
+
+Another important posterior predictive check includes comparing the fit of the model using a quantile probability plot, which is presented in the next chapter.
+
+We also look at some instances of the predictive distribution. Figure \@ref(fig:postppdobs) shows a simulated data set in black overlaid onto the real observations in gray. As we noticed in Figure \@ref(fig:postpmix), the model is predicting less variability than what we find in the data, especially when the emphasis is on accuracy.
+
+```{r}
+acc_pred <- extract(gen_mix_data)$acc_pred
+df_dots_pred <-
+  tibble(rt = ls_dots_data_short$rt,
+         acc = ls_dots_data_short$acc,
+         difficulty = ifelse(ls_dots_data_short$x == 0.5,
+                             "hard", "easy"),
+         emphasis = ifelse(ls_dots_data_short$x2 == -0.5,
+                           "speed", "accuracy"),
+         acc_pred1 = acc_pred[1,],
+         rt_pred1 = rt_pred[1,])
+```
+
+
+
+(ref:postppdobs) A simulated (posterior predictive) data set in black overlaid onto the observations in gray (based on `mixture_h2_gen.stan`).
+
+```{r postppdobs, echo = FALSE, fig.cap = "(ref:postppdobs)" }
+ggplot(df_dots_pred, aes(x = factor(acc), y = rt)) +
+  geom_point(shape = 0,
+             position = position_jitter(width = .4, height = 0),
+             color = "gray",
+             alpha = .8) +
+  geom_point(aes(x = factor(acc_pred1), y = rt_pred1), color = "black",
+             position = position_jitter(width = .4, height = 0),
+             alpha = 0.5) +
+  facet_wrap(difficulty ~ emphasis) +
+  xlab("Accuracy") +
+  ylab("Response time")
+```
+
+
+If we would like to compare this model with a competing one using cross-validation, we would need to calculate the point-wise log-likelihood in the generated block:
+
+
+```
+generated quantities {
+  array[N] real log_lik;
+  for(n in 1:N){
+    real lodds_task = logit(p_btask) + x2[n] * beta_task;
+    log_lik[n] += log_sum_exp(log_inv_logit(lodds_task) +
+                                lognormal_lpdf(rt[n] | alpha + u[subj[n], 1] +
+                                                 x[n] * (beta + u[subj[n], 2]), sigma) +
+                                bernoulli_lpmf(acc[n] | p_correct),
+                              log1m_inv_logit(lodds_task) +
+                                lognormal_lpdf(rt[n] | gamma + u[subj[n], 3], sigma2) +
+                                bernoulli_lpmf(acc[n] | 0.5));
+  }
+}
+```
+
+It is important to bear in mind that we can only compare models on the same dependent variable(s). That is, we would need to compare this model with another one fit to the same dependent variables and also in the same scale:  accuracy (`0` or `1`) and response time in milliseconds. This means that, for example, we cannot compare our  fast-guess model with an accuracy-only model. It also means that to compare our fast-guess model with a model based on left/right choices (known as stimulus coding, see section \@ref(sec-acccoding)) and response times, we would need to reparameterize one of the two models; see exercise \@ref(exr:lnldt) in chapter \@ref(ch-lognormalrace).
+
+
+To conclude, the fast-guess model shows a relatively decent fit to the data and is able to account for the speed-accuracy trade-off.  The model shows some inaccuracies that could lead to its revision and improvement. To what extent the inaccuracies are acceptable or not depends on  (i) the empirical finding that we want to account for (for example, we can already assume that the model will struggle to fit data sets that show slow errors); and (ii) its comparison with a competing account.
+
+
+
+
+
+
+
+
+
+
+
+```{r ,echo = FALSE}
+## if(!file.exists("dataR/fit_mv_data.RDS")){
+##   saveRDS(fit_mv_data,"dataR/fit_mv_data.RDS")
+## } else {
+##   fit_mv_data <- readRDS("dataR/fit_mv_data.RDS")
+## }
+```
+
+
+
+## Summary
+
+In this chapter, we learned to fit increasingly complex two-component mixture models using Stan, starting with a simple model and ending with a fully hierarchical model. We saw how to ensure model convergence via prior constraints, and how to evaluate model fit using the usual prior and posterior predictive checks, and to investigate parameter recovery. Such mixture models are notoriously difficult to fit, but they have a lot of potential in cognitive science applications, especially in developing computational models of different kinds of cognitive processes.
+
+## Further reading
+
+The reader interested in a deeper understanding of marginalization is referred to  @pullin2021statistical. Betancourt discusses problems of identification in  Bayesian mixture models in a case study ( https://mc-stan.org/users/documentation/case-studies/identifying_mixture_models.html).
+An in-depth treatment of finite mixture modeling can be found in @fruhwirth2006finite. An in-depth treatment of the fast-guess model and other mixture models of response times is provided in Chapter 7 of @luce1986response.
+
+## Exercises
+
+
+
+
+
+
+
+
+```{exercise, pcorrect}
+Changes in the true point values.
+```
+
+Change the true point value of `p_correct` to $0.5$ and $0.1$, and generate data for the non-hierarchical model. Can you recover the value of this parameter without changing the model `mixture_rtacc2.stan`? Perform posterior predictive checks.
+
+
+
+
+```{exercise, mixhier}
+RTs in schizophrenic patients and control.
+```
+
+Response times for schizophrenic patients in a simple visual tracking experiment show more variability than for non-schizophrenic controls; see Figure \@ref(fig:schiz). It has been argued that at least some of this extra variability arises from an attentional lapse that delays some responses. We'll use the data examined in @belin1990 (`df_schizophrenia` in the `bcogsci` package) analysis to investigate some potential models:
+
+- $M_1$. Both schizophrenic and controls show attentional lapses, but the lapses are more common in schizophrenics. Other than that there is no difference in the latent response times and the lapses of attention.
+- $M_2$. Only schizophrenic patients show attentional lapses. Other than that there is no difference in the latent response times.
+- $M_3$. There are no (meaningful number of) lapses of attention in either group.
+
+1. Fit the three models.
+2. Carry out posterior predictive checks for each model; can they account for the data?
+3. Carry out model comparison (with Bayes factor and cross-validation).
+
+(ref:schiz) The distribution of response times for control and schizophrenic patients in `df_schizophrenia`.
+
+```{r schiz, fig.cap = "(ref:schiz)", fold = TRUE, message = FALSE}
+ggplot(df_schizophrenia, aes(rt)) +
+  geom_histogram() +
+  facet_grid(rows = vars(factor(patient, labels = c("control", "schizophrenic"))))
+```
+
+```{exercise, mixbias}
+**Advanced:** Guessing bias in the model.
+```
+
+In the original model, it was assumed that subjects might have a bias (a preference) to one of the two answers when they were in the guessing mode. To fit this model we need to change the dependent variable and add more information; now we not only care if the participant answered correctly or not, but also which answer they gave (left or right).
+
+- Implement a unique bias for all the subjects. Fit the new model to (a subset of) the data.
+- Implement a hierarchical bias, that is there is a common bias, but every subject has its adjustment.  Fit the new model to (a subset of) the data.

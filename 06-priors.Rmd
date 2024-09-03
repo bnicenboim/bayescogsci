@@ -1,0 +1,1134 @@
+# The Art and Science of \index{Prior Elicitation} Prior Elicitation {#ch-priors}
+
+
+Nothing strikes fear into the heart of the newcomer to Bayesian methods more than the idea of specifying priors for the parameters in a model. On the face of it, this concern seems like a valid one; how can one know what the plausible parameter values are in a model before one has even seen the data?
+In reality, this worry is purely a consequence of the way we are normally taught to carry out data analysis, especially in areas like psychology and linguistics. Model fitting is considered to be a black-box activity, with the primary concern being whether the effect of interest is "significant" or "non-significant." As a consequence of the training that we receive, we learn to focus on one thing \index{P-value} (the $p$-value) and we learn to ignore the estimates that we obtain from the model; it becomes irrelevant whether the effect of interest has a mean value of 500 ms (in a reading study, say) or 10 ms; all that matters is whether it is a significant effect or not. In fact, the way many scientists summarize the literature in their field is by classifying studies into two bins: significant and non-significant. There are obvious problems with this classification method; for example, $p=0.051$ might be counted as "marginally" significant, but $p=0.049$ is never counted as marginally non-significant. But there will usually not be any important difference between these two borderline values.
+Real-life examples of such a binary classification approach are seen in @phillips2011grammatical and @hammerly2019grammaticality. Because the focus is on significance, we never develop a sense of what the estimates of an effect are likely to be in a future study. This is why, when faced with a prior-distribution specification problem, we are misled into feeling like we know nothing about the quantitative estimates relating to a problem we are studying.
+
+Prior specification has a lot in common with something that physicists call a \index{Fermi problem} Fermi problem. As @von1988fermi describes it: "A Fermi problem has a characteristic profile: Upon first hearing it, one doesn't have even the remotest notion what the answer might be. And one feels certain that too little information exists to find a solution. Yet, when the problem is broken down into subproblems, each one answerable without the help of experts or reference books, an estimate can be made \dots". Fermi problems in the physics context are situations where one needs ballpark (approximate) estimates of physical quantities in order to proceed with a calculation. The name comes from a physicist, Enrico Fermi; he developed the ability to carry out fairly accurate back-of-the-envelope calculations when working out approximate numerical values needed for a particular computation. @von1988fermi puts it well: "Prudent physicists---those who want to avoid false leads and dead ends---operate according to a long-standing principle: Never start a lengthy calculation until you know the range of values within which the answer is likely to fall (and, equally important, the range within which the answer is unlikely to fall)." As in physics, so in data analysis: as Bayesians, we need to acquire the ability to work out plausible ranges of values for parameters. This is a learnable skill, and improves with practice. With time and practice, we can learn to become prudent data analysts.
+
+As @spiegelhalter2004bayesian point out, there is no one "correct" prior distribution. One consequence of this fact is that a good Bayesian analysis always takes a range of prior specifications into account; this is called a sensitivity analysis. We have already seen examples of this, but more examples will be provided in this and later chapters.
+
+\index{Prior specification} Prior specification requires the estimation of probabilities. Human beings are not good at estimating probabilities, because they are susceptible to several kinds of biases [@kadane1998experiences; @spiegelhalter2004bayesian]. We list the most important ones that are relevant to cognitive science applications:
+
+- Availability bias: Events that are more salient to the researcher are given higher probability, and events that are less salient are given lower probability.
+- Adjustment and anchoring bias: The initial assessment of the probability of an event can influence one's subsequent judgements. An example is credible intervals: a researcher's estimate of the credible interval will tend to be influenced by their initial assessment.
+- Overconfidence: When eliciting credible intervals from oneself, there is a tendency to specify too tight an interval.
+- Hindsight bias: If one relies on the data to come up with a prior for the analysis of that very same data set, one's assessment is likely to be biased.
+
+Although training can improve the natural tendency to be biased in these different ways, one must recognize that bias is inevitable when eliciting priors, either from oneself or from other experts; it follows that one should always define "a \index{Community of priors} community of priors" [@kass1989investigating]: one should consider the effect of \index{Informative prior} informed as well as \index{Skeptical prior} skeptical or \index{Agnostic prior} agnostic \index{Uninformative prior} (uninformative) priors on the posterior distribution of interest.
+Incidentally, bias is not unique to Bayesian statistics; the same problems arise in frequentist data analysis. Even in frequentist analyses, the researcher always interprets the data in the light of their prior beliefs; the data never really "speak for themselves." For example, the researcher might remove "outliers" based on a belief that certain values are implausible; or the researcher will choose a particular likelihood based on their belief about the underlying generative process. All these are subjective decisions made by the researcher, and can dramatically impact the outcome of the analyses.
+
+The great advantage that Bayesian methods have is that they allow us to formally take a range of (competing) prior beliefs into account when interpreting the data. We illustrate this point in the present chapter.
+
+## Eliciting priors from oneself for a self-paced reading study: An example {#sec-simpleexamplepriors}
+
+In section \@ref(sec-revisit), we have already encountered a sensitivity analysis; there, several priors were used to investigate how the posterior is affected. Here is another  example of a sensitivity analysis; the problem here is how to elicit priors from oneself for a particular research problem.
+
+### An example: English \index{Relative clause} relative clauses
+
+We will work out priors from first principles for a commonly-used experiment design in psycholinguistics. As an example, consider English subject vs. object relative clause processing differences. Relative clauses are sentences like (1a) and (1b):
+
+ (1a) The *reporter* [who the photographer *sent* to the editor] was hoping for a good story. (ORC)
+
+ (1b) The *reporter* [who *sent* the photographer to the editor] was hoping for a good story. (SRC)
+
+Sentence (1a) is an \index{Object relative clause} object relative clause (ORC): the noun *reporter* is modified by a relative clause (demarcated in square brackets), and the noun *reporter* is the object of the verb *sent*.
+Sentence (1b) is a \index{Subject relative clause} subject relative clause (SRC): the noun *reporter* is modified by a relative clause (demarcated in square brackets), but this time the noun *reporter* is the subject of the verb *sent*. Many theories in sentence processing predict that the reading time at the verb *sent* will be shorter in English subject vs. object relatives; one explanation is that the dependency distance between *reporter* and *sent* is shorter in subject vs. object relatives [@grodner].
+
+The experimental method we consider here is  \index{Self-paced reading} self-paced reading.^[This discussion reuses text from @SampleSizeCBB2021.] The self-paced reading method is commonly used in psycholinguistics as a cheaper and faster substitute to eyetracking during reading. The subject is seated in front of a computer screen and is initially shown a series of broken lines that mask words from a complete sentence. The subject then unmasks the first word (or phrase) by pressing the space bar. Upon pressing the space bar again, the second word/phrase is unmasked and the first word/phrase is masked again; see Figure \@ref(fig:SPR-tikz). The time in milliseconds that elapses between these two space-bar presses counts as the reading time for the first word/phrase. In this way, the reading time for each successive word/phrase in the sentence is recorded. Usually,  at the end of each trial, the subject is also asked a yes/no question about the sentence. This is intended to ensure that the subject is adequately attending to the meaning of the sentence.
+
+(ref:SPR-tikz) A moving window self-paced reading task for the sentence "The king is dead." Words are unmasked one by one after each press of the space bar.
+
+```{r SPR-tikz,engine='tikz',fig.ext= if (knitr::is_html_output()) "svg" else "pdf", echo = FALSE, fig.cap = "(ref:SPR-tikz)"}
+\usetikzlibrary{positioning}
+\begin{tikzpicture}
+  \tikzset{
+        basefont/.style = {font = \Large\sffamily},
+          timing/.style = {basefont, sloped,above,},
+           label/.style = {basefont, align = left},
+          screen/.style = {basefont, white, align = center,
+                           minimum size = 6cm, fill = black!60, draw = white}};
+
+  % macro for defining screens
+  \newcommand*{\screen}[4]{%
+    \begin{scope}[xshift  =#3, yshift = #4,
+                  every node/.append style = {yslant = 0},
+                  yslant = 0.33,
+                  local bounding box = #1]
+      \node[screen] at (3cm,3cm) {#2};
+    \end{scope}
+  }
+  % define several screens
+   \screen{frame1}{The \_\_\_\_ \_\_ \_\_\_\_\_} {0}     {0}
+  \screen{frame2}{\_\_\_ king \_\_ \_\_\_\_\_}{150} {-60}
+  \screen{frame3}{\_\_\_ \_\_\_\_ is \_\_\_\_\_}{300}{-120}
+  \screen{frame4}{\_\_\_ \_\_\_\_ \_\_ dead.}{450}{-180}
+\end{tikzpicture}
+\end{document}
+\end{tikzpicture}
+```
+
+
+A classic example of self-paced reading data appeared in Exercise \@ref(exr:hierarchical-logn). A hierarchical model that we could fit to such data would be the following. In chapter \@ref(ch-hierarchical), we showed that for reading-time data, the log-normal likelihood is generally a better choice than a normal likelihood. In the present chapter, in order to make it easier for the reader to get started with thinking about priors, we use the normal likelihood instead of the log-normal. In real-life data analysis, the normal likelihood would be a very poor choice for reading-time data.
+
+The model below has varying intercepts and varying slopes for subjects and for items, but assumes no correlation between the varying intercepts and slopes. The correlation is removed in order to compare the posteriors to the estimates from the corresponding frequentist \index{\texttt{lme4}} `lme4` model. In the model shown below, we use \index{Default prior} "default" priors that the `brm` function assumes for all the parameters. We are only using default priors here as a starting point; in practice, we will **never** use default priors for a reported analysis. In the model output below, for brevity we will only display the summary of the posterior distribution for the slope parameter, which represents the difference between the two condition means.
+
+```{r, message = FALSE, results = "hide"}
+data("df_gg05_rc")
+df_gg05_rc <- df_gg05_rc %>%
+  mutate(c_cond = if_else(condition == "objgap", 1 / 2, -1 / 2))
+fit_gg05 <- brm(RT ~ c_cond + (c_cond || subj) + (c_cond || item),
+                data = df_gg05_rc,
+                control = list(adapt_delta = 0.99))
+```
+
+
+```{r}
+(default_b <- posterior_summary(fit_gg05,
+                                variable = "b_c_cond"))
+```
+
+The estimates from this model are remarkably similar to those from a frequentist linear mixed model [@R-lme4]:
+
+```{r}
+fit_lmer <- lmer(RT ~ c_cond + (1 + c_cond || subj) +
+                   (1 + c_cond || item), df_gg05_rc)
+b <- summary(fit_lmer)$coefficients["c_cond", "Estimate"]
+SE <- summary(fit_lmer)$coefficients["c_cond", "Std. Error"]
+## estimate of the slope and
+## lower and upper bounds of the 95% CI:
+(lmer_b <- c(b, b - (2 * SE), b + (2 * SE)))
+```
+
+The similarity between the estimates from the Bayesian and frequentist models is due to the fact that default priors, being relatively uninformative, don't influence the posterior much. This leads to the likelihood dominating in determining the posteriors. In general, such uninformative priors on the parameters will show a similar lack of influence on the posterior [@spiegelhalter2004bayesian]. We can quickly establish this in the above example by using another uninformative prior:
+
+```{r munifgg05 ,message=FALSE, results = "hide"}
+unif_prior <- c(prior(uniform(-2000, 2000), class = Intercept,
+                      lb = -2000, ub = 2000),
+                prior(uniform(-2000, 2000), class = b,
+                      lb = -2000, ub = 2000),
+                prior(normal(0, 500), class = sd),
+                prior(normal(0, 500), class = sigma))
+fit_gg05_unif <- brm(RT ~ c_cond + (c_cond || subj) + (c_cond || item),
+                     prior = unif_prior,
+                     data = df_gg05_rc)
+```
+
+```{r}
+(uniform_b <- posterior_summary(fit_gg05_unif,
+                                variable = c("b_c_cond")))
+```
+
+
+As shown in Table \@ref(tab:slopesmeansCIs), the means of the posteriors from this versus the other two model estimates shown above all look very similar.
+ \index{Uniform prior}
+```{r slopesmeansCIs,echo=FALSE, tidy = FALSE, results= "asis"}
+ slopes<-data.frame(rbind(lmer_b,
+                          default_b[c(1,3,4)],
+               uniform_b[c(1,3,4)]))
+ slopes$model<-c("Frequentist","Default prior","Uniform")
+ slopes<-slopes[c(4,1,2,3)]
+ rownames(slopes)<-NULL
+ colnames(slopes)<-c("model","mean","lower","upper")
+
+slopes %>% mutate(across(where(is.numeric), ~ paste0("$",round(.x,0), "$"))) %>%
+ kableExtra::kable(
+                  digits = 0, booktabs = TRUE,
+                  escape = FALSE,
+                  vline = "", # format="latex",
+  caption = "Estimates of the mean difference (with 95\\% confidence/credible intervals) between two conditions in a hierarchical model of English relative clause data from Grodner and Gibson, 2005, using (a) the frequentist hierarchical model, (b) a Bayesian model using default priors from the brm function, and (c) a Bayesian model with uniform priors.")
+```
+
+It is tempting for the newcomer to Bayesian statistics to conclude from Table \@ref(tab:slopesmeansCIs) that default priors used in `brms`, or uniform priors, are good enough for fitting models. This conclusion would in general be incorrect. There are many reasons why a sensitivity analysis--which includes regularizing, relatively informative priors--is necessary in Bayesian modeling. First, relatively informative, regularizing priors must be considered in many cases to avoid convergence problems (an example is finite mixture models, presented in chapter \@ref(ch-mixture)). In fact, in many cases the frequentist model fit in `lme4` will return estimates--such as $\pm 1$ correlation estimates between varying intercepts and varying slopes--that are actually represent convergence failures  [@BatesEtAlParsimonious;@hannesBEAP]. In Bayesian models, unless we use regularizing priors that are at least mildly informative, we will generally face similar \index{Convergence problem} convergence problems. Second, when computing Bayes factors, a sensitivity analysis using increasingly informative priors is vital; see chapter \@ref(ch-bf) for extensive discussion of this point. Third, one of the greatest advantages of Bayesian models is that one can formally take into account conflicting or competing prior beliefs in the model, by eliciting informative priors from competing experts. Although such a use of informative priors is still rare in cognitive science, it can be of great value when trying to interpret a statistical analysis.
+
+Given the importance of regularizing and informative priors,
+we consider next some informative priors that we could use in the given model. We unpack the process by which we could work these priors out from existing information in the literature.
+
+Initially, when trying to work out some alternative priors for some parameters of interest, we might think that we know absolutely nothing about the seven parameters in this model. But, as in Fermi problems, we actually know more than we realize.
+
+Let's think about the parameters in the relative clause example one by one. For ease of exposition, we begin by writing out the model in mathematical form. $n$ is the row id in the data-frame. The variable `c_cond` is a sum-coded ($\pm 0.5$) predictor.
+
+\begin{equation}
+RT_n \sim \mathit{Normal}(\alpha + u_{subj[n],1} + w_{item[n],1} + c\_cond_n \cdot (\beta+ u_{subj[n],2}+w_{item[n],2}),\sigma)
+\end{equation}
+
+ where
+
+\begin{equation}
+\begin{aligned}
+  u_1 &\sim \mathit{Normal}(0,\tau_{u_1})\\
+ u_2 &\sim \mathit{Normal}(0,\tau_{u_2})\\
+ w_1 &\sim \mathit{Normal}(0,\tau_{w_1})\\
+ w_2 &\sim \mathit{Normal}(0,\tau_{w_2})
+ \end{aligned}
+ \end{equation}
+
+ The parameters that we need to define priors for are the following:
+$\alpha,
+\beta,
+\tau_{u_1},
+\tau_{u_2},
+\tau_{w_1},
+\tau_{w_2},
+\sigma$.
+
+### Eliciting a prior for the intercept
+
+We will proceed from first principles. Let's begin with the intercept, $\alpha$; under the \index{Sum coding} sum-contrast coding used here, it represents the \index{Grand mean} grand mean reading time in the data set.
+
+Ask yourself: What is the absolute minimum possible reading time?  The answer is 0 ms; reading time cannot be negative. You have already eliminated half the real-number line as impossible values! Thus, one cannot really say that one knows *nothing* about the plausible values of mean reading times. Having eliminated half the real-number line, now ask yourself: what is a reasonable upper bound on reading time for an English ditransitive verb? Even after taking into account variations in word length and frequency, one minute ($60$ seconds) seems like too long; even $30$ seconds seems unreasonably long to spend on a single word. As a first attempt at an approximation, somewhere between $2500$ and $3000$ ms might constitute a reasonable upper bound, with 3000 ms being less likely than $2500$ ms.
+
+Now consider what an approximate average reading time for a verb might be. One can arrive at such a ballpark number by asking oneself how fast one can read an abstract that has, say, $500$ words in it. Suppose that we estimate that we can read $500$ words in $120$ seconds (two minutes). Then, $120/500=0.24$ seconds is the time we would spend per word on average; this is $240$ ms per word. Maybe two minutes for $500$ words was too optimistic? Let's adjust the mean to $300$ ms, instead of $240$ ms. Such intuition-based judgments can be a valuable starting point for an analysis, as Fermi showed repeatedly in his work [@von1988fermi]. If one is uncomfortable consulting one's intuition about average reading times, or even as a sanity check to independently validate one's own intuitions, one can look up a review article on reading that gives empirical estimates [e.g., @rayner1998emr].
+
+One could express the above guesses as a normal distribution truncated at $0$ ms on the ms scale, with mean $300$ ms and standard deviation $1000$ ms. An essential step in such an estimation procedure is to plot one's assumed \index{Prior distribution} prior distribution graphically to see if it seems reasonable:
+Figure \@ref(fig:initialguess) shows a graphical summary of this prior.
+
+```{r initialguess,echo=FALSE,results = "hold",fig.height= 4.5, fig.cap =  "A truncated normal distribution representing a prior distribution on mean reading times.", echo = FALSE, warning = FALSE}
+x <- seq(0, 10000, by = 0.01)
+plot(x, dtnorm(x, mean = 300, sd = 1000, a = 0), type = "l",ylab="density",xlab="Reading times (ms)")
+```
+
+Once we plot the prior, one might conclude that the prior distribution is a bit too widely spread out to represent mean reading time per word. But for estimating the posterior distribution, it will rarely be harmful to allow a broader range of values than we strictly consider plausible (the situation is different when it comes to Bayes factors analyses, as we will see later---there, widely spread out priors for a parameter of interest can have a dramatic impact on the Bayes factor test for whether that parameter is zero or not).
+
+Another way to obtain a better feel for what plausible distributions of word reading times might be to just plot some existing data from published work. Figure \@ref(fig:rtdistrns) shows the distribution of mean reading times from ten published studies.
+
+```{r echo=FALSE, message=FALSE}
+data("df_gibsonwu")
+df_gibsonwu$cond <- ifelse(df_gibsonwu$type == "obj-ext", 1 / 2, -1 / 2)
+m1 <- lmer(rt ~ cond + (1 + cond || subj) + (1 + cond || item), df_gibsonwu)
+vcm1 <- VarCorr(m1, comp = c("Std.Dev."))
+vcm1 <- data.frame(vcm1)[, c(1, 2, 5)]
+
+data("df_gibsonwu2")
+df_gibsonwu2$cond <- ifelse(df_gibsonwu2$condition == "obj-ext", 1 / 2, -1 / 2)
+
+m2 <- lmer(rt ~ cond + (1 + cond || subj) + (1 + cond || item), df_gibsonwu2)
+vcm2 <- VarCorr(m2, comp = c("Std.Dev."))
+vcm2 <- data.frame(vcm2)[, c(1, 2, 5)]
+
+data("df_persianE1")
+df_persianE1$pred <- ifelse(df_persianE1$predability == "predictable",
+  1 / 2, -1 / 2
+)
+df_persianE1$dist <- ifelse(df_persianE1$distance == "long",
+  1 / 2, -1 / 2
+)
+df_persianE1$distxpred <- df_persianE1$dist * df_persianE1$pred * 2
+
+m3 <- lmer(
+  rt ~ dist + pred + distxpred +
+    (1 + dist + pred + distxpred || subj) +
+    (1 + dist + pred + distxpred || item),
+  df_persianE1
+)
+vcm3 <- VarCorr(m3, comp = c("Std.Dev."))
+vcm3 <- data.frame(vcm3)[, c(1, 2, 5)]
+
+data("df_dutch")
+df_dutch$cond <- df_dutch$condition / 2
+m4 <- lmer(exp(NP1) ~ cond + (1 + cond || subject) +
+  (1 + cond || item), df_dutch)
+vcm4 <- VarCorr(m4, comp = c("Std.Dev."))
+vcm4 <- data.frame(vcm4)[, c(1, 2, 5)]
+
+data("df_english")
+df_english$cond <- df_english$condition / 2
+m5 <- lmer(exp(NP1) ~ cond + (1 + cond || subject) +
+  (1 + cond || item), df_english)
+vcm5 <- VarCorr(m5, comp = c("Std.Dev."))
+vcm5 <- data.frame(vcm5)[, c(1, 2, 5)]
+
+data("df_smithE1")
+df_smithE1$N2 <- ifelse(df_smithE1$N2Factor == "N2pl", 1 / 2, -1 / 2)
+df_smithE1$Sem <- ifelse(df_smithE1$SemFactor == "SemSim", 1 / 2, -1 / 2)
+df_smithE1$N2xSem <- df_smithE1$N2 * df_smithE1$Sem * 2
+
+m6 <- lmer(RT ~ N2 + Sem + N2xSem + (1 + N2 + Sem + N2xSem || Participant) +
+  (1 + N2 + Sem + N2xSem || StimSet), df_smithE1)
+vcm6 <- VarCorr(m6, comp = c("Std.Dev."))
+vcm6 <- data.frame(vcm6)[, c(1, 2, 5)]
+
+data("df_smithE2")
+df_smithE2$N2 <- ifelse(df_smithE2$N2Factor == "N2pl", 1 / 2, -1 / 2)
+df_smithE2$Sem <- ifelse(df_smithE2$SemFactor == "SemSim", 1 / 2, -1 / 2)
+df_smithE2$Verb <- ifelse(df_smithE2$VerbFactor == "Vpl", 1 / 2, -1 / 2)
+df_smithE2$N2xSem <- df_smithE2$N2 * df_smithE2$Sem * 2
+df_smithE2$N2xVerb <- df_smithE2$N2 * df_smithE2$Verb * 2
+df_smithE2$SemxVerb <- df_smithE2$Sem * df_smithE2$Verb * 2
+df_smithE2$N2xSemxVerb <- df_smithE2$N2 * df_smithE2$Sem * df_smithE2$Verb * 4
+m7 <- lmer(
+  RT ~ N2 + Sem + N2xSem + N2xVerb + SemxVerb + N2xSemxVerb +
+    (1 + N2 + Sem + N2xSem + N2xVerb + SemxVerb + N2xSemxVerb || Participant) +
+    (1 + N2 + Sem + N2xSem + N2xVerb + SemxVerb + N2xSemxVerb || StimSet),
+  df_smithE2
+)
+vcm7 <- VarCorr(m7, comp = c("Std.Dev."))
+vcm7 <- data.frame(vcm7)[, c(1, 2, 5)]
+
+data("df_VMJG18E1")
+df_VMJG18E1$c_bvsa <- ifelse(df_VMJG18E1$cond == "a", 1 / 2,
+  ifelse(df_VMJG18E1$cond == "b",
+    -1 / 2, 0
+  )
+)
+df_VMJG18E1$c_cvsb <- ifelse(df_VMJG18E1$cond == "b", 1 / 2,
+  ifelse(df_VMJG18E1$cond == "c",
+    -1 / 2, 0
+  )
+)
+df_VMJG18E1$c_dvsc <- ifelse(df_VMJG18E1$cond == "c", 1 / 2,
+  ifelse(df_VMJG18E1$cond == "d",
+    -1 / 2, 0
+  )
+)
+m8 <- lmer(rt ~ c_bvsa + c_cvsb + c_dvsc + (1 + c_bvsa + c_cvsb + c_dvsc || subj) + (1 + c_bvsa + c_cvsb + c_dvsc || item), df_VMJG18E1)
+vcm8 <- VarCorr(m8, comp = c("Std.Dev."))
+vcm8 <- data.frame(vcm8)[, c(1, 2, 5)]
+
+data("df_VMJG18E3")
+df_VMJG18E3$c_bvsa <- ifelse(df_VMJG18E3$cond == "a", 1 / 2,
+  ifelse(df_VMJG18E3$cond == "b",
+    -1 / 2, 0
+  )
+)
+df_VMJG18E3$c_cvsb <- ifelse(df_VMJG18E3$cond == "b", 1 / 2,
+  ifelse(df_VMJG18E3$cond == "c",
+    -1 / 2, 0
+  )
+)
+df_VMJG18E3$c_dvsc <- ifelse(df_VMJG18E3$cond == "c", 1 / 2,
+  ifelse(df_VMJG18E3$cond == "d",
+    -1 / 2, 0
+  )
+)
+m9 <- lmer(rt ~ c_bvsa + c_cvsb + c_dvsc + (1 + c_bvsa + c_cvsb + c_dvsc || subj) + (1 + c_bvsa + c_cvsb + c_dvsc || item), df_VMJG18E3)
+vcm9 <- VarCorr(m9, comp = c("Std.Dev."))
+vcm9 <- data.frame(vcm9)[, c(1, 2, 5)]
+
+data("df_VMJG18E5")
+df_VMJG18E5$c_bvsa <- ifelse(df_VMJG18E5$cond == "a", 1 / 2,
+  ifelse(df_VMJG18E5$cond == "b",
+    -1 / 2, 0
+  )
+)
+df_VMJG18E5$c_cvsb <- ifelse(df_VMJG18E5$cond == "b", 1 / 2,
+  ifelse(df_VMJG18E5$cond == "c",
+    -1 / 2, 0
+  )
+)
+df_VMJG18E5$c_dvsc <- ifelse(df_VMJG18E5$cond == "c", 1 / 2,
+  ifelse(df_VMJG18E5$cond == "d",
+    -1 / 2, 0
+  )
+)
+m10 <- lmer(rt ~ c_bvsa + c_cvsb + c_dvsc + (1 + c_bvsa + c_cvsb + c_dvsc || subj) + (1 + c_bvsa + c_cvsb + c_dvsc || item), df_VMJG18E5)
+vcm10 <- VarCorr(m10, comp = c("Std.Dev."))
+vcm10 <- data.frame(vcm10)[, c(1, 2, 5)]
+
+lens <- c(
+  length(vcm1[, 3]), length(vcm2[, 3]),
+  length(vcm3[, 3]), length(vcm4[, 3]),
+  length(vcm5[, 3]), length(vcm6[, 3]),
+  length(vcm7[, 3]), length(vcm8[, 3]),
+  length(vcm9[, 3]), length(vcm10[, 3])
+)
+
+id <- rep(1:10, lens)
+
+vc <- rbind(
+  vcm1[, c(2, 3)], vcm2[, c(2, 3)],
+  vcm3[, c(2, 3)], vcm4[, c(2, 3)],
+  vcm5[, c(2, 3)], vcm6[, c(2, 3)],
+  vcm7[, c(2, 3)], vcm8[, c(2, 3)],
+  vcm9[, c(2, 3)], vcm10[, c(2, 3)]
+)
+
+vcs <- data.frame(id = id, sds = vc)
+
+colnames(vcs)[c(2, 3)] <- c("vcname", "sd")
+
+
+residualsd <- vcs[is.na(vcs$vcname), ]
+
+intsds <- subset(vcs, vcname == "(Intercept)")
+intsubj <- intsds[seq(1, 20, by = 2), ]
+intitem <- intsds[seq(1, 20, by = 2) + 1, ]
+
+slopesds <- vcs[!is.na(vcs$vcname) &
+  vcs$vcname != "(Intercept)", ]
+
+#means <- c(mean(df_gibsonwu$rt), mean(df_gibsonwu2$rt), mean(df_persianE1$rt), mean(exp(df_dutch$NP1)), mean(exp(df_english$NP1)), mean(df_smithE1$RT), mean(df_smithE2$RT), mean(df_VMJG18E1$rt), mean(df_VMJG18E3$rt), mean(df_VMJG18E5$rt))
+```
+
+```{r rtdistrns, results = "hold",fig.height= 4.5, fig.cap =  "The distribution of mean reading times from ten self-paced reading studies.", echo = FALSE }
+
+means10<-c(mean(df_gibsonwu$rt),mean(df_gibsonwu2$rt),
+  mean(df_persianE1$rt),mean(exp(df_dutch$NP1)),
+  mean(exp(df_english$NP1)),mean(df_smithE1$RT),
+  mean(df_smithE2$RT),mean(df_VMJG18E1$rt),
+  mean(df_VMJG18E3$rt),mean(df_VMJG18E5$rt))
+
+df_means10<-data.frame(means10)
+
+ggplot(df_means10, aes(x = means10, y = after_stat(density))) +
+  geom_histogram(binwidth = 45, fill = "gray", colour = "grey60", linewidth = .22) +
+  xlab("mean reading times (ms)")
+
+if(0){
+plot(density(df_gibsonwu$rt),
+  ylim = c(0, 0.0040), xlab = "reading time (ms)",
+  main = "Distribution of reading times\n from 10 studies"
+)
+lines(density(df_gibsonwu2$rt), lty = 2)
+lines(density(df_persianE1$rt), lty = 3)
+lines(density(exp(df_dutch$NP1)), lty = 4)
+lines(density(exp(df_english$NP1)), lty = 5)
+lines(density(df_smithE1$RT), lty = 6)
+lines(density(df_smithE2$RT), lty = 7)
+lines(density(df_VMJG18E1$rt), lty = 8)
+lines(density(df_VMJG18E3$rt), lty = 9)
+lines(density(df_VMJG18E5$rt), lty = 10)
+
+abline(v = min(means), lty = 2)
+abline(v = max(means), lty = 2)
+text(min(means) - 100, 0.0035, label = as.character(round(min(means))))
+text(max(means) + 100, 0.0035, label = as.character(round(max(means))))
+}
+
+
+
+```
+
+Although our truncated normal distribution, $\mathit{Normal}_+(300,1000)$, seems like a pretty wild guess, it actually is not terribly unreasonable given what we observe in these ten published self-paced reading studies. As shown in Figure \@ref(fig:rtdistrns), the distribution of mean reading times in these different self-paced reading studies from different languages (English, Persian, Dutch, Hindi, German, Spanish) fall within the prior distribution. The means range from a minimum value of `r round(min(df_means10$means10))` ms  and a maximum value of `r round(max(df_means10$means10))` ms. These values easily lie within  the 95\% credible interval for a $\mathit{Normal}_+(300,1000)$:  [`r round(extraDistr::qtnorm(0.025,mean=300,sd=1000,a=0))`, `r round(extraDistr::qtnorm(0.975,mean=300,sd=1000,a=0))`] ms.
+These 10 studies are not about relative clauses; but that doesn't matter, because we are just trying to come up with a prior distribution on average reading times for a word. We just want an approximate idea of the range of plausible mean reading times.
+
+The above prior specification for the intercept can (and must!) be evaluated in the context of the model using prior predictive checks. We have already encountered prior predictive checks in previous chapters; we will revisit them in detail in chapter \@ref(ch-workflow). In the above data set on English relative clauses, one could check what the prior on the intercept implies in terms of the data generated by the model (see chapter \@ref(ch-hierarchical) for examples). As stressed repeatedly throughout this book, sensitivity analysis is an integral component of Bayesian methodology. A sensitivity analysis should be used to work out what the impact is of a range of priors on the posterior distribution.
+
+### Eliciting a prior for the slope
+
+Having come up with some potential priors for the intercept, consider next the prior specification for the effect of relative clause type on reading time; this is the slope $\beta$ in the model above. Recall that `c_cond` is $\pm 0.5$ sum coded.
+
+Theory suggests [see @grodner for a review] that subject relatives in English should be easier to process than object relatives, at the relative clause verb. This means that a priori, we expect the difference between  object and subject relatives to be positive in sign. What would be a reasonable mean for this effect? We can look at previous research to obtain some ballpark estimates.
+
+For example, @jc92 carried out a self-paced reading study on English subject and object relatives, and their Figure 2 (p. 130) shows that the difference between the two relative clause types at the relative clause verb ranges from about 10 ms to 100 ms (depending on working memory capacity differences in different groups of subjects). This is already a good starting point, but we can look at some other published data to gain more confidence about the approximate difference between the conditions.
+
+For example, @reali2007 investigated subject and object relatives in four self-paced reading studies; in their design, the noun phrase inside the relative clause was always a pronoun, and they carried out analyses on the verb plus pronoun, not just the verb as in @grodner. We can still use the estimates from this study, because including a pronoun like "I", "you", or "they" in a verb region is not going to increase reading times dramatically.  The hypothesis in @reali2007 was that because object relatives containing a pronoun occur more frequently in corpora than subject relatives with a pronoun, the relative clause verb should be processed faster in object relatives than subject relatives [this is the opposite to the prediction for the reading times at the relative clause verb discussed in @grodner]. The authors report comparisons for the pronoun and relative clause verb taken together (i.e., pronoun+verb in object relatives and verb+pronoun in subject relatives). In experiment 1, they report a $-57$ ms difference between object and subject relatives, with a 95% confidence interval ranging from $-104$ to $-10$ ms. In a second experiment, they report a difference of $-53.5$ ms with a 95% confidence interval ranging from $-79$ to $-28$ ms; in a third experiment, the difference was $-32$ ms [$-48,-16$]; and in a fourth experiment, $-43$ ms [$-84, -2$].  This range of values gives us a good ballpark estimate of the magnitude of the effect.
+
+Yet another study involved English relative clauses is by @fedorenko2006nature. In this self-paced reading study, Fedorenko and colleagues compared reading times within the entire relative clause phrase (the relative pronoun and the noun+verb sequence inside the relative clause). Their data show that object relatives are harder to process than subject relatives; the difference in means is $460$ ms, with a confidence interval $[299, 621]$ ms. This difference is much larger than in the studies mentioned above, but this is because of the long region of interest considered---it is well-known that the longer the reading/response time, the larger the standard deviation and therefore the larger the potential difference between means [@wagenmakers2007linear].
+
+One can also look at adjacent, related phenomena in sentence processing to get a feel for what the relative clause processing time difference should be. Research on similarity-based interference is closely related to relative clause processing differences: in both types of phenomenon, the assumption is that intervening nouns can increase processing difficulty. So let's look at some reading studies on similarity-based interference.
+
+In a recent study [@JaegerEngelmannVasishth2017], we investigated the estimates from about 80 reading studies on interference. Interference here refers to the difficulty experienced by the comprehender during sentence comprehension when they need to retrieve a particular word from working memory, but other words with similar features hinder retrieval. The meta-analysis in @JaegerEngelmannVasishth2017 suggests that the effect sizes for interference effects range from at most $-50$ to $50$ ms, depending on the phenomenon [some kinds of interference cause speed-ups, others cause slow-downs; see the discussion in @EngelmannJaegerVasishth2019].
+
+Given that the @grodner design can be seen as falling within the broader class of interference effects [@lewisvasishth:cogsci05;@VasishthEtAlTiCS2019;@VasishthEngelmann2022], it is reasonable to choose informative priors that reflect this observed range of interference effects in the literature.
+
+The above discussion gives us some empirical basis for assuming that the object minus subject relative clause difference  in the @grodner study on English could range from 10 to at most 100 ms or so. Although we expect the effect to be positive, perhaps we don't want to pre-judge this before we see the data. For this reason, we could decide on a $\mathit{Normal}(0,50)$ prior on the slope parameter in the model.  This prior, which implies that we are 95% certain that the range of values lies between $-100$ and $+100$ ms. This prior is specifically for the millisecond scale, and specifically for the case where the critical region is one word (the relative clause verb in English).
+
+In this particular example, it makes sense to assume that  large effects like 100 ms are unlikely; this is so even if we do occasionally see estimates that are even higher than 100 ms  in published data. For example, in @gordon01, their experiments 1-4 have very large OR-SR differences at the relative clause verb: $450$ ms, $250$ ms, $500$ ms, and $200$ ms, respectively, with an approximate SE of $50$ ms. The number of subjects in the four experiments were 44, 48, 48, and 68, respectively.  Given the other estimates mentioned above, we would be unwilling to take such large effects seriously because a major reason for observing overly large estimates in a one-word region of interest would be publication bias coupled with Type M error [@gelmancarlin]. Published studies in psycholinguistics are often underpowered, which leads to exaggerated estimates being published (Type M error). Because big-news effects are encouraged in major journals, overestimates tend to get published preferentially.^[See @VasishthetalPLoSOne2013;@JaegerMertzenVanDykeVasishth2019;@NicenboimEtAlCogSci2018;@VasishthMertzenJaegerGelman2018  for detailed discussion of this point in the context of psycholinguistics.] In recent work [@SampleSizeCBB2021], we have shown that, if we repeatedly simulate data assuming a typical subject sample size of 42 and an effect size of approximately $50$ ms, the probability of obtaining a Bayes factor (see chapter \@ref(ch-bf)) larger than $10$ in favor of the effect (i.e., a Bayes factor that indicates overwhelming evidence for the effect) will be relatively low at 64%. In that particular simulation study, we found that some 210 subjects would be needed to have an 80% probability of obtaining a Bayes factor in favor of the effect that is larger than $10$.
+
+Of course, if our experiment is designed so that the critical region constitutes several words, as in the @fedorenko2006nature study, then one would have to choose a prior with a larger mean and standard deviation.
+
+
+\Begin{extra}
+<div class="extra">
+
+```{theorem, scaleprior}
+**The \index{Scale of the parameter} scale of the parameter must be taken into account when eliciting a prior**
+```
+
+A related, important issue to consider when defining priors is the scale in which the parameter is defined. For example, if we were analyzing the @grodner experiment using the log-normal likelihood, then the intercept and slope are on the log millisecond scale. A uniform prior on the intercept and slope parameter imply rather strange priors on the millisecond scale. For example, suppose we assume that the intercept *on the log ms scale* has priors $\mathit{Normal}_+(300,100)$ and the slope has a prior $\mathit{Normal}(0,50)$. In the millisecond scale, the priors on the intercept and slope imply a very broad range of reading time differences between the two conditions, ranging from a very large negative value to a very large positive value, which obviously makes little sense:
+
+```{r, echo = FALSE}
+set.seed(123)
+```
+
+```{r}
+intercept <- rtnorm(100000, mean = 300, sd = 100, a = 0)
+slope <- rnorm(100000, mean = 0, sd = 50)
+effect <- exp(intercept + slope / 2) -
+  exp(intercept - slope / 2)
+quantile(effect, prob = c(0.025, 0.975))
+```
+
+In this connection, it may be useful to revisit the discussion in section \@ref(sec-priorslogisticregression), where we discussed the effect of prior specification on the log-odds scale and what that implies on the probability scale.
+
+</div>
+\End{extra}
+
+
+\Begin{extra}
+<div class="extra">
+
+```{theorem, cromwell}
+**\index{Cromwell's rule} Cromwell's rule**
+```
+
+A frequently asked question from newcomers to Bayes is: what if I define a too \index{Restricted prior} restricted prior? Wouldn't that bias the posterior distribution? This concern is also raised quite often by critics of Bayesian methods.  The key point here is that a good Bayesian analysis always involves a \index{Sensitivity analysis} sensitivity analysis, and also includes prior and posterior predictive checks under different priors. One should reject the priors that make no sense in the particular research problem we are working on, or which unreasonably bias the posterior. As one gains experience with Bayesian modeling, these concerns will recede as we come to understand how useful and important priors are for interpreting the data. Chapter \@ref(ch-workflow) will elaborate on developing a sensible workflow for understanding and interpreting the results of a Bayesian analysis.
+
+As an extreme example of an overly specific prior, if one were to define a $\mathit{Normal}(0,10)$ prior for the $\alpha$ and/or $\beta$ parameters on the millisecond scale for the @grodner example above; that would definitely bias the posterior for the parameters. Let's check this. Try running this code (the output of the code is suppressed here to conserve space). In this model, the correlation between the varying intercepts and varying slopes for subjects and for items are not included; this is only done in order to keep the model simple.
+
+```{r, eval=FALSE, message = FALSE, results = "hide"}
+restrictive_priors <-
+  c(prior(normal(0, 10), class = Intercept),
+    prior(normal(0, 10), class = b),
+    prior(normal(0, 500), class = sd),
+    prior(normal(0, 500), class = sigma))
+
+fit_restrictive <- brm(RT ~ c_cond + (c_cond || subj) +
+                         (c_cond || item),
+                       prior = restrictive_priors,
+                    # Increase the iterations to avoid warnings
+                       iter = 4000,
+                       df_gg05_rc)
+```
+
+```{r eval=FALSE}
+summary(fit_restrictive)
+```
+
+If you run the above code, you will see that the overly specific (and extremely unreasonable) priors on the intercept and slope will dominate in determining the posterior; such priors obviously make no sense. If there is ever any doubt about the implications of a prior, prior and posterior predictive checks should be used to investigate the implications.
+
+Here, an important Bayesian principle is Cromwell's rule [@lindley1991; @jackman2009bayesian]: we should generally allow for some uncertainty in our priors. A prior like $\mathit{Normal}(0,10)$ or $\mathit{Normal}_{+}(0,10)$ on the millisecond scale is clearly overly restrictive given what we've established about plausible values of the relative clause effect from existing data. A more reasonable but still quite tight prior would be $\mathit{Normal}(0,50)$. In the spirit of Cromwell's rule, just to be conservative, we can consider allowing (in a sensitivity analysis) larger possible effect sizes by adopting a prior such as $\mathit{Normal}(0,75)$, and we allow the effect to be negative, even if theory suggests otherwise.
+
+Although there are no fixed rules for deciding on a prior, a sensitivity analysis will quickly establish whether the prior or priors chosen are biasing the posterior. One critical thing to remember related to Cromwell's rule is that if we categorically rule out a range of values a priori for a parameter by giving that range a probability of $0$, the posterior will also never include that range of values, no matter what the data show. For example, in the @reali2007 experiments, if we had used a truncated prior like $\mathit{Normal}_{+}(0,50)$, the posterior can never show the observed negative sign on the effects as reported in the paper. As a general rule, therefore, one should allow the effect to vary in both directions, positive and negative. Sometimes unidirectional priors are justified; in those cases, it is of course legitimate to use them. An example is the prior on standard deviations (which cannot be negative). Another example is using directional priors in when carrying out Bayes factors analyses [e.g., @ly2019replication].
+
+
+</div>
+\End{extra}
+
+
+### Eliciting priors for the \index{Variance component} variance components {#sec-varcomppriors}
+
+Having defined the priors for the intercept and the slope, we are left with prior specifications for the variance component parameters. At least in psycholinguistics, the residual standard deviation is usually the largest source of variance; the by-subject intercepts' standard deviation is usually the next-largest value, and if experimental items are designed to have minimal variance, then these are usually the smallest components. Here again, we can look at some previous data to get a sense of what the priors should look like.
+
+For example, we could use the estimates for the variance components from existing studies. Figure \@ref(fig:vcs) shows the empirical distributions from 10 published studies. There are four classes of variance component: the subject and item intercept standard deviations, the standard deviations of slopes, and the standard deviations of the residuals. In each case, we can compute the estimated means and standard deviations of each type of variance component, and then use these to define normal distributions truncated at $0$. The empirically estimated distributions of the variance components are shown in Figure \@ref(fig:vcs). The estimated means and \index{Standard deviation} standard deviations of each type of variance component are as follows:
+
+```{r echo=FALSE}
+intsubjmean<-round(mean(intsubj$sd))
+intsubjsd<-round(sd(intsubj$sd))
+
+intitemmean<-round(mean(intitem$sd))
+intitemsd<-round(sd(intitem$sd))
+slopemean<-round(mean(slopesds$sd))
+slopesd<-round(sd(slopesds$sd))
+resmean<-round(mean(residualsd$sd))
+ressd<-round(sd(residualsd$sd))
+```
+
+- Subject intercept SDs: estimated mean: `r intsubjmean`, estimated standard deviation (sd): `r intsubjsd`.
+- Item intercept SDs: mean: `r intitemmean`, sd: `r intitemsd`.
+- Slope SDs: mean `r slopemean`, sd: `r slopesd`.
+- Residual SDs: mean: `r resmean`, sd: `r ressd`.
+
+The largest standard deviations are those estimated for the by-subject intercept adjustment and the residual term, so these are the ones we will focus on. 
+In order to be conservative, for the standard deviations of the group factors (subject and item), we take the larger values (the by-subject intercept's standard deviations) as a guide when designing priors for all the standard deviations of the by-subject and by-item adjustments. For the residual standard deviation, we use the above estimates. 
+
+
+(ref:vcs) Histograms of empirical distributions of the different variance components from ten publishes studies.  The y-axis shows counts rather than density in order to make it clear that we are working with only a few data sets.
+
+```{r vcs, fig.cap = "(ref:vcs)", echo=FALSE,results = "hold",fig.height= 4.5, echo = FALSE, warning = FALSE}
+intsubj$component <- "subj intercepts sd"
+intitem$component <- "item intercepts sd"
+slopesds$component <- "slopes sd"
+residualsd$component <- "residuals sd"
+
+df_varcomps <- rbind(
+  intsubj[, c(1, 3, 4)], intitem[, c(1, 3, 4)],
+  slopesds[, c(1, 3, 4)], residualsd[, c(1, 3, 4)]
+)
+
+df_varcomps$component <- factor(df_varcomps$component, levels = c("residuals sd", "subj intercepts sd", "item intercepts sd", "slopes sd"))
+
+ggplot(df_varcomps, aes(x = sd)) +
+  geom_histogram(binwidth = 50, fill = "gray", colour = "grey60", size = .22) +
+  xlab("standard deviation") +
+  facet_grid(rows = vars(component))
+```
+
+We can now use the equations \@ref(eq:meantrunc) and \@ref(eq:vartrunc) shown in Box \@ref(thm:truncation) to work out the means and standard deviations of a corresponding \index{Truncated normal distribution} truncated normal distribution. As an example, we could assume a prior distribution truncated at $0$ from below, and at $1000$ ms from above. That is, $a=0$, and $b=1000$.
+
+We can write a function that takes the estimated means and standard deviations, and returns the mean and standard deviation of the corresponding truncated distribution (see Box \@ref(thm:truncation)). The function `compute_meansd_parent()` provided in `bcogsci` accomplishes this.
+
+
+The largest variance component among the group-level effects (that is, all variance components other than the residual standard deviation) is the by-subjects intercept. One can compute the mean and standard deviation of of the truncated distribution that would generate the observed mean and standard deviation of the item-level estimates:
+
+```{r warning=FALSE}
+# Subject intercept SDs:
+compute_meansd_parent(mean_trunc = 165,
+                      sd_trunc = 55,
+                      a = 0,
+                      b = 1000)
+```
+
+The corresponding truncated distribution is shown in Figure \@ref(fig:informedintsd).
+
+```{r informedintsd,echo=FALSE,results = "hold",fig.height= 4.5, fig.cap =  "A truncated normal distribution (with location 165 and scale 55) representing an empirically derived prior distribution for the parameter for the by-subjects intercept adjustment in a hierarchical model.", echo = FALSE, warning = FALSE}
+x <- seq(0, 500, by = 0.01)
+plot(x, dtnorm(x, mean = 165, sd = 55, a = 0), type = "l",
+     ylab = "density")
+```
+
+The prior shown in Figure \@ref(fig:informedintsd) looks a bit too restrictive; it could well happen that in a future study the by-subject intercept standard deviation is closer to 500 ms. Taking Cromwell's rule into account, one could widen the scale parameter of the truncated normal to, say 200. The result is Figure  \@ref(fig:informedintsd2).
+
+```{r informedintsd2,echo=FALSE,results = "hold",fig.height= 4.5, fig.cap =  "A truncated normal distribution (with location 165 and scale 200) representing an empirically derived prior distribution for the parameter for the by-subjects intercept adjustment in a hierarchical model taking Cromwell’s rule into account.", echo = FALSE, warning = FALSE}
+x <- seq(0, 1000, by = 0.01)
+plot(x, dtnorm(x, mean = 165, sd = 200, a = 0), type = "l",
+     ylab = "density")
+```
+
+Figure  \@ref(fig:informedintsd2) does not look too unreasonable as an informative prior for this variance component. This prior will also serve us well for all the other group-level effects (the random intercept for items, and the random slopes for subject and item), which will have smaller values.
+
+Finally, the prior for the residual standard deviation is going to have to allow a broader range of wider values:
+
+```{r warning=FALSE}
+compute_meansd_parent(mean_trunc = 392,
+                      sd_trunc = 140,
+                      a = 0,
+                      b = 1000)
+```
+
+Figure \@ref(fig:informedintsd3) shows a plausible informative prior derived from the empirical estimates.
+
+```{r informedintsd3,echo=FALSE,results = "hold",fig.height= 4.5, fig.cap =  "A truncated normal distribution representing an empirically derived prior distribution for the parameter for the residual standard deviation in a hierarchical model.", echo = FALSE, warning = FALSE}
+x <- seq(0, 1000, by = 0.01)
+plot(x, dtnorm(x, mean = 391, sd = 200, a = 0, b = 1000), type = "l", ylab = "density")
+```
+
+
+
+
+
+We stress again that Cromwell's rule should generally be kept in mind---it's usually better to have a little bit more uncertainty than warranted than too tight a prior. An overly tight prior will ensure that the posterior is entirely driven by the prior.  Again, prior predictive checks should be an integral part of the process of establishing a sensible set of priors for the variance components. This point about prior predictive checks will be elaborated on with examples in chapter  \@ref(ch-workflow).
+
+We now apply the relatively informative priors we came up with above to analyze the @grodner data. Applying Cromwell's rule, we allow for a bit more uncertainty than our existing empirical data suggest.
+
+Specifically, we could choose the following informative priors for the @grodner data:
+
+- The intercept: $\alpha \sim \mathit{Normal}(500,100)$
+- The slope: $\beta \sim \mathit{Normal}(50,50)$
+- Standard deviation of the adjustments to the intercept : $\tau_{u_1}, \tau_{w_1} \sim \mathit{Normal}_{+}(165,200)$
+- Standard deviation of the adjustments to the slopes : $\tau_{u_2}, \tau_{w_2} \sim \mathit{Normal}_{+}(39, 58)$
+- The residual standard deviation: $\sigma \sim \mathit{Normal}_{+}(391,200)$
+
+The first step is to check whether the prior predictive distribution makes sense. Figure \@ref(fig:priorpredgrodner) shows that the prior predictive distributions are not too implausible, although they could be improved further. One big problem is the normal distribution assumed in the model;  a log-normal distribution captures the shape of the distribution of the @grodner data better than a normal distribution. The discrepancy between the @grodner data and our prior predictive distribution implies that we might be using the wrong likelihood. Another problem is that the reading times in the prior predictive distribution can be negative---this is also a consequence of our using the wrong likelihood. As an exercise, fit a model with a log-normal likelihood and informative priors based on previous data. When using a log-normal likelihood, the prior for the slope parameter obviously has to be on the log scale. Therefore,  we will need to define an informative prior on the log scale for the slope parameter. For example, consider the following prior on the slope: $\mathit{Normal}(0.12, 0.04)$. Here is how to interpret this on the millisecond scale: Assuming a mean reading time of 6 log ms, this prior roughly corresponds to an effect size on the millisecond scale that has a 95% credible interval ranging from $`r round(exp(6+0.04/2)- exp(6-0.04/2))`$ ms to $`r round(exp(6+0.20/2)- exp(6-0.20/2))`$ ms. Review  section \@ref(sec-lognormal) if you have forgotten how this transformation was done.
+
+
+```{r echo=FALSE,message=FALSE}
+inf_priors <- c(
+  prior(normal(500, 100), class = Intercept),
+  prior(normal(50, 50), class = b, coef = "c_cond"),
+  prior(normal(165, 200), class = sd, coef = Intercept, group = item),
+  prior(normal(165, 200), class = sd, coef = Intercept, group = subj),
+  prior(normal(39, 58), class = sd, coef = c_cond, group = item),
+  prior(normal(39, 58), class = sd, coef = c_cond, group = subj),
+  prior(normal(391, 200), class = sigma)
+)
+m_inf <- brm(RT ~ c_cond + (1 + c_cond || subj) + (1 + c_cond || item),
+             prior = inf_priors,
+             chains = 4,
+             family = gaussian(),
+             sample_prior = "only",
+             control = list(
+               adapt_delta = 0.99,
+               max_treedepth = 15
+             ),
+             df_gg05_rc
+             )
+```
+
+
+For now, because our running example uses a normal likelihood on reading times in milliseconds, we can retain these priors.
+
+(ref:priorpredgrodner) Prior predictive distributions from the model (using a normal likelihood) to be used for the Grodner and Gibson data analysis. The panels show eight prior predictive distributions.
+
+```{r priorpredgrodner,results = "hold",fig.height= 4.5, fig.cap =  "(ref:priorpredgrodner)", echo = FALSE, message = FALSE}
+pp_check(m_inf, type = "hist", ndraws = 8, prefix = "ppd" )
+## plots <- prior_pred %>%
+##   filter(iter <= 8) %>%
+##   ggplot(aes(y_rep)) +
+##   geom_histogram() +
+##   facet_wrap(~iter, ncol = 2)
+## print(plots)
+```
+
+The \index{Sensitivity analysis} sensitivity analysis could then be displayed, showing the posteriors under different prior settings. Figures \@ref(fig:uniformpriorENRC) and \@ref(fig:infpriorENRC) show the posteriors under two distinct sets of priors.
+
+```{r echo=FALSE, results ="hide", message = FALSE}
+posterior <- as.matrix(fit_gg05_unif)
+
+m_inf <- brm(RT ~ c_cond + (1 + c_cond || subj) + (1 + c_cond || item),
+             prior = inf_priors,
+             chains = 4,
+             cores = 4,
+             iter = 2000,
+             warmup = 1000,
+             control = list(adapt_delta = 0.99,
+                            max_treedepth = 15),
+             df_gg05_rc)
+```
+
+(ref:uniformpriorENRC) Posterior distributions of parameters for the English relative clause data, using \index{Uniform prior} uniform priors ($\mathit{Uniform}(0,2000)$) on the intercept and slope.
+
+```{r uniformpriorENRC, fig.cap = "(ref:uniformpriorENRC)", echo=FALSE,results = "hold",fig.height= 4.5, echo = FALSE }
+posteriorinf <- as.matrix(m_inf)
+
+plot_title <- ggtitle(
+  "Posteriors (Uniform priors)",
+  "with medians and 80% intervals"
+)
+
+mcmc_areas(posterior,
+  pars = c("b_Intercept", "b_c_cond", "sd_item__Intercept", "sd_item__c_cond", "sd_subj__Intercept", "sd_subj__c_cond", "sigma"),
+  prob = 0.8
+) + plot_title
+```
+
+(ref:infpriorENRC) Posterior distributions of parameters for the English relative clause data, using relatively \index{Informative prior} informative priors on the intercept and slope.
+
+```{r infpriorENRC, fig.cap = "(ref:infpriorENRC)",echo=FALSE,results = "hold",fig.height= 4.5, echo = FALSE }
+plot_title2 <- ggtitle(
+  "Posteriors (Informative priors)",
+  "with medians and 80% intervals"
+)
+
+mcmc_areas(posteriorinf,
+  pars = c("b_Intercept", "b_c_cond", "sd_item__Intercept", "sd_item__c_cond", "sd_subj__Intercept", "sd_subj__c_cond", "sigma"),
+  prob = 0.8
+) + plot_title2
+```
+
+What can one do if one doesn't know absolutely anything about one's research problem? An example is the power posing data that we encountered in Chapter \@ref(ch-reg), in an exercise in section \@ref(sec-LMexercises). Here, we investigated the change in testosterone levels after the subject was either asked to adopt a high power pose or a low power pose (a between-subjects design). Not being experts in this domain, we may find ourselves stumped for priors. In such a situation, it could be defensible to use uninformative priors like $\mathit{Cauchy}(0,2.5)$, at least initially. However, as discussed in a later chapter, if one is committed to doing a Bayes factor analysis, then we are obliged to think carefully about plausible a priori values of the effect. This would require consulting one or more experts or reading the literature on the topic to obtain ballpark estimates. An exercise at the end of this chapter will elaborate on this idea. We turn next to the topic of eliciting priors from experts.
+
+## \index{Eliciting priors} Eliciting priors from experts
+
+It can happen that one is working on a research problem where either our own prior knowledge is lacking, or we need to incorporate a range of competing prior beliefs into the analysis. In such situations, it becomes important to elicit priors from experts other than oneself. Although informal elicitation can be a perfectly legitimate approach, there does exist a well-developed methodology for systematically eliciting priors in Bayesian statistics [@ohagan2006uncertain].
+
+The particular method developed by O'Hagan and colleagues comes with an R package called \index{\texttt{SHELF}} `SHELF`, which stands for the \index{Sheffield Elicitation Framework} Sheffield Elicitation Framework; the method was developed by statisticians at the University of Sheffield, UK. At the time of writing this, `SHELF` is available from http://www.tonyohagan.co.uk/shelf/.
+This framework comes with a detailed set of instructions and a fixed procedure for eliciting distributions. It also provides detailed guidance on documenting the elicitation process, thereby allowing a full record of the elicitation process to be created. Creating such a record is important because the elicitation procedure needs to be transparent to a third party reading the final report on the data analysis.
+
+The SHELF procedure works as follows. There is a facilitator and an expert (or a group of experts; we will consider the single expert case here, but one can easily extend the approach to multiple experts).
+
+- A pre-elicitation form is filled out by the facilitator in consultation with the expert. This form sets the stage for the elicitation exercise and records some background information, such as the nature of the expertise of the assessor.
+- Then, an elicitation method is chosen. Simple methods are the most effective. One good approach is the \index{Quartile method} quartile method. The expert first decides on a lower and upper limit of possible values for the quantity to be estimated. Because the lower and upper bounds are elicited before the median, this minimizes the effects of the "anchoring and adjustment heuristic" [@ohagan2006uncertain], whereby experts tend to anchor their subsequent estimates of quartiles based on their first judgement of the median. Following this, a median value is decided on, and lower and upper quartiles are elicited. The SHELF package has functions to display these quartiles graphically, allowing the expert to adjust them at this stage if necessary. It is important for the expert to confirm that, in their judgement, the four partitioned regions that result have equal probability.
+- The elicited distribution is then displayed as a density plot (several choices of probability density functions are available, but we will usually use the normal or the truncated normal in this chapter); this graphical summary serves to give feedback to the expert. The parameters of the distribution are also displayed. Once the expert agrees to the final density, the parameters can be considered the expert's judgement regarding the prior distribution of the bias. One can consult multiple experts and either combine their judgements into one prior, or consider each expert's prior separately in a sensitivity analysis.
+
+When eliciting priors from more than one expert, one can elicit the priors separately and then use the priors separately in a sensitivity analysis. This approach takes each individual expert's opinion in interpreting the data and can be a valuable sensitivity analysis [for an example from psycholinguistics, see the discussion surrounding Table 2.2 on p. 47 in @VasishthEngelmann2022]. Alternatively, one can pool the priors together [see @spiegelhalter2004bayesian for discussion] and create a single consensus prior; this would amount to an average of the differing opinions about prior distributions. A third approach is to elicit a consensus prior by bringing all the experts together and eliciting a prior from the group in a single setting. Of course, these approaches are not mutually exclusive. One of the hallmark properties of Bayesian analysis is that the posterior distribution of the parameter of interest can be investigated in light of differing prior beliefs and the data (and of course the model). Box \@ref(thm:shelfexample) illustrates a simple elicitation procedure involving two experts; the example is adapted from the `SHELF` package's vignette.
+
+\Begin{extra}
+<div class="extra">
+
+```{theorem, shelfexample}
+**Example: prior elicitiation using SHELF**
+```
+
+An example of prior elicitation using SHELF is shown below. This example is adapted from the SHELF vignette.
+
+Suppose that two experts are consulted separately. The question asked of the experts is what they think that a probability parameter $X$ has as plausible values. The parameter $X$ can be seen as a percentage; so, it ranges from $0$ to $100$.
+
+**Step 1**: Elicit quartiles and median from each expert.
+
+- Expert A states that $P(X<30)=0.25, P(X<40)=0.5, P(X<50)=0.75$.
+- Expert B states that $P(X<20)=0.25, P(X<25)=0.5, P(X<35)=0.75$.
+
+**Step 2**: Fit the implied distributions for each expert's judgements and plot the distributions, along with a pooled distribution (the linear pool in the figure) using the `plotfit()` function from the library `SHELF`.
+
+(ref:shelfplot1) Visualizing priors elicited from two experts for a parameter $X$ representing a percentage ranging from $0$ to $100$.
+
+```{r shelfplot1,fig.cap="(ref:shelfplot1)", fig.pos = "H",out.extra ='', message = FALSE, fig.keep = "last"}
+elicited <- matrix(c(30, 20, 0.25,
+                     40, 25, 0.5,
+                     50, 35, 0.75),
+                   nrow = 3, ncol = 3, byrow = TRUE)
+dist_2expr <- fitdist(vals = elicited[, 1:2],
+                      probs = elicited[, 3],
+                      lower = 0, upper = 100)
+plotfit(dist_2expr, lp = TRUE, returnPlot = TRUE) +
+  scale_color_grey() +
+  theme_light()
+```
+
+**Step 3**: Then bring the two experts together and elicit a consensus distribution.
+
+Suppose that the experts agree that $P(X<25)=0.25, P(X<30)=0.5, P(X<40)=0.75$. The consensus distribution is then:
+
+(ref:shelfplot2) Visualizing a consensus prior from two experts for a parameter $X$ representing a percentage ranging from $0$ to $100$.
+
+```{r shelfplot2, fig.cap="(ref:shelfplot2)", fig.pos = "H",out.extra ='', message = FALSE, fig.keep = "last"}
+elicited <- matrix(c(25, 0.25,
+                     30, 0.5,
+                     40, 0.75),
+                   nrow = 3, ncol = 2, byrow = TRUE)
+dist_cons <- fitdist(vals = elicited[,1],
+                     probs = elicited[,2],
+                     lower = 0, upper = 100)
+plotfit(dist_cons, ql = 0.05, qu = 0.95, returnPlot = TRUE) +
+  theme_light()
+```
+
+**Step 4**: Give feedback to the experts by showing them the 5th and
+95th percentiles, and check that these bounds match their beliefs. If not, then repeat the above steps.
+
+```{r, echo = FALSE}
+def_width <- options()$width
+options(width = 60)
+```
+
+```{r}
+feedback(dist_cons, quantiles = c(0.05, 0.95))
+```
+
+```{r, echo = FALSE}
+options(width = def_width)
+force(set_plots())
+```
+
+
+
+
+</div>
+\End{extra}
+
+
+## Deriving priors from \index{Meta-analysis} meta-analyses
+
+Meta-analysis has been used widely in clinical research [@cochrane; @sutton2012evidence; @dersimonian1986meta; @normand1999tutorial] but, at least at the time of writing this book, it has been used relatively rarely in  (psycho)linguistics. \index{Random-effects meta-analysis} Random-effects meta-analysis (discussed in a later chapter in detail) is an especially useful tool in cognitive science.
+
+Meta-analysis is not a magic bullet; this is because of publication bias---usually only (supposedly) newsworthy results are published, leading to a skewed picture of the effects. As a consequence, meta-analysis will probably lead to  biased estimates. Nevertheless, they can still tell us something about what we know so far from published studies, if only that the studies are too noisy to be interpretable. Despite this limitation, some prior information is better than no information. As long as one remains aware of the limitations of meta-analysis, one can still use them effectively to study one's research questions.
+
+We begin with observed effects  $y_n$ (e.g., estimated difference between two conditions) and their estimated standard errors (SEs); the SEs serve as an indication of the precision of the estimate, with larger SEs implying a low-precision estimate. Once we have collected the observed estimates (e.g., from published studies), we can define an assumed underlying generative process whereby each study $n=1,\dots,N$ has an unknown true mean $\zeta_n$:
+
+$y_n \sim \mathit{Normal}(\zeta_n,SE_n)$
+
+A further assumption is that each unknown true mean $\zeta_n$ in each study is generated from a distribution that has some true overall mean $\zeta$, and standard deviation $\tau$. The standard deviation $\tau$ reflects between-study variation, which could be due to different subjects being used in each study, different lab protocols, different methods, different languages being studied, etc.
+
+$\zeta_n \sim \mathit{Normal}(\zeta,\tau)$
+
+This kind of meta-analysis is actually the familiar hierarchical model we have already encountered in chapter \@ref(ch-hierarchical).  As in hierarchical models, hyperpriors have to be defined for $\zeta$ and $\tau$. A useful application of this kind of meta-analysis is to derive a posterior distribution for $\zeta$ based on the available evidence; this posterior can be used (e.g., with a normal approximation) as a prior for a future study.
+
+A simple example is the published data on Chinese \index{Relative clause} relative clauses; the data are adapted from @VasishthMScStatistics. Table\ \@ref(tab:chinesemeans) shows the mean difference between object and subject relatives in Chinese, along with the standard error, that was derived from published reading studies on Chinese relatives. 
+
+```{r chinesemeans,echo=FALSE,results="asis"}
+data("df_chineseRCs")
+
+kableExtra::kable(df_chineseRCs %>%
+
+  as.data.frame() %>%
+  mutate(across(where(is.double), ~ paste0("$",formatC(round(.x, 1),format = "f", digits=1), "$"))) %>%
+  mutate(study = gsub("&","\\\\&", study))
+
+                , escape = FALSE              ,
+  digits = 1, booktabs = TRUE,
+  row.names = FALSE, align = c("l","l","r","r"),
+  vline = "", #format="latex",
+    linesep = "",
+  caption = "The difference between object and subject relative clause reading times (effect), along with their standard errors (SE), from different published reading studies on Chinese relative clauses."
+)
+```
+
+Suppose that we want to do a new study investigating the difference between object and subject relative clauses, and suppose that in the sensitivity analysis, one of the priors we want is an empirically justifiable informative prior. Of course, the sensitivity analysis will also contain uninformative priors; we have seen examples of such priors in the previous chapters.
+
+We can derive an empirically justified prior by conducting a group-level effects meta-analysis. We postpone discussion of how exactly to fit such a model to chapter \@ref(ch-remame); here, we simply report the posterior distribution of the overall effect $\zeta$ based on the prior data, ignoring the details of model fitting.
+
+First, one study [@gibsonwu] is removed below, because the estimates from all the other studies will be used to derive a prior for that study.
+
+```{r chinesemetanalysis, echo=FALSE, message=FALSE, results="hide"}
+## remove the study being investigated here:
+df_chineseRCs <- df_chineseRCs[-2, ]
+
+ls_chinese <- list(
+  N = length(df_chineseRCs$y),
+  effect = df_chineseRCs$y,
+  SE = df_chineseRCs$se,
+  study_id = df_chineseRCs$study.id
+)
+ma1 <- system.file("stan_models",
+  "meta-analysis1.stan",
+  package = "bcogsci"
+)
+fit_chinese <- stan(
+  file = ma1,
+  data = ls_chinese,
+  control = list(
+    adapt_delta = .999,
+    max_treedepth = 12
+  )
+)
+```
+
+
+```{r echo=FALSE}
+# print.stanfit(fit_chinese,pars="zeta")
+zeta_mean <- summary(fit_chinese, pars = "zeta")$summary[1]
+zeta_lower <- summary(fit_chinese, pars = "zeta")$summary[4]
+zeta_upper <- summary(fit_chinese, pars = "zeta")$summary[8]
+```
+
+(ref:chinesemetanalysisposterior) The posterior distribution of the difference between object and subject relative clause processing in Chinese \index{Relative clause} relative clause data, computed from a random-effects meta-analysis using published Chinese relative clause data from reading studies.
+
+```{r chinesemetanalysisposterior, echo=FALSE, fig.cap = "(ref:chinesemetanalysisposterior)", message = FALSE}
+bayesplot::mcmc_hist(as.data.frame(fit_chinese),
+  pars = c("zeta"))
+```
+
+The posterior distribution of $\zeta$ is shown in Figure \@ref(fig:chinesemetanalysisposterior). What we can derive from this posterior distribution of $\zeta$ is a normal approximation that represents what we know so far about Chinese relatives,  based on the available data. The key here is the word "available"; almost certainly there exist studies that were inconclusive and were therefore never published. The published record is always biased because of the nature of the publication game in science (only supposedly newsworthy results get published).
+
+The mean of the posterior is $`r round(zeta_mean)`$ ms, and the width of the 95% credible intervals is $`r round(zeta_upper)`-`r round(zeta_lower)`=`r round(zeta_upper)-round(zeta_lower)`$ ms. Since the 95% credible interval has a width that is approximately four times the standard deviation (assuming a normal distribution), we can work out the standard deviation by dividing the width by four: $`r (est_SE<-(round(zeta_upper)-round(zeta_lower))/4)`$.
+Given these estimates, we could use a normal distribution with mean $`r round(zeta_mean)`$ and standard deviation $`r est_SE`$ as an informative prior in a sensitivity analysis.
+
+As an example, we will analyze a data set from @gibsonwu that was not part of the above meta-analysis; for the above meta-analysis, the estimate from the @gibsonwu study that was shown in  Table\ \@ref(tab:chinesemeans) has been  removed. The meta-analysis posterior will then be used as an informative prior. First, load the data and sum-code the predictor:
+
+```{r}
+data("df_gibsonwu")
+df_gibsonwu <- df_gibsonwu %>%
+  mutate(c_cond = if_else(type == "obj-ext", 1 / 2, -1 / 2))
+```
+
+Because we will now use a \index{Log-normal likelihood} log-normal likelihood for the \index{Reading time} reading time data, we need to work out what the meta-analysis posterior of $\zeta$ corresponds to on the log scale. The grand mean reading time of the @gibsonwu data on the log scale is $`r round(mean(log(df_gibsonwu$rt)),1)`$. In order to arrive at approximately the mean difference of $`r round(zeta_mean)`$ ms, the log-scale value of the mean difference can be worked out as follows.
+
+If we know the grand mean reading time $\hat \alpha$ on the log scale, then we can find out what the slope $\hat\beta$ needs to be such that the difference between the two conditions is approximately $`r round(zeta_mean)`$ ms.^[There is no one-to-one correspondence between getting values from normal likelihoods and then use them in a log-normal likelihood, and this is just an approximated value.]  In other words, we need to find $\hat{\beta}$ in the equation:
+
+$$exp(\hat\alpha + \hat\beta/2) - exp(\hat\alpha - \hat\beta/2) = `r round(zeta_mean)`$$
+
+One can find this estimate by trial and error, or solve the equation analytically.
+Similarly, if the lower and upper bounds of the effect estimate from the meta-analysis are known on the ms scale, we can figure out the lower and upper bounds of $\hat\beta$, call them $\hat\beta_{lower}$ and $\hat\beta_{upper}$:
+
+$$exp(\hat\alpha + \hat\beta_{lower}/2) - exp(\hat\alpha - \hat\beta_{lower}/2) = `r round(zeta_lower)`$$
+
+$$exp(\hat\alpha + \hat\beta_{upper}/2) - exp(\hat\alpha - \hat\beta_{upper}/2) = `r round(zeta_upper)`$$
+
+Once we have estimates of $\hat\beta_{lower}$ and $\hat\beta_{upper}$, we can figure out the standard deviation estimate of the effect by computing the interval $\hat\beta_{upper}-\hat\beta_{lower}$ and dividing it by 4 (because the 95% credible interval will span four times the standard deviation). Thus, the end-result of our calculation is a mean and a standard deviation (on the log scale) of a normal distribution, which we can use as a relatively informative prior, informed by the meta-analysis, for the future study.
+
+
+```{r}
+(int <- mean(log(df_gibsonwu$rt)))
+## the effect size on the log ms scale:
+b <- 0.058
+## the slope on the log scale:
+exp(int + b / 2) - exp(int - b / 2)
+## the lower bound on the log scale:
+lower <- -0.052
+exp(int + lower / 2) - exp(int - lower / 2)
+upper <- 0.17
+exp(int + upper / 2) - exp(int - upper / 2)
+## the interval divided by 4:
+(SE <- round( (upper - lower ) / 4, 3 ) )
+```
+
+As always, we will do a sensitivity analysis, using uninformative priors on the slope parameter ($\mathit{Normal}(0,1)$), as well as the meta-analysis prior ($\mathit{Normal}(0.058,0.056)$).
+
+```{r message=FALSE, results = "hide"}
+## uninformative priors on the parameters of interest
+## and on the variance components:
+fit_gibsonwu_log <-
+  brm(rt ~ c_cond +
+        (c_cond | subj) +
+        (c_cond | item),
+      family = lognormal(),
+      prior = c(prior(normal(6, 1.5), class = Intercept),
+                prior(normal(0, 1), class = b),
+                prior(normal(0, 1), class = sigma),
+                prior(normal(0, 1), class = sd),
+                prior(lkj(2), class = cor)),
+      data = df_gibsonwu)
+## meta-analysis priors:
+fit_gibsonwu_ma <-
+  brm(rt ~ c_cond +
+        (c_cond | subj) +
+        (c_cond | item),
+      family = lognormal(),
+      prior = c(
+        prior(normal(6, 1.5), class = Intercept),
+        prior(normal(0.058, 0.056), class = b),
+        prior(normal(0, 1), class = sigma),
+        prior(normal(0, 1), class = sd),
+        prior(lkj(2), class = cor)),
+      data = df_gibsonwu)
+```
+
+```{r echo=FALSE}
+post_summary <- posterior_summary(fit_gibsonwu_log,
+  variable = "b_c_cond"
+)
+post_mean <- post_summary[1, 1]
+post_lower <- post_summary[1, 3]
+post_upper <- post_summary[1, 4]
+post_sd <- (post_upper - post_lower) / 4
+
+post_summary_ma <- round(posterior_summary(fit_gibsonwu_ma,
+  variable = "b_c_cond"
+), 3)
+post_mean_ma <- post_summary_ma[1, 1]
+post_lower_ma <- post_summary_ma[1, 3]
+post_upper_ma <- post_summary_ma[1, 4]
+post_sd <- (post_upper_ma - post_lower_ma) / 4
+
+posteriors_ma <-
+  data.frame(rbind(
+    c(
+      post_mean, post_lower,
+      post_upper
+    ),
+    c(post_mean_ma, post_lower_ma, post_upper_ma)
+  ))
+
+posteriors_ma <- cbind(
+  c(
+    "$\\mathit{Normal}(0,1)$",
+    "$\\mathit{Normal}(0.058, 0.056)$"
+  ),
+  posteriors_ma
+)
+
+colnames(posteriors_ma) <- c("Priors", "Mean", "Lower", "Upper")
+```
+
+A summary of the posteriors (means and 95\% credible intervals) under the $\mathit{Normal}(0,1)$ and the meta-analysis prior is shown in Table \@ref(tab:mapriors). In this particular case, the posteriors are influenced by the two different priors. The differences between the two posteriors are small, but these differences could in principle lead to different outcomes (and conclusions) in a Bayes factor analysis.
+
+```{r mapriors,echo=FALSE,results="asis"}
+kableExtra::kable(posteriors_ma %>%
+                    mutate(across(where(is.numeric), ~ paste0("$",round(.x,2), "$")))
+                 ,
+  #digits = 2,
+  booktabs = TRUE,
+  escape = FALSE,
+  vline = "",  #format="latex",
+  caption = "A summary of the posteriors under a relatively uninformative prior and an informative prior based on a meta-analysis, for the Chinese relative clause data from Gibson and Wu, 2013."
+)
+```
+
+## Using previous experiments' \index{Posteriors as priors} posteriors as priors for a new study
+
+In a situation where we are attempting to replicate a previous study's results, we can derive an informative prior for the analysis of the replication attempt by figuring out a prior based on the previous study's posterior distribution. In the previous chapter, we encountered this in one of the exercises: Given data on Chinese relatives [@gibsonwu], we want to replicate the effect with a new data set that has the same design but different subjects. The data from the replication attempt is from @VasishthetalPLoSOne2013.
+
+The first data set from @gibsonwu was analyzed in the previous section using uninformative priors.  We can extract the mean and standard deviation of the posterior, and use that to derive an \index{Informative prior} informative prior for the replication attempt.
+
+Now, for the replication study, we can use this posterior (with a normal approximation), if we want to build on what we learned from the original @gibsonwu study. As usual, we will do a  \index{Sensitivity analysis} sensitivity analysis: one model is fit with an uninformative prior on the parameter of interest, $\mathit{Normal}(0,1)$, as we did in the preceding section; and another model will be fit with the informative directional prior $\mathit{Normal}(`r post_mean`, `r post_sd`)$. For good measure, we can also include a model with a prior derived from the meta-analysis in the preceding section (the posterior of the $\zeta$ parameter).
+
+```{r echo=FALSE,message=FALSE}
+## replication attempt:
+data("df_gibsonwu2")
+df_gibsonwu2 <- df_gibsonwu2 %>%
+  mutate(c_cond = if_else(condition == "obj-ext", 1 / 2, -1 / 2))
+
+## relatively uninformative prior on the effect of interest
+## and on the variance components:
+fit_df_gibsonwu2 <- brm(rt ~ c_cond +
+  (c_cond | subj) + (c_cond | item),
+family = lognormal(),
+prior =
+  c(
+    prior(normal(6, 1.5), class = Intercept),
+    prior(normal(0, 1), class = b),
+    prior(normal(0, 1), class = sigma),
+    prior(normal(0, 1), class = sd),
+    prior(lkj(2), class = cor)
+  ),
+data = df_gibsonwu2
+)
+post_summary2 <- round(posterior_summary(fit_df_gibsonwu2,
+  variable = "b_c_cond"
+), 3)
+post_mean2 <- post_summary2[1, 1]
+post_lower2 <- post_summary2[1, 3]
+post_upper2 <- post_summary2[1, 4]
+
+## informative prior:
+fit_df_gibsonwu2_inf <- brm(rt ~ c_cond +
+  (c_cond | subj) + (c_cond | item),
+family = lognormal(),
+prior =
+  c(
+    prior(normal(6, 1.5), class = Intercept),
+    prior(normal(-0.07, 0.2), class = b),
+    prior(normal(0, 1), class = sigma),
+    prior(normal(0, 1), class = sd),
+    prior(lkj(2), class = cor)
+  ),
+data = df_gibsonwu2
+)
+post_summary2_inf <- round(posterior_summary(fit_df_gibsonwu2_inf, variable = "b_c_cond"), 3)
+post_mean2_inf <- post_summary2_inf[1, 1]
+post_lower2_inf <- post_summary2_inf[1, 3]
+post_upper2_inf <- post_summary2_inf[1, 4]
+
+## meta-analysis prior:
+fit_df_gibsonwu2_ma <- brm(rt ~ c_cond +
+  (c_cond | subj) + (c_cond | item),
+family = lognormal(),
+prior =
+  c(
+    prior(normal(6, 1.5), class = Intercept),
+    prior(normal(0.041, 0.2), class = b),
+    prior(normal(0, 1), class = sigma),
+    prior(normal(0, 1), class = sd),
+    prior(lkj(2), class = cor)
+  ),
+data = df_gibsonwu2
+)
+post_summary2_ma <- round(posterior_summary(fit_df_gibsonwu2_ma,
+  variable = "b_c_cond"
+), 3)
+post_mean2_ma <- post_summary2_ma[1, 1]
+post_lower2_ma <- post_summary2_ma[1, 3]
+post_upper2_ma <- post_summary2_ma[1, 4]
+
+
+posteriors <- data.frame(rbind(
+  c(
+    post_mean2,
+    post_lower2, post_upper2
+  ),
+  c(post_mean2_inf, post_lower2_inf, post_upper2_inf),
+  c(post_mean2_ma, post_lower2_ma, post_upper2_ma)
+))
+
+posteriors <- cbind(
+  c(
+    "Normal(0,1)",
+    "Normal(-0.07,0.2)",
+    "Normal(0.041, 0.2)"
+  ),
+  posteriors
+)
+colnames(posteriors) <- c("Priors", "Mean", "Lower", "Upper")
+```
+
+```{r replicationpriors,echo=FALSE,results="asis"}
+kableExtra::kable(posteriors %>%
+                    as.data.frame() %>%
+  mutate(across(where(is.numeric), ~ paste0("$",formatC(round(.x, 2),format = "f", digits=2), "$"))),
+  digits = 2, escape= FALSE,booktabs = TRUE,
+  vline = "", # format="latex",
+  caption = "A summary of the posteriors under an uninformative prior ($\\mathit{Normal}(0,1)$), a prior based on previous data, and a meta-analysis prior, for data from a replication attempt of Gibson and Wu, 2013."
+)
+```
+
+Table \@ref(tab:replicationpriors) summarizes the different posteriors under the three prior specification. Again, in this case, the differences in the posteriors are small, but in a Bayes factor analysis, the outcomes under these different priors could be different.
+
+This particular analysis shows that under all the priors considered, the mean of the effect estimate is in the predicted negative direction; this implies that on average the object minus subject relative clause reading time difference is such that object relatives are read faster. However, the credible intervals span a wide range under all the priors; this is a consequence of the relatively small sample size in the study considered here.
+
+## Summary
+
+Working out appropriate priors for one's research problem is essentially a Fermi problem. One can use several different strategies for working out priors: introspection, a literature review, computing statistics from existing data, conducting a meta-analysis, using posteriors from existing data as priors for a new, closely related study, or formally eliciting priors from domain experts using a pre-defined prior-elicitation protocol. If a prior specification is too vague, this can lead to slow convergence or convergence problems, and could lead to biased Bayes factors (biased towards the null hypothesis); and if a prior is too informative, this can also bias the posterior. This inherent potential for bias in prior specification should be formally investigated using sensitivity analyses (with a collection of uninformative, skeptical, and informative priors of various types), and prior and posterior predictive checks. Although prior specification seems like a daunting task to the beginning student of Bayes, with time and experience one can develop a very well-informed set of priors for one's research problems.
+
+## Further reading
+
+For interesting (and amusing) examples of Fermi solutions to questions, see https://what-if.xkcd.com/84/. Two important books, @mahajan2010street and @mahajan2014art, unpack the art of approximation in mathematics and other disciplines; the approach presented in these books is closely related to the art of Fermi-style approximation. @danlevy is an important book that develops the analytical skill needed to figure out what your "tacit knowledge" about a particular problem is. @tetlock explains how experts deploy existing knowledge to derive probabilistic predictions (predictions that come with a certain amount of uncertainty) about real-world problems---this skill is closely related to prior (self-)elicitation. An excellent presentation of prior elicitation is in @ohagan2006uncertain. Useful discussions about priors are provided in @lunn2012bugs; @spiegelhalter2004bayesian; @gelmanPriorCanOften2017; and @simpsonPenalisingModelComponent2017.  The Stan website also includes some guidelines: Prior distributions for `rstanarm` models in https://mc-stan.org/rstanarm/articles/priors.html; and prior choice recommendations in https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations.
+@brownedraper and @gelman06 discuss prior specifications in hierarchical models.
+
+
+## Exercises {#sec-priorsexercises}
+
+```{exercise, PriorsRCs}
+Develop a plausible informative prior for the difference between object and subject relative clause reading times
+```
+
+Do a literature search on reading studies involving subject-modifying relative clause processing, and use the estimates from these published studies to work out a plausible informative prior for reading time differences at the relative clause verb. Some examples of relevant studies are @gibson2005reading, experiment 1 of @grodner, and @fedorenko2006nature; there are many others. (Note: This is an open-ended exercise with no correct answer.)
+
+```{exercise, Priorslocalcoherence}
+Extracting an informative prior from a published paper for a future study
+```
+
+In their experiment 1, @taboretal04 present a self-paced reading study with a repeated measures $2\times 2$ design. The details of the experiment are not important here, but a key estimate of interest in their reported results is the interaction of the two factors. The reported interaction estimate is $73$ ms, with a by-subjects repeated measures ANOVA F-score of $6.32$. Given this information, work out the standard error (SE) of the estimate of the $73$ ms. Using the estimated interaction effect and the estimated SE, derive an informative prior for a planned study that attempts to directly replicate experiment 1 in @taboretal04. (Hint: The F-score here is the square of the corresponding observed t-value, and we know that the t-value in a one-sample t-test is computed using the formula $t=\frac{\bar{x}-0}{SE}$, where $\bar{x}$ is the estimate of the effect of interest, here, the interaction effect.) 
+

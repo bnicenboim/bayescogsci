@@ -1,0 +1,780 @@
+# Cross-validation  {#ch-cv}
+
+
+A popular way to evaluate and compare models is to investigate their ability to make predictions for \index{Out-of-sample data} "out-of-sample data", that is, to use what we learned from the observed data to predict future or \index{Unseen observation} unseen observations. \index{Cross-validation} Cross-validation is used to test which of the models under consideration is/are able to learn the most from our data in order to make better predictions. In cognitive science, the goal is only rarely to predict future observations, but rather to compare how well different models fare in accounting for the observed data. Nevertheless, there are situations in cognitive science where evaluating the predictive performance of models becomes important.
+
+The objective of cross-validation is to avoid \index{Over-optimistic prediction} over-optimistic predictions; such over-optimistic predictions would arise if we were to use the data to estimate the parameters of our model, and then use these estimates to predict the same data. That amounts to using the data  twice. The basic idea behind cross-validation is that the models are fit with a large subset of the data, the \index{Training set} *training set*, and then the fitted models are used to predict a smaller, unseen part of the data, the \index{Held-out set} *held-out set*. 
+In order to treat the entire data set as a held-out set and evaluate the predictive accuracy \index{Predictive accuracy} using every observation, one successively changes what constitutes the training set and the held-out set by refitting the model and evaluating it in different folds. This ensures that the predictions of the model are tested over the entire data set.
+
+## The expected log predictive density of a model
+
+In order to compare the quality of the posterior predictions of two models,  a \index{Utility function} *utility* function or a \index{Scoring rule} *scoring rule* is used [see @GneitingRaftery2007 for a review on scoring rules].   The  \index{Logarithmic score rule} logarithmic score rule [@Good1952], shown in Equation \@ref(eq:lscore), has been proposed as a reasonable way to assess the \index{Posterior predictive distribution} posterior predictive distribution of a candidate model $\mathcal{M}_1$ given the data $y$. This approach is reasonable because it takes into account the uncertainty of the predictions (unlike, for example, using the mean square error). If new observations are well-accounted by the posterior predictive distribution, then the density of the posterior predictive distribution is high and so is its logarithm.
+
+\begin{equation}
+u( \mathcal{M}_1, y_{pred}) = \log p(y_{pred}| y, \mathcal{M}_1)
+(\#eq:lscore)
+\end{equation}
+
+Unlike the Bayes factor, the prior is absent from Equation  \@ref(eq:lscore). However, the prior does have a role here: The posterior predictive distribution is based on the posterior distribution $p(\Theta\mid y)$ (where $\Theta$ is a vector of all the parameters of the model), which, according to Bayes' rule, depends on both priors and likelihood together. Recall Equation \@ref(eq:postpp) in section \@ref(sec-ppd),  repeated here for convenience:
+
+\begin{equation}
+p(y_{pred}\mid y )=\int_\Theta p(y_{pred}\mid \Theta) p(\Theta\mid y)\, d\Theta
+(\#eq:postpp3)
+\end{equation}
+
+In Equation \@ref(eq:postpp3), we are implicitly conditioning on the model under consideration:
+
+\begin{equation}
+p(y_{pred}\mid y,  \mathcal{M}_1)=\int_\Theta p(y_{pred}\mid \Theta, \mathcal{M}_1) p(\Theta\mid y, \mathcal{M}_1)\, d\Theta
+(\#eq:postpp2)
+\end{equation}
+
+The predicted data, $y_{pred}$, are unknown to the utility function, so the utility function as presented in Equation \@ref(eq:lscore) cannot be evaluated. For this reason, we marginalize over *all possible future data* (calculating  $E[\log p(y_{pred}| y, \mathcal{M}_1)]$); this expression is called the \index{Expected log predictive density} expected log predictive density of model $\mathcal{M}_1$:
+
+\begin{equation}
+elpd = u(\mathcal{M}_1) = \int_{y_{pred}} p_t(y_{pred}) \log p(y_{pred} \mid y, \mathcal{M}_1) \, dy_{pred}
+(\#eq:elpd)
+\end{equation}
+
+where $p_t$ is the \index{True data generating distribution} true data generating distribution.  If we consider a set of models, the model with the highest \index{$elpd$} $elpd$ is the model with the predictions that are the closest to those of the true data generating process.^[Maximizing the $elpd$ in Equation \@ref(eq:elpd) is also equivalent to minimizing the \index{Kullback–Leibler (KL) divergence} Kullback–Leibler (KL) divergence from the true data generating distribution $p_t(y_{pred})$ to the *posterior predictive distribution* of the candidate model $\mathcal{M}_1$.] The intuition behind Equation \@ref(eq:elpd) is that we are evaluating the predictive distribution of   $\mathcal{M}_1$ over all possible future data weighted by how likely the future data are according to their true distribution. This means that observations that are very likely according to the true model will have a higher weight than unlikely ones.
+
+
+But we don't know the true data-generating distribution, $p_t$! If we knew it, we wouldn't be looking for the best model, since we would already know  what the best model is.
+
+We can use the \index{Observed data distribution} observed data distribution as a proxy for the true data generating distribution. So instead of weighting the predictive distribution by the true density of all possible future data, we just use the $N$ observations that we have. We can do that because our observations are presumed to be samples from the true distribution of the data: Under this assumption, observations with higher likelihood according to the true distribution of the data will also be obtained more often. This means that instead of integrating, we sum the posterior predictive density of the observations and we give to each observation the same weight; this is valid because observations that are appearing more often in the data should presumably also appear more often in the future (see also Box \@ref(thm:integral)). This quantity  is called \index{Log pointwise predictive density} *log pointwise predictive density* or \index{$lpd$} $lpd$ [@vehtariPracticalBayesianModel2017 write this without the $1/N$]:
+
+\begin{equation}
+lpd = \frac{1}{N} \sum_{n=1}^{N} \log p(y_n|y, \mathcal{M}_1)
+(\#eq:elpdapprox)
+\end{equation}
+
+The $lpd$ is an overestimate of *elpd* for actual future data, because the parameters of the posterior predictive distribution are estimated with the same observations that we are considering out-of-sample. Incidentally, this also explains why posterior predictive checks are generally optimistic and good fits cannot be taken too seriously. But they do serve the purpose of identifying very strong \index{Model misspecification} model misspecifications.^[The \index{Double use of the data} double use of the data is also a problem when one relies on information criteria like the \index{Akaike Information Criterion} Akaike Information Criterion (AIC) or the \index{Bayesian Information Criterion} Bayesian Information Criterion (BIC).]
+
+However, we can obtain a more conservative estimate  of the predictive performance of a model using cross-validation [@GeisserEddy1979]. This is explained next. [As an aside, we mention here that there are also other alternatives to cross-validation; these are presented in @VehtariOjanen2012].
+
+\Begin{extra}
+<div class="extra">
+
+```{theorem, integral}
+**How do we get rid of the integral in the approximation of elpd?**
+```
+
+As an example, imagine that there are $N$ observations in an experiment. Suppose also that the \index{True generative process} true generative process (which is normally always unknown to us) is a \index{Beta distribution} Beta distribution:
+
+\begin{equation}
+p_t(y) = \mathit{ Beta}(y | 1, 3)
+\end{equation}
+
+Set $N$ and observe some simulated data $y$:
+
+```{r}
+N <- 10000
+y_data <- rbeta(N, 1, 3)
+head(y_data)
+```
+
+Let's say that we fit the Bayesian model $\mathcal{M}_{1}$, and somehow, after getting the posterior distribution, we are able to derive the analytical form of its posterior predictive distribution for the model:
+
+\begin{equation}
+p(y_{pred} | y, \mathcal{M}_1) = \mathit{Beta}(y_{pred} | 2, 2)
+\end{equation}
+
+This distribution will tell us how likely different future observations will be, and it also entails that our future observations will be bounded by $0$ and $1$. (Any observation outside this range will have a probability density of zero).
+
+Imagine that we could know the true distribution of the data, $p_t$, which is conveniently close to our posterior predictive distribution. This means that Equation \@ref(eq:elpd), repeated below, is simple enough, and we know all its terms:
+
+\begin{equation}
+elpd = u(\mathcal{M}_1) = \int_{y_{pred}} p_t(y_{pred}) \log p(y_{pred} \mid y, \mathcal{M}_1)\, dy_{pred}
+\end{equation}
+
+We can compute this quantity in R. Notice that we don't introduce the data at any point. However, the data had to be used when `p`, the posterior predictive distribution, was derived; we skipped that step here.
+
+```{r}
+# True distribution:
+p_t <- function(y) dbeta(y, 1, 3)
+# Predictive distribution:
+p <- function(y) dbeta(y, 2, 2)
+# Integration:
+integrand <- function(y) p_t(y) * log(p(y))
+integrate(f = integrand, lower = 0, upper = 1)$value
+```
+
+Because we will never know `p_t`, this integral can be approximated using the data, `y_data`. It is possible to approximate the integration without any reference to `p_t`; see Equation \@ref(eq:elpdapprox):
+
+```{r}
+1/N * sum(log(p(y_data)))
+```
+
+The main problem with this approach is that we are using `y_data` twice, once to derive `p`, the predictive posterior distribution, and once for the approximation of $elpd$.  We'll see that cross-validation approaches rely on deriving the posterior predictive distribution with part of the data, and estimating the approximation to $elpd$ with unseen data. (Don't worry that we don't know the analytical form of the posterior predictive distribution: we saw that we could generate samples from that distribution based on the distribution we use as the likelihood and our posterior samples.)
+
+
+</div>
+\End{extra}
+
+## K-fold and leave-one-out cross-validation
+
+
+
+The basic idea of \index{K-fold cross-validation} K-fold cross-validation \index{K-fold-CV} (K-fold-CV) is to split the $N$ observations of our data into K subsets, such that each subset is used as a \index{Validation set} validation (or held-out) set, $D_k$, while the remaining set (the \index{Training set} training set), $D_{-k}$ is used for estimating the parameters and approximating $p_t$, the true data distribution. The \index{Leave-one-out cross-validation} leave-one-out cross-validation \index{LOO-CV} (LOO-CV) method represents a special case of K-fold-CV where, $K=N$ and the training set only excludes one observation. For the general case, K-fold-CV, we estimate $elpd$ as follows.
+
+\begin{equation}
+\widehat{elpd} =  \frac{1}{N} \sum_{n=1}^{N} \log  p(y_n| D_{-k}, \mathcal{M}_1) \text{ with }
+y_n \in D_k (\#eq:approxelpd)
+\end{equation}
+
+In Equation \@ref(eq:approxelpd), each observation, $y_n$, belongs to a certain \index{Validation fold} "validation" fold, $D_k$, and the predictive accuracy of $y_n$ is evaluated based on a posterior predictive model trained on the set, $D_{-k}$, which is the complete data set excluding the validation fold that contains the $n$-th observation. This means that the posterior predictive distribution used to evaluate $y_{n}$ was derived without having information from that $y_n$-th observation (in other words, the model was trained without that observation in the subset of the data, $D_{-k}$).
+
+In K-fold-CV, several observations are held out in same (validation) fold. This means that the held-out observations are split among K folds, and $D_{-k}$,  the data used to derive the posterior predictive distribution, contain only a proportion of the observations; this proportion is $(1 - 1/K)$. By contrast, in leave-one-out cross-validation, the held-out data set includes only one observation. That is, $D_{-k}$ contains the entire data set except for one data point, $y_n$, with $n=1,\dots,N$, that is $D_{-n}$. Box \@ref(thm:CV-alg) explains the algorithm in detail.
+
+For the general case of K-fold-CV, @vehtariPracticalBayesianModel2017 define the \index{Expected log pointwise predictive density} expected log *pointwise* predictive density of the observation $y_n$ as follows:
+
+\begin{equation}
+\widehat{elpd}_{n} =  \log  p(y_n| D_{- k} , \mathcal{M}_1) \text{ with } y_n \in D_k
+\end{equation}
+
+This quantity indicates the predictive accuracy of the model $\mathcal{M}_1$ for a single observation, and it  is reported in the package \index{\texttt{loo}} `loo` and also in \index{brms} `brms`. In addition, the `loo` package uses the sum of the expected log pointwise predictive density, $\sum \widehat{elpd}_n$ (Equation \@ref(eq:approxelpd) without $\frac{1}{N}$) as a measure of predictive accuracy (this is referred to as \index{\texttt{elpd\_loo}} `elpd_loo` or \index{\texttt{elpd\_kfold}} `elpd_kfold` in the packages `loo` and `brms`). For model comparison, the difference between the $\sum \widehat{elpd}_n$  of competing models can be computed, including the standard deviation of the sampling distribution of the difference. It's important to notice that we are calculating an approximation to the expectation that we actually want to compute, $elpd$, and thus we always need to consider its inherent randomness (due to having a limited amount of data), which is quantified by the standard error [@vehtariLimitationsLimitationsBayesian2019].
+
+Unlike what is common with information criterion methods (such as the \index{Akaike Information Criterion} Akaike Information Criterion, AIC, and the \index{Deviance Information Criterion} Deviance Information Criterion, \index{DIC} DIC), a higher \index{$elpd$} $\widehat{elpd}$ means higher predictive accuracy. An alternative to using $\widehat{elpd}$ is to examine $-2\times \widehat{elpd}$, which is equivalent to deviance, and is called the \index{LOO Information Criterion} LOO Information Criterion \index{LOOIC} (LOOIC) [see section 22 of @FAQCV].
+
+The approximation to the true data generating distribution is worse when fewer observations are used, and thus ideally we would set $K =N$, and thus compute LOO-CV rather than K-fold-CV. The main advantage of LOO-CV is its \index{Robustness} robustness, since the training set is as similar as possible to the observed data, and the same observations are never used simultaneously for training and evaluating the predictions. A major disadvantage is the \index{Computational burden} computational burden [@VehtariOjanen2012], since we need to fit a model as many times as the number of observations. The package `loo` provides an approximation to LOO-CV, \index{Pareto smoothed importance sampling} Pareto smoothed importance sampling leave-one-out [\index{PSIS-LOO} PSIS-LOO; @VehtariGelman2015Pareto; @vehtariPracticalBayesianModel2017]  which, as we show next, is relatively straightforward to use in `brms` and in Stan models (see https://mc-stan.org/loo/articles/loo2-with-rstan.html). However, in some cases, its estimates can be unreliable; this is indicated by the estimated \index{Shape parameter} shape parameter $\hat{k}$ of the \index{Generalized Pareto distribution} generalized Pareto distribution (https://mc-stan.org/loo/reference/pareto-k-diagnostic.html).  The value $\hat{k}$ (which is unrelated to the $k$ in K-fold-CV) estimates how far an approximated individual leave-one-out distribution is from the full distribution. If leaving out an observation substantially alters the posterior, then importance sampling cannot provide a reliable estimate. Very high $\hat{k}$ values often indicate model misspecification, outliers, or mistakes in data processing. The threshold for $\hat{k}$ depends on the sample size [@VehtariGelman2015Pareto] and it is reported by the `loo()` function. In  cases, where one or several pointwise predictive density have associated large  $\hat{k}$, either (i) the problematic predictions can be refitted with \index{Exact LOO-CV} exact LOO-CV, (ii) one can try some additional computations using the existing posterior sample based on the \index{Moment matching approximation} moment matching approximation [see https://mc-stan.org/loo/articles/loo2-moment-matching.html and @Paananen_2021], or (iii) one can abandon PSIS-LOO-CV and use K-fold-CV, with K typically set to 10.
+
+One of the main disadvantages of cross-validation (in comparison with Bayes factor at least) is that the numerical difference in predictive accuracy is hard to interpret. As a rule of thumb, it has been suggested that if the `elpd` difference (\index{\texttt{elpd\_diff}} `elpd_diff` in the `loo` package) is less than 4, the difference is small, and if it is larger than 4, one should  compare that difference to its standard error  \index{\texttt{se\_diff}} (`se_diff`) [see section 16 of @FAQCV].
+
+
+
+\Begin{extra}
+<div class="extra">
+
+```{theorem, CV-alg}
+**The cross-validation algorithm**
+```
+
+Here we spell out the Bayesian \index{Cross-validation algorithm} cross-validation algorithm in detail:
+
+1. Split the data pseudo-randomly into $K$ held-out or validation sets $D_k$, (where $k=1,\dots,K$) that are a fraction of the original data, and $K$ training sets, $D_{-k}$.  The length of the held-out data vector $D_k$ is approximately $1/K$-th the size of the full data set. It is common to  use $K=10$ for K-fold-CV. For LOO-CV, K should be set to the number of observations.
+
+2. Fit $K$ models using each of the $K$ training sets, and obtain posterior distributions $p_{-k} (\Theta) = p(\Theta\mid D_{-k})$, where $\Theta$ is the vector of model parameters.
+
+3. Each posterior distribution $p(\Theta\mid D_{-k})$ is used to compute the predictive accuracy for each held-out data-point $y_n$ in the vector $D_{k}$:
+
+  \begin{equation}
+    \widehat{elpd}_n = \log p(y_n \mid D_{-k}) \text{ with } y_n \in D_k
+  \end{equation}
+
+   Given that the posterior distribution $p(\Theta\mid D_{-k})$ is summarized by $S$ samples, the log predictive density for each data point $y_n$ in a data vector $D_k$ can be approximated as follows:
+
+  \begin{equation}
+    \widehat{elpd}_n = \log \left(\frac{1}{S} \sum_{s=1}^S p(y_n\mid \Theta^{k,s})\right)
+    (\#eq:pwkfold)
+  \end{equation}
+
+   where $\Theta^{k,s}$ corresponds to the sample $s$ of the posterior of the model fit to the training set $D_-k$.
+
+5. We obtain the $elpd_{kfold}$ (or $elpd_{loo}$) for all the held-out data points by summing up the $\widehat{elpd}_n$:
+
+  \begin{equation}
+    elpd_{kfold} = \sum_{n=1}^N \widehat{elpd}_n
+    (\#eq:totalkfold)
+  \end{equation}
+
+The \index{Standard deviation of the sampling distribution} standard deviation of the sampling distribution (the \index{Standard error} standard error) can be computed by multiplying the standard deviation (or square root of variance) of the $N$ components  by $\sqrt{N}$. Letting $\widehat{ELPD}$ be the vector $\widehat{elpd}_1,\dots,\widehat{elpd}_N$, the standard error is computed as follows:
+
+\begin{equation}
+se(\widehat{elpd}) = \sqrt{N \mathit{Var}(\widehat{ELPD})}
+(\#eq:sekfold)
+\end{equation}
+
+  The difference between the $elpd_{kfold}$ of two competing models, $\mathcal{M}_1$ and $\mathcal{M}_2$ , is a measure of \index{Relative predictive performance} relative predictive performance. The  standard error of their difference can be computed using the formula discussed in @vehtariPracticalBayesianModel2017:
+
+\begin{equation}
+se(\widehat{elpd}_{\mathcal{M}1} - \widehat{elpd}_{\mathcal{M}2}) = \sqrt{N \mathit{Var}(\widehat{ELPD_{\mathcal{M}1}} - \widehat{ELPD_{\mathcal{M}2}})}
+(\#eq:sekfolddiff)
+\end{equation}
+
+</div>
+\End{extra}
+
+
+
+## Testing the N400 effect using cross-validation
+
+As in section \@ref(sec-N400BF) with the Bayes factor, let us revisit section \@ref(sec-N400hierarchical), where the effect of cloze probability on the \index{N400} N400 average signal was estimated. Consider two models here, a model that includes the effect of \index{Cloze probability} cloze probability, such as `fit_N400_sih` from section \@ref(sec-sih), and a null model.
+
+Verify the model that was fit; this is a hierarchical model that includes an effect of cloze probability:
+
+```{r formulafit}
+formula(fit_N400_sih)
+```
+
+In contrast to the situation with Bayes factor, priors are less critical for cross-validation. Priors are only important in cross-validation to the extent that they affect parameter estimation: As discussed earlier, very narrow priors can bias the posterior; and unrealistically wide priors can lead to convergence problems. The \index{Number of samples} number of samples is also less critical than with Bayes factor; most of the uncertainty in the estimates of the $\widehat{elpd}$ is due to the number of observations. However, a very small number of samples can affect the $\widehat{elpd}$ because the posterior estimation will be affected by the small sample size.
+We update our previous formula to define a null model as follows:
+
+```{r update-fit-sih, message = FALSE, return = "hide", eval = !file.exists("dataR/fit_N400_sih_null.RDS")}
+fit_N400_sih_null <- update(fit_N400_sih, ~ . - c_cloze)
+```
+
+```{r, echo= FALSE, eval = TRUE}
+if(!file.exists("dataR/fit_N400_sih_null.RDS")){
+  saveRDS(fit_N400_sih_null, "dataR/fit_N400_sih_null.RDS")
+} else {
+  fit_N400_sih_null <- readRDS("dataR/fit_N400_sih_null.RDS")
+}
+```
+
+
+### Cross-validation with PSIS-LOO
+
+Estimating $elpd$ using \index{PSIS-LOO} PSIS-LOO is very straightforward with \index{brms} `brms`, which uses the package \index{\texttt{loo}} `loo` as a back-end. There is no need to refit the model, and `loo` takes care of applying the PSIS approximation to derive estimates and standard errors.
+
+```{r loo-nested}
+(loo_sih <- loo(fit_N400_sih))
+(loo_sih_null <- loo(fit_N400_sih_null))
+```
+
+The function `loo` reports three quantities with their standard error:
+
+1. \index{\texttt{elpd\_loo}} `elpd_loo` is the \index{Sum of pointwise predictive accuracy} sum of pointwise predictive accuracy (a larger, less negative number indicates better predictions).
+2. \index{\texttt{p\_loo}} `p_loo` is an estimate of \index{Effective complexity of the model} effective complexity of the model; asymptotically and under certain regularity conditions, `p_loo` can be interpreted as the effective number of parameters. If `p_loo` is larger than the number of data points or parameters, this may indicate a severe model misspecification.
+3. \index{\texttt{looic}} `looic` is simply `-2*elpd_loo`, the $elpd$ on the \index{Deviance scale} deviance scale. This is called the \index{Information criterion} information criterion, and is mainly provided for historical reasons: other information criteria like the AIC (Akaike Information Criterion) and the DIC (Deviance Information Criterion) are commonly used in model selection [@venablesripley; @lunn2012bugs].
+
+It's important to bear in mind that the PSIS-LOO approximation to LOO can only be trusted if there are no large \index{Pareto k estimate} Pareto ($\hat{k}$) estimates. To compare the models, take a look at the difference between `elpd_loo` and the standard error of that difference:
+
+```{r, loocompare}
+loo_compare(loo_sih, loo_sih_null)
+```
+
+Although the model that includes cloze probability as a predictor has higher predictive accuracy, the difference is smaller than 4 and it's smaller than two SE. This means that from the perspective of LOO-CV, both models are almost indistinguishable! In fact, the same will happen if the model is compared using logarithmic predictability to the linear or null model; see exercise \@ref(exr:logcv).
+
+It is also possible to check whether the alternative model is making good predictions for some range of values by examining the difference in pointwise predictive accuracy as a function of, for example, cloze probability. In the following plot, we subtract the predictive accuracy of the alternative model from the accuracy of the null model; larger differences can be interpreted as an advantage for the alternative model. However, as far as posterior predictive accuracy goes, both models are quite similar. Figure \@ref(fig:diffpredacc) shows that the difference in predictive accuracy is symmetrical with respect to the zero; as we go further from the mean cloze (which is around $0.5$), the differences in predictions are larger but they span positive and negative values.
+
+The following code stores the difference in predictive accuracy of the models in a variable and plots it in Figure \@ref(fig:diffpredacc).
+
+```{r diffpredacc, fig.cap = "The difference in predictive accuracy between a model including the effect of cloze and a null model. A larger (more positive) difference indicates an advantage for the model that includes the effect of cloze."}
+df_eeg <- mutate(df_eeg,
+                 diff_elpd = loo_sih$pointwise[, "elpd_loo"] -
+                   loo_sih_null$pointwise[, "elpd_loo"])
+ggplot(df_eeg, aes(x = cloze, y = diff_elpd)) +
+  geom_point(alpha = .4, position = position_jitter(w = .001, h = 0))
+```
+
+The expectation was that, similar to the Bayes factor, cross-validation techniques will also show that a model that includes cloze probability as a predictor is superior to a model without it. It is unsettling that the above result does not show this: the effect of cloze probability on the N400 has been replicated in numerous studies.
+
+
+Before discussing why a large difference was not observed, let us check what K-fold-CV yields.
+
+
+### Cross-validation with K-fold
+
+Estimating $elpd$ using \index{K-fold-CV} k-fold-CV has the advantage of omitting one layer of approximations: the $elpd$ based on PSIS-LOO-CV is an approximation of the $elpd$ based on *exact* LOO-CV (and we saw how any cross-validation approach gave us an approximation to the true $elpd$). This means that we don't need to worry about $\hat{k}$. However, K-fold also uses a reduced training set in comparison with LOO, worsening the approximation to the true generating process $p_{t}$.
+
+Before dividing our data into folds, we need to think about the way the data will be split: The data could be split randomly, but this approach would have the risk that in some of the training sets, observations from a particular subject, for example, could be completely absent. Such an omission will lead to large differences in predictive accuracy between folds. This situation can be avoided by using \index{Stratification} stratification: split the observations into groups, ensuring that relative category frequencies are approximately preserved in the training and held-out data. This stratification can be achieved by using the \index{\texttt{kfold}} `kfold()` function, available in the package `brms`, by setting `folds = "stratified"` and `group = "subj"`, by default `K` is set to 10, but that can be changed. Additionally, since we know the models converge, we use only one chain for each model and parallelize the fitting procedure with the `plan(multisession)` function from the `future` package, returning to the default setting with `plan(sequential)`.
+
+```{r kfold-nested1, message = FALSE, results = "hide", eval = !file.exists("dataR/kfold_sih.RDS")}
+library(future)
+plan(multisession, workers = 4)
+kfold_sih <- kfold(fit_N400_sih,
+                   folds = "stratified",
+                   group = "subj",
+                   chains = 1)
+kfold_sih_null <- kfold(fit_N400_sih_null,
+                         folds = "stratified",
+                         group = "subj")
+plan(sequential)
+```
+
+
+```{r, echo= FALSE}
+if(!file.exists("dataR/kfold_sih.RDS")){
+  saveRDS(kfold_sih, "dataR/kfold_sih.RDS")
+} else {
+  kfold_sih <- readRDS("dataR/kfold_sih.RDS")
+}
+```
+```{r, echo= FALSE}
+if(!file.exists("dataR/kfold_sih_null.RDS")){
+  saveRDS(kfold_sih_null, "dataR/kfold_sih_null.RDS")
+} else {
+  kfold_sih_null <- readRDS("dataR/kfold_sih_null.RDS")
+}
+```
+Running K-fold CV takes some time since each model is re-fit K times. Inspect the $elpd$ values:
+
+```{r}
+kfold_sih
+kfold_sih_null
+```
+
+Compare the two models using \index{\texttt{loo\_compare}} `loo_compare` (this function is used for both PSIS-LOO-CV and K-fold-CV):
+
+```{r}
+loo_compare(kfold_sih, kfold_sih_null)
+```
+
+Because the \(\hat{elpd}\) values depend on how the folds were formed, K-fold CV introduces an additional element of randomness compared to (PSIS-)LOO-CV. To verify the robustness of the results, one can rerun the `kfold()` function so that different random configurations of the folds are selected. In this case, however, the results with K-fold-CV and PSIS-LOO-CV are quite similar: The two models can't really be distinguished.
+
+
+### Leave-one-group-out cross-validation
+
+An alternative to splitting the observations randomly using stratification is to treat naturally occurring clusters as folds;  this is \index{Leave-one-group-out cross-validation} leave-one-group-out cross-validation \index{LOGO-CV} (LOGO-CV). The output of LOGO-CV tells us about the capacity of the models for generalizing to unseen clusters. LOGO-CV is implemented next using  subjects as the group of interest.
+
+In general, there is some tension between the arguments for K-fold-CV with folds stratified by subject, which ensures data from all subjects in each fold, and for LOGO-CV, which isolates data from different subjects. However, the two approaches have different goals and merits. The first approach answers how well the model generalizes to unseen data from this particular set of participants. The second approach addresses how well the model generalizes to the behavior of unseen participants if we were to collect more data.
+
+
+```{r lgo-nested1, message = FALSE, results = "hide", eval = !file.exists("dataR/lgo_sih.RDS")}
+plan(multisession, workers = 4)
+logo_sih <- kfold(fit_N400_sih,
+                  group = "subj",
+                  chains = 1)
+logo_sih_null <- kfold(fit_N400_sih_null,
+                       group = "subj",
+                       chains = 1)
+plan(sequential)
+```
+```{r, echo= FALSE}
+if(!file.exists("dataR/lgo_sih_null.RDS")){
+  saveRDS(logo_sih_null, "dataR/lgo_sih_null.RDS")
+} else {
+  logo_sih_null <- readRDS("dataR/lgo_sih_null.RDS")
+}
+```
+```{r, echo= FALSE}
+if(!file.exists("dataR/lgo_sih.RDS")){
+  saveRDS(logo_sih, "dataR/lgo_sih.RDS")
+} else {
+  logo_sih <- readRDS("dataR/lgo_sih.RDS")
+}
+```
+
+Running LOGO-CV with subjects takes even longer since each model is re-fit as many times as there are subjects, in this case 37 times. We can now inspect the $elpd$ estimates and evaluate which model generalizes better to unseen subjects.
+
+Compare the models using `loo_compare`.
+
+```{r}
+loo_compare(logo_sih, logo_sih_null)
+```
+
+As before, and as with PSIS-LOO-CV and with K-fold-CV, the two models can't be distinguished.
+Even though the full model and the null model presented earlier make different predictions, the difference in predictive accuracy is not substantial compared to the variability in the data. In these situations, cross-validation is not very useful for distinguishing very small effect sizes from zero effect sizes; see also section \@ref(sec-issuesCV) below.
+
+
+## \index{Comparing different likelihoods} Comparing different likelihoods with cross-validation {#sec-logcv}
+
+One can also compare two models with different likelihoods.  Section \@ref(sec-lognormal) in chapter \@ref(ch-compbda) showed how a log-normal distribution was a more appropriate likelihood than a normal distribution for response times data. This was because \index{Response time} response times are bounded by zero and right skewed, unlike the symmetrical normal distribution. Let's use PSIS-LOO-CV to compare the predictive accuracy of the Stroop model from section \@ref(sec-stroop) in chapter \@ref(ch-hierarchical), which assumed a \index{Log-normal likelihood} log-normal likelihood to fit response times of correct responses with a similar model which assumes a normal likelihood. We can only compare models fit to the same data; we can't compare models fit to different dependent variables (e.g., one raw dependent variable and one log-transformed).
+
+Load the data from `bcogsci`, create a sum-coded predictor (see chapter \@ref(ch-contr) for more details), and fit the model as in section  \@ref(sec-stroop).
+
+```{r, message = FALSE}
+data("df_stroop")
+df_stroop <- df_stroop %>%
+  mutate(c_cond = if_else(condition == "Incongruent", 1, -1))
+```
+
+
+```{r stroopm2, message = FALSE, results = "hide", eval = !file.exists("dataR/fit_stroopm2.RDS")}
+fit_stroop_log <- brm(RT ~ c_cond + (c_cond | subj),
+  family = lognormal(),
+  prior = c(prior(normal(6, 1.5), class = Intercept),
+            prior(normal(0, 1), class = b),
+            prior(normal(0, 1), class = sigma),
+            prior(normal(0, 1), class = sd),
+            prior(lkj(2), class = cor)),
+  data = df_stroop)
+```
+```{r, echo= FALSE}
+if(!file.exists("dataR/fit_stroopm2.RDS")){
+  saveRDS(fit_stroop, "dataR/fit_stroopm2.RDS")
+} else {
+  fit_stroop_log <- readRDS("dataR/fit_stroopm2.RDS")
+}
+```
+
+Calculate the $elpd_{loo}$ for the original model with the log-normal likelihood:
+
+```{r,  eval = !file.exists("dataR/loo_stroop_log.RDS")}
+loo_stroop_log <- loo(fit_stroop_log)
+```
+```{r, echo= FALSE}
+if(!file.exists("dataR/loo_stroop_log.RDS")){
+  saveRDS(loo_stroop_log, "dataR/loo_stroop_log.RDS")
+} else {
+  loo_stroop_log <- readRDS("dataR/loo_stroop_log.RDS")
+}
+```
+
+```{r}
+loo_stroop_log
+```
+
+The summary shows that $k$ estimates are ok.
+
+```{r, echo= FALSE}
+if(!file.exists("dataR/fit_stroopm2.RDS")){
+  saveRDS(fit_stroop, "dataR/fit_stroopm2.RDS")
+} else {
+  fit_stroop <- readRDS("dataR/fit_stroopm2.RDS")
+}
+```
+
+
+Now fit a similar model which assumes that the likelihood is a normal distribution. It's important now to change the priors since they are on a different scale (namely, in milliseconds). We choose reasonable but wide priors. A \index{sensitivity analysis} sensitivity analysis can be done if we are unsure about the priors. However, unlike what happened with the Bayes factor in chapter \@ref(ch-bf), the priors are going to affect cross-validation based model comparison only as far as they have a noticeable effect on the posterior distribution.
+
+
+```{r stroopm2null, message = FALSE, results = "hide", eval = !file.exists("dataR/fit_stroopm2_normal.RDS")}
+fit_stroop_normal <- brm(RT ~ c_cond + (c_cond | subj),
+  family = gaussian(),
+  prior = c(prior(normal(400, 600), class = Intercept),
+            prior(normal(0, 100), class = b),
+            prior(normal(0, 300), class = sigma),
+            prior(normal(0, 300), class = sd),
+            prior(lkj(2), class = cor)),
+  data = df_stroop)
+```
+```{r, echo= FALSE}
+if(!file.exists("dataR/fit_stroopm2_normal.RDS")){
+  saveRDS(fit_stroop_normal, "dataR/fit_stroopm2_normal.RDS")
+} else {
+  fit_stroop_normal <- readRDS("dataR/fit_stroopm2_normal.RDS")
+}
+```
+
+The $elpd$ based on PSIS-LOO-CV has several large $\hat{k}$ values.
+
+```{r,  eval = !file.exists("dataR/loo_stroop_normal_bad.RDS")}
+loo_stroop_normal <- loo(fit_stroop_normal)
+```
+```{r, echo= FALSE}
+if(!file.exists("dataR/loo_stroop_normal_bad.RDS")){
+  saveRDS(loo_stroop_normal, "dataR/loo_stroop_normal_bad.RDS")
+} else {
+  loo_stroop_normal <- readRDS("dataR/loo_stroop_normal_bad.RDS")
+}
+```
+
+```{r}
+loo_stroop_normal
+```
+
+We use \index{Exact LOO} exact LOO (rather than its approximation) for the problematic observations. By setting \index{\texttt{reloo}} `reloo = TRUE`, the 3 problematic observations with $\hat{k}$ values over $0.7$ are re-fit  using exact LOO-CV.^[An alternative approach is to use the \index{Model matching approximation} model matching approximation for problematic observations [@Paananen_2021], by setting \index{\texttt{moment\_match}} `moment_match = TRUE` in the `loo()` call (and we also need to fit the model with `save_pars = save_pars(all = TRUE)`). In this particular case, this approximation won't solve our problem.]
+
+```{r, eval = !file.exists("dataR/loo_stroop_normal.RDS")}
+loo_stroop_normal <- loo(fit_stroop_normal, reloo = TRUE)
+```
+
+```{r, echo= FALSE}
+if(!file.exists("dataR/loo_stroop_normal.RDS")){
+  saveRDS(loo_stroop_normal, "dataR/loo_stroop_normal.RDS")
+} else {
+  loo_stroop_normal <- readRDS("dataR/loo_stroop_normal.RDS")
+}
+```
+
+```{r}
+loo_stroop_normal
+```
+
+Next, compare the models.
+
+```{r }
+loo_compare(loo_stroop_log, loo_stroop_normal)
+```
+
+Here, cross-validation shows a clear advantage for the model with the log-normal likelihood. Figure \@ref(fig:diffpredacclog) visualizes the pointwise predictive accuracy.
+
+```{r diffpredacclog, fig.cap = "The difference in predictive accuracy between a Stroop model with a log-normal likelihood and a model with a normal likelihood. A larger (more positive) difference indicates an advantage for the model with the log-normal likelihood."}
+df_stroop <- df_stroop %>%
+  mutate(diff_elpd = loo_stroop_log$pointwise[, "elpd_loo"] -
+           loo_stroop_normal$pointwise[, "elpd_loo"])
+ggplot(df_stroop, aes(x = RT, y = diff_elpd)) +
+  geom_point(alpha = .4) + xlab("RC (ms)")
+```
+
+Figure \@ref(fig:diffpredacclog) shows that at first glance, the advantage of the log-normal likelihood seems to lie in being able to capture extremely slow observations. Figure \@ref(fig:diffpredacclog2) zooms in to visualize the pointwise predictive accuracy for observations with response times smaller than two seconds.
+
+```{r diffpredacclog2, fig.cap = "The difference in predictive accuracy between a Stroop model with a log-normal likelihood and a model with a normal likelihood for observations smaller than two seconds. A larger (more positive) difference indicates an advantage for the model with the log-normal likelihood."}
+ggplot(df_stroop, aes(x = RT, y = diff_elpd)) +
+  geom_point(alpha = .3) +
+  xlab("RC (ms)") +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  coord_cartesian(xlim = c(0, 2000), ylim = c(-10, 10))
+```
+
+Figure \@ref(fig:diffpredacclog2) suggests that the advantage of the log-normal likelihood seems to lie in being able to account for most of the observations in the data set, which occur around the $500$ ms.
+
+## Issues with cross-validation {#sec-issuesCV}
+
+@sivula2020uncertainty analyzed the behavior of the \index{Uncertainty estimate of the $elpd$} uncertainty estimate of the $elpd$ in typical situations. Although they focus on LOO-CV, the  consequences are the same for K-fold-CV (and cross-validation in a non-Bayesian context).  @sivula2020uncertainty identified three cases where the uncertainty estimates can perform badly:
+
+1. The models make very similar predictions.
+2. The number of observations is small.
+3. The models are misspecified with outliers (influential extreme values) in the data.
+
+When the models make similar predictions (as it is the case with nested models in earlier model comparisons), and when there is not much difference in the predictive performance of the models, the uncertainty estimates will behave badly. In these situations, cross-validation is not very useful for separating very small effect sizes from zero effect sizes.
+In addition, small differences in the predictive performance cannot reliably be detected by cross-validation if the number of observations is small. However, if the predictions are very similar, @sivula2020uncertainty show that the same problems persist even with a larger data set.
+
+One of the issues that cross-validation methods face when they are used to compare nested models lies in the way that the exact $elpd$ is approximated: In cross-validation approximations,  out-of-sample observations are used, which are not part of the model that was fit. Every time the predictive accuracy of an observation is evaluated,  modeling assumptions are ignored. One of the weaknesses of cross-validation is the high variance in the approximation of the integral over the unknown true data distribution, $p_t$ [@VehtariOjanen2012, section 4].
+
+Cross-validation methods are sometimes criticized because when a lot of data are available, they will give  undue preference to the complex model in comparison to a true simpler model [@gronauLimitationsBayesianLeaveOneOut2018]. This might be true for toy examples using simulated data, where it is possible to obtain essentially unlimited observations, and where a model that is known to be wrong is compared with the true model.^[If the true model is under consideration among the models being compared, we are under an $M_{closed}$ scenario. However, this is rarely realistic. The most common case is an $M_{open}$ scenario [@bernardosmith], where the true model is not included in the set of models being compared.] However, the problems that occur in practice are often very different:  This is because the true model is unknown and very likely not even under consideration in the model comparison [see @navarroDevilDeepBlue2018]. In our experience, in practical settings we are very far from the asymptotic behavior of cross-validation whereby it gives undue preference to a more complex model in comparison to a true simpler model. The main weakness of cross-validation is that, as mentioned above, modeling assumptions are ignored, which  prevents it from selecting a more complex model rather than a simple one when there is only a modest gain in predictive fit [@vehtariLimitationsLimitationsBayesian2019].
+
+An alternative to the cross-validation approach discussed here for nested models is the \index{Projection predictive method} projection predictive method [@Piironenetal2020]. However, this approach (which is less general since it is valid only for  \index{Generalized linear models} generalized linear models) has a somewhat different objective. In the projection predictive method, we first build the most complete predictive model, the \index{Reference model} *reference model*, and then we look for a simpler model that gives as similar predictions as the reference model. The idea is that for a given complexity (number of predictors), the model with the smallest predictive discrepancy to the reference model should be selected. See https://github.com/stan-dev/projpred for an implementation of this approach. Thus this approach focuses on model simplification rather than on model comparison.
+
+For models that are badly misspecified, the bias in the uncertainty makes their comparison unreliable as well. In this case, posterior predictive checks and possible model refinements are worth considering  before carrying out model comparison.
+
+If there is a large number of observations and the models under consideration are different enough from each other, the differences in predictive accuracy will dwarf the variance in the estimate of $elpd$, and cross-validation can be very useful [see also @piironenComparisonBayesianPredictive2017]. An example of this situation appeared in section \@ref(sec-logcv). When models are very different, one advantage of cross-validation methods in comparison with the Bayes factor is that the selection of priors is less critical in cross-validation. It is sometimes hard to decide on priors that encode our knowledge for one model,  and this difficulty is exacerbated when we want to assign comparable prior information to models with a different number of parameters that might be on a different scale. Given that cross-validation methods are less sensitive to prior specification, different models can be compared on the same footing. Another difficulty with Bayes factors' dependency on priors is that different researchers may disagree on the priors, and selecting an uninformative prior to encompass these different views as a middle ground is not a neutral option for the Bayes factor, while it will barely affect cross-validation. See @nicenboimModelsRetrievalSentence2018  for an example from psycholinguistics where K-fold-CV does help in distinguishing between models.
+
+
+
+## Cross-validation in Stan
+
+PSIS-LOO-CV and K-fold-CV can also be used with our Stan models, but care has to be taken to store the appropriate log-likelihood in the \index{\texttt{generated quantities}} `generated quantities` block.^[This means the sampling notation should not be used in this block (see Box \@ref(thm:tilde)).]
+
+### \index{PSIS-LOO-CV in Stan} PSIS-LOO-CV in Stan
+
+As explained earlier, PSIS-LOO (as implemented in the package `loo`) approximates the likelihood of the held-out data based on the observed data: it's faster (because only one model is fit), and it only requires a minimal modification of the Stan code we need to fit a model. By default, Stan only saves the sum of the log likelihood of each observation (in the parameter `lp__`). The log-likelihood of each observation needs to be stored in the generated quantities block.
+
+We revisit the model implemented in section  \@ref(sec-interstan), which was evaluated using the Bayes factor  in section \@ref(sec-stanBF). Now, we want to compare the predictive performance of a model that assumes an effect of \index{Attentional load} attentional load on \index{Pupil size} pupil size against a similar model that assumes no effect. To do this, we assume the following likelihood:
+
+\begin{equation}
+p\_size_n \sim \mathit{Normal}(\alpha + c\_load_n \cdot \beta_1 + c\_trial \cdot \beta_2 + c\_load \cdot c\_trial \cdot \beta_3, \sigma)
+\end{equation}
+
+Define priors for all the $\beta$'s as before:
+
+\begin{equation}
+\begin{aligned}
+\alpha &\sim \mathit{Normal}(1000, 500) \\
+\beta_{\{1,2,3\}} &\sim \mathit{Normal}(0, 100) \\
+\sigma &\sim \mathit{Normal}_+(0, 1000)
+\end{aligned}
+\end{equation}
+
+
+Prepare the data as in section \@ref(sec-interstan):
+
+```{r , message = FALSE}
+df_pupil <- df_pupil %>%
+  mutate(c_load = load - mean(load),
+         c_trial = trial - mean(trial))
+ls_pupil <- list(c_load = df_pupil$c_load,
+                 c_trial= df_pupil$c_trial,
+                 p_size = df_pupil$p_size,
+                 N = nrow(df_pupil))
+```
+
+Add a `generated quantities` block to the model shown below. (It is also possible to run this block in a stand-alone file with the `rstan` function `gqs()`). If the variable name \index{\texttt{log\_lik}} `log_lik` is used  in the Stan code, the `loo` package will know where to find the log likelihood of the observations.
+
+```{r, echo = FALSE}
+pupil_cv <- system.file("stan_models",
+                        "pupil_cv.stan",
+                        package = "bcogsci")
+```
+
+Code the effects as `beta1`, `beta2`, `beta3` to more easily compare the model with the one used in the BF chapter, but in this case we could have used a vector or an array instead. This is the model `pupil_cv.stan` shown below:
+
+```{stan output.var = "pupilmodel_cv", code = readLines(pupil_cv),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+For the null model, just omit the term with `beta1` in both the model block and the generated quantities block. This is the model `pupil_null.stan` shown below:
+
+```{stan output.var = "pupilintBF_stan", code =readLines(pupil_null),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+The models can be found in the `bcogsci` package:
+```{r}
+pupil_cv <- system.file("stan_models",
+                        "pupil_cv.stan",
+                        package = "bcogsci")
+pupil_null <- system.file("stan_models",
+                          "pupil_null.stan",
+                          package = "bcogsci")
+```
+Fit the models:
+
+```{r pupilll, message = FALSE, eval = !file.exists("dataR/fit_pupil_int_pos_ll.RDS") & !file.exists("dataR/fit_pupil_int_null_ll.RDS")}
+fit_pupil_int_ll <- stan(file = pupil_cv,
+                         iter = 3000,
+                         data = ls_pupil)
+fit_pupil_int_null_ll <- stan(file = pupil_null,
+                              iter = 3000,
+                              data = ls_pupil)
+```
+
+```{r, echo= FALSE, eval = TRUE}
+if(!file.exists("dataR/fit_pupil_int_pos_ll.RDS") & !file.exists("dataR/fit_pupil_int_null_ll.RDS")){
+  saveRDS(fit_pupil_int_ll, "dataR/fit_pupil_int_ll.RDS")
+  saveRDS(fit_pupil_int_null_ll, "dataR/fit_pupil_int_null_ll.RDS")
+} else {
+  fit_pupil_int_ll <- readRDS( "dataR/fit_pupil_int_ll.RDS")
+ fit_pupil_int_null_ll <- readRDS("dataR/fit_pupil_int_null_ll.RDS")
+}
+```
+
+
+Show summary of predictive accuracy of the models using the function `loo`.
+
+```{r looposnull, message = FALSE}
+(loo_int <- loo(fit_pupil_int_ll))
+(loo_null <- loo(fit_pupil_int_null_ll))
+```
+
+```{r loocompareposnull}
+loo_compare(loo_int, loo_null)
+```
+
+As it happened with the cloze probability effect in the previous section, we cannot decide which model has better predictive accuracy according to PSIS-LOO.
+
+
+#### \index{K-fold-CV in Stan} K-fold-CV in Stan
+
+To use K-fold-CV (or LOGO-CV) in Stan (as opposed to PSIS-LOO), we need to be careful to store the log-likelihood of the *held-out data*, since  we evaluate our model with only this subset of the data. The following example closely follows the vignette https://cran.r-project.org/web/packages/loo/vignettes/loo2-elpd.html.
+
+The steps taken are as follows:
+
+1. Split the data in 10 folds.
+
+Since there is only one subject, we don't need to stratify (using \index{\texttt{kfold\_split\_stratified}} `kfold_split_stratified()`), and we use \index{\texttt{kfold\_split\_random}} `kfold_split_random()` from the `loo` package.
+
+```{r}
+df_pupil$fold <- kfold_split_random(K = 10, N = nrow(df_pupil))
+# Show number of obs for each fold:
+df_pupil %>%
+  group_by(fold) %>%
+  count() %>%
+  print(n=10)
+```
+
+
+
+2. Fit and extract the \index{Log pointwise predictive densitiy} log pointwise predictive densities for each fold.
+
+Compile the alternative and the null models first with \index{\texttt{stan\_model}} `stan_model`, and prepare two matrices to store the predictive densities from the held out data. Each matrix has as many rows as post-warmup iterations in the models fit above ($1500 \times 4$), and as many columns as observations in the data set.
+
+```{r pupilstanloo, eval = !file.exists("dataR/log_pd_kfold.RDS")}
+pupil_stanmodel <- stan_model(pupil_cv)
+pupil_null_stanmodel <- stan_model(pupil_null)
+log_pd_kfold <- matrix(nrow = 6000, ncol = nrow(df_pupil))
+log_pd_null_kfold <- matrix(nrow = 6000, ncol = nrow(df_pupil))
+```
+
+Next, loop over the 10 folds. Each loop carries out the following steps. First, fit each model (i.e., the alternative and null model) to all the observations except the ones belonging to the held-out fold using \index{\texttt{sampling}} `sampling()`; this uses the already-compiled models.  Second, compute the log pointwise predictive densities for the held-out fold with \index{\texttt{gqs}} `gqs()`. This function produces `generated quantities` based on samples from a posterior (in the `draw` argument) and ignores all the blocks except `generated quantities`.^[The reader using `cmdstanr` rather than `rstan` might find a cryptic error here. This is because `cmdstanr` expects the parameters  not to change. A workaround can be found in https://discourse.mc-stan.org/t/generated-quantities-returns-error-mismatch-between-model-and-fitted-parameters-csv-file/17869/15] Finally, store the predictive density for the observations of the held-out fold in a matrix by extracting the log likelihood of the held-out data. The output of this loop is a matrix of the log pointwise predictive densities of all the observations.
+
+```{r, message = FALSE, results = "hide", eval = !file.exists("dataR/log_pd_kfold.RDS")}
+# Loop over the folds
+for(k in 1:10){
+  # Training set for k
+  df_pupil_train <- df_pupil %>%
+    filter(fold != k)
+  ls_pupil_train <- list(c_load = df_pupil_train$c_load,
+                         c_trial= df_pupil_train$c_trial,
+                         p_size = df_pupil_train$p_size,
+                         N = nrow(df_pupil_train))
+  # Held out set for k
+   df_pupil_ho <- df_pupil %>%
+     filter(fold == k)
+  ls_pupil_ho <- list(c_load = df_pupil_ho$c_load,
+                      c_trial= df_pupil_ho$c_trial,
+                      p_size = df_pupil_ho$p_size,
+                      N = nrow(df_pupil_ho))
+  # Train the models
+  fit_train <- sampling(pupil_stanmodel,
+                        iter = 3000,
+                        data = ls_pupil_train)
+  fit_null_train <- sampling(pupil_null_stanmodel,
+                             iter = 3000,
+                             data = ls_pupil_train)
+  # Generated quantities based on the posterior from the training set
+  # and the data from the held out set
+  gq_ho <- gqs(pupil_stanmodel,
+               draws = as.matrix(fit_train),
+               data = ls_pupil_ho)
+  gq_null_ho <- gqs(pupil_null_stanmodel,
+                    draws = as.matrix(fit_null_train),
+                    data = ls_pupil_ho)
+  # Extract log likelihood which represents
+  # the pointwise predictive density
+  log_pd_kfold[, df_pupil$fold == k] <-
+    extract_log_lik(gq_ho)
+  log_pd_null_kfold[, df_pupil$fold == k] <-
+    extract_log_lik(gq_null_ho)
+}
+```
+```{r, echo= FALSE}
+if(!file.exists("dataR/log_pd_kfold.RDS")){
+  saveRDS(log_pd_kfold, "dataR/log_pd_kfold.RDS")
+  saveRDS(log_pd_null_kfold, "dataR/log_pd_null_kfold.RDS")
+} else {
+  log_pd_kfold <- readRDS("dataR/log_pd_kfold.RDS")
+  log_pd_null_kfold <- readRDS("dataR/log_pd_null_kfold.RDS")
+}
+```
+
+3. Compute K-fold $\widehat{elpd}$.
+
+Next, evaluate the predictive performance of the model on the 10 folds using \index{\texttt{elpd}} `elpd()`.
+
+```{r}
+(elpd_pupil_kfold <- elpd(log_pd_kfold))
+(elpd_pupil_null_kfold <- elpd(log_pd_null_kfold))
+```
+
+4. Compare the $\widehat{elpd}$ estimates.
+
+```{r}
+loo_compare(elpd_pupil_kfold, elpd_pupil_null_kfold)
+```
+
+As with PSIS-LOO, we cannot decide which model has better predictive accuracy according to K-fold-CV.
+
+## Summary
+
+In this chapter, we learned how to use K-fold cross-validation and leave-one-out cross-validation, using both built-in functionality in `brms` as well as Stan, in conjunction with the `loo` package. We saw an example of model comparison where cross-validation helped distinguish between the two models (log-normal vs. normal likelihood), and another example where no important differences were found between the models being compared (the N400 data with cloze probability as predictor). In general, cross-validation will be helpful when comparing rather different models [for an example from psycholinguistics, see @nicenboimModelsRetrievalSentence2018]; when the models are highly similar, it will be difficult to distinguish between them. In particular, for typical psychology and linguistics data sets, it will be difficult to get conclusive results from model comparisons using cross-validation that aim to find evidence for the presence of a population-level (or fixed) effect, if the effect is very small and/or the data are relatively sparse (this is often the case, especially in psycholinguistic data).  In such cases, if the aim is to find evidence for a theoretical claim, other model comparison methods like Bayes factors might be more meaningful.
+
+## Further reading
+A technical discussion about cross-validation methods can be found in Chapter 7 of @Gelman14.
+For a discussion about the advantages and disadvantages of (leave-one-out) cross-validation, see @gronauLimitationsBayesianLeaveOneOut2018, @vehtariLimitationsLimitationsBayesian2019 and @gronauRejoinderMoreLimitations. A LOO glossary from the `loo` package can be found in (https://mc-stan.org/loo/reference/loo-glossary.html).  Cross-validation is still an active area of research, there are multiple websites and blog posts on this topic: Aki Vehtari, the creator of the `loo` package has a comprehensive FAQ about cross-validation in  https://avehtari.github.io/modelselection/CV-FAQ.html; on Andrew Gelman's blog, Vehtari also discusses the situations where  cross-validation can be applied:  https://statmodeling.stat.columbia.edu/2018/08/03/loo-cross-validation-approaches-valid/.
+
+## Exercises
+
+```{exercise, logcv}
+Predictive accuracy of the linear and the logarithm effect of cloze probability.
+```
+
+Is there a difference in predictive accuracy between the model that incorporates a linear effect of cloze probability and one that incorporates log-transformed cloze probabilities?
+
+
+
+
+
+
+```{exercise, stroopcv}
+Log-normal model
+```
+
+Use PSIS-LOO to compare a model of Stroop as the one in \@ref(exr:stroop) with a model that assumes no population-level effect
+
+(a) in `brms`.
+(b) in Stan.
+
+```{exercise, logrec}
+Log-normal vs  rec-normal model in Stan
+```
+
+In section \@ref(sec-change), we proposed a reciprocal truncated normal distribution (rec-normal) to response times data, as an alternative to the log-normal distribution. The log-likelihood (of $\mu$ and $\sigma$) of an individual observation, $\mathit{RT}_{n}$, for the rec-normal distribution would be the following one.
+
+\begin{equation}
+\log \mathcal{L} = \log(\mathit{Normal}(1/\mathit{RT}_n | \mu, \sigma)) - 2 \cdot \log(\mathit{RT}_n)
+\end{equation}
+
+As explained in \@ref(sec-change), we obtain the log-likelihood based on all the $N$ observations by summing the log-likelihood of individual observations.
+
+\begin{equation}
+\log \mathcal{L} = \sum_n^N \log(\mathit{Normal}(1/\mathit{RT}_n | \mu, \sigma))  - \sum_n^N 2 \cdot \log(\mathit{RT}_n)
+\end{equation}
+
+Since these two models assume right-skewed data with only positive values, the question that we are interested in here is if we can really distinguish between them. Investigate this in the following way:
+
+(a) Generate data (N = 100 and N = 1000) with a rec-normal distribution (e.g., `rt = 1 / rtnorm(N, mu, sigma, a = 0)`).
+(b) Generate data (N = 100 and N = 1000) with a log-normal distribution
+
+Fit a rec-normal and a log-normal model using Stan to each of the four data sets, and use PSIS-LOO to compare the models.
+
+What do you conclude?

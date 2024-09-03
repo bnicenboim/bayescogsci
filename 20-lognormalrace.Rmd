@@ -1,0 +1,1622 @@
+# A simple accumulator model to account for choice response time {#ch-lognormalrace}
+\chaptermark{A simple accumulator model}
+
+
+As mentioned in chapter \@ref(ch-mixture), the most popular class of cognitive-process models that can incorporate both response times and accuracy are \index{Sequential sampling model} sequential sampling models [for a review, see @Ratcliff2016]. This class of model includes, among others, the \index{Drift diffusion model} drift diffusion model [@Ratcliff1978], the \index{Linear ballistic accumulator} linear ballistic accumulator [@brownSimplestCompleteModel2008], and the \index{Log-normal race model} log-normal race model [@HeathcoteLove2012; @RouderEtAl2015]. We discuss the log-normal race model in the current chapter. Sequential sampling or \index{Evidence-accumulation model} evidence-accumulation models are based on the idea that decisions are made by gathering evidence from the environment (e.g., the computer screen in many experiments) until sufficient evidence is gathered and a threshold of evidence is reached. The log-normal race model seems to be the simplest sequential sampling model that can account for the joint distribution of \index{Response time} response times and response choice or \index{Accuracy} accuracy [@HeathcoteLove2012; @RouderEtAl2015].
+
+This model belongs to the subclass of \index{Race model} *race models*, where the evidence for each response
+grows gradually in time in separate \index{Racing accumulator} racing accumulators, until a threshold is reached. A
+response is made when one of these \index{Accumulator} accumulators first reaches the threshold, and wins the race against the other accumulators. This model is sometimes referred as \index{Deterministic model} deterministic (or \index{Non-stochastic model} non-stochastic, and \index{Ballistic model} ballistic), since the noise only affects the rate of accumulation of evidence before each race starts, but once the accumulator starts accumulating evidence, the rate is fixed. This means that a given accumulator can be faster or slower in different trials (or between choices) but its rate of accumulation will be fixed during a trial (or within choices). @brown2005ballistic claim that even though it is clear that a range of factors might cause within-choice noise, the behavioral effects might sometimes be small enough to ignore (this is in contrast to models such as the drift diffusion model, where both types of noise are present).
+
+The two main advantages of the log-normal race model in comparison with other sequential sampling models are that: (i) the log-normal race model is very simple, making it easy to extend hierarchically; (ii) it is relatively easy to avoid convergence issues; and (iii) it is straightforward to model more than two choices. This specific model is presented next for pedagogical purposes because it is relatively easy to derive its likelihood given some reasonable assumptions. However, even though the log-normal race is a "legitimate" cognitive model (see Further Reading for examples), the majority of the literature fits choice response times with the linear ballistic accumulator and/or the drift diffusion model, which provide more flexibility to the modeler.
+
+The next section explains how the log-normal race model is implemented, using data from a lexical decision task.
+
+## Modeling a lexical decision task
+
+
+In a \index{Lexical decision task} lexical decision task, a subject is presented with a string of letters on the screen and they need to decide whether the string is a word or a non-word; see Figure \@ref(fig:LDT-tikz). In the example developed below, a subset of 600 words and 600 non-words from 20 subjects ($600\times2 \times 20$ data points) are used  from the data of the \index{British Lexicon project} British Lexicon project [@keuleers2012british]. The data are stored as the object `df_blp` in the package `bcogsci`. In this data set, the lexicality of the string (word or non-word) is indicated in the column `lex`. The goal is to investigate how \index{Word frequency} word frequency, shown in the column `freq` (frequency is counted per million words using the \index{British National Corpus} British National Corpus), affects the lexical decision task as quantified by accuracy and response time. For more details about the data set, type `?df_blp` on the `R` command line after loading the library `bcogsci`.
+
+
+
+(ref:LDT-tikz) Two trials in a lexical decision task. For the first trial, `rurble`, the correct answer would be to press the key on a keyboard or a response console that is mapped to the "non-word" response, for the second trial, `monkey`, the correct answer would be to press the key that is mapped to the "word" response.
+
+```{r LDT-tikz,engine='tikz',fig.ext= if (knitr::is_html_output()) "svg" else "pdf", echo = FALSE, fig.cap = "(ref:LDT-tikz)"}
+\usetikzlibrary{positioning}
+\begin{tikzpicture}
+  \tikzset{
+        basefont/.style = {font = \Large\sffamily},
+          timing/.style = {basefont, sloped,above,},
+           label/.style = {basefont, align = left},
+          screen/.style = {basefont, white, align = center,
+                           minimum size = 6cm, fill = black!60, draw = white}};
+
+  % macro for defining screens
+  \newcommand*{\screen}[4]{%
+    \begin{scope}[xshift  =#3, yshift = #4,
+                  every node/.append style = {yslant = 0},
+                  yslant = 0.33,
+                  local bounding box = #1]
+      \node[screen] at (3cm,3cm) {#2};
+    \end{scope}
+  }
+  % define several screens
+  \screen{frame1}{\textbf+} {0}     {0}
+  \screen{frame2}{rurble}{150} {-60}
+  \screen{frame3}{\textbf+}         {300}{-120}
+  \screen{frame4}{monkey}{450}{-180}
+
+
+\end{tikzpicture}
+\end{document}
+\end{tikzpicture}
+```
+
+```{r}
+data("df_blp")
+df_blp
+```
+
+
+The following code chunk adds $0.01$ to the frequency column. A frequency of $0.01$ corresponds to a word that appears only once in the corpus; $0.01$ is added in order to avoid word frequencies of zero. The frequencies are then log-transformed to compress their range of values [see @BrysbaertEtAl2018 for a more in-depth treatment of word frequencies] and centered them. It also creates a new variable that sum-codes the lexicality of the each given string (either a word, $0.5$, or a non-word, $-0.5$).
+
+```{r}
+df_blp <- df_blp %>%
+  mutate(lfreq = log(freq + 0.01),
+         c_lfreq = lfreq - mean(lfreq),
+         c_lex = ifelse(lex == "word", 0.5, -0.5))
+```
+
+
+
+
+If one wants to study the effect of frequency on words, the "traditional" way to analyze these data would be to fit response times and choice data in two separate models on words, ignoring non-words. One model would be fit on the response times of correct responses, and a  second model on the \index{Accuracy} accuracy. These two models are fit below.
+
+To fit the response times model, subset the correct responses given to strings that are words:
+
+```{r}
+df_blp_word_c <- df_blp %>%
+  filter(acc == 1, lex == "word")
+```
+
+Fit a hierarchical model with a log-normal likelihood and log-transformed frequency as a predictor (using `brms` here) and regularizing priors.
+
+```{r, eval = !file.exists("dataR/fit_rt_word_c.RDS")}
+fit_rt_word_c <- brm(rt ~ c_lfreq + (c_lfreq | subj),
+              data = df_blp_word_c,
+              family = lognormal,
+              prior = c(prior(normal(6, 1.5), class = Intercept),
+                        prior(normal(0, 1), class = b),
+                        prior(normal(0, 1), class = sigma),
+                        prior(normal(0, 1), class = sd),
+                        prior(lkj(2), class = cor)),
+              iter = 3000)
+```
+
+```{r, echo= FALSE}
+if(!file.exists("dataR/fit_rt_word_c.RDS")){
+  saveRDS(fit_rt_word_c, file = "dataR/fit_rt_word_c.RDS")
+} else {
+  fit_rt_word_c <- readRDS("dataR/fit_rt_word_c.RDS")
+}
+```
+
+Show the estimate of the effect of log-frequency on the log-ms scale.
+
+```{r}
+posterior_summary(fit_rt_word_c, variable = "b_c_lfreq")
+```
+
+To fit the accuracy model, subset the responses given to strings that are words:
+
+```{r }
+df_blp_word <- df_blp %>%
+  filter(lex == "word")
+```
+
+Fit a hierarchical model with a \index{Bernoulli likelihood} Bernoulli likelihood (and \index{Logit link} logit link) using log-transformed frequency as a predictor (using `brms`) and relatively weak priors:
+
+
+```{r, eval = !file.exists("dataR/fit_acc_word.RDS")}
+fit_acc_word <- brm(acc ~ c_lfreq + (c_lfreq | subj),
+              data = df_blp_word,
+              family = bernoulli(link = logit),
+              prior = c(prior(normal(0, 1.5), class = Intercept),
+                prior(normal(0, 1), class = b),
+                prior(normal(0, 1), class = sd),
+                prior(lkj(2), class = cor)),
+              iter = 3000)
+```
+
+```{r, echo= FALSE}
+if(!file.exists("dataR/fit_acc_word.RDS")){
+  saveRDS(fit_acc_word, file = "dataR/fit_acc_word.RDS")
+} else {
+  fit_acc_word <- readRDS("dataR/fit_acc_word.RDS")
+}
+```
+
+
+Show the estimate of the effect of log-frequency on the log-odds scale:
+
+```{r}
+posterior_summary(fit_acc_word, variable = "b_c_lfreq")
+```
+
+For this specific data set, it does not matter whether response times or accuracy are chosen as the dependent variable, since both yield results with a similar interpretation: More frequent words are identified more easily, that is, with shorter reading times (this is evident from the negative sign on the estimate of the effect), and with higher accuracy (positive sign on the estimate). However, it might be the case that some data set shows divergent directions in response times and accuracy. For example, more frequent words might take longer to identify, leading to a slowdown in response time as frequency increases, but might still be identified more accurately.
+
+Furthermore, two models are fit above, treating response times and accuracy as independent. In reality, there is plenty of evidence that they are related (e.g., the \index{Speed-accuracy trade-off} speed-accuracy trade-off). Even in these data, as frequency increases, correct answers are given faster, and most errors are for low-frequency words (see Figure \@ref(fig:rtlexical)).
+
+```{r, eval = FALSE, echo = FALSE}
+alpha_rt <- fixef(fit_rt_word_c, summary = FALSE)[, "Intercept"]
+beta_rt <- fixef(fit_rt_word_c, summary = FALSE)[, "c_lfreq"]
+u_1_rt <- ranef(fit_rt_word_c, summary = FALSE)$subj[, , "Intercept"]
+u_2_rt <- ranef(fit_rt_word_c, summary = FALSE)$subj[, , "c_lfreq"]
+by_subj_rt <- exp(alpha_rt + u_1) - exp(alpha_rt + u_1 + (beta_rt + u_2))
+by_subj_rt_s <- t(apply(by_subj_rt, 2,
+                        function(x) c(Estimate = mean(x), quantile(x, c(.025,.975))))) %>%
+  bind_cols(subj = 1:nrow(.))
+alpha_acc <- fixef(fit_acc_word, summary = FALSE)[, "Intercept"]
+beta_acc <- fixef(fit_acc_word, summary = FALSE)[, "c_lfreq"]
+u_1_acc <- ranef(fit_acc_word, summary = FALSE)$subj[, , "Intercept"]
+u_2_acc <- ranef(fit_acc_word, summary = FALSE)$subj[, , "c_lfreq"]
+by_subj_acc <- exp(alpha_acc + u_1) - exp(alpha_acc + u_1 + (beta_acc + u_2))
+by_subj_acc_s <- t(apply(by_subj_acc,2, function(x) c(Estimate = mean(x), quantile(x, c(.025,.975))))) %>%
+  bind_cols(subj = 1:nrow(.))
+
+by_subj <- left_join(by_subj_rt_s, by_subj_acc_s, by = "subj")
+
+ggplot(by_subj, aes(x = Estimate.x, y = Estimate.y)) +
+  geom_point()
+
+by_subj$rank_ms <- rank (by_subj$Estimate.x)
+by_subj$`rank_%` <- rank(by_subj$Estimate.y)
+ggplot(by_subj, aes(x=rank_ms, y=`rank_%`,label=subj))+geom_text()
+```
+
+(ref:rtlexical) The distribution of response times for words and non-words, and correct and incorrect answers.
+
+```{r rtlexical, fig.cap = "(ref:rtlexical)", message = FALSE, warning= FALSE, fold = TRUE}
+acc_lbl <- as_labeller(c(`0` = "Incorrect", `1` = "Correct"))
+ggplot(df_blp, aes(y = rt, x = freq + .01, shape = lex, color = lex)) +
+  geom_point(alpha = .5) +
+  facet_grid(. ~ acc,  labeller =  labeller(acc = acc_lbl)) +
+  scale_x_continuous("Frequency per million (log-scaled axis)",
+                     limits = c(.0001, 2000),
+                     breaks = c(.01, 1, seq(5, 2000, 5)),
+                     labels = ~ ifelse(.x %in% c(.01, 1, 5, 100, 2000), .x, "")
+                     ) +
+  scale_y_continuous("Response times in ms (log-scaled axis)",
+                     limits = c(150, 8000),
+                     breaks = seq(500,7500,500),
+                     labels = ~ ifelse(.x %in% c(500,1000,2000, 7500), .x, "")
+                     ) +
+  scale_color_discrete("lexicality") +
+  scale_shape_discrete("lexicality") +
+  theme(legend.position = "bottom") +
+  coord_trans(x = "log", y = "log")
+```
+
+
+
+
+A powerful way to convey the relationship between response times and accuracy is using \index{Quantile probability plot} *quantile probability plots* [@ratcliff2002estimating; these are closely related to the latency probability plots of @audley1965some].^[Other useful tools to investigate errors and response time patterns are plots of *conditional accuracy functions* [@MaanenEtAl2018Fastslowerrors] and plots of *defective cumulative distributions of response times* [@brownSimplestCompleteModel2008].]
+
+A quantile probability plot shows quantiles of the response time distribution (typically $0.1$, $0.3$, $0.5$, $0.7$, and $0.9$) for correct and \index{Incorrect responses} incorrect responses on the y-axis against probabilities of correct and incorrect responses for experimental conditions on the x-axis. The plot is built by first aggregating the data.
+
+To display a quantile probability plot, create a custom function `qpf()` that takes as arguments a data set grouped by an experimental condition (e.g., words vs non-words, here by `lex`), and the quantiles that need to be displayed (by default, $0.1$, $0.3$, $0.5$, $0.7$, $0.9$). The function works as follows:
+First, calculate the desired quantiles of the response times for incorrect and correct responses by condition (these are stored in `rt_q`). Second, calculate the proportion of incorrect and correct responses by condition (these are stored in `p`); because this information is needed for each quantile, repeat it for the number of quantiles chosen (here, five times). Last, record the quantile that each response time and response probability corresponds to (this is recorded in `q`), and whether it corresponds to an incorrect or a correct response (this information is stored in `response`).
+
+```{r}
+qpf <- function(df_grouped,
+                quantiles = c(0.1, 0.3, 0.5, 0.7, 0.9)) {
+  df_grouped %>% summarize(
+    rt_q = list(c(quantile(rt[acc == 0], quantiles),
+                  quantile(rt[acc == 1], quantiles))),
+    p = list(c(rep(mean(acc == 0), length(quantiles)),
+               rep(mean(acc == 1), length(quantiles)))),
+    q = list(rep(quantiles, 2)),
+    response = list(c(rep("incorrect", length(quantiles)),
+                      rep("correct", length(quantiles))))) %>%
+    # Since the summary contains a list in each column,
+    # we unnest it to have the following number of rows:
+    # number of quantiles x groups x 2 (incorrect, correct)
+    unnest(cols = c(rt_q, p, q, response))
+}
+df_blp_lex_q <- df_blp %>%
+  group_by(lex) %>%
+  qpf()
+```
+
+The aggregated data look like this:
+
+```{r}
+df_blp_lex_q %>% print(n = 10)
+
+```
+
+Plot the data by joining the points that belong to the same quantiles with lines. Given that incorrect responses in most tasks occur in less than 50% of the trials and correct responses occur in a complementary distribution (i.e., in more than 50% of the trials), incorrect responses usually appear  in the left half of the plot, and correct ones in the right half. The code that appears below produces Figure \@ref(fig:qpplex).
+
+(ref:qpplex) Quantile probability plots showing $0.1$, $0.3$, $0.5$, $0.7$, and $0.9$-th response time quantiles plotted against  proportion of incorrect responses (left) and proportion of correct responses (right) for strings that are words and non-words.
+
+```{r qpplex, fig.cap = "(ref:qpplex)"}
+ggplot(df_blp_lex_q, aes(x = p, y = rt_q)) +
+  geom_vline(xintercept = .5, linetype = "dashed") +
+  geom_point(aes(shape = lex)) +
+  geom_line(aes(group = interaction(q, response))) +
+  ylab("RT quantiles (ms)") +
+  scale_x_continuous("Response proportion", breaks = seq(0, 1, .2)) +
+  scale_shape_discrete("Lexicality") +
+  annotate("text", x = .40, y = 500, label = "incorrect") +
+  annotate("text", x = .60, y = 500, label = "correct")
+```
+
+
+The vertical spread among the lines shows the shape of the response time distribution. The lower \index{Quantile line} quantile lines correspond to the left part of the \index{Response time distribution} response time distribution, and the higher quantiles to the right part of the distribution. Since the response time distribution is \index{Long tailed} long tailed and \index{Right skewed} right skewed, the higher quantiles are more spread apart than the lower quantiles.
+
+A quantile probability plot can also be used to corroborate the observation that high-frequency words are easier to recognize. To do that, subset the data to only words, and group the strings according to their "frequency group" (that is, according to the quantile of frequency that the strings belong to).
+Whereas we previously aggregated over all the observations, ignoring subjects, we can also aggregate by subjects first, and then average the results. This will prevent some idiosyncratic responses from subjects from dominating in the plot. (We can also plot individual quantile probability plots by subject). Apart from the fact that the aggregation is by subjects, the code below follows the same steps as before, and the result is shown in Figure \@ref(fig:qppfreq). The plot shows that for more frequent words, accuracy improves and responses are faster.
+
+
+(ref:qppfreq) Quantile probability plot showing  $0.1$, $0.3$, $0.5$, $0.7$, and $0.9$-th response times quantiles plotted against  proportion of incorrect responses (left) and proportion of correct responses (right) for words of different frequency. Word frequency is grouped according to quantiles: The first group is words with frequencies smaller than the $0.2$-th quantile, the second group is words with frequencies smaller than the $0.4$-th quantile and larger than the $0.2$-th quantile, and so forth.
+
+```{r qppfreq, fig.cap = "(ref:qppfreq)", warning = FALSE}
+df_blp_freq_q <- df_blp %>%
+  # Subset only words:
+  filter(lex == "word") %>%
+  # Create 5 word frequencies group
+  mutate(freq_group =
+           cut(lfreq,
+               quantile(lfreq, c(0,0.2,0.4, 0.6, 0.8, 1)),
+               include.lowest = TRUE,
+               labels =
+                 c("0-0.2", "0.2-0.4",
+                   "0.4-0.6", "0.6-0.8", ".8-1"))
+         ) %>%
+  # Group by condition  and subject:
+  group_by(freq_group, subj) %>%
+  # Apply the quantile probability function:
+  qpf() %>%
+  # Group again removing subject:
+  group_by(freq_group, q, response) %>%
+  # Get averages of all the quantities:
+  summarize(rt_q = mean(rt_q),
+           p = mean(p))
+# Plot
+ggplot(df_blp_freq_q, aes(x = p, y = rt_q)) +
+  geom_point(shape = 4) +
+  geom_text(
+    data = df_blp_freq_q %>%
+      filter(q == .1),
+    aes(label = freq_group), nudge_y = 12) +
+  geom_line(aes(group = interaction(q, response))) +
+  ylab("RT quantiles (ms)") +
+  scale_x_continuous("Response proportion", breaks = seq(0, 1, .2)) +
+  annotate("text", x = .40, y = 900, label = "incorrect") +
+  annotate("text", x = .60, y = 900, label = "correct")
+```
+
+
+So far, several ways were shown to describe the data by representing them graphically. Next, we turn to modeling the data.
+
+###  Modeling the lexical decision task with the log-normal race model {#sec-acccoding}
+
+The log-normal race model is used here to examine the effect of word frequency in both response times and choice (word vs. non-word) in the lexical decision task presented earlier. In this example, the log-normal race model is limited to fitting two choices; as mentioned earlier, this model can in principle fit more than two choices. When modeling a task with two choices, there are two ways to account for the data:  either fit the response times and the accuracy (i.e., \index{Accuracy coding} accuracy coding: correct vs. incorrect), or fit the response times and actual responses (i.e., \index{Stimulus coding} stimulus coding: in this case word vs. non-word). In this example, we will use the stimulus-coding approach.
+
+The following code chunk adds a new column that incorporates the actual choice made (as `word` vs. `non-word` in `choice` and as `1` vs. `2` in `nchoice`):
+
+```{r}
+df_blp <- df_blp %>%
+  mutate(choice = ifelse((lex == "word" &
+                          acc == 1) |
+                         (lex == "non-word" &
+                          acc == 0), "word", "non-word"),
+         nchoice = ifelse(choice == "word", 1, 2))
+```
+
+To start modeling the data, think about the behavior of one synthetic subject. This subject simultaneously accumulates evidence for the response, "word" in one \index{Accumulator} accumulator, and for "non-word" in another independent accumulator. Unlike other sequential sampling models, an increase in evidence for one choice doesn't necessarily reduce the evidence for the other choices.
+@RouderEtAl2015 points out that it might seem odd to assume that we accumulate evidence for a non-word in the same manner as we accumulate evidence for a word, since non-words may be conceptualized as the absence of a word. However, they stress that this approach is closely related to \index{Novelty detection} novelty detection,  where the salience of never-before experienced stimuli seems to indicate that novelty is psychologically represented as more than the absence of familiarity. Nevertheless, notions of words and non-word evidence accumulation are indeed controversial [see @dufau2012say]. The alternative approach of fitting accuracy rather than stimuli discussed before doesn't really circumvent the problem. This is because when the correct answer is `word`, we assume that the "correct" accumulator accumulates evidence for `word`, and the incorrect one for `non-word`, and the other way around when the correct answer is `non-word`.
+
+### A generative model for a race between accumulators {#sec-genaccum}
+
+To build a generative model of the task based on the log-normal race model, start by spelling out the assumptions. In a race of accumulators model, the assumption is that the decision time $T$ taken for each \index{Accumulator} accumulator of evidence to reach the \index{Threshold} threshold at distance to the decision threshold $D$ is simply defined by
+
+\begin{equation}
+T = D/V
+\end{equation}
+
+where the denominator $V$ is the rate (velocity, sometimes also called \index{Drift rate} drift rate) of \index{Evidence accumulation} evidence accumulation.
+
+The log-normal race model assumes that the \index{Rate} rate $V$ in each trial is sampled from a log-normal distribution:
+
+\begin{equation}
+V \sim \mathit{LogNormal}(\mu_v, \sigma_v)
+\end{equation}
+
+```{r lognormalrace, echo = FALSE, fig.cap = "A schematic illustration of the log-normal race model for the lexical-decision task with a word stimulus. A larger rate of accumulation (V) leads to a larger slope. Here, the choice of word is selected."}
+set.seed(100)
+D_w <- 10000
+D_nw <- 10000
+mu_v_w <- log(20)
+mu_v_nw <- log(10)
+sigma <- .3
+N <- 100
+V_w <- rlnorm(N, mu_v_w, sigma)
+V_nw <- rlnorm(N, mu_v_nw, sigma)
+T_w <- D_w / V_w
+T_nw <-  D_nw/V_nw
+data_acc <- tibble(accumulator = c(rep("word", N), rep("non-word",N)) %>%
+                     factor(levels=c("word","non-word")),
+                   V = c(V_w,V_nw),
+                   T = c(T_w, T_nw),
+                   D = c(rep(D_w, N), rep(D_nw,N)),
+                   trial = c(1:N, 1:N))
+onetrial <- data_acc %>%
+  group_by(trial) %>%
+  filter(T[accumulator=="word"] < T[accumulator=="non-word"]) %>%
+  ungroup(trial) %>%
+  filter(trial == min(trial))
+
+ggplot(data_acc, aes(xend = T)) +
+  geom_segment(aes(x =0, y=0, yend = D), alpha = .5, color = "gray") +
+  geom_segment(data= onetrial, aes(x =0, y=0, yend = D),  color = "black") +
+  facet_grid(rows = vars(accumulator))+
+  ## geom_hline(aes(yintercept = D), linetype = "dashed")+
+  geom_vline(data = onetrial, aes(xintercept = T), linetype = "dashed")+
+  scale_y_continuous("Evidence", breaks = NULL, expand = c(0, 0)) +
+  scale_x_continuous("rt", breaks = NULL, expand = c(0,0) )+
+    coord_cartesian(clip = "off")+
+  ## coord_cartesian(xlim=c(-200, max(T_nw)), ylim=c(450,D_nw+100))+
+  annotate(geom="segment", x = -350, xend = 0, y= 300,yend=300,arrow = arrow(length = unit(0.5,"cm")))+
+  annotate(geom="text", x =-150, y=1200,label = "non-decision\ntime")+
+
+  annotate(geom="segment", x = 1400, xend = 1400, y= 0,yend=D_w,arrow = arrow(length = unit(0.5,"cm")))+
+  annotate(geom="text", x =1600 , y=5800,label = "Decision\nthreshold (D)")+
+  geom_segment(data = onetrial, aes(x = 0, xend = T, y= 300,yend=300),arrow = arrow(length = unit(0.5,"cm")))+
+  annotate(geom="text", x =320, y=750,label = "Decision time (T)")
+
+```
+
+A log-normal distribution is partly justified by the work by @ulrichInformationProcessingModels1993 (also see Box \@ref(thm:lognormal)), and as discussed later, it is very convenient mathematically.
+
+For simplicity, assume that the distance  $D$ to the threshold is kept constant. This might not be a good assumption if the experiment is designed so that subjects change their threshold depending on speed or accuracy incentives (that was not the case in this experiment), or if the subject gets fatigued as the experiment progresses, or if there is reason to believe that there might be \index{Random fluctuation} random fluctuations in this \index{Threshold} threshold. Later in this chapter, we will discuss what happens if this assumption is relaxed.
+
+
+In each trial $n$, a string is presented, and both the word and non-word accumulators of evidence need to be modeled. For the model to capture the behavior of the subjects, evidence needs to be accumulated faster for the word accumulator than for the non-word accumulator when the string presented is a word, and vice versa when the string is a non-word.
+
+Assume that, for trial $n$, the rate of accumulation of evidence for words, $V_{w,n}$, and the rate for non-words, $V_{nw,n}$, are generated as follows:
+
+\begin{equation}
+\begin{aligned}
+V_{w,n} &\sim \mathit{LogNormal}(\mu_{v_{w,n}}, \sigma)\\
+V_{nw,n} &\sim \mathit{LogNormal}(\mu_{v_{nw,n}}, \sigma)
+\end{aligned}
+\end{equation}
+
+
+The location $\mu_{v_w}$ of the distribution of rates of accumulation of evidence for a word $w$ is a function of the \index{Lexicality} lexicality of the string presented (only a word will increase this rate of accumulation and not a non-word), \index{Frequency} frequency (i.e., high-frequency words might be easier to identify, leading to a faster rate of accumulation than with low-frequency words), and \index{Bias} bias (i.e., a subject might have a tendency to answer that a string is a word rather than non-word or vice-versa,  regardless of the stimuli).
+
+This assumption can be modeled with a linear regression over $\mu_{v_w}$, with parameters that represent the bias to categorize a string as a word, $\alpha_{w}$, the effect of lexicality, $\beta_{lex_{w}}$, and the effect of log-frequency $\beta_{\mathit{lfreq}_{w}}$.
+
+\begin{equation}
+mu_{v_{w,n}} = \alpha_w + \mathit{lex}_n \cdot \beta_{lex_{w}} + \mathit{\mathit{lfreq}}_n \cdot \beta_{\mathit{lfreq}_{w}}
+\end{equation}
+
+For the non-word accumulator, the location for the rate of accumulation of evidence is defined similarly:
+
+\begin{equation}
+mu_{v_{nw,n}}= \alpha_{nw} + \mathit{lex}_n \cdot \beta_{lex_{nw}} + \mathit{lfreq}_n \cdot \beta_{\mathit{lfreq}_{nw}}
+\end{equation}
+
+
+The accumulators reach the threshold at time $T_{w,n}$ (for words) and $T_{nw,n}$ (for non-words)
+
+\begin{equation}
+\begin{aligned}
+T_{w,n} &= D_{w}/V_{w,n}\\
+T_{nw,n} &= D_{nw}/ V_{nw,n}
+\end{aligned}
+\end{equation}
+
+The choice for trial $n$ corresponds to the accumulator with the shortest time for that trial,
+
+\begin{equation}
+\mathit{choice}_n =
+\begin{cases}
+\mathit{word}, & \text{ if } T_{w,n} < T_{nw,n} \\
+\mathit{non}\text{-}{word}, & \text{ otherwise }
+\end{cases}
+\end{equation}
+
+
+and $T_n$, the time taken to make a decision for trial $n$ is the minimum of the time $T_{w,n}$ and $T_{nw,n}$:
+
+\begin{equation}
+T_n = min(T_{w,n},T_{nw,n})
+\end{equation}
+
+We also need to take into account that not all the time spent in the task involves making the
+decision: Time is spent fixating the gaze on the screen, pressing a button, etc. We'll add a shift to the distribution, representing the minimum amount of time that a subject needs for all the peripheral processes that happened before and after the decision [also see @Rouder2005]. We represent this non-decision time with $T_0$. Although some variation in the \index{Non-decision time} non-decision time is highly likely, we use a constant as an approximation. This simplification is reasonable if the variation in non-decision time is small relative to the variation in decision time [@HeathcoteLove2012].
+
+\begin{equation}
+rt_n = T_0 + T_n
+\end{equation}
+
+The following chunk of code generates \index{Synthetic data} synthetic data for one subject, by setting true point values to the parameters and translating the previous equations to `R`. The true values are relatively arbitrary and were decided by trial and error until a relatively realistic distribution of \index{Response time} response times was obtained. Considering that this is only one subject (unlike what was shown in previous figures), Figure \@ref(fig:scatterracesim) looks relatively fine. (One can also inspect the quantile probability plots of individual subjects in the real data set and compare it to the synthetic data).
+
+
+First, set a \index{Seed} seed to always generate the same \index{Pseudo-random value} pseudo-random values, take a subset of the data set to keep the same structure of the data frame for our simulated subject, and set true point values. The distance to the decision threshold, D, is set to the arbitrary constant value of 1800 so that, with the other parameters having magnitudes similar to those typically found in response time studies, the simulated reaction times have a realistic magnitude.
+
+```{r lnsimdata1}
+set.seed(123)
+df_blp_1subj <- df_blp %>%
+  filter(subj == 1)
+# Set the same threshold to both accumulators
+D <- 1800
+alpha_w <- 0.8
+beta_wlex <- 0.5
+beta_wlfreq <- 0.2
+alpha_nw <- 1
+beta_nwlex <- -0.5
+beta_nwlfreq <- -0.05
+sigma <- 0.8
+T_0 <- 150
+```
+
+Second, generate the locations of both accumulators, `mu_v_w` and `mu_v_nw`, for every trial. This means that both variables are vectors of length, `N`, the number of trials:
+
+```{r lnsimdata2}
+mu_v_w <- alpha_w + df_blp_1subj$c_lfreq * beta_wlfreq +
+  df_blp_1subj$c_lex * beta_wlex
+mu_v_nw <- alpha_nw + df_blp_1subj$c_lfreq * beta_nwlfreq +
+  df_blp_1subj$c_lex * beta_nwlex
+N <- nrow(df_blp_1subj)
+```
+
+Third, generate values for the rates of accumulation, `V_w` and `V_nw`, for every trial. Use those rates to calculate  `T_w` and `T_nw`, how long it will take for each accumulator to reach its threshold (assumed to be the same for both accumulators) for every trial:
+
+```{r lnsimdata3}
+V_w <- rlnorm(N, mu_v_w, sigma)
+V_nw <- rlnorm(N, mu_v_nw, sigma)
+T_w <-  D / V_w
+T_nw <- D / V_nw
+```
+
+Fourth, calculate the time it takes to reach a decision in every trial, `T_n` as the by-trial minimum between `T_w` and `T_nw`. Similarly,  store the winner accumulator for each trial in `accumulator_winner`:
+
+```{r lnsimdata4}
+T_n <- pmin(T_w, T_nw)
+accumulator_winner <- ifelse(T_w == pmin(T_w, T_nw),
+                             "word",
+                             "non-word")
+```
+
+Finally, add this information to the data frame that now indicates choice, time, and accuracy for each trial:
+
+```{r lnsimdata5}
+df_blp1_sim <- df_blp_1subj %>%
+  mutate(rt = T_0 + T_n,
+         choice = accumulator_winner,
+         nchoice = ifelse(choice == "word", 1, 2)) %>%
+  mutate(acc = ifelse(lex == choice, 1, 0))
+```
+
+
+(ref:scatterracesim) The distribution of response times for words and non-words, and correct and incorrect answers for the synthetic data of one subject.
+
+```{r scatterracesim, fig.cap = "(ref:scatterracesim)", message = FALSE, warning= FALSE, fold = TRUE}
+acc_lbl <- as_labeller(c(`0` = "Incorrect", `1` = "Correct"))
+ggplot(df_blp1_sim, aes(y = rt, x = freq + .01, shape = lex, color = lex)) +
+  geom_point(alpha = .5) +
+  facet_grid(. ~ acc,  labeller =  labeller(acc = acc_lbl)) +
+  scale_x_continuous("Frequency per million (log-scaled axis)",
+                     limits = c(.0001, 2000),
+                     breaks = c(.01, 1, seq(5, 2000, 5)),
+                     labels = ~ ifelse(.x %in% c(.01, 1, 5, 100, 2000), .x, "")
+                     )+
+  scale_y_continuous("Response times in ms (log-scaled axis)",
+                     limits = c(150, 8000),
+                     breaks = seq(500,7500,500),
+                     labels = ~ ifelse(.x %in% c(500,1000,2000, 7500), .x, "")
+                     ) +
+  scale_color_discrete("lexicality") +
+  scale_shape_discrete("lexicality") +
+  theme(legend.position = "bottom") +
+  coord_trans(x = "log", y = "log")
+```
+
+
+
+
+### Fitting the log-normal race model
+
+A first issue that that arises when attempting to fit the \index{Log-normal race model} log-normal race model is that we need to fit its likelihood to the decision time T, which is the ratio of $D$ and $V$; there are two situations that are compatible with our assumptions and are mathematically simple:
+
+
+(1) If we assume that $D$ is a constant $k$ and only $V$ is a random variable, then $T = k/V$, and
+
+\begin{equation}
+\log(T) = \log(k/V) = \log(k) - \log(V)
+\end{equation}
+
+Since $V$ is log-normally distributed, $\log(V) \sim \mathit{Normal}(\mu_v, \sigma_v)$, and $\log(k)$ is a constant:
+
+\begin{equation}
+\begin{aligned}
+\log(T) &\sim \mathit{Normal}(\log(k) - \mu_v, \sigma_v)\\
+T &\sim \mathit{LogNormal}(\log(k) - \mu_v, \sigma_v)
+\end{aligned}
+(\#eq:lognormalkV)
+\end{equation}
+
+(2) If both $D$ and $V$ are random variables we need a \index{Ratio distribution function} ratio or \index{Quotient distribution function} quotient distribution function. While for arbitrary distributions this requires solving (sometimes extremely complex) integrals [see, for example, @Nelson1981], a log-normally distributed time is not uniquely predicted by assuming that  distance is a constant. It also follows if distance is also a log-normally distributed variable and both distributions are independent: If we assume that $D \sim \mathit{LogNormal}(\mu_d, \sigma_d)$ then $T$ is the ratio of two random variables $D/V$, and
+
+\begin{equation}
+\log(T) = \log(D/V) = \log(D) - \log(V)
+\end{equation}
+
+We have a difference of independent, normally distributed random variables. It follows from random variable theory [see, e.g., @RossProb] that:
+
+\begin{equation}
+\begin{aligned}
+\log(T) &\sim \mathit{Normal}(\mu_d - \mu_v, \sqrt{\sigma_d^2+\sigma_v^2})\\
+T &\sim \mathit{LogNormal}(\mu_d - \mu_v, \sqrt{\sigma_d^2+\sigma_v^2})
+\end{aligned}
+(\#eq:lognormalDV)
+\end{equation}
+
+
+From Equations \@ref(eq:lognormalkV) and \@ref(eq:lognormalDV), it should be clear that the threshold and accumulation rate cannot be disentangled: a manipulation that affects the rate or the decision threshold will affect the location of the distribution in the same way [also see @RouderEtAl2015].  Another important observation is that $T$ won't have a \index{Log-normal distribution} log-normal distribution when $D$ has any other distributional form.
+
+Following @RouderEtAl2015, we assume that the \index{Noise parameter} noise parameter is the same for each accumulator, since this means that contrasts between \index{Finishing time distribution} finishing time distributions are captured completely by contrasts of the locations of the log-normal distributions. We discuss at the end of the chapter why one would need to relax this assumption (also see Exercise \@ref(exr:lnracescale)).
+
+
+ In each trial $n$, with an accumulator for words, indicated with the subscript $w$, and one for
+non-words, indicated with $nw$, we can model the time it takes for each accumulator to get to
+the threshold $D$ in the following way. For the word accumulator,
+
+\begin{equation}
+\begin{aligned}
+\mu_{w,n} &= \mu_{d_w} - \mu_{v_{w,n}}\\
+\mu_{w,n} &= \mu_{d_{w}} - (\alpha_w + \mathit{lex}_n \cdot \beta_{lex_{w}} + \mathit{lfreq}_n \cdot \beta_{\mathit{lfreq}_{w}})\\
+\mu_{w,n} &= (\mu_{d_w} - \alpha_w) - \mathit{lex}_n \cdot \beta_{lex_{w}} - \mathit{lfreq}_n \cdot \beta_{\mathit{lfreq}_{w}}\\
+\mu_{w,n} &=  \alpha'_w - \mathit{lex}_n \cdot \beta_{lex_{w}} - \mathit{lfreq}_n \cdot \beta_{\mathit{lfreq}_{w}}\\
+T_{w,n} &\sim \mathit{LogNormal}(\mu_{w,n}, \sigma) \\
+\end{aligned}
+(\#eq:alphaprime)
+\end{equation}
+
+The parameter $\alpha'_w$ absorbs the location of the threshold distribution ($\mu_{d_w}$, which we assumed it is independent of the accumulator, that is, it is equal to $\mu_d$) minus the intercept of the rate distribution ($\mu_{v_{w,n}}$), and represents a bias. As $\alpha'_w$ gets smaller, the accumulator will be more likely to reach the threshold first all things being equal, biasing the responses to `word`.
+
+
+Similarly, for the non-word accumulator,
+
+\begin{equation}
+\begin{aligned}
+\mu_{nw,n} &= \alpha'_{nw} - \mathit{lex}_n \cdot \beta_{lex_{nw}} - \mathit{lfreq}_n \cdot \beta_{\mathit{lfreq}_{nw}}\\
+T_{nw,n} &\sim \mathit{LogNormal}( \mu_{nw,n}, \sigma)
+\end{aligned}
+\end{equation}
+
+
+The only observed time is the one associated with the winner accumulator, the response selected $s$, which corresponds to the  faster accumulator:
+
+\begin{equation}
+T_{\mathit{accum}=s,n} \sim \mathit{LogNormal}(\mu_{\mathit{accum}=s,n}, \sigma)
+\end{equation}
+
+If we only fit the observed finishing times of the accumulators, we're always ignoring that in a given trial the accumulator that lost was slower than the accumulator for which we have the latency; this means that we underestimate the time it takes to reach the threshold and we overestimate the rate of accumulation of both accumulators. This can be treated as a problem of \index{Censored data} *censored data*, where for each trial the slower observations are not known.
+
+Since the potential decision time for the accumulator that wasn't selected is definitely longer than the one of the winner accumulator, we obtain the likelihood for each unobserved time by integrating out all the possible decision times that the accumulator could have; that is, from the  time it took for the winner accumulator to reach the threshold to infinitely large decision times. In other words, we are calculating how likely is each possible value of
+the latent, unknown values of a random variable $T_{\mathit{accum} \neq s,n}$, knowing that they are always more than or equal to the observed (single) value of $T_{\mathit{accum}=s,n}$.
+
+
+\begin{equation}
+P(T_{\mathit{accum} \neq s,n} \geq T_{\mathit{accum} = s,n}) = \int_{T_{\mathit{accum}=s,n}}^{\infty} \mathit{LogNormal}(T|\mu_{a \neq s,n}, \sigma) \, dT
+\end{equation}
+
+This integral is the complement of the CDF of the log-normal distribution evaluated at
+$T_{\mathit{accum} = s,n}$.
+
+\begin{equation}
+P(T_{\mathit{accum} \neq s,n}) = 1 -  \mathit{LogNormal}\_CDF(T_{\mathit{accum}=s,n}| \mu_{\mathit{accum} \neq s,n}, \sigma)
+\end{equation}
+
+where $\mathit{LogNormal}\_CDF(T_{\mathit{accum}=s,n}| \mu_{\mathit{accum} \neq s,n}, \sigma)$ is a convenient shorthand for the CDF of the log-normal distribution with parameters $\mu_{\mathit{accum} \neq s,n}, \sigma$ evaluated at $T_{\mathit{accum}=s,n}$. 
+
+
+So far we have been fitting the \index{Decision time} decision time $T$, but our dependent variable is \index{Response time} response times, $rt$, the sum of the decision time $T$ and the non-decision time $T_0$. This requires a change of variables in our model, $T_{n} = rt_{n} - T_0$, since $rt$ but not $T$ is available as data. Here, the Jacobian is 1, since $\left|d\frac{\mathit{rt}_n - T{0}}{d\mathit{rt}_n}\right| = 1$. In a change of variables, we must multiply the likelihood by the Jacobian (for details, see section \@ref(sec-change)). Multiplying the likelihood by one, or equivalently, adding $\log(1) = 0$ to the log-likelihood, does not alter the likelihood (or the log-likelihood). Therefore, we do not need to code the Jacobian in the Stan code.^[Adding the Jacobian adjustment would be necessary if one assumes that the non-decision time has its own distribution rather than being constant.]
+
+To sum up, our model can be stated as follows:
+
+\begin{equation}
+\begin{aligned}
+T_n &= rt_n - T_0\\
+\mu_{w,n} &= \alpha'_w - \mathit{lex}_n \cdot \beta_{lex_{w}} - \mathit{lfreq}_n \cdot \beta_{\mathit{lfreq}_{w}}\\
+\mu_{nw,n} &= \alpha'_{nw} - \mathit{lex}_n \cdot \beta_{lex_{nw}} - \mathit{lfreq}_n \cdot \beta_{\mathit{lfreq}_{nw}}\\
+T_n &\sim
+\begin{cases}
+\mathit{LogNormal}(\mu_{w,n}, \sigma) \text{ if } \mathit{choice}= \text{word}\\
+\mathit{LogNormal}(\mu_{nw,n}, \sigma) \text{ otherwise }
+\end{cases}
+\end{aligned}
+\end{equation}
+
+Rather than trying to estimate all the censored observations, we integrate them out:^[One could estimate the censored times by fitting log-normal distributions that are truncated at $T_{n}$, since this is the minimum possible time for each censored observation:
+\begin{equation}
+T_{censored,n} \sim
+\begin{cases}
+\mathit{LogNormal}(\mu_{nw,n}, \sigma) \text{ with } T_{censored,n} > T_n  \text{, if } \mathit{choice}= \text{word}\\
+\mathit{LogNormal}(\mu_{w,n}, \sigma) \text{ with } T_{censored,n} > T_n \text{, otherwise }
+\end{cases}
+\end{equation}]
+
+\begin{equation}
+P(T_{censored}) =
+\begin{cases}
+1 -  \mathit{LogNormal}\_CDF(T_{n}| \mu_{nw,n}, \sigma) \text{, if } \mathit{choice}= \text{word}\\
+1 -  \mathit{LogNormal}\_CDF(T_{n}| \mu_{w,n}, \sigma) \text{, otherwise }\\
+\end{cases}
+\end{equation}
+
+We need priors for all the parameters. An added complication here is the prior for the non-decision time, $T_0$: we need to make sure that it's strictly positive and also that it's smaller than the shortest observed response time. This is because the decision time for each observation, $T_n$ should also be strictly positive:
+
+\begin{equation}
+\begin{aligned}
+T_n = rt_n - T_0 &>0 \\
+rt_n   &> T_0\\
+min(\mathbf{rt})  &> T_0
+\end{aligned}
+\end{equation}
+
+
+We thus truncate the prior of $T_0$ so that the values lie between zero and $min(\mathbf{rt})$, the minimum value of the vector of response times. Although the prior of $T_0$ is informed by the data, the generative model underlying this approach is not. When generating data--before the simulated response times are available--one first draws a value of $T_0$ from a normal distribution truncated at zero. Then, decision times for each trial $n$, $T_n$, are generated, and finally, the simulated (or predicted) response time for each trial, $rt_n$, is the sum of $T_0$ and $T_n$. In other words, there is no circularity in this process. Given the time it takes to fixate the gaze on the screen and a minimal motor response time, centering the prior of $T_0$ in 150 ms seems reasonable.  The rest of the priors are on the log scale. One should use prior predictive checks to verify that the order of magnitude of all the priors is appropriate. We skip this step here and  present the priors below:
+
+\begin{equation}
+\begin{aligned}
+T_0 &\sim \mathit{Normal}(150, 100) \text{ with } 0 < T_0 < min(rt_n)\\
+\boldsymbol{\alpha} &\sim \mathit{Normal}(6, 1) \\
+\boldsymbol{\beta} &\sim \mathit{Normal}(0, 0.5) \\
+\sigma &\sim \mathit{Normal}_+(0.5, 0.2)\\
+\end{aligned}
+\end{equation}
+
+where $\boldsymbol{\alpha}$ is a vector $\langle \alpha'_{n}, \alpha'_{nw} \ \rangle$, and $\boldsymbol{\beta}$ is a vector of all the $\beta$ used in the likelihoods.
+
+
+To translate the model into Stan, we need a normal distribution truncated so that the values lie between zero and $min(\mathbf{rt})$ for the prior  of `T_0`. This means dividing the original distribution by the \index{Difference of the CDFs} difference of the CDFs evaluated at these two points; see Box \@ref(thm:truncation). In log-space, this is a difference between the log-transformed original distribution and the logarithm of the difference of the CDFs. The function `log_diff_exp` is a more stable version of this last operation [i.e., less prone to underflow/overflow, \index{Underflow} \index{Overflow} see @BlanchardEtAl2020]. What \index{\texttt{log\_diff\_exp}} `log_diff_exp`  does is to take the log of the difference of the exponent of two functions. In this case the functions are two log-CDFs.
+
+```{stan, output.var = "none", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+target += normal_lpdf(T_0 | 150, 100)
+          - log_diff_exp(normal_lcdf(min(rt) | 150, 100),
+                         normal_lcdf(0 | 150, 100));
+```
+
+We implement the likelihood of each joint observation of response time and choice with an if-else clause that calls the likelihood of the accumulator that corresponds to the choice selected in the trial `n`, and the complement CDF for the accumulator that was not selected:
+
+
+```{stan, output.var = "none", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+    if(nchoice[n] == 1)
+      target += lognormal_lpdf(T[n] | alpha[1] -
+                               c_lex[n] * beta[1] -
+                               c_lfreq[n] * beta[2] , sigma)  +
+        lognormal_lccdf(T[n] | alpha[2] -
+                        c_lex[n] * beta[3] -
+                        c_lfreq[n] * beta[4], sigma);
+    else
+       target += lognormal_lpdf(T[n] | alpha[2] -
+                                c_lex[n] * beta[3] -
+                                c_lfreq[n] * beta[4], sigma) +
+        lognormal_lccdf(T[n] | alpha[1] -
+                        c_lex[n] * beta[1] -
+                        c_lfreq[n] * beta[2], sigma);
+  }
+
+
+```
+
+The complete Stan code for this model is shown below as `lnrace.stan`:
+
+```{r, echo = FALSE}
+lnrace <- system.file("stan_models",
+                      "lnrace.stan",
+                      package = "bcogsci")
+```
+
+
+```{stan output.var = "lnrace_stan", code = readLines(lnrace),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+Store the data in a list and fit the model. Some warnings might appear during the warm-up, but these warnings can be ignored  since they no longer appear afterwards, and all the convergence checks look fine (omitted here):
+
+```{r, eval = !file.exists("dataR/fit_blp1_sim.RDS")}
+lnrace <- system.file("stan_models",
+                      "lnrace.stan",
+                      package = "bcogsci")
+ls_blp1_sim <- list(N = nrow(df_blp1_sim),
+                    rt = df_blp1_sim$rt,
+                    nchoice = df_blp1_sim$nchoice,
+                    c_lex = df_blp1_sim$c_lex,
+                    c_lfreq = df_blp1_sim$c_lfreq)
+fit_blp1_sim <- stan(lnrace, data = ls_blp1_sim)
+```
+
+```{r, echo = FALSE}
+if(!file.exists("dataR/fit_blp1_sim.RDS")){
+  saveRDS(fit_blp1_sim, file = "dataR/fit_blp1_sim.RDS")
+} else {
+  fit_blp1_sim <- readRDS("dataR/fit_blp1_sim.RDS")
+}
+```
+
+Print the parameters values:
+
+```{r}
+print(fit_blp1_sim, pars = c("alpha", "beta", "T_0", "sigma"))
+```
+
+As in previous chapters, `mcmc_recover_hist()` can be used to compare the posterior distributions of the relevant parameters of the model with their true point values (Figure \@ref(fig:recoverlnrace)). Indeed, \@ref(fig:recoverlnrace) shows that the model recovers the parameters reasonably well. First, however, we need to reparameterize the true values, since $D$ cannot be known, and we don't fit $V$, but rather $D/V$, with $V$ log-normally distributed. Then, obtain an estimate of $\alpha'$, rather than $\alpha$, such that $\alpha' = log(mu_{d}) - \alpha$.
+
+
+
+(ref:recoverlnrace) Posterior distributions of the main parameters of the log-normal race model `fit_blp1_sim` together with their true point values.
+
+```{r recoverlnrace, message = FALSE, fig.cap = "(ref:recoverlnrace)"}
+true_values <- c(alphapw = log(D) - alpha_w,
+                 alphapnw = log(D) - alpha_nw,
+                 beta_wlex = beta_wlex,
+                 beta_wlfreq = beta_wlfreq,
+                 beta_nwlex = beta_nwlex,
+                 beta_nwlfreq = beta_nwlfreq,
+                 sigma = sigma,
+                 T_0 = T_0)
+estimates <- as.data.frame(fit_blp1_sim) %>%
+  select(- lp__)
+mcmc_recover_hist(estimates, true_values) +
+   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+```
+
+Before moving on to a more complex version of this model, it's worth spending some time making the code more modular. Encapsulate the likelihood of the log-normal race model by writing it as a function. The function has four arguments, the decision time `T`, the choice `nchoice` (this will only work with two choices, `1` and `2`), an array of locations `mu` (which again we implicitly assume to have two elements), and a common scale `sigma`.
+
+```{stan, output.var = "none", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+functions {
+  real lognormal_race2_lpdf(real T, int nchoice,
+                            array[] real mu, real sigma){
+    real lpdf;
+    if(nchoice == 1)
+        lpdf = lognormal_lpdf(T | mu[1] , sigma)  +
+          lognormal_lccdf(T | mu[2], sigma);
+      else
+        lpdf = lognormal_lpdf(T | mu[2], sigma) +
+          lognormal_lccdf(T | mu[1], sigma);
+    return lpdf;
+  }
+}
+```
+
+Next, for each iteration `n` of the original for loop, generate an auxiliary variable `T` which contains the decision time for the current trial, and `mu` as an array of size two that contains all the parameters that affect the location at each trial. This will allow us to use our new function as follows in the `model` block:^[This for-loop can also be implemented in the `transformed parameter` block; the advantage of doing this is that the log-likelihood of each observation can be used, for example, for cross-validation; the disadvantage is that the R object might be very large, because it will store the log-likelihood during the warm-up period as well.]
+
+```{stan, output.var = "none", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+  array[N] real log_lik;
+  for(n in 1:N){
+    real T = rt[n] - T_0;
+    array[2] real mu = {alpha[1]  -
+                        c_lex[n] * beta[1]  -
+                        c_lfreq[n] * beta[2],
+                        alpha[2]  -
+                        c_lex[n] * beta[3] -
+                        c_lfreq[n] * beta[4]};
+    log_lik[n] = lognormal_race2_lpdf(T | nchoice[n], mu, sigma);
+  }
+```
+
+
+The variable `log_lik` contains the log-likelihood for each trial. We must not forget to add the total log-likelihood to the `target` variable. This is done simply by `target += sum(log_lik)`.^[There are two advantage of iterating first and then adding the total log likelihood to `target`: (i) we can use the variable `log_lik` for model comparison with cross-validation (see chapter \@ref(ch-cv)) without the need to repeating code in the generated quantities, and (ii) using `sum` and adding to `target` once is slighter faster than adding to `target` at each iteration.]
+
+The complete Stan code for this model can be found in the `bcogsci` package  as `lnrace_mod.stan`, it is left for the reader to verify that the results are the same as from the non-modular model `lnrace.stan` fit earlier.
+
+```{r, echo = FALSE}
+lnrace_mod <- system.file("stan_models",
+                          "lnrace_mod.stan",
+                          package = "bcogsci")
+```
+
+
+
+
+
+### A hierarchical implementation of the log-normal race model {#sec-lognormalh}
+
+A simple hierarchical version of the previous model assumes that all the parameters $\alpha$ and $\beta$ have by-subject adjustments:
+
+\begin{equation}
+\begin{aligned}
+\mu_{w,n} &= \alpha'_w + u_{subj[n], 1} - \mathit{lex}_n \cdot (\beta_{lex_{w}} + u_{subj[n], 2}) \\
+& - \mathit{lfreq}_n \cdot (\beta_{\mathit{lfreq}_{w}} + u_{subj[n], 3}) \\
+\mu_{nw,n} &= \alpha'_{nw} + u_{subj[n], 4} - \mathit{lex}_n \cdot (\beta_{lex_{nw}} + u_{subj[n], 5}) \\
+& - \mathit{lfreq}_n \cdot (\beta_{\mathit{lfreq}_{nw}}+ u_{subj[n], 6}) \\
+\end{aligned}
+\end{equation}
+
+
+Similarly to the \index{Hierarchical implementation} hierarchical implementation of the fast-guess model in section \@ref(sec-fastguessh), assume that $\boldsymbol{u}$ is a matrix with as many rows as  subjects and six columns. Also assume that $u$  follows a \index{Multivariate normal distribution} multivariate normal distribution centered at zero. For lack of more information, we assume the same (weakly informative) prior distribution for the six variance components $\tau_{u_{1}}, \tau_{u_{2}}, \ldots, \tau_{u_{6}}$ with a somewhat smaller effect than we assumed for the prior of $\sigma$. As with previous hierarchical models, we assign a regularizing \index{LKJ prior} LKJ prior for the correlations between the adjustments:^[There are 15 correlations since there are 15 ways to choose 2 variables out of 6 for specifying the pairwise correlations, where order doesn't matter. This is calculated with ${6 \choose 2}$ which is `choose(6, 2)` in R.]
+
+\begin{equation}
+\begin{aligned}
+\boldsymbol{u} &\sim\mathcal{N}(0, \Sigma_u)\\
+\tau_{u_{1}}, \tau_{u_{2}}, \ldots, \tau_{u_{6}} & \sim \mathit{ \mathit{Normal}}_+(0.1, 0.1)\\
+\mathbf{R}_u &\sim \mathit{LKJcorr}(2)
+\end{aligned}
+\end{equation}
+
+Before fitting the model to the real data, verify that it works with simulated data. To create synthetic data of several subjects, repeat the same generative process used before, and add the by-subject adjustments `u` in the same way as in section \@ref(sec-fastguessh).  This version of the log-normal race model assumes that all the parameters $\alpha$ and $\beta$ have by-subject adjustments; that is, 6 adjustments. To simplify the model, ignore the possibility of an adjustment for the non-decision time $T_0$, but see @nicenboimModelsRetrievalSentence2018 for an implementation of the log-normal race model with a hierarchical non-decision time.
+For simplicity, all the adjustments `u` are normally distributed with the same  standard deviation of $0.2$, and they have a $0.3$ correlation between pairs of `u`'s; see `tau_u` and `rho` below.
+
+First, set a seed, take a subset of the data set to keep the same structure, set true point values, and auxiliary variables that indicate the number of observations, subjects, etc.
+
+```{r lnsimdatah1}
+set.seed(42)
+df_blp_sim <- df_blp %>%
+  group_by(subj)  %>%
+  slice_sample(n = 100) %>%
+  ungroup()
+D <- 1800
+alpha_w <- 0.8
+beta_wlex <- 0.5
+beta_wlfreq <- 0.2
+alpha_nw <- 1
+beta_nwlex <- -0.5
+beta_nwlfreq <- -0.05
+sigma <- 0.8
+T_0 <- 150
+N <- nrow(df_blp_sim)
+N_subj <- max(df_blp_sim$subj)
+N_adj <- 6
+tau_u <- rep(0.2, N_adj)
+rho <- 0.3
+R_u <- matrix(rep(rho, N_adj * N_adj), nrow = N_adj)
+diag(R_u) <- 1
+Sigma_u <- diag(tau_u, N_adj, N_adj) %*%
+  R_u %*% diag(tau_u, N_adj, N_adj)
+u <- mvrnorm(n = N_subj, rep(0, N_adj), Sigma_u)
+subj <- df_blp_sim$subj
+```
+
+Second, generate the locations of both accumulators, `mu_v_w` and `mu_v_nw`, for every trial:
+
+```{r lnsimdatah2}
+mu_v_w <- alpha_w + u[subj, 1] +
+  df_blp_sim$c_lfreq * (beta_wlfreq + u[subj, 2]) +
+  df_blp_sim$c_lex * (beta_wlex + u[subj, 3])
+mu_v_nw <- alpha_nw + u[subj, 4] +
+  df_blp_sim$c_lfreq * (beta_nwlfreq + u[subj, 5]) +
+  df_blp_sim$c_lex * (beta_nwlex + u[subj, 6])
+```
+
+Third, generate values for the rates of accumulation  and use those rates to calculate `T_w` and `T_nw`.
+
+```{r lnsimdatah3}
+V_w <- rlnorm(N, mu_v_w, sigma)
+V_nw <- rlnorm(N, mu_v_nw, sigma)
+T_w <-  D / V_w
+T_nw <- D / V_nw
+```
+
+Fourth, calculate the time it takes to reach to a decision and  the winner accumulator for each trial.
+
+
+```{r lnsimdatah4}
+T_n<- pmin(T_w, T_nw)
+accumulator_winner <- ifelse(T_w == pmin(T_w, T_nw),
+                             "word",
+                             "non-word")
+```
+
+Finally, add this information to the data frame.
+
+```{r lnsimdatah5}
+df_blp_sim <- df_blp_sim %>%
+  mutate(rt = T_0 + T_n,
+         choice = accumulator_winner,
+         nchoice = ifelse(choice == "word", 1, 2),
+         acc = ifelse(lex == choice, 1, 0))
+```
+
+
+```{r, echo = FALSE}
+lnrace_h <- system.file("stan_models",
+                      "lnrace_h.stan",
+                      package = "bcogsci")
+```
+
+The Stan code for this model implements the \index{Non-centered parameterization} non-centered parameterization for \index{Correlated adjustments} correlated adjustments (see section \@ref(sec-corrstan) for more details). The model is shown below as `lnrace_h.stan`:
+
+```{stan output.var = "lnrace_h_stan", code = readLines(lnrace_h),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+Store the simulated data in a list and fit it.
+
+```{r, eval = !file.exists("dataR/fit_blp_h_sim.RDS")}
+lnrace_h <- system.file("stan_models",
+                        "lnrace_h.stan",
+                        package = "bcogsci")
+ls_blp_h_sim <- list(N = nrow(df_blp_sim),
+                     N_subj = max(df_blp_sim$subj),
+                     subj = df_blp_sim$subj,
+                     rt = df_blp_sim$rt,
+                     nchoice = df_blp_sim$nchoice,
+                     c_lex = df_blp_sim$c_lex,
+                     c_lfreq = df_blp_sim$c_lfreq)
+fit_blp_h_sim <- stan(lnrace_h, data = ls_blp_h_sim,
+                      control = list(adapt_delta = 0.99,
+                                     max_treedepth = 14))
+```
+
+```{r lnracehsim, echo = FALSE, eval = TRUE}
+if(!file.exists("dataR/fit_blp_h_sim.RDS")){
+  saveRDS(ls_blp_h_sim, file = "dataR/ls_blp_h_sim.RDS")
+  saveRDS(fit_blp_h_sim, file = "dataR/fit_blp_h_sim.RDS")
+} else {
+  fit_blp_h_sim <- readRDS("dataR/fit_blp_h_sim.RDS")
+  ls_blp_h_sim <- readRDS("dataR/ls_blp_h_sim.RDS")
+}
+```
+
+
+The code below compares the posterior distributions of the relevant parameters of the model with their true values, and plots them in Figure \@ref(fig:recoverlnraceh). The true value for all the correlations was $0.3$, but we need to correct the sign depending on whether there was a minus sign in front of the adjustment when we built `mu_v_w` and `mu_v_wn` or not: For example, there is no minus before `u[subj, 1]`, but there is one before `u[subj, 2]`, thus the true correlation between `u[subj, 1]` and `u[subj, 2]` we generated should be negative (plus times minus is minus); and there is a minus before `u[subj, 3]` and thus the correlation between `u[subj, 2]` and `u[subj, 3]` should positive (minus times minus is positive).
+
+(ref:recoverlnraceh) Posterior distributions of the main parameters of the log-normal race model `fit_blp_h_sim` together with their true values.
+
+```{r, echo = FALSE, results = "hide"}
+#which correlations should change the sign
+apply(combn(c(1,-2,-3,4,-5,-6),2), 2, prod) %>%
+  {ifelse(. >0,1,-1)} %>% dput()
+```
+
+```{r recoverlnraceh, message = FALSE, fig.cap = "(ref:recoverlnraceh)", eval = TRUE, fig.height = 6}
+R_us <- c(paste0("R_u[1,", 2:6 , "]"),
+          paste0("R_u[2,", 3:6 , "]"),
+          paste0("R_u[3,", 4:6 , "]"),
+          paste0("R_u[4,", 5:6 , "]"),
+          "R_u[5,6]")
+corrs <- rho * c(-1, -1, 1, -1, -1, 1, -1, 1,
+                 1, -1, 1, 1, -1, -1, 1)
+true_values <- c(log(D) - alpha_w,
+                 log(D) - alpha_nw,
+                 beta_wlex,
+                 beta_wlfreq,
+                 beta_nwlex,
+                 beta_nwlfreq,
+                 T_0,
+                 sigma,
+                 tau_u,
+                 corrs)
+par_names = c("alpha",
+              "beta",
+              "T_0",
+              "sigma",
+              "tau_u",
+              R_us)
+estimates <- as.data.frame(fit_blp_h_sim) %>%
+  select(contains(par_names))
+mcmc_recover_hist(estimates, true_values) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+        legend.position = "bottom")
+```
+
+Figure \@ref(fig:recoverlnraceh) shows that we can recover the true values quite well, even if there is a great deal of uncertainty over the posteriors of the correlations. As mentioned in previous chapters, a more principled (and computationally demanding) approach uses simulation based calibration; this was  introduced in section \@ref(sec-validSBC) [also see  @talts2018validating; @schad2020toward].
+
+
+We are now ready to fit the model to the observed data.
+
+Create a list with the real data and fit the same Stan model:
+
+```{r, eval = !file.exists("dataR/fit_blp_h.RDS")}
+lnrace_h <- system.file("stan_models",
+                        "lnrace_h.stan",
+                        package = "bcogsci")
+ls_blp_h <- list(N = nrow(df_blp),
+                 N_subj = max(df_blp$subj),
+                 subj = df_blp$subj,
+                 rt = df_blp$rt,
+                 nchoice = df_blp$nchoice,
+                 c_lex = df_blp$c_lex,
+                 c_lfreq = df_blp$c_lfreq)
+fit_blp_h <- stan(lnrace_h,
+                  data = ls_blp_h,
+                  control = list(adapt_delta = .99,
+                                 max_treedepth = 14))
+
+```
+
+```{r fitblph, echo = FALSE}
+if(!file.exists("dataR/fit_blp_h.RDS")){
+  saveRDS(fit_blp_h, file = "dataR/fit_blp_h.RDS")
+  saveRDS(ls_blp_h, file = "dataR/ls_blp_h.RDS")
+} else {
+  fit_blp_h <- readRDS("dataR/fit_blp_h.RDS")
+  ls_blp_h <- readRDS("dataR/ls_blp_h.RDS")
+}
+```
+
+Print the summary (omit the correlations for now).
+
+```{r}
+print(fit_blp_h, pars = c("alpha",
+                          "beta",
+                          "T_0",
+                          "sigma",
+                          "tau_u"))
+```
+
+Even though the model converged, the posterior summary shows a clear problem with the model: The estimate for the \index{Non-decision time} non-decision time, $T_0$ is less than $12$ milliseconds! This is just not possible; physiological research [@clark1994identification] shows that the eye-to-brain lag, the time it takes for the visual features on the  screen until they are propagated from the retina to the brain is at least $50$ milliseconds. Besides identifying the stimuli, the subjects also need to initiate a motor response which takes at least $100$ milliseconds. Then how is it possible that we obtained this extremely fast non-decision time? The reason is that the parameter `T_0` is constrained to be between zero and the shortest response time.
+
+Verify what is the shortest response time in the data set and how many observations are below 150 milliseconds.
+
+
+```{r}
+min(df_blp$rt)
+sum(df_blp$rt < 150)
+```
+
+This shows that some responses must have been initiated even before the stimulus was presented! Next, we deal with  \index{Contaminant observation} *contaminant* observations [@ratcliff2002estimating].
+
+
+### Dealing with \index{Contaminant response} contaminant responses {#sec-contaminant}
+
+So far we have assumed that all the observations were coming from responses done after a decision was made. But what happens if there are \index{Anticipation} anticipations or \index{Lapse of attention} lapses of attention where the subject responds either before the stimuli is presented or after the stimulus was presented, but without attending to the stimulus? We are  in a situation analogous to what we described before in chapter \@ref(ch-mixture) with the fast-guess model [@Ollman1966]. There, we assumed that the behavior of a subject  would be the mixture of two distributions, one corresponding to a \index{Guessing mode} guessing mode of responses and another one to a \index{Task-engaged mode} task-engaged mode.  
+
+However, there are two major differences with the fast-guess model First, we assume here that guesses can be fast (e.g., anticipations) as well as slow. Second, here guesses occur in a minority of the cases and choice and response times are mostly explained by the log-normal race model.
+The distribution that corresponds to these guesses is sometimes called a \index{Contaminant distribution} *contaminant distribution* [@ratcliff2002estimating]. When the contaminant \index{Response time} response times are outside the usual range
+of response times (either shorter or longer), they can cause major problems in data analysis, distorting estimates. As we saw before, extremely short response times caused by anticipating the response can make it virtually impossible to estimate the non-decision time.
+
+
+One way to address this problem is to assume that the responses come from a mixture distribution. If one is reasonably confident about which data points are contaminants, a more straightforward approach is to simply remove those points. However, a mixture distribution allows us to account for uncertainty regarding data points that are not obviously extreme. Following @ratcliff2002estimating, we model the data as a mixture of the sequential sampling model (in this case, the log-normal race model) and a \index{Uniform distribution} uniform distribution bounded by the minimum and maximum observed response times.^[
+The main argument of @ratcliff2002estimating is that this method allows for good recovery of the model's parameters as well as the proportion of contaminant responses. However, the assumption that the contaminant responses are uniformly distributed is not well justified. Furthermore, using the data to define the model parameters is usually problematic and might lead to overfitting. A more thorough approach would require us to have some assumptions about the contaminant responses, which might be a combination of fast presses and slow lapses of attention due to mind wandering. We could define a mixture model with a more appropriate distribution than the uniform distribution that have used here, with informative priors for the mixing proportion.]
+
+
+The new likelihood function will look as follows:
+
+\begin{equation}
+\begin{aligned}
+p(rt_n, choice_n) =& \theta_c \cdot \mathit{Uniform}(rt_n | min(rt), max(rt)) \cdot \\
+& \mathit{Bernoulli}(choice_n | \theta_{bias}) +\\
+& (1-\theta_c) \cdot p_{lnrace}(rt_n, choice_n | \mu, \sigma)
+\end{aligned}
+(\#eq:lnracecont)
+\end{equation}
+
+The first term of the sum represents the contaminant component that occurs with probability $\theta_{c}$ and has a likelihood that depends on the response time, represented with the uniform PDF, and on the response given, represented with a Bernoulli PMF. When a subject is guessing, the likelihood of each choice depends on $\theta_{bias}$.
+
+The second term of the likelihood represents the log-normal race model that occurs with probability $1-\theta_c$. We use $p_{lnrace}(rt_n, choice_n)$ as a shorthand for the following function (which we have already used in the models before):
+
+
+\begin{equation}
+\begin{aligned}
+&p_{lnrace}(rt_n, choice_n) =\\
+&\begin{cases}
+\mathit{LogNormal}(T_{n}|\mu_{w,n}, \sigma) \cdot \\
+(1 -  \mathit{LogNormal}\_CDF(T_{n}| \mu_{nw,n}, \sigma)) \text{, if } \mathit{choice}= \text{word}\\
+\\
+\mathit{LogNormal}T_{n}|\mu_{nw,n}, \sigma) \cdot \\
+(1 -  \mathit{LogNormal}\_CDF(T_{n}| \mu_{w,n}, \sigma))\text{, otherwise }\\
+\end{cases}
+\end{aligned}
+\end{equation}
+
+To simplify the model,  we assume that contaminant responses are completely random (i.e., there is no bias to word or non-word). This assumption is encoded in the model by setting $\theta_{bias} = 0.5$.^[This is, of course, just an assumption that could be verified. But we'll see that the model is already quite complex and achieving convergence is not trivial.] This makes $\mathit{Bernoulli}(choice_n | \theta_{bias}) = 0.5$.
+
+For this model to converge, we need to assume that $\theta_{c}$ is much smaller than $1$.  This is a sensible assumption for this particular model, since the contaminant distribution is assumed to only happen in  a minority of the cases. We set the following prior on  $\theta_{c}$:
+
+\begin{equation}
+\theta_c \sim  \mathit{Beta}(0.9, 70)
+\end{equation}
+
+
+
+
+By setting the first parameter of the \index{Beta distribution} beta distribution to a number smaller than $1$, we get a distribution of possible probabilities with a "horn" on the left; see Figure \@ref(fig:thetac). Our prior belief for $\theta_{c}$ has mean $`r .5/(.9+70)`$, and its 95% CrI is
+$[`r qbeta(.025,.9,70)`, `r qbeta(.975,.9,70) `]$.^[The average is calculated as follows: $0.9/(0.9+70)$; this is because the mean of a beta distribution with parameters $a,b$ is $a/(a+b)$. The 95% quantile can be calculated in R with `qbeta(c(0.025, 0.975), 0.9, 70)`.]
+
+
+(ref:thetac) Prior distribution for the probability of contaminated responses $\theta_{c}$. Most of the probability mass is close to $0$.
+
+```{r thetac, fig.cap = "(ref:thetac)", fold = TRUE}
+ ggplot(data = tibble(theta_c = c(0, 1)), aes(theta_c)) +
+  stat_function(
+    fun = dbeta,
+    args = list(shape1 = 0.9, shape2 = 70),
+  ) +
+  ylab("density")
+```
+
+We also want to "push" the \index{Non-decision time} non-decision time further from zero to get more realistic values. For this reason we increase the informativity of the prior of $T_0$. A \index{Log-normal prior} log-normal prior discourages values too close to zero, even with a similar location (on log-scale) than the truncated normal prior. We settle on the following prior:
+
+\begin{equation}
+T_0 \sim  \mathit{LogNormal}(log(150), 0.6)
+\end{equation}
+
+(ref:tnd) Prior distribution for $T_0$. The dashed lines show the 95% credible interval.
+
+```{r tnd, fig.cap = "(ref:tnd)", fold = TRUE}
+sdlog <- .6
+lq = qlnorm(.025,log(150), sdlog)
+hq = qlnorm(.975,log(150), sdlog)
+ggplot(data = tibble(T_0 = c(0, 1000)), aes(T_0)) +
+  stat_function(
+    fun = dlnorm,
+    args = list(meanlog = log(150), sdlog = sdlog),
+  ) +
+   geom_vline(xintercept = lq, linetype = "dashed") +
+   geom_vline(xintercept = hq, linetype = "dashed") +
+   geom_text(label = round(lq), x = lq - 50, y = 0.0025) +
+   geom_text(label = round(hq), x = hq + 50, y = 0.0025) +
+  ylab("density")
+```
+
+
+
+Finally, we want to be able to account for response times that are actually faster than the non-decision time. If the observed response time, `rt` is smaller than the non-decision time, `T_0`, we can be sure that the observation belongs to the contaminant distribution, because otherwise the decision time `T` should be negative. This means that in this case, the log-normal race likelihood is $0$ (and its logarithm is negative infinity). When $T<0$, the log-likelihood of our model is $log(\theta_c \cdot \mathit{Uniform}(rt_{n} | min, max) \cdot 0.5 + (1-\theta_c) \cdot p_{lnrace})$ with $p_{lnrace} =0$. This means that  we only use the following code:
+
+```{stan, output.var = "none", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+   target += log(theta_c) + uniform_lpdf(rt[n] | min_rt, max_rt) +
+                 log(0.5);
+
+```
+
+This also means that we need to relax the constraints on `T_0`; it doesn't need to be smaller than the smallest observed response time, since some of the observations are responses from the contaminant distribution:
+
+```{stan, output.var = "none", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+  real<lower = 0> T_0;
+```
+
+When $T>0$, the likelihood is a mixture of the contaminant distribution and the log-normal race model as defined in Equation \@ref(eq:lnracecont). We use \index{\texttt{log\_sum\_exp}} `log_sum_exp` exactly as we did in sections \@ref(sec-simplefastguess) and \@ref(sec-multmix) for the fast-guess model.
+We fit a mixture distribution between a contaminant distribution and the log-normal race model.
+
+```{stan, output.var = "none", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+ target += log_sum_exp(
+                       log(theta_c) +
+                       uniform_lpdf(rt[n] | min_rt, max_rt)
+                       + log(0.5),
+                       log1m(theta_c) +
+                       lognormal_race2_lpdf(T[n] | nchoice[n],
+                                            mu, sigma));
+```
+
+
+
+
+```{r, echo = FALSE}
+lnrace_h_cont <- system.file("stan_models",
+                             "lnrace_h_cont.stan",
+                             package = "bcogsci")
+```
+
+Finally, the complete Stan code for this model is shown below as `lnrace_cont.stan`:
+
+```{stan output.var = "lnrace_cont_stan", code = readLines(lnrace_h_cont),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+In practice, we should verify that this model can recover the true values of its parameters by first simulating data and fitting the model to simulated data, and using simulation-based calibration. We skip these steps here.
+
+Store the real data in a list and fit the model:
+
+```{r, eval = !file.exists("dataR/fit_blp_contamination_h.RDS")}
+lnrace_h_cont <- system.file("stan_models",
+                             "lnrace_h_cont.stan",
+                             package = "bcogsci")
+ls_blp_h <- list(N = nrow(df_blp),
+                 N_subj = max(df_blp$subj),
+                 subj = df_blp$subj,
+                 rt = df_blp$rt,
+                 nchoice = df_blp$nchoice,
+                 c_lex = df_blp$c_lex,
+                 c_lfreq = df_blp$c_lfreq)
+fit_blp_h_cont <- stan(lnrace_h_cont,
+                       data = ls_blp_h,
+                       control = list(adapt_delta = .99,
+                                      max_treedepth = 14))
+
+```
+
+
+```{r hcont, echo = FALSE, eval = TRUE}
+lnrace_h_cont <- system.file("stan_models",
+                             "lnrace_h_cont.stan",
+                             package = "bcogsci")
+if(!file.exists("dataR/fit_blp_contamination_h.RDS")){
+  saveRDS(fit_blp_h_cont, file = "dataR/fit_blp_contamination_h.RDS")
+} else {
+  fit_blp_h_cont <- readRDS("dataR/fit_blp_contamination_h.RDS")
+}
+```
+
+This model takes more than a day to finish in a relatively powerful computer and, disappointingly, it doesn't converge; this \index{Non-convergence} non-convergence is apparent from the traceplots in Figure \@ref(fig:tracebadcont). We'll see later that even if the converging model finishes faster, it still takes a considerable amount of time. If one has a powerful computer available (with, for example,  multiple cores), it is possible to parallelize the sampling further than what we did so far. This is possible with special functions that allow for \index{Multithreading} *multithreading*, which is discussed in @Stan2023 (Chapter 27 of the User's guide).
+
+
+(ref:tracebadcont) The traceplots of the `fit_blp_h` shows that the chains are clearly not mixing well for the real data set.
+
+```{r tracebadcont, fig.cap = "(ref:tracebadcont)", fold = TRUE}
+traceplot(fit_blp_h_cont, pars = c("alpha",
+                          "beta",
+                          "T_0",
+                          "theta_c",
+                          "sigma",
+                          "tau_u")) +
+  scale_x_continuous(breaks = NULL)
+
+```
+
+The traceplots in Figure \@ref(fig:tracebadcont) show that the chains get stuck and don't mix well. It seems that there is not enough information to constrain the model. If we look at the parameter `theta_c`, which represents the mixing proportion between the contaminant and the log-normal distribution, we see that its chains are getting stuck at very unlikely values that are over $0.25$. Although in general is not recommended to cut off values from a prior just because they're unlikely, in this case restricting the  parameter `theta_c` to be smaller than $0.1$ helps solving  \index{Convergence problem} convergence problems. To truncate the prior for $\theta_c$ in Stan, we declare the parameter to have an upper bound of $0.1$:
+
+
+```
+real<lower = 0, upper = 0.1> theta_c;
+```
+
+Change its prior distribution in the `model` block to the following:
+
+```
+target += beta_lpdf(theta_c | 0.9, 70) -
+  beta_lcdf(0.1 | 0.9, 70);
+```
+
+If we were to fit this new model, we would see that some chains of `T_0` mix in values around 300 ms and some other chains (sometimes) get stuck in values very close to zero. This indicates that the model needs more information regarding the non-decision time. Another issue that slows down convergence is that this parameter `T_0` is on a different scale (with a value above 100) than the rest of the parameters (with values below 10). Rather than sampling from `T_0`, we sample from `lT_0` in a new model, so that `T_0 = exp(lT_0)`. We assign the following prior to `lT_0`:
+
+
+\begin{equation}
+lT_0 \sim \mathit{Normal}(log(200), 0.3)
+\end{equation}
+
+This is mathematically equivalent to assigning the following prior to $T_0$:
+
+\begin{equation}
+T_0 \sim \mathit{LogNormal}(log(200), 0.3)
+\end{equation}
+
+
+
+```{r, echo = FALSE}
+lnrace_h_contb <- system.file("stan_models",
+                              "lnrace_h_contb.stan",
+                              package = "bcogsci")
+```
+
+
+The new version of the model is omitted here, but can be found as `lnrace_h_contb.stan` in the `bcogsci` package. Fit the new modified model to the same data.
+
+```{r, eval = !file.exists("dataR/fit_blp_h_contb.RDS")}
+lnrace_h_contb <- system.file("stan_models",
+                              "lnrace_h_contb.stan",
+                              package = "bcogsci")
+fit_blp_h_contb <- stan(lnrace_h_contb,
+                        data = ls_blp_h,
+                        control = list(adapt_delta = .99,
+                                       max_treedepth = 14))
+```
+
+
+
+```{r, echo = FALSE, eval = TRUE}
+lnrace_h_contb <- system.file("stan_models",
+                              "lnrace_h_contb.stan",
+                              package = "bcogsci")
+if(!file.exists("dataR/fit_blp_h_contb.RDS")){
+  saveRDS(fit_blp_h_contb, file = "dataR/fit_blp_h_contb.RDS")
+} else {
+  fit_blp_h_contb <- readRDS("dataR/fit_blp_h_contb.RDS")
+}
+```
+
+This time the model takes considerably less time, but it still takes nine hours. However, the model does converge and the posterior distribution does make sense now.
+
+Print the summary of the main parameters:
+
+
+```{r}
+print(fit_blp_h_contb, pars = c("alpha",
+                                "beta",
+                                "T_0",
+                                "sigma",
+                                "theta_c",
+                                "tau_u"))
+```
+
+Print the summary of the correlations:
+
+```{r, eval = TRUE}
+print(fit_blp_h_contb, pars = R_us)
+```
+
+What can we say about the fit of the model now?
+
+Under the assumptions that we have made, we can look at the parameters and conclude the following:
+
+- All other things being equal, there is an overall bias to respond `non-word` rather than `word`. We can deduce this because the parameters $\alpha$ represent the boundary separation of each accumulator  minus their rate of accumulation (see Equation \@ref(eq:alphaprime)). A smaller `alpha` indicates a closer boundary of evidence and/or a faster rate for a given accumulator. In this case `alpha[2]` is smaller than `alpha[1]`. However,  the fact that `tau_u[1]` and `tau_u[4]` are relatively large suggests large individual differences. Furthermore, the fact that the correlation `R_u[1,4]` is large and positive indicates that subjects who are cautious in the accumulation of evidence for words are also cautious for non-words.
+- The task seems to have been well-understood given that, when a `word` appears, the rate of accumulation of the word accumulator increases (`beta[1]` $> 0$), and the rate of the non-word accumulator decreases (`beta[3]` $<0$).
+- As expected, and replicating previous findings in the literature, words with higher frequency are easier to identify correctly as words, compared to lower frequency words (`beta[2]` $>0$ and `beta[4]` $<0$).
+- The non-decision time (`T_0`) is relatively long, considering that the normal reading of words in a sentence takes around $200-400$ ms [@rayner1998emr].
+- The proportion of contaminant responses (`theta_c`) is quite small ($1\%$), but without taking them into account, the non-decision time would not be possible to estimate.
+
+
+
+Our assumptions include both the likelihood we have chosen and the priors. It's clear from the difficulties fitting the data that the model is very sensitive to the choice of priors. Since there seem to be not enough information in the data, we need to provide information through the prior distributions.
+
+## Posterior predictive check with the quantile probability plots
+
+As in the previous chapter, in a new file, we can write the generated quantities block for \index{Posterior predictive check} posterior predictive checks. The advantage is that we can generate as many observations as needed after estimating the parameters. There is no model block in the following Stan program. The \index{\texttt{gqs}} `gqs()` function needs a Stan model without \index{Transformed parameter} transformed parameters. For this reason, this model  includes `u` in the \index{\texttt{parameters}} `parameters` block rather than in the `transformed parameters`.
+The complete Stan code for this model is shown below as `lnrace_h_contb_gen.stan`.
+
+```{r, echo = FALSE}
+lnrace_h_gen <- system.file("stan_models",
+                      "lnrace_h_contb_gen.stan",
+                      package = "bcogsci")
+```
+
+
+```{stan output.var = "lnrace_cont_stan", code = readLines(lnrace_h_gen),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+Compile the model `lnrace_h_contb_gen.stan` and subset 200 samples of each parameter appearing in the `parameters` block using the previous model:
+
+```{r, eval = !file.exists("dataR/gen_race.RDS")}
+lnrace_h_gen <- system.file("stan_models",
+                            "lnrace_h_contb_gen.stan",
+                            package = "bcogsci")
+gen_model <- stan_model(lnrace_h_gen)
+draws_par <- as.matrix(fit_blp_h_contb,
+                       pars = c("alpha",
+                                "beta",
+                                "sigma",
+                                "T_0",
+                                "theta_c",
+                                "tau_u",
+                                "u"))[1:200, , drop = FALSE]
+```
+
+Use the function `gqs()` (this function draws samples of generated quantities from the Stan model) to generate responses from 200 simulated experiments:
+
+```{r, eval = !file.exists("dataR/gen_race.RDS")}
+gen_race_data <- gqs(gen_model,
+                     data = ls_blp_h,
+                     draws = draws_par)
+```
+
+```{r, echo = FALSE}
+if(!file.exists("dataR/gen_race.RDS")){
+  saveRDS(gen_race_data, "dataR/gen_race.RDS")
+} else {
+  gen_race_data <- readRDS("dataR/gen_race.RDS")
+}
+```
+
+One can examine the general distribution of response times generated by the posterior predictive model, or the effect of the experimental manipulations on response times, as we did in section \@ref(sec-ppdmixture).
+
+However, it is more informative to look at the  \index{Quantile probability plot} quantile probability plot of the posterior predictive distribution. In order to create this plot, first extract the predicted response times and choice, and match each one to their corresponding observation of the corresponding simulation. Before we can use `qpf()`, we need a data frame identical to the one with the observed data, `df_blp`, but one that includes response time and choice for each observation of each simulation (indicated with the column `sim`). We do this in the code below. The code below yields a data frame called `df_blp_pred_qpf`, which has the quantile probability information of the observed data  and each one of the 200 simulations.
+
+
+
+First, extract the array of predicted reading times from `gen_race_data` and transform it to a long format:
+
+
+```{r}
+df_rt <- rstan::extract(gen_race_data)$rt_pred %>%
+         # Convert a matrix of 200 x 24000 (iter x N obs)
+         # into a data.frame where each column is
+         # V1,...,V24000:
+         as.data.frame() %>%
+         # Add a column which identifies each iter as a simulation:
+         mutate(sim = 1:n()) %>%
+         # Pivot the data frame so that it has length 200 * 24000.
+         # Each row indicates:
+         # - sim: from which simulation the observation is coming
+         # - obs_id: identifies the 24000 observations
+         # - rt_pred: simulated RT
+         # Since each observation is in a column starting with V
+         # `names_prefix` removes the "V"
+         pivot_longer(cols = -sim,
+                      names_to = "obs_id",
+                      names_prefix = "V",
+                      values_to = "rt_pred") %>%
+         # Make sure that obs_id is a number (and not a
+         # number represented as a character):
+         mutate(obs_id = as.numeric(obs_id))
+df_rt
+```
+
+Second, extract the array of predicted choice (1 for words and 2 for non-words) and transform it into a long format:
+
+```{r}
+df_nchoice <- rstan::extract(gen_race_data)$nchoice_pred %>%
+                         as.data.frame() %>%
+                         mutate(sim = 1:n()) %>%
+                         pivot_longer(cols = -sim,
+                                      names_to = "obs_id",
+                                      names_prefix = "V",
+                                      values_to = "nchoice_pred") %>%
+                         mutate(obs_id = as.numeric(obs_id))
+df_nchoice
+```
+
+
+Third, create a new data frame with  the characteristics of the stimuli the predictions  and observations. The predictions come from $200$ simulated data set, each simulation is indexed with `sim` (whereas for the empirical observations, `sim` is set to `NA`):
+
+```{r, message = FALSE }
+df_blp_main <- df_blp %>%
+  select(subj, lex, lfreq, rt, nchoice) %>%
+  mutate(obs_id = 1:n())
+df_blp_pred <- left_join(df_rt, df_nchoice) %>%
+  left_join(select(df_blp_main, -rt, -nchoice)) %>%
+  rename(rt = rt_pred, nchoice = nchoice_pred) %>%
+  bind_rows(df_blp_main) %>%
+  mutate(acc = ifelse((nchoice == 1 & lex == "word") |
+                        (nchoice == 2 & lex == "non-word"), 1, 0))
+df_blp_pred
+```
+
+Finally, create a data frame with the results of the quantile probability function applied by simulation and by frequency:
+
+```{r}
+df_blp_pred_qpf <- df_blp_pred  %>%
+  # Subset only words
+  filter(lex == "word") %>%
+  # Create 5 word frequencies group
+  mutate(freq_group =
+           cut(lfreq,
+               quantile(lfreq, c(0,.2,.4, .6, .8, 1)),
+               include.lowest = TRUE,
+               labels =
+                 c("0-.2", ".2-.4", ".4-.6", ".6-.8", ".8-1"))) %>%
+  # Group by condition  and subject
+  group_by(freq_group, sim, subj) %>%
+  # Apply the quantile probability function
+  qpf() %>%
+  # Group again removing subj
+  group_by(freq_group, sim, q, response) %>%
+  # Get averages of all the quantities
+  summarize(rt_q = mean(rt_q),
+            p = mean(p))
+```
+
+```{r, echo = FALSE}
+## if(!file.exists("dataR/df_blp_pred_qpf.RDS")){
+##    saveRDS(df_blp_pred_qpf, file = "dataR/df_blp_pred_qpf.RDS")
+## } else {
+##   df_blp_pred_qpf <- readRDS("dataR/df_blp_pred_qpf.RDS")
+## }
+```
+
+Now, plot the results with the code shown below (Figure \@ref(fig:qppfreqpp)).
+
+(ref:qppfreqpp) Quantile probability plots showing   0.1, 0.3, 0.5, 0.7, and 0.9 response times quantiles plotted against  proportion of incorrect responses (left) and proportion of correct responses (right) for only words of different frequency. Word frequency are grouped according to quantiles: The first group are words with frequencies smaller than the 0.2-th quantile, the second group are words with frequencies smaller than the 0.4-th quantile and larger than the 0.2-th quantile, and so forth. The summary of the observed data is plotted in black and the summaries of the synthetic data sets are plotted in gray.
+
+```{r qppfreqpp, fig.cap = "(ref:qppfreqpp)", warning = FALSE}
+ggplot(df_blp_pred_qpf %>% filter(sim <200 ), aes(x = p, y = rt_q)) +
+  geom_point(shape = 4, alpha = 0.1) +
+  geom_line(aes(group = interaction(q, response, sim)),
+            alpha = 0.1,
+            color = "grey") +
+  ylab("log-transformed RT quantiles (ms) ") +
+  xlab("Response proportion")  +
+  geom_point(data = df_blp_pred_qpf %>% filter(is.na(sim)),
+             shape = 4) +
+  geom_line(data = df_blp_pred_qpf %>% filter(is.na(sim)),
+            aes(group = interaction(q, response))) +
+  coord_trans(y = "log")
+```
+
+
+
+Figure \@ref(fig:qppfreqpp) shows the quantile probability plots of the observed and simulated data. We would expect the observed quantile probability summaries (in black) to fall within those of the posterior predictive distribution (in grey).
+
+The fit is clearly bad. One major issue is the misfit at the left side of the plot, this is because the model is unable to capture fast errors: Low probability responses must be slower, because having a slow rate and "losing" the race often is what makes their probability low. Other sequential sampling models such as the \index{Linear ballistic accumulator} linear ballistic accumulator and the \index{Drift diffusion model} drift diffusion model can account for fast errors, under the assumption that they happen in the trials where there is a strong initial bias toward the wrong response; this bias occurs  due to random variation in the starting points of the accumulators. This  characterization of \index{Fast error} fast errors is not possible for the \index{Log-normal race model} log-normal race model, because bias  and rate effects combine to determine distribution location [@HeathcoteLove2012]. @HeathcoteLove2012 point out that the log-normal race model can still produce fast errors if the scale of the accumulator that corresponds to the incorrect choice is larger than the scale of the accumulator of the correct choice. We leave it as an exercise for the reader to verify that a log-normal race model with a scale that depends on the stimuli improves the fit (see Exercise \@ref(exr:lnracescale)).
+
+
+## Summary
+
+In this chapter, we learned to fit what seems to be the simplest sequential sampling model, a log-normal race model with equal scale (or variances) starting with one subject, continuing with a fully hierarchical model, and finally incorporating a contaminant distribution by using a mixture model. We saw how to evaluate model fit of response time and choice using quantile probability plots. We saw that the log-normal race model with equal scale is unable to account for fast errors and a more complex model is needed. Crucially, many of the techniques explained in this chapter (e.g., including a shift in the distribution, mixture distributions for dealing with contaminated responses, and quantile probability plots) can be used with virtually any type of model that fits response times and choice. One downside of this type of model is that they take a long time to fit.
+
+## Further reading
+The log-normal race model was first introduced in @HeathcoteLove2012, and its first Bayesian implementation is described in @RouderEtAl2015. The log-normal race model is closely connected to the retrieval process from memory that is assumed in the cognitive architecture ACT-R;  see, for example,  @nicenboimModelsRetrievalSentence2018; @fisher2022fundamental; @lisson_2020.
+@heathcote2019dynamic outline how to fit evidence-accumulation models in a Bayesian framework with a custom R package that relies on a Differential-Evolution sampler [DE-MCMC; @turner2013method].
+
+
+## Exercises
+
+```{exercise, recovery}
+Can we recover the true point values of the parameters of a model when dealing with a contaminant distribution?
+```
+
+In Section \@ref(sec-contaminant), we fit a hierarchical model that assumed a contaminant distribution (`lnrace_h_cont.stan`) without first verifying that we can recover the true point values of its parameters if we simulate data. An important first step would be to work with a non-hierarchical version of this model.
+
+1. Generate data of one subject as in section \@ref(sec-genaccum), but assume a contaminant distribution as in section \@ref(sec-contaminant).
+2. Fit a non-hierarchical version of `lnrace_h_cont.stan` without restricting the parameter `theta_c` to be smaller than `0.1`.
+3. Plot the posterior distributions of the model and verify that you can recover the true values of the parameters.
+
+
+```{exercise, lnracescale}
+Can the log-normal race model account for fast errors?
+```
+
+Subject 13 shows fast errors for incorrect responses. This can be seen in the left side of the quantile probability plot in Figure \@ref(fig:qpp13).
+
+1. Fit a log-normal race model (with equal scales for the two accumulator) that accounts for contaminant responses.
+2. Fit a variation of this model, where whether the lexicality of the string matches or not the accumulator affects its scale.
+3. Visualize the fit of each model with quantile probability plots.
+4. Use cross-validation to compare the models.
+
+Notice that the models should be fit to only one subject and they should not have a hierarchical structure.
+
+
+(ref:qpp13) Quantile probability plot showing   0.1, 0.3, 0.5, 0.7, and 0.9 response times quantiles plotted against  proportion of incorrect responses (left) and proportion of correct responses (right) for only words of different frequency for subject number 13.
+
+```{r qpp13, fig.cap ="(ref:qpp13)", echo = FALSE, warning = FALSE}
+df_blp_13 <- df_blp %>%
+  filter(subj == 13)%>%
+  mutate(lfreq = log(freq + 0.01),
+         c_lex = ifelse(lex == "word", 0.5, -0.5))%>%
+  mutate(choice = ifelse((lex == "word" &
+                            acc == 1) |
+                           (lex == "non-word" &
+                              acc == 0), "word", "non-word"),
+         nchoice = ifelse(choice == "word", 1, 2))
+
+
+df_blp_freq_q <- df_blp_13 %>%
+  # Subset only words
+  filter(lex == "word") %>%
+  # Create 5 word frequencies group
+  mutate(freq_group =
+           cut(lfreq,
+               quantile(lfreq, c(0,.2,.4, .6, .8, 1)),
+               include.lowest = TRUE,
+               labels =
+                 c("0-.2", ".2-.4", ".4-.6", ".6-.8", ".8-1"))
+         ) %>%
+  # Group by condition  and subject
+  group_by(freq_group, subj) %>%
+  # Apply the quantile probability function
+  qpf()
+
+ggplot(df_blp_freq_q, aes(x = p, y = rt_q)) +
+  geom_point(shape = 4) +
+  geom_line(aes(group = interaction(q, response))) +
+  ylab("log-transformed RT quantiles (ms) ") +
+  xlab("Response proportion") +
+  facet_wrap(~subj)
+
+```
+
+
+
+```{exercise, lnldt}
+Accounting for response time and choice in the lexical decision task using the log-normal race model.
+```
+
+
+In Chapter \@ref(ch-mixture), we modeled the data of the global motion detection task from @DutilhEtAl2011 (`df_dots`) using a mixture model. Now, we'll investigate what happens if we fit a log-normal race model to the same data. As a reminder, in this type of task, subjects see a number of random dots on the screen from which a proportion of them move in a single direction (left or right) and the rest move in random directions. The  goal of the task is to estimate the overall direction of the movement. In this data set, there are two difficulty levels (`diff`) and two types of instructions (`emphasis`) that focus on accuracy or speed. (More information about the data set can be found by loading the `bcogsci` package and typing `?df_dots` in the R console). For the sake of speed, we'll fit only one subject from this data set.
+
+1. Before modeling the data, show the relationship between response times and accuracy with a quantile probability plot that shows quantiles and accuracy of easy and hard difficulty conditions.
+
+2. Fit a non-hierarchical log-normal race model to account for how both choice and response time are affected by task difficulty and emphasis. Assume no contaminant distribution of responses.
+
+Note that the direction of the dots is indicated with `stim`, when `stim` and `resp` match, both are `L`, left, or both are `R`, right, the accuracy, `acc`, is 1. For modeling this task with a log-normal race model, the difficulty of the task should be coded in a way that reflects that the stimuli will be harder to detect for the relevant accumulator. One way to do it is the following:
+
+```{r}
+df_dots_subset <- df_dots %>%
+  filter(subj == 1)
+
+df_dots_subset <- df_dots_subset %>%
+  mutate(c_diff = case_when(stim == "L" & diff == "easy" ~ .5,
+                            stim == "L" & diff == "hard" ~ -.5,
+                            stim == "R" & diff == "easy" ~ -.5,
+                            stim == "R" & diff == "hard" ~ .5,
+                            ))
+```
+
+
+3. Expand the previous model including a contaminant distribution of responses.
+
+4. Visualize the fit of the two previous models by doing posterior predictive checks using quantile probability plots.
+
+5. Use cross-validation to compare the models.

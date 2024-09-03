@@ -1,0 +1,604 @@
+# Introduction to Bayesian data analysis {#ch-introBDA}
+
+Before we can start analyzing realistic data sets using Bayes' rule, it is important to understand the application of Bayes' rule in one of the simplest of cases, data involving the binomial likelihood. This simple case is important to understand because it encapsulates the essence of the Bayesian approach to data analysis, and because it allows us to analytically work out the posterior distribution of the parameter of interest, using just a pen and paper. This simple case also helps us to appreciate a crucial point: The posterior distribution of a parameter is a compromise between the prior and the likelihood. This important insight will play a central role in the realistic data analysis situations we will cover in the remainder of this book.
+
+## \index{Bayes' rule} Bayes' rule
+
+Recall Bayes' rule: When $A$ and $B$ are observable discrete events (such as "it has been raining" or "the streets are wet"), we can state the rule as follows:
+
+\begin{equation}
+P(A\mid B) = \frac{P(B\mid A) P(A)}{P(B)}
+(\#eq:bayes-P)
+\end{equation}
+
+Given a vector of data $\boldsymbol{y}$, Bayes' rule allows us to work out the posterior distributions  of the parameters of interest, which we can represent as the vector of parameters $\boldsymbol{\Theta}$. This computation is achieved by rewriting \@ref(eq:bayes-P) as  \@ref(eq:bayes). What is different here is that Bayes' rule is written in terms of probability distributions. Here, $p(\cdot)$ is a probability density function (continuous case) or a probability mass function (discrete case).
+
+\begin{equation}
+p(\boldsymbol{\Theta}|\boldsymbol{y}) = \cfrac{ p(\boldsymbol{y}|\boldsymbol{\Theta}) \times p(\boldsymbol{\Theta}) }{p(\boldsymbol{y})}
+(\#eq:bayes)
+\end{equation}
+
+The above statement  can be rewritten in words as follows:
+
+\begin{equation}
+\hbox{Posterior} = \frac{\hbox{Likelihood} \times \hbox{Prior}}{\hbox{Marginal Likelihood}}
+\end{equation}
+
+The terms here have the following meaning. We elaborate on each point with an example below.
+
+* The *Posterior*, $p(\boldsymbol{\Theta}|\boldsymbol{y})$, is the probability distribution of the parameters conditional on the data.
+
+
+* The *Likelihood*, $p(\boldsymbol{y}|\boldsymbol{\Theta}$) is as described in chapter \@ref(ch-intro): it is the PMF (discrete case) or the PDF (continuous case) expressed as a function of $\boldsymbol{\Theta}$.
+
+* The *Prior*, $p(\boldsymbol{\Theta})$, is the initial probability distribution of the parameter(s), before seeing the data.
+
+
+* The *Marginal Likelihood*, $p(\boldsymbol{y})$, was introduced in chapter \@ref(ch-intro) and standardizes the posterior distribution to ensure that the area under the curve of the distribution sums to 1, that is, it ensures that the posterior is a valid probability distribution.
+
+An example will clarify all these terms, as we explain below.
+
+## Deriving the \index{Posterior} posterior using Bayes' rule: An analytical example {#sec-analytical}
+
+Recall our cloze probability example earlier. Subjects are shown sentences like
+
+"It's raining.  I'm going to take the ..."
+
+Suppose that 100 subjects are asked to complete the sentence.
+ If $80$ out of $100$ subjects complete the sentence with "umbrella," the estimated cloze probability or predictability (given the preceding context) would be $\frac{80}{100}=0.8$. This is the maximum likelihood estimate of the probability of producing this word; we will designate the estimate with a "hat" on the parameter name: $\hat \theta=0.8$. In the frequentist paradigm, $\hat \theta=0.8$ is an estimate of an unknown point value $\theta$ "out there in nature."
+
+A crucial point to notice here is that the proportion $0.8$ that we estimated above from the data can vary from one data set to another, and the variability in the estimate will be influenced by the sample size (the number of trials). For example, assuming that the true value of the $\theta$ parameter is in fact $0.8$, if we repeatedly carry out the above experiment with say $10$ trials, we will get some variability in the estimated proportion. Let's check this by carrying out $100$ simulated experiments and computing the variability of the estimated means under repeated sampling:
+
+```{r}
+estimated_means <- rbinom(100, size = 10, prob = 0.8) / 10
+sd(estimated_means)
+```
+
+The repeated runs of the (simulated) experiment are the sole underlying cause for the variability (shown by the output of the `sd(estimated)` command above) in the estimated proportion; the parameter $\theta=0.80$ itself is invariant here (we are repeatedly estimating this point value).
+
+However, consider now an alternative radical idea: what if we treat $\theta$ as a random variable? That is, suppose now that $\theta$ has a PDF associated with it. This PDF would now represent our belief about possible values of $\theta$, even before we have seen any data. For example, if at the outset of the experiment, we believe that all possible values between $0$ and $1$ are equally likely, we could represent that belief by stating that $\theta \sim \mathit{Uniform}(0,1)$.  The radical new idea here is that we now have a way to represent our prior belief or knowledge about plausible values of the parameter.
+
+Now, if we were to run our simulated experiments again and again, there would be *two* sources of variability in the estimate of the parameter: the data as well as the uncertainty associated with $\theta$.
+
+```{r}
+theta <- runif(100, min = 0, max = 1)
+estimated_means <- rbinom(100, size = 10, prob = theta) / 10
+sd(estimated_means)
+```
+
+The higher standard deviation is now coming from the uncertainty associated with the $\theta$ parameter. To see this, assume a "tighter" PDF for $\theta$, say $\theta \sim \mathit{Uniform}(0.3,0.8)$, then the variability in the estimated means would again be smaller, but not as small as when we assumed that $\theta$ was a point value:
+
+```{r}
+theta <- runif(100, min = 0.3, max = 0.8)
+estimated_means <- rbinom(n=100, size = 10, prob = theta) / 10
+sd(estimated_means)
+```
+
+In other words, the greater the uncertainty associated with the parameter $\theta$, the greater the variability in the data.
+
+The Bayesian approach to parameter estimation makes a radical departure from the standard frequentist assumption, which assumes that the true, unknown value of $\theta$ is some point value. In the Bayesian approach, $\theta$ is a random variable with a probability density/mass function associated with it. This PDF is called a prior distribution, and represents our prior belief or prior knowledge about possible values of this parameter. Once we obtain data, these data serve to modify our prior belief about this distribution; this updated probability density function of the parameter is called the posterior distribution. These ideas are unpacked in the sections below.
+
+### Choosing a \index{Likelihood} likelihood
+
+Under the assumptions we have set up above, the responses follow a binomial distribution, and so the PMF can be written as follows.
+
+\begin{equation}
+p(k|n,\theta) = \binom{n}
+{k} \theta^k (1-\theta)^{n-k}
+(\#eq:binom)
+\end{equation}
+
+ where $k$ indicates the number of times "umbrella" is given as an answer, and $n$ is the number of trials. In our running example, $k$ can therefore be any whole number going from $0$ to $100$.
+
+ In a particular experiment that we carry out, if we collect $100$ data points ($n=100$) and it turns out that $k = 80$, these data are now a fixed quantity. The only variable now in the PMF above is $\theta$:
+
+\begin{equation}
+p(k=80 | n= 100,  \theta) = \binom{100}{80} \theta^{80} (1-\theta)^{20}
+\end{equation}
+
+The above function is a now a continuous function of the value $\theta$, which has possible values ranging from $0$ to $1$. Compare this to the PMF of the binomial, which treats $\theta$ as a fixed value and defines a discrete distribution over the $n+1$ possible discrete values $k$ that we can observe (the possible number of successes).
+
+Recall that the \index{PMF} PMF and the \index{Likelihood} likelihood are the same function seen from different points of view. The only difference between the two is what is considered to be fixed and what is varying. The PMF treats data as varying from experiment to experiment and $\theta$ as fixed, whereas the likelihood function treats the data that have been collected as fixed and the parameter $\theta$ as varying.
+
+We now turn our attention back to our main goal, which is to find out, using Bayes' rule, the posterior distribution of $\theta$ given our data: $p(\theta|n,k)$. In order to use Bayes' rule to calculate this posterior distribution,  we need to define a prior distribution over the parameter $\theta$. In doing so, we are explicitly expressing our prior uncertainty about plausible values of $\theta$.
+
+### Choosing a \index{Prior} prior for $\theta$  {#sec-choosepriortheta}
+
+For the choice of prior for $\theta$ in the binomial distribution, we need to assume that the parameter $\theta$ is a random variable that has a PDF whose range lies within [0,1], the range over which $\theta$ can vary (this is because $\theta$ represents a probability). The \index{Beta distribution} beta distribution, which is a PDF for a continuous random variable, is commonly used as prior for parameters representing probabilities. One reason for this choice is that  its PDF ranges over the interval  $[0,1]$. The other reason for this choice  is that it makes the Bayes' rule calculation remarkably easy.
+
+The beta distribution has the following PDF.
+
+\begin{equation}
+p(\theta|a,b)=  \frac{1}{B(a,b)} \theta^{a - 1} (1-\theta)^{b-1}
+(\#eq:betach2)
+\end{equation}
+
+
+The term $B(a,b)$ expands to $\int_0^1 \theta^{a-1}(1-\theta)^{b-1}\, d\theta$, and is a normalizing constant that ensures that the area under the curve sums to one. In some textbooks, you may see the PDF of the beta distribution with the normalizing constant $\frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}$ (the expression $\Gamma(n)$ is defined as (n-1)!): $$p(\theta|a,b)=  \frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)} \theta^{a - 1} (1-\theta)^{b-1}$$  These two statements for the beta distribution are identical because $B(a,b)$ can be shown to be equal to $\frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}$ [@RossProb].
+
+The beta distribution's parameters $a$ and $b$ can be interpreted as expressing our prior beliefs about the probability of success; $a$ represents the number of "successes", in our case, answers that are "umbrella" and $b$ the number of failures, the answers that are not "umbrella". Figure \@ref(fig:betas2) shows the different beta distribution shapes given different values of $a$ and $b$.
+
+
+```{r betas2, echo=FALSE,  fig.cap = "Examples of beta distributions with different parameters.", tidy = FALSE, fig.height = 6 }
+ab <- tibble(a = c(
+               seq(1, 10, 3),
+               seq(10, 1, -3)
+             ),
+             b = c(seq(1, 10, 3), seq(1, 10, 3))
+             )
+plots <- pmap(ab, function(a, b) {
+  (ggplot(data = tibble(theta = c(0, 1)), aes(theta)) +
+   stat_function(
+     fun = dbeta,
+     args = list(shape1 = a, shape2 = b)
+   ) +
+   ylab("density") +
+   coord_cartesian(ylim = c(0, 5))+
+   ggtitle(paste0("Beta(a = ", a, ", b = ", b,")")))
+})
+
+cowplot::plot_grid(plotlist= plots, ncol=2)
+```
+
+As in the binomial and normal distributions that we saw in chapter 1, one can analytically derive the formulas for the expectation and variance of the beta distribution. These are:
+
+\begin{equation}
+\operatorname{E}[X] = \frac{a}{a+b} \quad \operatorname{Var}(X)=\frac {a \times b }{(a + b )^{2}(a + b +1)}
+(\#eq:meanvar)
+\end{equation}
+
+
+As an example, choosing $a=4$ and $b=4$ would mean that the answer "umbrella" is as likely as a different answer, but we are relatively unsure about this. We could express our uncertainty by computing the region over which we are 95% certain that the value of the parameter lies; this is the \index{Credible interval} *95% credible interval*. For this, we would use the ```qbeta``` function in R; the parameters $a$ and $b$ are called ```shape1``` and ```shape2``` in `R`.
+
+```{r}
+qbeta(c(0.025, 0.975), shape1 = 4, shape2 = 4)
+```
+
+The credible interval chosen above is an equal-tailed interval: the area below the lower bound and above the upper bound is the same ($0.025$ in the above case). One could define alternative intervals; for example, in a distribution with only one mode (one peak; a unimodal distribution), one could choose to use the narrowest interval that contains the mode. This is called the \index{Highest posterior density interval} highest posterior density interval (HDI). In skewed posterior distributions, the equal-tailed credible interval and the HDI will not be identical, because the HDI will have unequal tail probabilities. Some authors, such as @kruschke2014doing, prefer to report the HDI. We will use the equal-tailed interval in this book, simply because this is the standard output in Stan and `brms`.
+
+If we were to choose $a=10$ and $b=10$, we would still be assuming that a priori the answer "umbrella" is just as likely as some other answer, but now our prior uncertainty about this mean is lower, as the 95% credible interval computed below shows.
+
+```{r}
+qbeta(c(0.025, 0.975), shape1 = 10, shape2 = 10)
+```
+
+In Figure \@ref(fig:betas2), we can see also the difference in uncertainty in these two examples graphically.
+
+Which prior should we choose? In a real data analysis problem, the choice of prior would depend on what prior knowledge we want to bring into the analysis (see chapter \@ref(ch-priors)). If we don't have much prior information, we could use $a=b=1$; this gives us a uniform prior (i.e., $\mathit{Uniform}(0,1)$). This kind of prior goes by various names, such as \index{Flat, non-informative prior} *flat, non-informative prior*, or \index{Uninformative prior} *uninformative prior*. By contrast, if we have a lot of prior knowledge and/or a strong belief (e.g., based on a particular theory's predictions, or prior data) that $\theta$ has a particular range of plausible values, we can use a different set of $a, b$ values to reflect our belief about the parameter. Generally speaking, the larger our parameters a and b, the narrower the spread of the distribution; i.e., the lower our uncertainty about the mean value of the parameter.
+
+We will discuss prior specification in detail later in chapter \@ref(ch-priors). For the  moment, just for illustration, we choose the values $a=4$ and $b=4$ for the beta prior. Then, our prior for $\theta$ is the following beta PDF:
+
+\begin{equation}
+p(\theta) = \frac{1}{B(4,4)} \theta^{3} (1-\theta)^{3}
+\end{equation}
+
+Having chosen a likelihood, and having  defined a prior on $\theta$, we are ready to carry out our first Bayesian analysis to derive a posterior distribution for $\theta$.
+
+### Using \index{Bayes' rule} Bayes' rule to compute the \index{Posterior} posterior $p(\theta|n,k)$
+
+Having specified the likelihood and the prior, we will now use Bayes' rule to calculate $p(\theta|n,k)$. Using Bayes' rule simply involves replacing the likelihood and the prior we defined above into the equation we saw earlier:
+
+
+\begin{equation}
+\hbox{Posterior} = \frac{\hbox{Likelihood} \times  \hbox{Prior}}{\hbox{Marginal Likelihood}}
+\end{equation}
+
+Replace the terms for likelihood and prior into this equation:
+
+\begin{equation}
+p(\theta|n=100,k=80) = \frac{\left[\binom{100}{80} \theta^{80} \times  (1-\theta)^{20}\right]  \times \left[\frac{1}{B(4,4)} \times \theta^{3} (1-\theta)^{3}\right]}{p(k=80)}
+(\#eq:betaunpost)
+\end{equation}
+
+where $p(k=80)$ is $\int_{0}^1 p(k=80|n=100,\theta) p(\theta)\, d\theta$. This term will be a constant once the number of successes $k$ is known; this is the marginal likelihood we encountered in chapter 1. In fact, once $k$ is known, there are several constant values in the above equation; they are constants because none of them depend on the parameter  of interest, $\theta$. We can collect all of these together:
+
+\begin{equation}
+p(\theta|n=100,k=80) =   \left[ \frac{\binom{100}{80}}{B(4,4)\times p(k=80)} \right]   [\theta^{80} (1-\theta)^{20} \times  \theta^{3} (1-\theta)^{3}]
+(\#eq:betaunpost2)
+\end{equation}
+
+The first term that is in square brackets, $\frac{\binom{100}{80}}{B(4,4)\times p(k=80)}$, is all the constants collected together, and is the normalizing constant we have seen before; it makes the posterior distribution $p(\theta|n=100,k=80)$ sum to one. Since it is a constant, we can ignore it for now and focus on the two other terms in the equation. Because we are ignoring the constant, we will now say that the posterior is proportional to the right-hand side.
+
+\begin{equation}
+p(\theta|n=100,k=80) \propto   [\theta^{80} (1-\theta)^{20} \times \theta^{3} (1-\theta)^{3} ]
+(\#eq:betaunpost3)
+\end{equation}
+
+A common way of writing the above equation is:
+
+\begin{equation}
+\hbox{Posterior} \propto \hbox{Likelihood} \times \hbox{Prior}
+\end{equation}
+
+Resolving the right-hand side now simply involves adding up the exponents! In this example, computing the posterior really does boil down to this simple addition operation on the exponents.
+
+\begin{equation}
+p(\theta|n=100,k=80) \propto   [\theta^{80+3} (1-\theta)^{20+3}] = \theta^{83} (1-\theta)^{23}
+(\#eq:betaunpost4)
+\end{equation}
+
+The expression on the right-hand side corresponds to a beta distribution with parameters $a=84$, and $b=24$. This becomes evident if we rewrite the right-hand side such that it represents the core part of a beta PDF (see equation \@ref(eq:betach2)). All that is missing is a normalizing constant  which would make the area under the curve sum to one.
+
+\begin{equation}
+\theta^{83} (1-\theta)^{23} = \theta^{84-1} (1-\theta)^{24-1}
+\end{equation}
+
+This core part of any PDF or PMF is called the \index{Kernel} kernel of that distribution. Without a normalizing constant, the \index{Area under the curve} area under the curve will not sum to one. Let's check this:
+
+```{r}
+PostFun <- function(theta) {
+  theta^84 * (1 - theta)^24
+}
+(AUC <- integrate(PostFun, lower = 0, upper = 1)$value)
+```
+
+So the area under the curve (AUC) is not $1$---the posterior that we computed above is not a proper probability distribution. What we have just done above is to compute the following integral:
+
+\begin{equation}
+\int_{0}^{1} \theta^{84} (1-\theta)^{24}
+\end{equation}
+
+We can use this integral to figure out what the normalizing constant is. Basically, we want to know what the constant k is such that the area under the curve sums to $1$:
+
+\begin{equation}
+k \int_{0}^{1} \theta^{84} (1-\theta)^{24} = 1
+\end{equation}
+
+We know what $\int_{0}^{1} \theta^{84} (1-\theta)^{24}$ is; we just computed that value (called `AUC` in the `R` code above). So, the \index{Normalizing constant} normalizing constant is:
+
+\begin{equation}
+k  = \frac{1}{\int_{0}^{1} \theta^{84} (1-\theta)^{24}} = \frac{1}{AUC}
+\end{equation}
+
+So, all that is needed to make the kernel $\theta^{84} (1-\theta)^{24}$ into a proper probability distribution is to include a normalizing constant, which, according to the definition of the beta distribution (equation \@ref(eq:betach2)), would be $B(84,24)$. This term is in fact the integral we computed above.
+
+So, what we have is the distribution of $\theta$ given the data, expressed as a PDF:
+
+\begin{equation}
+p(\theta|n=100,k=80) = \frac{1}{B(84,24)} \theta^{84-1} (1-\theta)^{24-1}
+\end{equation}
+
+Now, this function will sum to one:
+
+```{r}
+PostFun <- function(theta) {
+  theta^84 * (1 - theta)^24 / AUC
+}
+integrate(PostFun, lower = 0, upper = 1)$value
+```
+
+### Summary of the procedure
+
+To summarize, we started with data ($n=100, k=80$) and a binomial likelihood, multiplied it with the prior $\theta \sim \mathit{Beta}(4,4)$, and obtained the posterior $p(\theta|n,k) \sim \mathit{Beta}(84,24)$. The constants were ignored when carrying out the multiplication; we say that we computed the posterior *up to proportionality*. Finally, we showed how, in this simple example, the posterior can be rescaled to become a probability distribution, by including a proportionality constant.
+
+The above example is a case of a \index{Conjugate} *conjugate* analysis: the posterior on the parameter has the same form (belongs to the same family of probability distributions) as the prior. The above combination of likelihood and prior is called the \index{Beta-binomial conjugate} beta-binomial conjugate case. There are several other such combinations of Likelihoods and Priors that yield a posterior that has a PDF that belongs to the same family as the PDF on the prior; some examples will appear in the exercises.
+
+Formally, conjugacy is defined as follows: Given the likelihood $p(y| \theta)$, if the prior $p(\theta)$ results in a posterior $p(\theta|y)$ that has the same form as $p(\theta)$, then we call $p(\theta)$ a \index{Conjugate prior} conjugate prior.
+
+For the beta-binomial conjugate case, we can derive a very general relationship between the  likelihood, prior, and posterior. Given the binomial likelihood up to proportionality (ignoring the constant) $\theta^k (1-\theta)^{n-k}$, and given the prior, also up to proportionality, $\theta^{a-1} (1-\theta)^{b-1}$, their product will be:
+
+\begin{equation}
+\theta^k (1-\theta)^{n-k} \theta^{a-1} (1-\theta)^{b-1} = \theta^{a+k-1} (1-\theta)^{b+n-k-1}
+\end{equation}
+
+Thus, given a $\mathit{Binomial}(n,k|\theta)$ likelihood, and a $\mathit{Beta}(a,b)$ prior on $\theta$, the posterior will be $\mathit{Beta}(a+k,b+n-k)$.
+
+### Visualizing the prior, likelihood, and posterior
+
+We established in the example above that the posterior is a beta distribution with parameters $a = 84$, and $b = 24$. We visualize the likelihood, prior, and the posterior side by side in Figure \@ref(fig:postbeta-viz).
+
+(ref:postbeta-viz) The (scaled) likelihood, prior, and posterior in the beta-binomial conjugate example. The likelihood is scaled to integrate to 1 to make it easier to compare to the prior and posterior distributions.
+
+```{r postbeta-viz,echo=FALSE,fig.cap = "(ref:postbeta-viz)"}
+## Likelihood
+k <- 80
+n <- 100
+## Prior
+a <- 4
+b <- 4
+binom_lh <- function(theta) {
+dbinom(x=k, size =n, prob = theta)
+}
+
+K <- integrate(f = binom_lh, lower = 0, upper = 1)$value
+
+binom_scaled_lh <- function(theta) 1/K * binom_lh(theta)
+
+p_beta <- ggplot(data = tibble(theta = c(0, 1)), aes(theta)) +
+  stat_function(
+    fun = dbeta,
+    args = list(shape1 = a, shape2 = b),
+    aes(linetype = "Prior")
+  ) +
+  xlab(expression(theta))+
+  ylab("density") +
+  stat_function(
+    fun = dbeta,
+    args = list(shape1 = k + a, shape2 = n - k + b), aes(linetype = "Posterior")
+  ) +
+  stat_function(
+    fun = binom_scaled_lh,
+    aes(linetype = "Scaled likelihood")
+  ) +
+  theme(legend.title = element_blank())
+p_beta
+```
+
+
+We can summarize the posterior distribution either graphically as we did above, or summarize it by computing the mean and the variance. The mean gives us an estimate of the  cloze probability of producing "umbrella" in that sentence (given the model, i.e., given the likelihood and prior):
+
+\begin{equation}
+\operatorname{E}[\hat\theta] = \frac{84}{84+24}=0.78
+(\#eq:meanPb)
+\end{equation}
+
+\begin{equation}
+\operatorname{var}[\hat\theta]=\frac {84 \times 24 }{(84+24 )^{2}(84+24 +1)}= 0.0016
+(\#eq:varPb)
+\end{equation}
+
+We could also display the 95% credible interval, the range over which we are 95% certain that $\theta$ lies, given the data and model.
+
+```{r}
+qbeta(c(0.025, 0.975), shape1 = 84, shape2 = 24)
+```
+
+Typically, we would summarize the results of a Bayesian analysis by displaying the posterior distribution of the parameter (or parameters) graphically, along with the above summary statistics: the mean, the standard deviation or variance, and the 95% credible interval. You will see many examples of such summaries later.
+
+### The \index{Posterior distribution} posterior distribution is a compromise between the prior and the likelihood
+
+Recall from the preceding sections that the $a$ and $b$ parameters in the beta distribution determine the shape of the prior distribution on the $\theta$ parameter.  Just for the sake of illustration, let's take four different beta priors, which reflect increasing prior certainty about $\theta$.
+
+  - $\mathit{Beta}(a=2,b=2)$
+  - $\mathit{Beta}(a=3,b=3)$
+  - $\mathit{Beta}(a=6,b=6)$
+  - $\mathit{Beta}(a=21,b=21)$
+
+Each of these priors reflects a belief that $\theta=0.5$, but with varying degrees of (un)certainty. Given the general formula we developed above for the beta-binomial case, we just need to plug in the likelihood and the prior to get the posterior:
+
+\begin{equation}
+p(\theta | n,k) \propto p(k |n,\theta) p(\theta)
+\end{equation}
+
+The four corresponding posterior distributions would be:
+
+\begin{equation}
+p(\theta\mid k,n) \propto [\theta^{80} (1-\theta)^{20}] [\theta^{2-1}(1-\theta)^{2-1}] = \theta^{82-1} (1-\theta)^{22-1}
+\end{equation}
+
+\begin{equation}
+p(\theta\mid k,n) \propto [\theta^{80} (1-\theta)^{20}] [\theta^{3-1}(1-\theta)^{3-1}] = \theta^{83-1} (1-\theta)^{23-1}
+\end{equation}
+
+\begin{equation}
+p(\theta\mid k,n) \propto [\theta^{80} (1-\theta)^{20}] [\theta^{6-1}(1-\theta)^{6-1}] = \theta^{86-1} (1-\theta)^{26-1}
+\end{equation}
+
+\begin{equation}
+p(\theta\mid k,n) \propto [\theta^{80} (1-\theta)^{20}] [\theta^{21-1}(1-\theta)^{21-1}] = \theta^{101-1} (1-\theta)^{41-1}
+\end{equation}
+
+We can visualize each of these triplets of priors, likelihoods and posteriors; see Figure \@ref(fig:postbetavizvar).
+
+```{r postbetavizvar, echo=FALSE,fig.cap = "The (scaled) likelihood, prior, and posterior in the beta-binomial conjugate example, for different uncertainties in the prior. The likelihood is scaled to integrate to 1 to make its comparison easier.  "}
+## Likelihood
+k <- 80
+n <- 100
+## Prior
+ab <- list(
+   c(a=2,b=2),
+   c(a=3,b=3),
+   c(a=6,b=6),
+   c(a=21,b=21))
+
+plots <- purrr::map(ab, function(p){
+(ggplot(data = tibble(theta = c(0, 1)), aes(theta)) +
+  stat_function(
+    fun = dbeta,
+    args = list(shape1 = p[1], shape2 = p[2]),
+    aes(linetype = "Prior")
+  ) +
+   xlab(expression(theta)) +
+  ylab("density") +
+  stat_function(
+    fun = dbeta,
+    args = list(shape1 = k + p[1], shape2 = n - k + p[2]), aes(linetype = "Posterior")
+  ) +
+   stat_function(
+    fun = binom_scaled_lh,
+    aes(linetype = "Scaled likelihood")
+  ) +
+    theme(legend.position =  "none") +
+    ggtitle(paste0("Prior:\n beta(a = ", p[1], ", b = ", p[2],")")))
+  })
+
+
+# create some space to the left of the legend
+legend <- cowplot::get_plot_component(plots[[1]] + theme(legend.position = "bottom", legend.title = element_blank())
+                                    , 'guide-box-bottom', return_all = TRUE)
+
+p <- cowplot::plot_grid(plots[[1]], plots[[2]], plots[[3]], plots[[4]], ncol = 2)
+
+cowplot::plot_grid(p, cowplot::ggdraw(legend), ncol =1, rel_heights = c(0.9,0.1))
+
+```
+
+Given some data and given a likelihood function, the tighter the prior, the greater the extent to which the posterior orients itself towards the prior.  In general, we can say the following about the likelihood-prior-posterior relationship:
+
+- The posterior distribution of a parameter is a compromise between the prior and the likelihood.
+- For a given set of data, the greater the certainty in the prior, the more heavily will the posterior be influenced by the prior mean.
+- Conversely, for a given set of data, the greater the *un*certainty in the prior, the more heavily will the posterior be influenced by the likelihood.
+
+Another important observation emerges if we increase the sample size (here, the number of trials) from $100$ to, say, $1000000$. Suppose we still get a sample mean of $0.8$ here, so that $k=800000$. Now, the posterior mean will be influenced almost entirely by the sample mean. This is because, in the general form for the posterior  $\mathit{Beta}(a+k,b+n-k)$ that we computed above, the $n$ and $k$ become very large relative to the a, b values, and dominate in determining the posterior mean.
+
+Whenever we do a Bayesian analysis, it is good practice to check whether the parameter you are interested in estimating is sensitive to the prior specification. Such an investigation is called a \index{Sensitivity analysis} *sensitivity analysis*. Later in this book, we will see many examples of sensitivity analyses in realistic data-analysis settings.
+
+### Incremental knowledge gain using prior knowledge
+
+In the above example, we used an artificial example where we asked $100$ subjects to complete the sentence shown at the beginning of the chapter, and then we counted the number of times that they produced "umbrella" vs.\ some other word as a continuation. Given $80$ instances of "umbrella", and using a $\mathit{Beta}(4,4)$ prior, we derived the posterior to be $\mathit{Beta}(84,24)$. We could now use this posterior as our prior for the next study. Suppose that we were to carry out a second experiment, again with $100$ subjects, and this time $60$ produced "umbrella". We could now use our new prior ($\mathit{Beta}(84,24)$) to obtain an updated posterior. We have $a=84, b=24, n=100, k=60$. This gives us as posterior:
+$\mathit{Beta}(a+k,b+n-k) = \mathit{Beta}(84+60,24+100-60)=\mathit{Beta}(144,64)$.
+
+Now, if we were to pool all our data that we have from the two experiments, then we would have as data $n=200, k=140$. Suppose that we keep our initial prior of $a=4,b=4$. Then, our posterior would be $\mathit{Beta}(4+140,4+200-140)=\mathit{Beta}(144,64)$. This is exactly the same posterior that we got when first analyzed the first $100$ subjects' data, derived the posterior, and then used that posterior as a prior for the next $100$ subjects' data.
+
+This toy example illustrates an important point that has great practical importance for cognitive science. One can incrementally gain information about a research question by using information from previous studies and deriving a posterior, and then use that posterior as a prior. For practical examples from psycholinguistics showing how information can be pooled from previous studies, see @JaegerEngelmannVasishth2017 and @NicenboimRoettgeretal. @VasishthEngelmann2022 illustrates an example of how the posterior from a previous study or collection of studies can be used to compute the posterior derived from new data.
+
+## Summary
+
+In this chapter, we learned how to use Bayes' rule in the specific case of a binomial likelihood, and a beta prior on the $\theta$ parameter in the likelihood function. Our goal in any Bayesian analysis will follow the path we took in this simple example: decide on an appropriate likelihood function, decide on priors for all the parameters involved in the likelihood function, and use this model (i.e., the likelihood and the priors) to derive the posterior distribution of each parameter. Then we draw inferences about our research question based on the posterior distribution of the parameter.
+
+In the example discussed in this chapter, Bayesian analysis was easy. This was because we considered the simple conjugate case of the beta-binomial. In realistic data-analysis settings, our likelihood function will be very complex, and many parameters will be involved. Multiplying the likelihood function and the priors will become mathematically difficult or impossible.  For such situations, we use computational methods to obtain samples from the posterior distributions of the parameters.
+
+
+## Further reading
+
+Accessible introductions to conjugate Bayesian analysis are
+@lynch2007introduction, and @lunn2012bugs. Somewhat more demanding discussions of conjugate analysis are in  @lee2012bayesian, @carlin2008bayesian, @christensen2011, @kendall2004 and @bernardosmith.
+
+## Exercises {#sec-BDAexercises}
+
+
+```{exercise, BDAexercisesDerivingBayes}
+Deriving Bayes' rule
+```
+
+
+Let $A$ and $B$ be two observable events. $P(A)$ is the probability that $A$ occurs, and $P(B)$ is the probability that $B$ occurs. $P(A|B)$ is the conditional probability that $A$ occurs given that $B$ has happened. $P(A,B)$ is the joint probability of $A$ and $B$ both occurring.
+
+You are given the definition of conditional probability:
+
+\begin{equation}
+P(A|B)= \frac{P(A,B)}{P(B)} \hbox{ where } P(B)>0
+\end{equation}
+
+Using the above definition, and using the fact that $P(A,B)=P(B,A)$ (i.e., the probability of $A$ and $B$ both occurring is the same as the probability of $B$ and $A$ both occurring),
+derive an expression for $P(B|A)$. Show the steps clearly in the derivation.
+
+
+
+```{exercise, BDAexercisesConj1}
+Conjugate forms 1
+```
+
+- Computing the general form of a PDF for a posterior
+
+Suppose you are given data $k$ consisting of the number of successes, coming from a $\mathit{Binomial}(n,\theta)$ distribution.
+Given $k$ successes in n trials coming from a binomial distribution, we define a $\mathit{Beta}(a,b)$ prior on the parameter $\theta$.
+
+Write down the Beta distribution that represents the posterior, in terms of $a,b, n,$ and $k$.
+
+- Practical application
+
+We ask 10 yes/no questions from a subject, and the subject returns 0 correct answers. We assume a binomial likelihood function for these data. Also assume a $\mathit{Beta}(1,1)$ prior on the parameter $\theta$, which represents the probability of success. Use the result you derived above to write down the posterior distribution of the $\theta$ parameter.
+
+```{exercise, BDAexercisesConj2}
+Conjugate forms 2
+```
+
+
+Suppose that we perform $n$ independent trials until we get a success (e.g., a heads in a coin toss). For coin tosses, the possible outcomes could be, H, TH, \dots. The probability of success in each trial is $\theta$. Then, the Geometric random variable, call it $X$, gives us the probability of getting a success in $n$ trials as follows:
+
+\begin{equation}
+Prob(X=n)=\theta(1-\theta)^{ n-1}
+\end{equation}
+
+where $n=1,2,\dots$.
+
+Let the prior on $\theta$ be $\mathit{Beta}(a,b)$, a beta distribution with parameters $a$,$b$.
+The posterior distribution is a beta distribution with parameters $a*$ and $b*$. Determine these parameters in terms of $a$, $b$, and $n$.
+
+```{exercise, BDAexercisesConj3}
+Conjugate forms 3
+```
+
+The \index{Gamma distribution} Gamma distribution is defined in terms of the parameters $a$, $b$: $\mathit{Gamma}(a,b)$. If there is a random variable $Y$ (where $y\geq 0$) that has a Gamma distribution as a PDF ($Y\sim \mathit{Gamma}(a,b)$), then:
+
+\begin{equation}
+\mathit{Gamma}(y | a,b)=\frac{b^a y^{a-1} \exp(-by)}{\Gamma(a)}
+\end{equation}
+
+Suppose that we have $n$ data points,  $x_1,\dots, x_n$, that are drawn from an  exponentially distributed. The \index{Exponential likelihood} exponential likelihood function is:
+
+\begin{equation}
+p(x_1,\dots,x_n | \lambda)=\lambda^n \exp (-\lambda \sum_{i=1}^n x_i )
+\end{equation}
+
+It turns out that if we assume a $\mathit{Gamma}(a,b)$ prior distribution for $\lambda$ and the above exponential likelihood, the posterior distribution of $\lambda$ is a Gamma distribution. In other words, the $\mathit{Gamma}(a,b)$ prior on the $\lambda$ parameter in the exponential distribution will be written:
+
+\begin{equation}
+\mathit{Gamma}(\lambda | a,b)=\frac{b^a \lambda^{a-1} \exp(-b\lambda)}{\Gamma(a)}
+\end{equation}
+
+
+Find the parameters $a*$ and $b*$ of the posterior distribution.
+
+
+```{exercise, BDAexercisesConj4}
+Conjugate forms 4
+```
+
+- Computing the posterior
+
+This is a contrived example. Suppose we are modeling the number of times that a speaker says the word "I" per day. This could be of interest if we are studying, for example, how self-oriented a speaker is.  The number of times $x$ that the word is uttered in over a particular time period (here, one day) can be modeled by a \index{Poisson distribution} Poisson distribution ($x=0,1,2,\dots$):
+
+\begin{equation}
+f(x\mid \theta) = \frac{\exp(-\theta) \theta^x}{x!}
+\end{equation}
+
+where the rate $\theta$ is unknown, and the numbers of utterances of the target word on each day are independent given $\theta$.
+
+We are told that the prior mean of $\theta$ is 100 and prior variance for $\theta$  is 225. This information is based on the results of previous studies on the topic. We will use the $\mathit{Gamma}(a,b)$ density (see previous question) as a prior for $\theta$ because this is a conjugate prior to the Poisson distribution.
+
+a) First, visualize the prior, a Gamma density prior for $\theta$ based on the above information.
+
+[Hint: we know that for a Gamma density with parameters $a$, $b$, the mean is  $\frac{a}{b}$ and the variance is $\frac{a}{b^2}$. Since we are given values for the mean and variance, we can solve for a,b, which gives us the Gamma density.]
+
+
+```{r, echo=FALSE,eval=FALSE,fig.cap="\\label{fig1}The Gamma prior for the parameter theta."}
+x <- 0:200
+plot(x, dgamma(x, 10000 / 225, 100 / 225),
+  type = "l", lty = 1,
+  main = "Gamma prior", ylab = "density",
+  cex.lab = 2, cex.main = 2, cex.axis = 2
+)
+```
+
+b) Next, derive the posterior distribution of the parameter $\theta$ up to proportionality, and write down the posterior distribution in terms of the parameters of a Gamma distribution.
+
+
+
+-  Practical application
+
+Suppose we know that the number of "I" utterances from a particular individual is $115, 97, 79, 131$. Use the result you derived above to obtain the posterior distribution. In other words, write down the parameters of the Gamma distribution (call them $a*,b*$) representing the posterior distribution of $\theta$.
+
+
+Plot the prior and the posterior distributions alongside each other.
+
+Now suppose you get one new data point: 200. Using the posterior $\mathit{Gamma}(a*,b*)$ as your prior, write down the updated posterior (in terms of the updated parameters of the Gamma distribution) given this new data point. Add the updated posterior to the plot you made above.
+
+
+```{exercise, BDAexercisesWeightedMean}
+The posterior mean is a weighted mean of the prior mean and the MLE (Poisson-Gamma conjugate case)
+```
+
+The number of times an event happens per unit time can be modeled using a Poisson distribution, whose PMF is:
+
+\begin{equation}
+f(x\mid \theta) = \frac{\exp(-\theta) \theta^x}{x!}
+\end{equation}
+
+Suppose that we define a Gamma(a,b) prior for the rate parameter $\theta$. It is a fact (see exercises above) that the posterior of the $\theta$ parameter is a $Gamma(a*,b*)$ distribution, where $a*$ and $b*$ are the updated parameters given the data: $\theta \sim Gamma(a*,b*)$.
+
+- Prove that the posterior mean is a weighted mean of the prior mean and the maximum likelihood estimate (mean) of the Poisson-distributed data, $\bar{x} = \sum_{i=1}^n x/n$. Hint: the mean of a Gamma distribution is $\frac{a}{b}$.
+
+Specifically, what you have to prove is that:
+
+\begin{equation}
+\frac{a*}{b*} = \frac{a}{b} \times \frac{w_1}{w_1 + w_2} + \bar{x} \times \frac{w_2}{w_1 + w_2}
+(\#eq:weightingpoisga)
+\end{equation}
+
+where  $w_1 = 1$ and $w_2=\frac{n}{b}$.
+
+- Given equation \@ref(eq:weightingpoisga), show that as $n$ increases (as sample size goes up), the maximum likelihood estimate $\bar{x}$ dominates in determining the posterior mean, and when $n$ gets smaller and smaller, the prior mean dominates in determining the posterior mean.
+
+- Finally, given that the variance of a Gamma distribution is $\frac{a}{b^2}$, show that as $n$ increases, the posterior variance will get smaller and smaller (the uncertainty on the posterior will go down).

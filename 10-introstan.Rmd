@@ -1,0 +1,1095 @@
+# (PART) Advanced models with Stan {-}
+# Introduction to the probabilistic programming language Stan {#ch-introstan}
+\chaptermark{Introduction to Stan}
+
+\section*{Introduction to Stan}
+
+```{r, echo=FALSE}
+stan <- rstan::stan
+```
+
+Stan is a \index{Probabilistic programming language} probabilistic programming language for statistical inference written in C++ that can be accessed through several interfaces (e.g., R, Python, Matlab, etc.).  Stan uses an advanced dynamic \index{Hamiltonian Monte Carlo} Hamiltonian Monte Carlo algorithm [@betancourt2016identifying] based on a variant of the \index{No-U-Turn sampler} No-U-Turn sampler [known as \index{NUTS} NUTS: @hoffmanNoUTurnSamplerAdaptively2014], which is, in general,  more efficient than the traditional \index{Gibbs sampler} Gibbs sampler used in other probabilistic languages such as \index{(Win)BUGS} (Win)BUGS [@lunn2000winbugs] and \index{JAGS} JAGS [@plummer2016jags]. In this part of the book, we will focus on the package \index{\texttt{rstan}} `rstan` [@R-rstan] that integrates Stan [@carpenter2017stan] with R [@R-base].
+
+In order to understand how to fit a model in Stan and the difficulties we might face, a minimal understanding of the Stan \index{Sampling algorithm} sampling algorithm is needed. Our descriptions of the technical details of HMC are gross oversimplifications that suffice for the purposes of this book. Stan takes advantage of the fact that the \index{Shape of the posterior distribution} shape of the posterior distribution is completely determined by the \index{Prior} priors and the \index{Likelihood} likelihood we have defined; by that we mean  that we know the analytical form of the \index{Unnormalized posterior} unnormalized posterior, which is the upper part of the Bayes rule (abbreviated below as $q$). This is because the denominator, or \index{Marginal likelihood} marginal likelihood, "only" constitutes a \index{Normalizing constant} normalizing constant:
+
+\begin{equation}
+p(\Theta|y) = \cfrac{ p(y|\Theta) \cdot p(\Theta) }{p(y)}
+(\#eq:bayesagain)
+\end{equation}
+
+\begin{equation}
+q(\Theta|y) = p(y|\Theta) \cdot p(\Theta)
+(\#eq:bayesagain2)
+\end{equation}
+
+Thus the unnormalized posterior is proportional ($\propto$) to the posterior distribution:
+
+\begin{equation}
+q(\Theta|y) \propto p(\Theta|y)
+(\#eq:bayesagain3)
+\end{equation}
+
+  
+The Stan sampler uses \index{Hamiltonian dynamics} Hamiltonian dynamics and  treats the vector of parameters, $\Theta$ (that could range from a vector containing a couple of parameters, e.g., $\langle \mu,\sigma \rangle$, to a vector of hundreds of parameters in hierarchical models), as the position of a \index{Frictionless particle} frictionless particle  that glides on the \index{Negative logarithm of the unnormalized posterior} *negative logarithm of the unnormalized posterior*.
+That means that high probability places are valleys and low probability places are peaks in this space.^[In the specific case of a model with two parameters, e.g., $\langle \mu,\sigma \rangle$, the physical analogy works quite well: The $\langle x,y \rangle$ coordinates of the particle would be determined by  $\langle \mu,\sigma \rangle$, and its $z$ coordinate would be established by the height of the negative logarithm of the unnormalized posterior.] However, Stan  doesn't just let the particle  glide until the bottom of this space. If we let that happen, we would find the mode of the posterior distribution, rather than samples. Stan uses a complex algorithm to determine the \index{Weight of the particle} weight of the particle and the \index{Momentum} momentum that we apply to it, as well as when to stop the particle trajectory to take a sample. Because we need to know the velocity of this particle, Stan needs to be able to calculate the \index{Derivative} derivative of the log unnormalized posterior with respect to the parameters (recall that velocity is the first derivative of position). This means that if the parameter space is differentiable and relatively smooth (i.e., does not have any big break or sharp angle), and if the parameters of the Stan algorithm are well adjusted--as should happen in the warm-up period--these samples are going to represent samples of the true \index{Posterior distribution} posterior distribution.  Bear in mind that the \index{Geometry of the posterior} geometry of the posterior has a big influence on whether the algorithm will converge (fast) or not: If the space is very flat, because there isn't much data and the priors are not informative, then the particle may need to  glide for a long time before it gets to a high probability area, that is a valley; if there are several valleys \index{Multimodality} (multimodality) the particle may never leave the vicinity of one of them; and if the space is \index{Funnel shaped} funnel shaped, the particle may never explore the funnel. One of the reasons for the difficulties in exploring complicated spaces is that the continuous path of the "particle" is discretized and divided into steps, and the \index{Step size} *step size* is optimized for the entire posterior space. In spaces that are too complex, such as a funnel, a step size might be too small to explore the wide part of the funnel, but too large to explore the narrow part; we will deal with this problem in section \@ref(sec-uncorrstan).
+
+Although our following example assumes a vector of two parameters and thus a simple geometry, real world examples can easily have hundreds of parameters defining an unnormalized posterior space with hundreds of dimensions.
+
+One question that might arise here is the following: Given that we already know the shape of the posterior, why do we need samples? After all, the posterior is just the unnormalized posterior multiplied by some number, the normalizing constant.
+
+To make this discussion concrete, let's say that we have a subject that  participates in a memory test, and in each trial we get a noisy score from their true \index{Working memory} working memory score. We assume that at each trial, the score is elicited with normally distributed noise. If we want to estimate the score and how much the noise makes it vary from trial to trial, we are assuming a normal likelihood and we want to estimate its mean and standard deviation.
+
+We will use simulated data produced by a normal distribution with a true mean of 3 and a true standard deviation of 10:
+
+```{r yscores}
+Y <- rnorm(n = 100, mean = 3, sd = 10)
+head(Y)
+```
+
+As always, given our prior knowledge, we decide on priors. In this case, we use a log-normal prior for the standard deviation, $\sigma$, since it can only be positive, but except for that, the prior distributions are quite arbitrary in this example.
+
+\begin{equation}
+\begin{aligned}
+\mu &\sim \mathit{Normal}(0, 20)\\
+\sigma &\sim \mathit{LogNormal}(3, 1)
+\end{aligned}
+(\#eq:priorsdem)
+\end{equation}
+
+The unnormalized posterior will be the product of the \index{Likelihood} likelihood of each data point times the \index{Prior} prior for each parameter:
+
+\begin{equation}
+q(\mu, \sigma |y) = \prod_n^{100} \mathit{Normal}(y_n|\mu, \sigma) \cdot \mathit{Normal}(\mu | 0, 20) \cdot \mathit{LogNormal}(\sigma | 3, 1)
+(\#eq:up)
+\end{equation}
+
+where $y = {`r Y[1]`, `r Y[2]`, \ldots}$
+
+We can also define the unnormalized posterior,  $q(\cdot)$, as a function in R:
+
+```{r}
+q <- function(mu, sigma, y) {
+  dnorm(x = mu, mean = 0, sd = 20) *
+    dlnorm(x = sigma, mean = 3, sd = 1) *
+    prod(dnorm(x = y, mean = mu, sd = sigma))
+}
+```
+
+For example, if we want to know the unnormalized posterior density for the vector of parameters $\langle \mu,\sigma \rangle = \langle 0, 5 \rangle$, we do the following:
+
+```{r}
+q(mu = 0, sigma = 5, y = Y)
+```
+
+The shape of the unnormalized posterior density is completely defined and it will look like Figure \@ref(fig:up).
+
+(ref:up) The unnormalized posterior defined by equation \@ref(eq:up).
+
+```{r up, fig.cap = "(ref:up)" ,echo = FALSE, warning=FALSE}
+mu <- seq(-40, 40, 1)
+sigma <- seq(0.5, 40, 1)
+
+dup <- expand.grid(mu, sigma) %>%
+  as_tibble() %>%
+  setNames(c("mu", "sigma")) %>%
+  mutate(density = map2_dbl(.data$mu,
+                            .data$sigma,
+                            ~ q(mu = .x, sigma = .y, y = Y)))
+lattice::wireframe(density ~ mu * sigma, data = dup)
+```
+
+
+Why is the shape of the unnormalized posterior density not enough? The main reason is that unless we already know which probability distribution we are dealing with (e.g., normal, Bernoulli, etc.) or we can easily \index{Integrate} integrate it (which can only be done in simpler cases) we cannot do much with the analytical form of the unnormalized posterior: We cannot calculate credible intervals, or know how likely it is that the true score is above or below zero, and even the mean of the posterior is impossible to calculate.
+This is because the unnormalized posterior distribution represents the shape of the posterior distribution. With just the shape of an unknown distribution, we can only answer the following question: What is the most (or least) likely value of the vector of parameters? We can answer this question by searching for the highest (or lowest) place in that shape. This leads us to the \index{Maximum a posteriori} maximum a posteriori \index{MAP} (MAP) estimate (i.e., the highest point in Figure \@ref(fig:up), or the lowest point of the negative log unnormalized log posterior), which is in a sense the "Bayesian counterpart" of the penalized maximum likelihood estimate (MLE). However, it is not truly Bayesian since it doesn't take into account the uncertainty of the posterior. Even calculating the mode is not always trivial. In simple cases as this one, one can calculate it analytically; but in more complex cases relatively complicated algorithms are needed. (If we can recognize the shape as a distribution, we are in a different situation. In that case, we might know already the formulas for the expectation, variance, etc. This is what we did in chapter \@ref(ch-introBDA), but this is an unusual situation in realistic analyses.)
+As we mentioned before, if we want to get \index{Posterior density value} posterior density values, we need the denominator of the Bayes rule (or \index{Marginal likelihood} marginal likelihood), $p(y)$, which requires integrating the unnormalized posterior. Even this is not too useful if we want to communicate findings: almost every summary statistic requires us to solve more integrals, and except for a handful of cases, these integrals might not have an analytical solution.
+
+If we want to be able to calculate \index{Summary statistics} summary statistics of the posterior distribution (mean, quantiles, etc.), we are going to need \index{Sample} samples from this distribution. This is because with enough samples of a probability distribution, we can achieve very good approximations of summary statistics.
+
+Stan will take care of returning samples from the posterior distribution, if the log unnormalized posterior distribution is differentiable and can be expressed as follows:^[Incidentally, this $\log(q(\dot))$ is the variable `target` in a Stan model and `lp__` in its output; see the aside below.]
+
+\begin{equation}
+\log(q(\Theta|y)) = \sum_n \log(p(y_n|\Theta)) + \sum_{par} \log(p(\Theta_{par}))
+(\#eq:logup)
+\end{equation}
+
+where $n$ indicates each data point and $par$ each parameter. In our case, this corresponds to the following:
+
+\begin{equation}
+\begin{aligned}
+\log(q(\mu, \sigma |y)) =& \sum_n^{100} \log(Normal(y_n|\mu, \sigma)) + \log(Normal(\mu | 0, 20)) \\
+&+ \log(LogNormal(\sigma | 3, 1))
+\end{aligned}
+(\#eq:up-applied)
+\end{equation}
+
+ In the following sections, we'll see how we can implement this model and many others in Stan.
+
+
+## Stan syntax
+
+A Stan program is usually saved as a `.stan` file and accessed through R (or other interfaces) and it is organized into a sequence of optional and obligatory \index{Block} blocks, which must be written in order. The Stan language is different from R and it is loosely based on C++; one important aspect to pay attention to is that every statement ends in a semi-colon, `;`. Blocks (`{}`) do not end in semi-colons. Some functions in Stan are written in the same way as in R (e.g., `mean`, `sum`, `max`, `min`). But some are different; when in doubt, [Stan documentation](https://mc-stan.org/users/documentation/) can be extremely helpful. In addition, the package \index{\texttt{rstan}} `rstan` provides the function \index{\texttt{lookup}} `lookup()` to look up for translations of functions. For example, in \@ref(sec-logistic), we saw that the R function `plogis()` is needed to convert from log-odds to probability space. If we need it in a Stan program, we can look for it in the following way:
+
+```{r}
+lookup(plogis)
+```
+
+There are three columns in the output of this call. The first one indicates Stan function names, the second one their arguments with their type, and the third one the type they return. Unlike R, Stan is strict with the type of the variables.^[In this kind of output, there are some types that are new to the R user (but they are also used in C++): `reals` indicates that any of `real`, `real[]`, `vector`, or `row_vector`. A return type `R` with an input type `T` indicates that the type of the output of the function is the same as type of the argument.] In order to decide on which function to use, it is necessary to look at the Stan documentation and find the function that matches our specific needs (for `plogis`, the corresponding function would be `inv_logit()`).
+
+
+Another important difference with R is that every variable needs to be declared with its type (real, integer, vector, matrix, etc.). The next two sections exemplify these details through  basic Stan programs.
+
+
+## A first simple example with Stan: \index{Normal likelihood} Normal likelihood {#sec-firststan}
+
+Let's fit a Stan model to estimate the simple example given at the introduction of this chapter, where we simulate data in R from a normal distribution with a true mean of `3` and a true standard deviation of `10`:
+
+```{r, echo = FALSE}
+set.seed(123)
+```
+
+```{r yscoresagain, eval = FALSE}
+Y <- rnorm(n = 100, mean = 3, sd = 10)
+```
+
+As mentioned earlier, \index{Stan code} Stan code is organized in \index{Block} blocks. The first block indicates what constitutes data for the model:
+
+```{r normal-stan, echo = FALSE}
+normal <- system.file("stan_models", "normal.stan", package = "bcogsci")
+normal2 <- system.file("stan_models", "normal2.stan", package = "bcogsci")
+```
+
+\Begin{samepage}
+
+```{stan output.var = "normal_data", code = readLines(normal)[1:4],  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+\End{samepage}
+
+The variable of type \index{\texttt{int}} `int` (integer) represents the number of trials. In addition to the type, some constraints can be indicated with \index{\texttt{lower}} `lower` and \index{\texttt{upper}} `upper`. In this case, `N` can't be smaller than `1`. These constraints serve as a sanity check; if they are not satisfied, we get an error and the model won't run. The data are stored in a vector of length `N`, unlike R, vectors (and matrices and arrays) need to be defined with their dimensions. Comments are indicated with `//` rather than `#`.
+
+The next block indicates the parameters of the model:
+
+```{stan output.var = "normal_pars", code = readLines(normal)[5:8],  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+
+The two parameters are real numbers, and `sigma` is constrained to be positive.
+
+Finally, we indicate the prior distributions and likelihood functions in the \index{Model block} model block:
+\index{\texttt{model}}
+
+```{stan output.var = "normal_model", code = readLines(normal2)[9:16],  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+
+The variable `target` is a reserved word in Stan; every statement with `target +=` adds terms to the \index{Unnormalized log posterior density} unnormalized *log* posterior density. We do this because adding to the unnormalized log posterior amounts to multiplying a term in the numerator of the unnormalized posterior. As explained earlier, Stan uses the shape of the unnormalized posterior to sample from the actual posterior distribution. See Box \@ref(thm:target) for a more detailed explanation, and see Box \@ref(thm:tilde) for alternative notations.
+
+\Begin{extra}
+<div class="extra">
+
+```{theorem, target}
+**What does `target` do?**
+```
+
+We can exemplify how \index{\texttt{target}} `target` works with one hypothetical iteration of the sampler.
+
+```{r stannormaldoit, ref.label="stannormal", echo=FALSE, message = FALSE, results= "hide"}
+```
+
+```{r, echo = FALSE}
+## extract(fit_score)$lp__[1]
+mu <- extract(fit_score)$mu
+sigma <- extract(fit_score)$sigma
+addmu <- dnorm(x = mu[1], mean = 0, sd = 20, log = TRUE)
+addsigma <- dlnorm(x = sigma[1], mean = 3, sd = 1, log = TRUE)
+addY <- sum(dnorm(Y, mu[1], sigma[1], log = TRUE))
+curr <- addmu + log(sigma[1])
+h <- addY + log(sigma[1]) + addmu + addsigma
+```
+
+In every \index{Iteration} iteration where the sampler explores the posterior space, `mu` and `sigma` acquire different values (this is where the Stan algorithm stops the movement of the particle in the Hamiltonian space). Say that in an iteration, `mu = `r mu[1]` ` and `sigma = `r sigma[1]` `. Then the following happens in the \index{Model block} model block:
+
+1. At the beginning of the iteration, `target` is zero.
+2. The transformations that the sampler *automatically* does are taken into account. In our case, although `sigma` is constrained to be positive in our model,  inside Stan's sampler it is transformed to an \index{Unconstrained space} unconstrained space amenable to \index{Hamiltonian Monte Carlo} Hamiltonian Monte Carlo. That is, Stan samples from an auxiliary parameter that ranges from minus infinity to infinity, which is equivalent to `log(sigma)`. This auxiliary parameter is then exponentiated, when it is incorporated into our model. Because of the mismatch between the constrained parameter space that we defined and the unconstrained space that it is converted to by Stan, an adjustment to the unnormalized posterior is required and added *automatically*. The reasons for this requirement are somewhat complex and will be discussed in section \@ref(ch-custom). In this particular case, this \index{Adjustment} adjustment (which is the log absolute value of the \index{Jacobian determinant} Jacobian determinant), is equivalent to adding `log(sigma) = `r log(sigma[1])` ` to `target`.
+3. After `target += normal_lpdf(mu | 0, 20);`  the log of the density of $\mathit{Normal}(0,20)$ is evaluated at a given sample of mu (specifically `r mu[1]`) and this is added to `target`. In R, this would be `dnorm(x = `r mu[1] `, mean = 0, sd = 20, log = TRUE)`, which is equal to ` `r addmu` `. Thus, `target` should be ` `r addmu` + `r log(sigma[1])` = `r curr` `.
+4. After `target += lognormal_lpdf(sigma | 3, 1)`, we add the log of the density of $\mathit{LogNormal}(3,  1)$ evaluated at ` `r sigma[1]` ` to the previous value of the target. In R, this would be `dlnorm(x = `r sigma[1]` , mean = 3, sd = 1, log = TRUE)`, which is equal to ` `r addsigma` `. Thus, `target` should be updated to ` `r curr` + `r addsigma` = `r curr + addsigma` `.
+5. After each iteration of the for-loop in the model block, we add to the target the log density of $\mathit{Normal}( `r mu[1]`, `r sigma[1]`)$ evaluated at each of the values of Y. In R, this would be to add  `sum(dnorm(Y, `r mu[1]`, `r sigma[1]`, log = TRUE)) ` (which is equal to ` `r addY` `) to the current value of `target` ` `r curr + addsigma` + `r addY` = `r h` `.
+
+This means that for the coordinates [mu = `r mu[1]`, sigma = `r sigma[1]`], the height of the \index{Unnormalized posterior} unnormalized posterior would be the value `exp(target) =` $\exp( `r h` ) = `r exp(h)`$. Incidentally, the value of `target` is returned as `lp__` (log probability) in an object storing a fit model with Stan.
+
+It is possible to expose the value of `target`, by printing \index{\texttt{target}} `target()` inside a Stan model. The value of `target` after each iteration is named \index{\texttt{lp\_\_}} `lp__` in the Stan object. This can be useful for troubleshooting a problematic model.
+
+\End{extra}
+
+</div>
+
+
+\Begin{extra}
+<div class="extra">
+
+```{theorem, tilde}
+**Explicitly incrementing the log probability function \index{\texttt{target}} (`target`) vs. using the sampling or distribution `~` notation.**
+```
+
+In this book, we specify priors and likelihoods by explicitly incrementing the log-probability function using the following syntax:
+
+```
+target +=  pdf_name_lpdf(parameter | ...)
+```
+
+
+However, Stan also allows for specifying priors and likelihood with the so-called \index{Sampling notation} sampling or distribution statement notation with the following code.
+
+```
+parameter ~ pdf_name(..)
+```
+
+Confusingly enough a sampling statement does not perform any actual sampling, and it is meant to be a notational convenience.
+
+The following two lines of code lead to the same behavior in Stan with respect to parameter estimation. There is, nonetheless, an important difference between them.
+
+```
+x ~ normal(mu, sigma);
+target += normal_lpdf(x | mu, sigma);
+```
+
+The important difference is that the sampling notation (the notation with the $\sim$) will \index{Normalizing constant} *drop normalizing constants*. Consider the following formula that corresponds to the log-transformed PDF of a normal distribution:
+
+
+\begin{equation}
+-log(\sigma) - \frac{log(2 \pi)}{2} - \frac{(x-\mu)^2}{2 \sigma^2}
+\end{equation}
+
+
+
+If one uses the sampling notation, Stan will ignore the terms that don't contain parameters, such as $- \frac{log(2 \pi)}{2}$. Depending on whether the variable $x$, the location $\mu$, and the scale $\sigma$ are data or parameters, Stan  will ignore different terms. For example, consider the case of a linear regression. The data $y$ (taking the role of $x$ in the previous equation) is assumed to be normally distributed with a location ($\mu$) and scale ($\sigma$) to be estimated. In this case, only  $-\frac{log(2 \pi)}{2}$ can be dropped, because both $-log(\sigma)$ and $- \frac{(y-\mu)^2}{2 \sigma^2}$ contain parameters. Another example where different terms would be dropped is the case of assigning a normal prior distribution to a parameter $\theta$. Here, the location and scale ($\mu$ and $\sigma$) are data and $\theta$ takes the role of $x$ in the previous equation and acts as a parameter. This means that $-log(\sigma)$ is  a constant term that can be ignored, but not $- \frac{(\theta-\mu)^2}{2 \sigma^2}$ because it contains the parameter $\theta$.  Dropping \index{Constant term} constant terms does not affect parameter estimation because it only affects the unnormalized likelihood in the same way in all the parameter space. To make this more concrete, the whole plot in Figure \@ref(fig:up) will move up or down by some constant amount, and this won't affect the Hamiltonian dynamics that determine how we sample from the posterior.
+
+The advantage of the sampling notation is that it can be faster (when many terms are ignored), but the disadvantage is that (i) it is not compatible with the calculation of \index{Bayes factor} Bayes factor with \index{Bridge sampling} bridge sampling (see section \@ref(sec-stanBF) in chapter \@ref(ch-bf)), or the calculation of the log-likelihood for \index{Cross-validation} cross-validation (see chapter \@ref(ch-cv)), (ii) it misleads us into thinking that Stan is actually sampling the left term in the sampling statement, e.g., drawing $y$ from a normal distribution in the previous example, when in fact at each step the log-probability (`target`) is incremented based on the parameter values determined by Hamiltonian dynamics (as explained before), and (iii) it makes it less straightforward to transition to more complex models where the sampling notation cannot be used (as in, for example, mixture models in chapter \@ref(ch-mixture)).
+
+
+If one is not going to use Bayes factor with bridge sampling or cross-validation, the same speed advantage of the sampling notation can also be achieved by incrementing the log-probability with  \index{Log-unnormalized probability density} log-unnormalized probability density or mass functions (functions ending with \index{\texttt{\_lupdf}} `_lupdf` or \index{\texttt{\_lupmf}} `_lupmf`). The previous example would be translated into the following:
+
+
+```
+target += normal_lupdf(y | mu, sigma);
+```
+
+\End{extra}
+
+</div>
+
+
+We didn't use curly brackets with the for-loop; this is a common practice if the for-loop has only one line, but brackets can be added and are obligatory if the for-loop spans several lines.
+
+It's also possible to avoid the \index{For-loop} for-loop since many functions are vectorized in Stan:
+\index{\texttt{model}}
+
+\Begin{samepage}
+
+```{stan output.var = "normal_modelvec", code = readLines(normal)[9:15],  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+\End{samepage}
+
+The for-loop and vectorized versions give us the same output: The for-loop version evaluated the log-likelihood at each value of `y` and added it to `target`. The vectorized version does not create a vector of log-likelihoods; instead, it sums up the log-likelihood evaluated at each element of `y` and then it adds that to `target`.
+
+The complete model looks like this:
+
+```{stan output.var = "normal_vec", code = readLines(normal),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+
+You can save the above code as `normal.stan`. Alternatively, you can use the version stored in the package `bcogsci`. (Typing `?stan-normal` in the R console provides some documentation for the model.) You can access the code of the models of this book by using \index{\texttt{system.file}} `system.file("stan_models", "name_of_the_model.stan", package = "bcogsci")`.
+
+```{r}
+normal <- system.file("stan_models",
+                      "normal.stan",
+                      package = "bcogsci")
+```
+
+This command just points to a text file that the package `bcogsci` stores on your computer. You can open it to read the code (with any text editor, or `readLines()` in R). You'll need to compile this code and run it with `stan()`.
+
+Stan requires the data to be in a list object in R. Below, we fit the model with the default number of \index{Chain} chains and \index{Iteration} iterations.
+
+
+
+```{r stannormal, message=FALSE, eval = FALSE}
+Y <- rnorm(n = 100, mean = 3, sd = 10)
+lst_score_data <- list(y = Y, N = length(Y))
+# Fit the model with the default values of number of
+# chains and iterations: chains = 4, iter = 2000
+fit_score <- stan(normal, data = lst_score_data)
+# alternatively:
+# stan("normal.stan", data = lst_score_data)
+```
+
+Inspect how well the \index{Chains mixed} chains mixed in Figure \@ref(fig:traceplotmusigma). The chains for each parameter should look like a \index{Fat hairy caterpillar} "fat hairy caterpillar" [@lunn2012bugs]; see section \@ref(sec-convergencenut) for a brief discussion about \index{Convergence} convergence.
+
+(ref:traceplotmusigma) Traceplots of `mu` and `sigma` from the model `fit_score`.
+
+```{r traceplotmusigma, fig.cap= "(ref:traceplotmusigma)", fig.height=2}
+traceplot(fit_score, pars = c("mu", "sigma"))
+```
+
+
+We can see a summary of the posterior by either printing out the model fit, or by plotting it. The summary displayed by the function \index{\texttt{print}} `print`  includes means,  standard  deviations  (`sd`),  quantiles,  \index{Monte Carlo standard error} Monte Carlo standard errors for the mean of the posterior (`se_mean`), split Rhats, and effective sample sizes (`n_eff`).  The summaries are computed after removing the warmup  and merging together all chains. The \index{\texttt{se\_mean}} `se_mean` is unrelated to the `se` of an estimate in the parallel frequentist model. Similarly to a large effective sample size, small Monte Carlo standard errors indicate a successful sampling procedure: with a large value of \index{\texttt{n\_eff}} `n_eff` and a small value for `se_mean` we can be relatively sure of the reliability of the mean of the posterior. However, what constitutes a large or small `se_mean` is harder to define [see @vehtari2019ranknormalization for a more extensive discussion].^[We simplify the output of `print` in the text after this call, by actually calling `summary(fit, pars = pars, probs = c(0.025, 0.975))$summary`.]
+
+```{r}
+print(fit_score, pars = c("mu", "sigma"))
+```
+
+```{r, echo = FALSE}
+print.stanfit <- function(fit, pars, probs = c(0.025, 0.975), digits_summary = 2) {
+  s <- summary(fit, pars = pars, probs = probs)$summary %>% {
+    .[, !colnames(.) %in% c("se_mean", "sd"), drop = FALSE]
+  }
+  s[, "n_eff"] <- round(s[, "n_eff"], 0)
+  print(round(s, digits_summary))
+}
+```
+
+After transforming the `stanfit` object into a data frame, it's possible to provide summary plots as the one shown in \@ref(fig:mcmchist). The package \index{\texttt{bayesplot}} `bayesplot` [@R-bayesplot] is a wrapper around `ggplot2` [@R-ggplot2] and has several convenient functions to plot the samples. Bayesplot functions for posterior summaries start with `mcmc_`:
+
+(ref:mcmchist) Histograms of the samples of the posterior distributions of `mu` and `sigma` from the model `fit_score`.
+
+```{r mcmchist, fig.cap = "(ref:mcmchist)", message = FALSE}
+df_fit_score <- as.data.frame(fit_score)
+mcmc_hist(df_fit_score, pars = c("mu", "sigma"))
+```
+
+There are also several ways to get the samples for other summaries or customized plots, depending on whether we want a list, a data frame, or an array.^[In addition, the new package `posterior` provides useful tools for working with output from Bayesian models. It allows for converting the output between many different formats and offers consistent methods for operations commonly performed on samples, as well as summary functions.]
+
+
+```{r}
+# extract from rstan is sometimes overwritten by
+# a tidyverse version, we make sure that it's right one:
+rstan::extract(fit_score) %>%
+  str()
+as.data.frame(fit_score) %>%
+  str(list.len = 5)
+as.array(fit_score) %>%
+  str()
+```
+
+
+\Begin{extra}
+<div class="extra">
+
+```{theorem, cmdstanr}
+**An alternative R interface to Stan: \index{\texttt{cmdstanr}} `cmdstanr`**
+```
+
+At the time of writing this, there are two major nuisances with `rstan`, (i) the R code interfaces directly with C++ creating installation problems in many systems, (ii) `rstan` releases lag behind Stan language releases considerably preventing the user from taking advantage of the latest features of Stan. The package `cmdstanr` (https://mc-stan.org/cmdstanr/) is a lightweight interface to Stan for R that solves these problems.
+The downside (at the moment of writing this) is that being lightweight some functionality of `rstan` is lost, such as looking up functions with \index{\texttt{lookup}} `lookup()`,  exposing functions with \index{\texttt{expose\_stan\_function}} `expose_stan_function()`, as well as using the fitted model with the \index{\texttt{bridgesampling}} `bridgesampling` package to generate Bayes factors. Furthermore, the package `cmdstanr` is currently under development and the \index{Application programming interface} application programming interface \index{API} (API) might still change. However, the user interested in an easy (and painless) installation and the latest features of Stan might find it useful.
+
+Once `cmdstanr` is installed, we can use it as follows:
+
+First create a new `CmdStanModel` object from a file containing a Stan program using \index{\texttt{cmdstan\_model}} `cmdstan_model()`
+
+```{r}
+normal <- system.file("stan_models",
+                      "normal.stan",
+                      package = "bcogsci")
+normal_mod <- cmdstan_model(normal)
+```
+
+The object `normal_mod` is an \index{R6 reference object} R6 reference object (https://r6.r-lib.org/). This class of object behaves similarly to objects in object oriented programming languages, such as python. Methods are accessed using  `$` (rather than `.` as in python).
+
+To sample, use the `$sample()` method. The data argument accepts a list (as we used in `stan()` from `rstan`). However, many of the arguments of  `$sample` have different names than the ones used in `stan()` from the  `rstan` package:
+
+```{r, message = FALSE, results = "hide"}
+lst_score_data <- list(y = Y, N = length(Y))
+fit_normal_cmd <- normal_mod$sample(data = lst_score_data,
+                                    seed = 123,
+                                    chains = 4,
+                                    parallel_chains = 4,
+                                    iter_warmup = 1000,
+                                    iter_sampling = 1000)
+```
+
+To show the posterior summary, access the method \index{\texttt{\$summary()}} `$summary()` of the object `fit_normal_cmd`.
+
+```{r, eval = FALSE}
+fit_normal_cmd$summary()
+```
+
+Access the samples of `fit_normal_cmd` using \index{\texttt{\$draws()}} `$draws()`.
+
+```{r, eval = FALSE}
+fit_normal_cmd$draws(variables = "mu")
+```
+
+The vignette of https://mc-stan.org/cmdstanr/ shows more use cases, and how the samples can be transformed into other formats (data frame, matrix, etc.) together with the package `posterior` (https://mc-stan.org/cmdstanr/).
+
+\End{extra}
+</div>
+
+
+
+## Another simple example: \index{Cloze probability} Cloze probability with Stan with the \index{Binomial likelihood} binomial likelihood {#sec-clozestan}
+
+Let's fit a Stan model (`binomial_cloze.stan`) to estimate the cloze probability of a word given its context: that is, what is the probability of an upcoming word given its previous context; the model that is detailed in \@ref(sec-analytical) and was fit in \@ref(sec-sampling). We want to estimate the cloze probability of *"umbrella"*, $\theta$,   given the following data:  *"umbrella"* was answered $80$ out of $100$ trials. We assume a \index{Binomial distribution} binomial distribution as the \index{Likelihood function} likelihood function, and \index{$Beta$} $Beta(a=4,b=4)$ as a \index{Prior} prior distribution for the cloze probability.
+
+
+```{r, echo = FALSE}
+binomial_cloze <- system.file("stan_models",
+                              "binomial_cloze.stan",
+                              package = "bcogsci")
+```
+
+
+```{stan output.var = "binomial_stan", code = readLines(binomial_cloze),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+
+There is only one parameter in this model, cloze probability represented with the parameter `theta`, which is a real number constrained between $0$ and $1$.  Another difference between this and the previous example is that the likelihood function ends with \index{\texttt{\_lpmf}} `_lpmf` rather than with \index{\texttt{\_lpdf}} `_lpdf`. This is because Stan differentiates between distributions of continuous variables, i.e, \index{Probability density function} probability density functions \index{PDF} (PDFs), and distributions of discrete variables, i.e., \index{Probability mass function} probability mass functions \index{PMF} (PMFs).
+
+
+
+
+```{r, message=FALSE, results = "hide"}
+lst_cloze_data <- list(k = 80, N = 100)
+binomial_cloze <- system.file("stan_models",
+                              "binomial_cloze.stan",
+                              package = "bcogsci")
+fit_cloze <- stan(binomial_cloze, data = lst_cloze_data)
+```
+
+Print the summary of the posterior distribution of $\theta$ below, and show its posterior distribution graphically (see Figure \@ref(fig:posttheta)):
+
+(ref:posttheta) The posterior distribution of the cloze probability of umbrella (the parameter $\theta$).
+
+```{r posttheta, fig.cap = "(ref:posttheta)"  }
+print(fit_cloze, pars = c("theta"))
+df_fit_cloze <- as.data.frame(fit_cloze)
+mcmc_dens(df_fit_cloze, pars = "theta") +
+  geom_vline(xintercept = mean(df_fit_cloze$theta))
+```
+
+## \index{Regression model} Regression models in Stan
+
+In the following sections, we will revisit and expand on some of the examples that were fit with `brms` in chapter \@ref(ch-reg).
+
+### A first \index{Linear regression} linear regression in Stan: Does attentional load affect \index{Pupil size} pupil size? {#sec-pupilstan}
+
+As in section \@ref(sec-pupil), we focus on  the effect of cognitive load on one subject's pupil size with a subset of the data of @wahnPupilSizesScale2016. We use the following likelihood and priors. For details about our decision on priors and likelihood, see section  \@ref(sec-pupil).
+
+\begin{equation}
+\begin{aligned}
+p\_size_n &\sim \mathit{Normal}(\alpha + c\_load_n \cdot \beta,\sigma) \\
+\alpha &\sim \mathit{Normal}(1000, 500) \\
+\beta &\sim \mathit{Normal}(0, 100) \\
+\sigma &\sim \mathit{Normal}_+(0, 1000)
+\end{aligned}
+\end{equation}
+
+The Stan model `pupil.stan` follows:
+
+```{r pupilstan, echo = FALSE}
+pupil <- system.file("stan_models",
+                     "pupil.stan",
+                     package = "bcogsci")
+```
+
+
+```{stan output.var = "pupil_stan", code = readLines(pupil),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+
+Because we are fitting a regression, we use the \index{Location} location ($\mu$) of the likelihood function to regress `p_size` with the following equation `alpha + c_load * beta`, where both `p_size` and `c_load` are vectors defined in the data block. The following line accumulates the log-likelihood of every observation:
+
+`target += normal_lpdf(p_size | alpha + c_load * beta, sigma);`
+
+This is equivalent to  and slightly faster than the following lines:
+
+```
+for(n in 1:N)
+    target += normal_lpdf(p_size[n] | alpha + c_load[n] * beta, sigma);
+```
+
+A statement that requires some explanation is the following:
+
+```
+target += normal_lpdf(sigma | 0, 1000)
+    - normal_lccdf(0 | 0, 1000);
+```
+
+As in our original example in \@ref(sec-pupil), we are assuming a truncated normal distribution as a prior for $\sigma$. Not only are we setting a lower boundary to the parameter with `lower = 0`, but we are also "correcting" its prior distribution by subtracting `normal_lccdf(0 | 0, 1000)`, where \index{\texttt{lccdf}} `lccdf` stands for \index{Log complement of a cumulative distribution function} log complement of a cumulative distribution function. Once we add a \index{Lower boundary} lower boundary, the probability mass under half of the "regular" normal distribution should be one, that is, when we \index{Integrate} integrate from zero (rather than from minus infinity) to infinity. As discussed in Box \@ref(thm:truncation), we need to normalize the PDF by dividing it by the difference of its CDF evaluated in the new boundaries ($a = 0$ and $b = \infty$ in our case):
+
+\begin{equation}
+f_{[a,b]}(x) = \frac{f(x)}{F(b) - F(a)}
+(\#eq:truncPDF2)
+\end{equation}
+
+where $f$ is a PDF and $F$ a CDF.
+
+This equation in log-space is:
+
+\begin{equation}
+log(f_{[a,b]}(x)) = log(f(x)) - log(F(b) - F(a))
+(\#eq:truncPDF3)
+\end{equation}
+
+In Stan  $\log(f(x))$ corresponds to \index{\texttt{normal\_lpdf}} `normal_lpdf(x |...)`, and `log(F(x))` to \index{\texttt{normal\_lcdf}} `normal_lcdf(x|...)`. Because in our example $b=\infty$, $F(b) = 1$, we are dealing with the complement of the log CDF evaluated at $a =0$, $\log(1 - F(0))$, that is why we use `normal_lccdf(0 | ...)` (notice the double `c`; this symbol represents the complement of the CDF).
+
+To be able to fit the model, Stan requires the data to be input as a list: First, load the data and center the dependent variable in a data frame, then create a list, and finally fit the model.
+
+```{r , message = FALSE}
+df_pupil <- df_pupil %>%
+  mutate(c_load = load - mean(load))
+```
+
+```{r fitpupilstan, message = FALSE, results = "hide"}
+ls_pupil <- list(p_size = df_pupil$p_size,
+                 c_load = df_pupil$c_load,
+                 N = nrow(df_pupil))
+<<pupilstan>>
+fit_pupil <- stan(pupil, data = ls_pupil)
+```
+
+Check the \index{Traceplots} traceplots (Figure \@ref(fig:traceplotreg)).
+
+(ref:traceplotreg) Traceplots of `alpha`, `beta`, and `sigma` from the model `fit_pupil`.
+
+```{r traceplotreg, fig.height=2, fig.cap = "(ref:traceplotreg)"}
+traceplot(fit_pupil, pars = c("alpha", "beta", "sigma"))
+```
+
+Examine some summaries of the marginal posterior distributions of the parameters of interest:
+
+```{r}
+print(fit_pupil, pars = c("alpha", "beta", "sigma"))
+```
+
+Plot the posterior distributions (Figure  \@ref(fig:postreg)).
+
+(ref:postreg) Histograms of the posterior samples of `alpha`, `beta`, and `sigma` from the model `fit_pupil`.
+
+```{r postreg, fig.cap = "(ref:postreg)", message = FALSE}
+df_fit_pupil <- as.data.frame(fit_pupil)
+mcmc_hist(fit_pupil, pars = c("alpha", "beta", "sigma"))
+```
+
+To determine the probability that the posterior for beta is larger than zero given the model and data, examine the proportion of samples above zero:
+
+```{r}
+# We are using df_fit_pupil and not the "raw" Stanfit object.
+mean(df_fit_pupil$beta > 0)
+```
+
+To generate prior or \index{Posterior predictive distribution} posterior predictive distributions, we can create our own functions in R with the `purrr` function `map_dfr` (or a for-loop) as we did in section  \@ref(sec-trial) with the function `lognormal_model_pred()`. Alternatively, we can use the \index{\texttt{generated quantities}} `generated quantities` block in our model:
+
+```{r pupilgenstan, echo = FALSE}
+pupil_gen <- system.file("stan_models",
+                         "pupil_gen.stan",
+                         package = "bcogsci")
+```
+
+```{stan output.var = "pupilgen_stan", code = readLines(pupil_gen),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+For most of the probability functions, there is a matching \index{Pseudorandom number generator} pseudorandom number generator \index{PRNG} (PRNG) with the suffix \index{texttt{\_rng}} `_rng`. Here we are using the vectorized function \index{\texttt{normal\_rng}} `normal_rng`. Once `p_size_pred` is declared as an array of size `N`, the following statement generates $N$ predictions (for each iteration of the sampler):
+
+```
+p_size_pred = normal_rng(alpha + c_load * beta, sigma);
+```
+
+At the moment not all the PRNG are vectorized, but the ones that are only allow for \index{\texttt{array}} arrays  and, confusingly enough, not vectors. We define an array by indicating `array`, between brackets, the length of each dimension, then the type, and finaly the name of the variable. For example to define an array of real numbers with three dimension of length 6, 7, and 10 we write `array[6, 7, 10] real var`.^[The notation for arrays has changed in recent versions, the previous notation would have been `real[6, 7, 10] var`.] Vectors and matrices are also valid types for an array. See Box \@ref(thm:stancontainers) for more about the difference between arrays and vectors, and other  algebra types. We also included a data variable called `onlyprior`, this is an integer that can only be set to $1$ (TRUE) or $0$ (FALSE). When `onlyprior == 1`, the likelihood is omitted from the model, `p_size` is ignored, and `p_size_pred` is the \index{Prior predictive distribution} prior predictive distribution. When `onlyprior == 0`, the likelihood is incorporated in the model (as it is in the original code `pupil.stan`) using `p_size`, and `p_size_pred` is the posterior predictive distribution.
+
+
+If we want posterior predictive distributions, we fit the model to the data and set `onlyprior = 0`, if we want  prior predictive distributions, we sample from the priors and set `onlyprior = 1`. Then we use `bayesplot` functions to visualize predictive checks.
+
+For posterior predictive checks, we would do the following:
+
+```{r , message = FALSE, results = "hide"}
+ls_pupil <- list(onlyprior = 0,
+                 p_size = df_pupil$p_size,
+                 c_load = df_pupil$c_load,
+                 N = nrow(df_pupil))
+<<pupilgenstan>>
+fit_pupil <- stan(file = pupil_gen, data = ls_pupil)
+```
+
+Store the predicted pupil sizes in `yrep_pupil`. This variable contains an $N_{samples} \times N_{observations}$ matrix, that is,  each row of the matrix is a draw from the posterior predictive distribution, i.e., a vector with one element for each of the data points in y.
+
+```{r}
+yrep_pupil <- extract(fit_pupil)$p_size_pred
+dim(yrep_pupil)
+```
+\index{Predictive checks functions} Predictive checks functions in  \index{\texttt{bayesplot}} `bayesplot` (starting with \index{\texttt{ppc\_}} `ppc_`) require a vector with the observations in the first argument and a matrix with the predictive distribution as its second argument. As an example, in Figure \@ref(fig:densoverlay) we use an overlay of densities and we draw only $50$ elements (that is $50$ predicted data sets).
+
+
+(ref:densoverlay) A posterior predictive check showing 50 predicted density plots from the model `fit_pupil` against the observed data.
+
+```{r densoverlay, fig.cap = "(ref:densoverlay)", fig.height = 2.5}
+ppc_dens_overlay(df_pupil$p_size, yrep = yrep_pupil[1:50, ])
+```
+
+For prior predictive distributions, we simply set `onlyprior = 1`. The observations (`p_size`) are ignored by the model, but are required by the data block in Stan. If we haven't collected data yet, we could include a vector of zeros.
+
+
+```{r , message = FALSE, results = "hide"}
+ls_pupil_prior <- list(onlyprior = 1,
+                       p_size = df_pupil$p_size,
+                       # or: p_size = rep(0, nrow(df_pupil)),
+                       c_load = df_pupil$c_load,
+                       N = nrow(df_pupil))
+prior_pupil <- stan(pupil_gen, data = ls_pupil_prior,
+                    control = list(adapt_delta = 0.99))
+```
+
+To avoid divergent transitions, increase the `adapt_delta` parameter's default value from $0.8$ to $0.99$. It is important to highlight that we cannot safely ignore the warnings of the above model, even if  we are not fitting data. This is so because in practice one is still sampling a density using Hamiltonian Monte Carlo, and thus the prior sampling process can break in the same ways as the posterior sampling process. Prior predictive distributions as the one shown in  Figure \@ref(fig:priordensoverlay) can be plot with \index{\texttt{ppd\_dens\_overlay}} `ppd_dens_overlay()` (and in general with functions starting with \index{\texttt{ppd\_}} `ppd_` which don't require an argument with data).
+
+
+(ref:priordensoverlay) Prior predictive distribution showing $50$ predicted density plots from the model `fit_pupil`.
+
+```{r priordensoverlay, fig.cap ="(ref:priordensoverlay)", fig.pos = "H", out.extra = "", fig.height = 2.5}
+yrep_prior_pupil <- extract(prior_pupil)$p_size_pred
+ppd_dens_overlay(yrep_prior_pupil[1:50, ])
+```
+
+
+
+\Begin{extra}
+<div class="extra">
+
+```{theorem, stancontainers}
+**Matrix, vector, or \index{\texttt{array}} array in Stan?**
+```
+
+Stan contains three basic \index{Linear algebra type} linear algebra types, `vector`, \index{\texttt{row\_vector}} `row_vector`, and `matrix`. But Stan also allows for building arrays of any dimension from any type of element (integer, \index{Real} real, etc.). This means that there are several ways to define one-dimensional N-sized containers of real numbers,
+
+```
+array[N] real a;
+vector[N] a;
+row_vector[N] a;
+```
+
+as well as, two-dimensional N1$\times$N2-sized containers of real numbers:
+
+```
+array[N1, N2] real m;
+matrix[N1, N2] m;
+array[N1] vector[N2] b;
+array[N1] row_vector[N2] b;
+```
+
+These distinctions affect either what we can do with these variables, or the speed of our model, and sometimes are interchangeable. Matrix algebra is only defined for (row) vectors and matrices, that is we cannot multiply arrays. The following line requires all the one-dimensional containers (`p_size` and `c_load`) to be defined as vectors of the same size (or all as row vectors):
+
+```
+p_size = alpha + c_load * beta;
+```
+
+Many "vectorized" operations are also valid for arrays, that is, `normal_lpdf`, accepts (row) vectors (as we did in our code) or arrays as in the next example. There is of course no point in converting a vector to an array as follows, but this shows that Stan allows both type of one-dimensional \index{Container} containers.
+
+```
+array[N] real mu = to_array_1d(alpha + c_load * beta);
+target += normal_lpdf(p_size | mu, sigma);
+```
+
+
+By contrast, the outcome of "vectorized" \index{Pseudorandom number generator} pseudorandom number generator (`_rng`) functions can only be stored in an array. The following example shows the only way to vectorize this type of function:
+
+```
+array[N] real p_size_pred = normal_rng(alpha + c_load * beta,
+                                       sigma);
+```
+
+Alternatively, one can always use a \index{For-loop} for-loop, and it won't matter if `p_size_pred` is an array or a vector:
+
+```
+vector[N] p_size_pred;
+for(n in 1:N)
+    p_size_pred[n] = normal_rng(alpha + c_load[n] * beta, sigma);
+```
+
+
+
+See also Stan's user's guide section on matrices, vector, and arrays [@Stan2023, Chapter 18 of the User's guide].
+
+</div>
+\End{extra}
+
+
+
+### \index{Interaction} Interactions in Stan: Does attentional load interact with trial number affecting \index{Pupil size} pupil size? {#sec-interstan}
+
+We'll expand the previous model to also include the effect of (centered) trial and its interaction with cognitive load on one subject's pupil size. Our new likelihood will look as follows:
+
+\begin{equation}
+p\_size_n \sim \mathit{Normal}(\alpha + c\_load_n \cdot \beta_1 + c\_trial \cdot \beta_2 + c\_load \cdot c\_trial \cdot \beta_3, \sigma)
+\end{equation}
+
+Define priors for all the new $\beta$s. Since we don't have more information about the new predictors, they are sampled from identical prior distributions:
+
+
+\begin{equation}
+\begin{aligned}
+\alpha &\sim \mathit{Normal}(1000, 500) \\
+\beta_1 &\sim \mathit{Normal}(0, 100) \\
+\beta_2 &\sim \mathit{Normal}(0, 100) \\
+\beta_3 &\sim \mathit{Normal}(0, 100) \\
+\sigma &\sim \mathit{Normal}_+(0, 1000)
+\end{aligned}
+\end{equation}
+
+The following Stan model, `pupil_int1.stan`, is the direct translation of the new priors and likelihood.
+
+```{r pupilintstan, echo = FALSE}
+pupil_int1 <- system.file("stan_models", "pupil_int1.stan", package = "bcogsci")
+```
+
+
+```{stan output.var = "pupilint_stan", code = readLines(pupil_int1),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+When there are matrices or vectors involved,  `*` indicates matrix multiplication whereas `.*` indicates \index{Element-wise multiplication} element-wise multiplication; in R `%*%` indicates matrix multiplication whereas `*` indicates element-wise multiplication.
+
+There is, however, an alternative notation that can simplify our code. In the following likelihood, $p\_size$ is a vector of N observations (in this case 41), $X$ is the model matrix with a dimension of $N \times N_{pred}$ (in this case $41 \times 3$), and $\beta$ a vector of $N_{pred}$ (in this case, 3) rows. Assuming that $\beta$ is a vector, we indicate with one line that each parameter $\beta_n$ is sampled from identical prior distributions.
+
+\begin{equation}
+\begin{aligned}
+p\_size &\sim \mathit{Normal}(\alpha + X \cdot \beta,\sigma)\\
+\beta &\sim \mathit{Normal}(0, 100) \\
+\sigma &\sim \mathit{Normal}_+(0, 1000)
+\end{aligned}
+\end{equation}
+
+
+The translation into Stan code is the following:
+
+```{r pupilint2stan, echo = FALSE}
+pupil_int2 <- system.file("stan_models",
+                          "pupil_int2.stan",
+                          package = "bcogsci")
+```
+
+```{stan output.var = "pupilint2_stan", code = readLines(pupil_int2),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+For some likelihood functions, Stan provides  a more \index{Efficient implementation} efficient implementation of the linear regression than the one manually written in the previous code. It's critical to understand that, in general,  a more efficient implementation should not only be faster, but should also achieve the same number of effective samples (or more) than a less efficient implementation (and should also show convergence). In this case, we can achieve that using `_glm` functions.  We can replace the last line with the following statement (the order of the arguments is important):^[An extra boost in efficiency can be obtained in regular regressions where `X` and `Y` are data (rather than parameters as in cases of missing data or measurement error), since this function can be executed on a GPU.]
+
+```
+target += normal_id_glm_lpdf(p_size | X, alpha, beta, sigma);
+```
+
+
+
+The most optimized model, `pupil_int.stan`, includes this last statement. We  prepare the data as follows: First  create a centered version of trial, `c_trial` and load `c_load`,  then  use the function `model.matrix` to create the `X` matrix that contains in each column our predictors and omits the intercept with `0 +`.
+
+
+```{r}
+df_pupil <- df_pupil %>%
+  mutate(c_trial = trial - mean(trial),
+         c_load = load - mean(load))
+X <- model.matrix(~ 0 + c_load * c_trial, df_pupil)
+ls_pupil_X <- list(p_size = df_pupil$p_size,
+                   X = X,
+                   K = ncol(X),
+                   N = nrow(df_pupil))
+```
+
+```{r fitpupilint, message = FALSE, results = "hide"}
+pupil_int <- system.file("stan_models",
+                         "pupil_int.stan",
+                         package = "bcogsci")
+fit_pupil_int <- stan(pupil_int, data = ls_pupil_X)
+```
+
+
+```{r}
+print(fit_pupil_int, pars = c("alpha", "beta", "sigma"))
+```
+
+In \@ref(fig:pupilintbeta), we  plot here the 95% CrI of the parameters of interest. We use \index{\texttt{regex\_pars}} `regex_pars`, rather than `pars`, because we want to capture `beta[1]`, `beta[2]`, and `beta[3]`; `regex_pars` use \index{Regular expression} regular expressions to select the parameters (for information about regular expressions in R see https://stat.ethz.ch/R-manual/R-devel/library/base/html/regex.html)
+
+(ref:pupilintbeta) 95% CrI of the effect of load, `beta[1]`, the effect of trial, `beta[2]`, and their interaction, `beta[3]`.
+
+```{r pupilintbeta, fig.cap = "(ref:pupilintbeta)", message = FALSE, fig.height = 2.5}
+df_fit_pupil_int <- as.data.frame(fit_pupil_int)
+mcmc_intervals(fit_pupil_int,
+               regex_pars = "beta",
+               prob_outer = .95,
+               prob = .8,
+               point_est = "mean")
+```
+
+
+### \index{Logistic regression} Logistic regression in Stan: Does set size and trial affect free recall? {#sec-logisticstan}
+
+We revisit and expand on the analysis presented in  \@ref(sec-logistic) of a subset of the data of @oberauerWorkingMemoryCapacity2019. In this example, we will investigate whether the length of a list and trial number affect the probability of correctly recalling a word.
+
+As in section \@ref(sec-logistic), we assume a \index{Bernoulli likelihood} Bernoulli likelihood with a \index{Logit link function} logit link function, and the following priors (recall that the \index{Logistic function} logistic function is the inverse of the logit).
+
+\begin{equation}
+\begin{aligned}
+correct_n &\sim \mathit{Bernoulli}( \mathit{logistic}(\alpha + X \cdot \beta))\\
+\alpha &\sim \mathit{Normal}(0, 1.5) \\
+\beta &\sim \mathit{Normal}(0, 0.1)
+\end{aligned}
+\end{equation}
+
+Where $\beta$ is a vector of size $K = 2$, $\langle \beta_0, \beta_1 \rangle$. Below in `recall.stan` we present the most efficient way to code this in Stan.
+
+
+```{r recallstan, echo = FALSE}
+recall <- system.file("stan_models",
+                      "recall.stan",
+                      package = "bcogsci")
+```
+
+
+```{stan output.var = "logistic_stan", code = readLines(recall),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+The dependent variable, `correct`, is an array of integers rather than a vector; this is because vectors are always composed of real numbers, but the Bernoulli likelihood only accepts the integers $1$ or $0$. As in the previous example, we are taking advantage of the `_glm` functions. A less efficient but more transparent option would be to replace the last statement with:
+
+```
+target += bernoulli_logit_lpmf(correct | alpha + X * beta);
+```
+
+We might want to use  \index{\texttt{bernoulli\_logit\_lpmf}} `bernoulli_logit_lpmf` if we want to define a non-linear  relationship between the predictors that are outside the generalized linear model framework. One example would be the following:
+
+```
+target += bernoulli_logit_lpmf(correct| alpha + exp(X * beta));
+```
+
+Another more flexible possibility when we want to indicate a Bernoulli likelihood is to use \index{\texttt{bernoulli\_lpmf}} `bernoulli_lpmf` and add the link manually. The last statement of `recall.stan` would become the following:
+
+```
+target += bernoulli_lpmf(correct| inv_logit(alpha + X * beta));
+```
+
+The function `bernoulli_lpmf` can be useful if one wants to try other link functions; see exercise \@ref(exr:linkfunction).
+
+Finally, the most transparent form (but less efficient) would be the following for-loop:
+
+```
+for (n in 1:N)
+  target += bernoulli_lpmf(correct[n] | inv_logit(alpha + X[n] * beta));
+```
+
+To fit the  model as `recall.stan`,  prepare the data by centering the trial number first:
+
+```{r,  message = FALSE, warning = FALSE}
+df_recall <- df_recall %>%
+  mutate(c_set_size = set_size - mean(set_size),
+         c_trial = trial - mean(trial))
+```
+
+Next, we create the model matrix, $X$, and prepare the data as a list. As in section \@ref(sec-interstan), we exclude the intercept from the matrix `X` using ` 0 +... `. This is because the Stan code that we are using already takes into account that the first column in the model matrix is going to be a vector of ones.
+
+```{r}
+X <- model.matrix(~ 0 + c_set_size * c_trial, df_recall)
+ls_recall <- list(correct = df_recall$correct,
+                  X = X,
+                  K = ncol(X),
+                  N = nrow(df_recall))
+```
+
+```{r , message = FALSE, results = "hide"}
+recall <- system.file("stan_models",
+                      "recall.stan",
+                      package = "bcogsci")
+fit_recall <- stan(recall, data = ls_recall)
+```
+
+After fitting the model we can print and plot summaries of the posterior distribution.
+
+```{r}
+print(fit_recall, pars = c("alpha", "beta"))
+```
+
+
+In Figure \@ref(fig:cri), we plot the 95% CrI of the parameters of interest.
+
+(ref:cri) 95% credible intervals of the `beta` parameters of `fit_recall` model.
+
+```{r cri, fig.cap ="(ref:cri)", message = FALSE}
+df_fit_recall <- as.data.frame(fit_recall)
+mcmc_intervals(df_fit_recall,
+               regex_pars = "beta",
+               prob_outer = .95,
+               prob = .8,
+               point_est = "mean")
+```
+
+As we did in \@ref(sec-comlogis), we might want to communicate the posterior in proportions rather than in log-odds (as seen in the parameters `beta`). We can do this in R manipulating the data frame `df_fit_recall`, or extracting the samples with `extract(fit_recall)`. Another alternative presented here is by using the \index{\texttt{generated quantities}} generated quantities block. To make the code more compact we declare the type of each variable and store its content in the same line in `recall_prop.stan`.
+
+```{r recallpropstan, echo = FALSE}
+recall_prop <- system.file("stan_models",
+                           "recall_prop.stan",
+                           package = "bcogsci")
+```
+
+
+```{stan output.var = "logistic_gen_stan", code = readLines(recall_prop)[17:20],  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+Recall that due to the non-linearity of the scale, the effects depend on the average accuracy, and the set size and trial that we start from (in this case we are examining the change of one unit from the average set size and the average trial).
+
+
+```{r , message = FALSE, results ="hide"}
+recall_prop <- system.file("stan_models",
+                           "recall_prop.stan",
+                           package = "bcogsci")
+fit_recall <- stan(recall_prop, data = ls_recall)
+```
+
+The plot in Figure \@ref(fig:vaccdet) now shows how the average accuracy deteriorates when the subject is exposed to a set size larger than the average by one,  a trial further than the middle one, and the interaction of both.
+
+```{r vaccdet, fig.cap = "Effect of set size, trial, and their interaction on the average accuracy of recall.", message = FALSE}
+df_fit_recall <- as.data.frame(fit_recall) %>%
+  rename(set_size = `change_acc[1]`,
+         trial = `change_acc[2]`,
+         interaction = `change_acc[3]`)
+mcmc_intervals(df_fit_recall,
+               pars = c("set_size", "trial", "interaction"),
+               prob_outer = .95,
+               prob = .8,
+               point_est = "mean") +
+  xlab("Change in accuracy")
+```
+
+The plot in Figure \@ref(fig:vaccdet) shows that our model is estimating that by increasing the set size by one unit, the recall accuracy of the single subject is deteriorates by 2%. In contrast, there is hardly any trial effect or interaction between trial and set size.
+
+
+## Summary
+
+This chapter introduced basic Stan syntax for fitting some standard linear models.  Example code covered the normal, binomial, Bernoulli, and log-normal likelihoods. We also saw how to express regression models using the matrix model in Stan syntax.
+
+## Further reading
+
+For further reading on the  Hamiltonian Monte Carlo algorithm, see the rather technical review of @betancourt2017conceptual, or the more conceptual introduction provided by  @monnahanFasterEstimationBayesian2017 or chapter 17 of @lambert2018student. A useful article with example R code is @nealMCMCUsingHamiltonian2011. A detailed walk-through on its implementation is also provided in Chapter 41 of @mackay. The Stan documentation [@Stan2023], consisting of a User's Guide and the Language Reference Manual are important starting points for going deeper into Stan programming: https://mc-stan.org/users/documentation/.
+
+## Exercises
+
+```{exercise, first}
+A very simple model.
+```
+
+In this exercise we revisit the model from \@ref(sec-simplenormal). Assume the  following:
+
+1. There is a true underlying time, $\mu$, that the subject needs to press the space bar.
+2. There is some noise in this process.
+3. The noise is normally distributed (this assumption is questionable given that response times are generally  skewed; we fix this assumption later).
+
+That is the likelihood for each observation $n$ will be:
+
+\begin{equation}
+\begin{aligned}
+t_n \sim \mathit{Normal}(\mu, \sigma)
+\end{aligned}
+\end{equation}
+
+a. Decide on appropriate priors and fit this model in Stan. Data can be found in `df_spacebar`.
+b. Change the likelihood to a log-normal distribution and change the priors. Fit the model in Stan.
+
+
+```{exercise, badstan}
+Incorrect Stan model.
+```
+
+We want to fit both response times and accuracy with the same model. We simulate the data as follows:
+
+```{r }
+N <- 500
+df_sim <- tibble(rt = rlnorm(N, mean = 6, sd = .5),
+                 correct = rbern(N, prob = .85))
+```
+
+We build the following model:
+
+```{r incorrectstan, echo = FALSE}
+incorrect <- system.file("stan_models", "incorrect.stan", package = "bcogsci")
+```
+
+
+```{stan output.var = "incorrect_stan", code = readLines(incorrect),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+Why does this model not work?
+
+```{r, error = TRUE}
+ls_sim <- list(rt = df_sim$rt,
+               correct = df_sim$correct)
+incorrect <- system.file("stan_models",
+                         "incorrect.stan",
+                         package = "bcogsci")
+fit_sim <- stan(incorrect, data = ls_sim)
+```
+
+Try to make it run. (Hint: There are several problems.)
+
+```{exercise, skewstan}
+Using Stan documentation.
+```
+
+Edit the simple example with Stan from section \@ref(sec-firststan), and replace the normal distribution with a skew normal distribution. (Don't forget to add a prior to the new parameter, and check   the Stan documentation or a statistics textbook for more information about the distribution).
+
+Fit the following data:
+
+```{r yscoresagain3, eval = FALSE}
+Y <- rnorm(1000, mean = 3, sd = 10)
+```
+
+Does the estimate of the new parameter make sense?
+
+
+
+
+
+
+```{exercise, linkfunction}
+The probit link function as an alternative to the logit function.
+```
+
+The probit link function is the inverse of the CDF of the standard normal distribution ($Normal(0,1)$). Since the CDF of the standard normal is usually written using the Greek letter $\Phi$ (Phi),  the probit function is written as its inverse, $\Phi^{-1}$. Refit the model presented in \@ref(sec-logisticstan) changing the logit link function for the probit link (that is transforming the regression to a constrained space using `Phi()` in Stan).
+
+You will probably see the following as the model runs; this is because the probit link is less numerically stable (i.e., under- and overflows) than the logit link in Stan. Don't worry, it is good enough for this exercise.
+
+```
+   Rejecting initial value:
+   Log probability evaluates to log(0), i.e. negative infinity.
+   Stan can't start sampling from this initial value.
+```
+
+
+a. Do the results of the coefficients $\alpha$ and $\beta$ change?
+b. Do the results in probability space change?
+
+
+```{exercise, logisticstan}
+Examining the position of the queued word on recall.
+```
+
+Refit the model presented in section \@ref(sec-logisticstan) and examine whether set size, trial effects, the  position of the queued word (`tested` in the data set), and their interaction affect free recall. (Tip: You can do this exercise without changing the Stan code.).
+
+How does the accuracy change from position one to position two?
+
+
+```{exercise, fallacy}
+The conjunction fallacy.
+```
+
+@Paolaccietal examined whether the results of some classic experiments differ between a university pool population and subjects recruited from Mechanical Turk. We'll examine whether the results of the  conjunction fallacy experiment [or Linda problem:  @TverskyKahneman1983] are replicated for both groups.
+
+```{r,  message = FALSE}
+data("df_fallacy")
+df_fallacy
+```
+
+The conjunction fallacy shows that people often fail to regard a combination of events as less probable than a single event in the combination [@TverskyKahneman1983]:
+
+*Linda is 31 years old, single, outspoken, and very bright. She majored in philosophy. As a student, she was deeply concerned with issues of discrimination and social justice, and also participated in anti-nuclear demonstrations.*
+
+*Which is more probable?*
+
+a. *Linda is a bank teller.*
+b. *Linda is a bank teller and is active in the feminist movement.*
+
+The majority of those asked chose option b even though it's less probable ($\Pr(a \land b)\leq \Pr(b)$. The data set is named `df_fallacy` and it indicates with `0`  option "a" and with `1` option `b`.
+Fit a logistic regression in Stan and report:
+
+a. The estimated overall probability of answering (b) ignoring the group.
+b. The estimated overall probability of answering (b) for each group.

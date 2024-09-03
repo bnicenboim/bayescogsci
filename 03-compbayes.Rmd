@@ -1,0 +1,1119 @@
+# (PART) Regression models with brms {-}
+# Computational Bayesian data analysis {#ch-compbda}
+
+
+In the previous chapter, we learned how to analytically derive  the posterior distribution of the parameters in our model.
+In practice, however, this is possible for only a very limited number of cases. Although the numerator of the Bayes rule, the unnormalized posterior, is easy to calculate (by multiplying the probability density/mass functions analytically), the denominator, the marginal likelihood, requires us to carry out an integration; see Equation \@ref(eq:bayesbrms).
+
+
+\begin{equation}
+\begin{aligned}
+p(\boldsymbol{\Theta}|\boldsymbol{y}) &= \cfrac{ p(\boldsymbol{y}|\boldsymbol{\Theta}) \cdot p(\boldsymbol{\Theta}) }{p(\boldsymbol{y})}\\
+p(\boldsymbol{\Theta}|\boldsymbol{y}) &= \cfrac{ p(\boldsymbol{y}|\boldsymbol{\Theta}) \cdot p(\boldsymbol{\Theta}) }{\int_{\boldsymbol{\Theta}} p(\boldsymbol{y}|\boldsymbol{\Theta}) \cdot p(\boldsymbol{\Theta}) d\boldsymbol{\Theta} }
+\end{aligned}
+(\#eq:bayesbrms)
+\end{equation}
+
+
+
+Unless we are dealing with conjugate distributions, the solution will be extremely hard to derive or there will be no analytical solution. This was the major bottleneck of Bayesian analysis in the past, and required Bayesian practitioners to program an approximation method by themselves before they could even begin the Bayesian analysis. Fortunately, many of the probabilistic programming languages freely available today (see the next section for a listing) allow us to define our models without having to acquire expert knowledge about the relevant numerical techniques.
+
+
+
+## Deriving the \index{Posterior} posterior through \index{Sampling} sampling {#sec-sampling}
+
+```{r, echo = FALSE, message=FALSE, results= "hide"}
+lst_cloze_data <- list(k = 80, N = 100)
+# Fit the model with the default values of number of chains and iterations
+# chains = 4,    iter = 2000
+
+bn <- system.file("stan_models", "binomial_cloze.stan", package = "bcogsci")
+fit_cloze <- stan(
+  file = bn, data = lst_cloze_data,
+  warmup = 1000,
+  iter = 21000
+)
+```
+
+```{r, echo = FALSE}
+samples_theta <- rstan::extract(fit_cloze)$theta
+some_samples <- toString(round(head(samples_theta, 20), 3))
+df_fit_cloze <- data.frame(theta = samples_theta)
+diff_means <- format(mean(samples_theta) - 84 / (84 + 24), digits = 1)
+diff_var <- format(sd(samples_theta)^2 - 84 * 24 / ((84 + 24)^2 * (84 + 24 + 1)), digits = 1)
+```
+
+Let's say that we want to derive the posterior of the model from section \@ref(sec-analytical), that is,  the posterior distribution of the cloze probability of *"umbrella"*, $\theta$,  given the following data: a word (e.g., *"umbrella"*) was answered 80 out of 100 times, and assuming a binomial distribution as the likelihood function, and $\mathit{Beta}(a=4,b=4)$ as a prior distribution for the cloze probability. If we can generate samples^[In the `brms` package [@R-brms_a], samples from the posterior are referred to as draws.] from the posterior distribution of $\theta$, instead of an analytically derived posterior distribution, given enough samples we will have a good approximation of the posterior distribution. Obtaining samples from the posterior will be the only viable option in the models that we will discuss in this book. By "obtaining samples", we are talking about a situation analogous to when we use ```rbinom()``` or ```rnorm()``` to obtain samples from a particular distribution. For more details about sampling algorithms, see the section Further Reading (section \@ref(sec-ch3furtherreading)).
+
+Thanks to \index{Probabilistic programming language} probabilistic programming languages, it will be relatively straightforward to get these samples, and we will discuss how we will do it in more detail in the next section. For now let's assume that we used some probabilistic programming language to obtain 20000 samples from the posterior distribution of the cloze probability, $\theta$: `r some_samples`, \dots Figure \@ref(fig:betapost) shows that the approximation of the posterior looks quite similar to the analytically derived posterior. The difference between the analytically computed and approximated mean and variance are $`r diff_means`$ and $`r diff_var`$ respectively.
+
+(ref:betapost) Histogram of the samples of $\theta$ from the posterior distribution generated via sampling. The black line shows the density plot of the analytically derived posterior.
+
+```{r betapost, fig.cap="(ref:betapost)",echo = FALSE}
+ggplot(df_fit_cloze, aes(theta)) +
+  geom_histogram(binwidth = .01, colour = "gray", alpha = .5, aes(y = after_stat(density))) +
+  stat_function(fun = dbeta, color = "black", args = list(
+    shape1 = 84,
+    shape2 = 24
+  ))
+```
+
+## \index{Bayesian Regression Model} Bayesian Regression Models using Stan: \index{brms} brms
+
+The surge in popularity of Bayesian statistics is closely tied to  the increase in computing power and the appearance of \index{Probabilistic programming language} probabilistic programming languages, such as WinBUGS [@lunn2000winbugs], JAGS [@plummer2016jags], PyMC3 [@Salvatier2016], Turing [@turing], and Stan [@carpenter2017stan]; for a historical review, see @plummer2022simulation.
+
+These probabilistic programming languages allow the user to define models without having to deal (for the most part) with the complexities of the sampling process. However, they require learning a new language since the user has to fully specify the statistical model using a particular syntax.^[The Python package PyMC3 and the Julia library Turing are recent exceptions since they are fully integrated into their respective languages.] Furthermore, some knowledge of the sampling process is needed to correctly parameterize the models and to avoid convergence issues (these topics will be covered in detail in chapter \@ref(ch-complexstan)).
+
+There are some alternatives that allow Bayesian inference in R without having to fully specify the model "by hand". The packages rstanarm [@rstanarm] and brms [@R-brms] provide Bayesian equivalents of many popular R model-fitting functions, such as (g)lmer [@R-lme4] and many others; both rstanarm and brms use Stan as the back-end for estimation and sampling. The package R-INLA [@lindgren2015bayesian] allows for fitting a limited selection of likelihood functions and priors in comparison to rstanarm and brms (R-INLA can fit models that can be expressed as latent Gaussian models). This package uses the integrated nested Laplace approximation (INLA) method for approximating Bayesian inference rather than a sampling algorithm as it is used by the other probabilistic languages listed. Another alternative is JASP [@JASP2019], which provides a graphical user interface for both frequentist and Bayesian modeling, and is intended to be an open-source alternative to SPSS.
+
+We will focus on `brms` in this part of the book. This is because it can be useful for a smooth transition from frequentist  models to their Bayesian equivalents. The package `brms` is not only powerful enough to satisfy the statistical needs of many cognitive scientists, it has the added benefit that the Stan code can be inspected (with the `brms` functions `make_stancode()` and `make_standata()`), allowing the user to customize their models or learn from the code produced internally by `brms` to eventually transition to writing the models entirely in Stan. We revisit the models of this and the following chapters in the introduction to Stan in chapter \@ref(ch-introstan).
+
+
+### A simple linear model: A single subject pressing a button repeatedly (a finger tapping task) {#sec-simplenormal}
+
+We'll use the following example of a finger tapping task [for a review, see @hubel2013computerized] to illustrate the basic steps for fitting a model. Suppose that a subject first sees a blank screen. Then, after a certain amount of time (say $200$ ms), the subject sees a cross in the middle of a screen, and as soon as they see the cross, they tap on the space bar as fast as they can until the experiment is over ($361$ trials). The dependent measure here is the time it takes in milliseconds from one press of the space bar to the next one. The data in each trial are therefore finger tapping times in milliseconds. Suppose that the research question is: how long does it take for this particular subject to press a key?
+
+Let's model the data with the following assumptions:
+
+1. There is a true (unknown) underlying time, $\mu$ ms, that the subject needs to press the space bar.
+2. There is some noise in this process.
+3. The noise is normally distributed (this assumption is questionable given that finger tapping as also response times are generally  skewed; we will fix this assumption later).[^rt]
+
+[^rt]: We refer to the time it takes for a subject to respond or react to a stimuli as response time [response and reaction times are often used interchangeably, cf. @luce1986response]. In this case, however, there are no stimuli other than the cross on the screen, and the subject only taps the space bar as soon as they see the cross.
+
+  This means that the likelihood for each observation $n$ will be:
+
+\begin{equation}
+t_n \sim \mathit{Normal}(\mu, \sigma)
+(\#eq:rtlik)
+\end{equation}
+
+where $n =1, \ldots, N$, and $t$ is the dependent variable (finger tapping times in milliseconds). The variable $N$ indexes the total number of data points. The symbol $\mu$ indicates the *location* of the normal distribution function; the location  parameter shifts the distribution left or right on the horizontal axis. For the normal distribution, the location is also the mean of the distribution. The symbol $\sigma$ indicates the *scale* of the distribution; as the scale decreases, the distribution gets narrower. This compressing approaches a spike (all the probability mass get concentrated near one point) as the scale parameter approaches zero. For the normal distribution, the scale is also its standard deviation.
+
+The reader may have encountered the model shown in Equation \@ref(eq:rtlik) in the form shown in Equation \@ref(eq:rtlikLM):
+
+\begin{equation}
+t_n = \mu + \varepsilon \hbox{, where } \varepsilon_n \stackrel{iid}{\sim} \mathit{Normal}(0,\sigma) (\#eq:rtlikLM)
+\end{equation}
+
+When the model is written in this way, it should be understood as meaning that each data point $t_n$ has some variability around a mean value $\mu$, and that variability has standard deviation $\sigma$. The term "iid" (independent and identically distributed) implies that the residuals are independently generated (they are not correlated with any of the other residual values). The statement of the model in Equation \@ref(eq:rtlikLM) is exactly the same as saying that the observed data points $t_n$ are iid and are coming from the $Normal(\mu,\sigma)$ distribution.
+
+
+For a frequentist model that will give us the \index{Maximum likelihood estimate} maximum likelihood estimate (the sample mean) of the time it takes to press the space bar, this would be enough information to write the formula in `R`, `t ~ 1`, and plug it into the function `lm()` together with the data: `lm(t ~ 1, data)`. The meaning of the `1` here is that  `lm()` will estimate the intercept in the model, in our case $\mu$. If the reader is completely unfamiliar with linear models, the references in section \@ref(sec-ch4furtherreading) will be helpful.
+
+For a Bayesian linear model, we will also need to define priors for the two parameters of our model. Let's say that we know for sure that the time it takes to press a key will be positive and lower than a minute (or $60000$ ms), but we don't want to make a commitment regarding which values are more likely. We encode what we know about the noise in the task in $\sigma$: we know that this parameter  must be positive and we'll assume that any value below $2000$ ms is equally likely. These priors are in general strongly discouraged: A flat (or very wide) prior will almost never be the best approximation of what we know. Prior specification will be discussed in detail in chapter \@ref(ch-priors).
+
+In this case, even if we know very little about the task, we know that pressing the spacebar will take at most a couple of seconds. We'll use flat priors in this section for pedagogical purposes; the next sections will already show more realistic uses of priors.
+
+
+\begin{equation}
+\begin{aligned}
+\mu &\sim \mathit{Uniform}(0, 60000) \\
+\sigma &\sim \mathit{Uniform}(0, 2000)
+\end{aligned}
+(\#eq:rtpriors)
+\end{equation}
+
+First, load the data frame `df_spacebar` from the `bcogsci` package:
+
+```{r, reading_noreading, message = FALSE}
+data("df_spacebar")
+df_spacebar
+```
+
+
+It is always a good idea to plot the data before doing anything else; see Figure \@ref(fig:m1visualize). As we suspected, the data look a bit skewed, but we ignore this for the moment.
+
+```{r m1visualize, fig.cap="Visualizing the button-press data.", fold = TRUE}
+ggplot(df_spacebar, aes(t)) +
+  geom_density() +
+  xlab("Finger tapping times") +
+  ggtitle("Button-press data")
+```
+
+#### Specifying the model in `brms`
+
+Fit the model defined by equations \@ref(eq:rtlik) and \@ref(eq:rtpriors) with `brms` in the following way.
+
+```{r, message = FALSE, cache = TRUE}
+
+fit_press <-
+  brm(t ~ 1,
+      data = df_spacebar,
+      family = gaussian(),
+      prior =
+ c(prior(uniform(0, 60000), class = Intercept, lb = 0, ub = 60000),
+  prior(uniform(0, 2000), class = sigma, lb = 0, ub = 2000)),
+      chains = 4,
+      iter = 2000,
+      warmup = 1000)
+```
+
+The `brms` code has some differences from a model fit with `lm()`. At this beginning stage, we'll focus on the following options:
+
+1. The term `family = gaussian()` makes it explicit that the underlying likelihood function is a normal distribution (Gaussian \index{Gaussian} and normal are synonyms). This detail is implicit in `lm()`. Other linking functions are possible, exactly as in the `glm` function. The default for `brms` that corresponds to the `lm()` function is `gaussian()`.
+2. The term `prior` takes as argument a vector of priors. Although this \index{Prior specification} specification of priors is optional, the researcher should always explicitly specify each prior. Otherwise, `brms` will define priors by default, which may or may not be appropriate for the research area. In cases where the distribution has a restricted coverage, that is, not every value is valid (e.g., smaller than $0$ or larger than $60000$ are not valid for the intercept), we need to set lower and upper boundaries with `lb` and `ub`.^[There is an additional problem here. Although the parameter for the intercept is assigned a uniform distribution bounded between $0$ and $60000$ ms, the sampler might start sampling from an initial value outside this range producing warnings. The sampler can start from an initial value that is outside the $0$-$60000$ range because the initial value is chosen randomly (unless the user specifies an initial value explicitly). \label{fn:uniform}]
+3. The term \index{\texttt{chains}} `chains` refers to the number of independent runs for sampling (by default four).
+4. The term \index{\texttt{iter}} `iter` refers to the \index{Number of iterations} number of iterations that the sampler makes to sample from the posterior distribution of each parameter (by default `2000`).
+5. The term \index{\texttt{warmup}} `warmup` refers to the number of iterations from the start of sampling that are eventually discarded (by default half of `iter`).
+
+The last three options, `chains`, `iter`, `warmup`  determine the behavior of the sampling algorithm: the  No-U-Turn Sampler [NUTS; @hoffmanNoUTurnSamplerAdaptively2014] extension of Hamiltonian Monte Carlo [@duaneHybridMonteCarlo1987; @nealMCMCUsingHamiltonian2011]. We will discuss sampling in a bit more depth in chapter \@ref(ch-introstan), but the basic process is explained next.
+
+
+#### Sampling and convergence in a nutshell {#sec-convergencenut}
+
+The following is a gross oversimplification of the sampling process: The code specification starts (by default) four chains independently from each other. Each chain "searches" for samples of the posterior distribution in a multidimensional space, where each parameter corresponds to a dimension. The shape of this space is determined by the priors and the likelihood. The chains start at random locations, and in each iteration they take one sample each for all the parameters. When \index{Sampling} sampling begins, the samples may or may not belong to the posterior distributions of the parameters. Eventually, the chains end up in the vicinity of the posterior distribution, and from that point onward the samples will belong to the posterior.
+
+Thus, when sampling begins, the samples from the different chains can be far from each other, but at some point they will "converge" and start delivering samples from the posterior distributions. Although there are no guarantees that the number of iterations we run the chains for will be sufficient for obtaining samples from the posteriors, the default values of `brms` (and Stan) are in many cases sufficient to achieve \index{Convergence} convergence. When the default number of iterations do not suffice, `brms` (actually, Stan) will print out warnings, with suggestions for fixing the convergence problems. If all the chains converge to the same distribution, by removing the "warmup" samples, we make sure that we do not get samples from the initial path to the posterior distributions. The default in `brms` is that half of the total number of iterations in each chain (which default to 2000) will count as "warmup". So, if one runs a model with four chains and the default number of iterations, we will obtain a total of 4000 samples from the four chains, after discarding the warmup iterations.
+
+Figure \@ref(fig:fwarmup)(a) shows the path of the chains from the warmup phase onwards. Such plots are called  \index{Traceplots} traceplots. The warmup is shown only for illustration purposes; generally, one should only inspect the chains after the point where convergence has (presumably) been achieved (i.e., after the dashed line). After convergence has occurred, a visual diagnostic check is that chains should look like a "fat hairy caterpillar." Compare the traceplots of our model in Figure \@ref(fig:fwarmup)(a) with the traceplots of a model that did not converge, shown in Figure \@ref(fig:fwarmup)(b).
+
+Traceplots are not always diagnostic as regards convergence. The traceplots might look fine, but the model may not have converged. Fortunately, Stan automatically runs several diagnostics with the information from the chains, and if there are no warnings after fitting the model and the traceplots look fine, we can be reasonably sure that the model converged, and assume that our samples are from the true posterior distribution. However, it is necessary to run more than one chain (preferably four), with a couple of thousands of iterations (at least) in order for the diagnostics to work.
+
+
+```{r warmup, fig.cap = "(ref:warmup)", echo = FALSE}
+plot_all <- function(fit, xlab = 500, ylab = 100) {
+  chains <- as.array(fit, inc_warmup = TRUE) %>%
+    array_branch(margin = 3) %>%
+    imap_dfr(~ .x %>%
+      as_tibble() %>%
+      mutate(iter = 1:n()) %>%
+      tidyr::pivot_longer(1:4, names_to = "chain", values_to = "value") %>%
+      mutate(parameter = .y)) %>%
+    mutate(parameter = ifelse(parameter == "b_Intercept", "mu", parameter)) %>%
+    filter(!parameter %in% c("lp__","lprior", "Intercept"))
+  ## as.mcmc(fit, inc_warmup = TRUE) %>%
+  ##   map_dfr(~ as.data.frame(.x) %>%
+  ##     as_tibble() %>%
+  ##     mutate(iter = 1:n()), .id = "chain") %>%
+  ##   rename(mu = b_Intercept) %>%
+  ##   dplyr::select(-`lp__`) %>%
+  ##   tidyr::gather("parameter", "value", -iter, -chain)
+  ggplot(chains, aes(x = iter, y = value, color = chain)) +
+    geom_line() +
+    facet_wrap(~parameter, ncol = 1) +
+    geom_vline(xintercept = 1000, linetype = "dashed") +
+    xlab("Iteration number") +
+    ylab("Sample value") +
+    annotate("text", x = xlab, y = ylab, color = "black", label = "Warm-up", size = 5.2) +
+
+  theme(plot.title = element_text(hjust = 0))
+}
+
+```
+
+```{r warmup2, echo = FALSE, message = FALSE, warning = FALSE }
+data_mm <- tibble(t = rnorm(500, c(5, 3000), c(5, 5)))
+fit_press_bad <- brm(t ~ 1,
+                     data = data_mm,
+                     family = gaussian(),
+                     prior = c(prior(uniform(0, 60000), class = Intercept),
+                               prior(uniform(0, 2000), class = sigma)),
+                     chains = 4,
+                     iter = 2000,
+                     warmup = 1000)
+```
+
+
+(ref:fwarmup) a. Traceplots of our `brms` model for the button-pressing data. All the chains start from initial values above `200` and are outside of the plot.  b. Traceplots of a model that **did not** converge. We can diagnose the non-convergence by the observing that the chains do not overlap---each chain seems to be sampling from a different distribution.
+
+
+```{r fwarmup, fig.cap = "(ref:fwarmup)", echo = FALSE, message = FALSE, fig.height = 6}
+cowplot::plot_grid(plot_all(fit_press, ylab = 150) +
+                   coord_cartesian(ylim = c(0, 200)) +
+                   ggtitle("a. Model that converged."),
+                   plot_all(fit_press_bad, ylab = 1000) +
+                   ggtitle("b. Model that did not converge."), nrow = 2, ncol=1)
+```
+
+#### Output of `brms`
+
+Once the model has been fit (and assuming that we got no warning messages about convergence problems),  we can print out the \index{Sample} samples of the \index{Posterior distribution} posterior distributions of each of the parameters using `as_draws_df()` (which stores metadata about the chains) or with `as.data.frame()`:
+
+```{r}
+as_draws_df(fit_press) %>%
+  head(3)
+```
+
+The term `b_Intercept` in the `brms` output corresponds to our $\mu$. We can ignore the last three columns: `Intercept` is an auxiliary intercept assuming centered predictors, which coincides here with `b_Intercept` and is discussed in Box \@ref(thm:intercept),  `lprior`  is the log-density of the (joint) prior distribution and it is there for compatibility with the package `priorsense` (https://github.com/n-kall/priorsense), and `lp` is not really part of the posterior, it's the log-density of the unnormalized posterior for each iteration (`lp` will be discussed later in Box \@ref(thm:target)).
+
+
+
+Plot the density and traceplots of each parameter after the warmup with `plot(fit_press)` (Figure \@ref(fig:densitytrace)).
+
+(ref:densitytrace) Density and \index{Traceplots} traceplots of our `brms` model for the button-pressing data.
+
+```{r densitytrace, fig.cap = "(ref:densitytrace)", echo = FALSE}
+plot(fit_press)
+```
+
+Printing the object with the `brms` fit provides a nice, if somewhat verbose, summary:
+
+```{r, results = "hold"}
+fit_press
+# posterior_summary(fit_press) is also useful
+```
+
+The \index{\texttt{Estimate}} `Estimate` is just the mean of the posterior samples, \index{\texttt{Est.Error}} `Est.Error` is the standard deviation of the posterior and the CIs mark the lower and upper bounds of the 95% \index{Credible interval} credible intervals (to distinguish credible intervals from frequentist confidence intervals, the former will be abbreviated as CrIs):
+
+```{r}
+as_draws_df(fit_press)$b_Intercept %>% mean()
+as_draws_df(fit_press)$b_Intercept %>% sd()
+as_draws_df(fit_press)$b_Intercept %>%
+  quantile(c(0.025, .975))
+```
+
+
+Furthermore, the summary provides the `Rhat`, `Bulk_ESS`, and `Tail_ESS` of each parameter. \index{R-hat} R-hat compares the between- and within-chain estimates of each parameter. R-hat is larger than 1 when chains have not mixed well, one can only rely on the model if the R-hats for all the parameters are less than 1.05. (R warnings will appear otherwise). \index{Bulk ESS} Bulk ESS (bulk \index{Effective sample size} effective sample size) is a measure of sampling efficiency in the bulk of the posterior distribution, that is the effective sample size for the mean and median estimates, whereas \index{Tail ESS} tail ESS (tail effective sample size) indicates the sampling efficiency at the tails of the distribution, that is the minimum of effective sample sizes for 5% and 95% quantiles. The effective sample size is generally smaller than the number of post-warmup samples, because the samples from the chains are not independent (they are correlated to some extent), and carry less information about the posterior distribution in comparison to independent samples.
+In some cases, however, the effective sample size is actually larger than the number of post-warmup samples. This might happen for parameters with a normally distributed posterior (in the unconstrained space, see Box \@ref(thm:target)) and low dependence on the other parameters [@vehtari2019ranknormalization]. Very low effective sample size indicates sampling problems (and is accompanied by R warnings) and in general appears together with chains that are not properly mixed. As rule of thumb, @vehtari2019ranknormalization suggest that a minimum of 400 effective sample size is required for statistical summaries. 
+
+
+
+
+We see that we can fit our model without problems, and we get some posterior distributions for our parameters. However, we should ask ourselves the following questions before we can interpret the posterior distributions of the model:
+
+1. What information are the priors encoding? Do the priors make sense?
+2. Does the likelihood assumed in the model make sense for the data?
+
+We'll try to answer these questions by looking at the *prior and posterior predictive distributions*, and by doing sensitivity analyses. This is explained in the following sections.
+
+
+
+##  \index{Prior predictive distribution} Prior predictive distribution {#sec-priorpred}
+
+We had defined the following priors for our linear model:
+
+\begin{equation}
+\begin{aligned}
+\mu &\sim \mathit{Uniform}(0, 60000) \\
+\sigma &\sim \mathit{Uniform}(0, 2000)
+\end{aligned}
+(\#eq:rtpriorsrepeated)
+\end{equation}
+
+These \index{Prior} priors encode assumptions about the kind of data we would expect to see in a future study.
+To understand these assumptions, we are going to generate data from the model; such distribution of data, which is generated entirely by the prior distributions, is  called the prior predictive distribution. Generating prior predictive distributions repeatedly helps us to check whether the priors make sense. What we want to know here is, do the priors generate realistic-looking data?
+
+
+Formally, we want to know the density $p(\cdot)$ of data points $y_{pred_1},\dots,y_{pred_N}$ from a data set $\boldsymbol{y_{pred}}$ of length $N$, given a vector of priors $\boldsymbol{\Theta}$ and our likelihood $p(\cdot|\boldsymbol{\Theta})$; (in our example, $\boldsymbol{\Theta}=\langle\mu,\sigma \rangle$). The prior predictive density is written as follows:
+
+\begin{equation}
+\begin{aligned}
+p(\boldsymbol{y_{pred}}) &= p(y_{pred_1},\dots,y_{pred_n})\\
+&= \int_{\boldsymbol{\Theta}} p(y_{pred_1}|\boldsymbol{\Theta})\cdot p(y_{pred_2}|\boldsymbol{\Theta})\cdots p(y_{pred_N}|\boldsymbol{\Theta}) p(\boldsymbol{\Theta}) \, d\boldsymbol{\Theta}
+\end{aligned}
+\end{equation}
+
+In essence, the vector of  parameters is integrated out (see section \@ref(sec-marginal)). This yields the probability distribution of possible data sets given the priors and the likelihood, *before any observations are taken into account*.
+
+The integration can be carried out computationally by generating samples from the prior distribution.
+
+
+Here is one way to generate prior predictive distributions:
+
+Repeat the following many times:
+
+1.  Take one sample from each of the priors.
+2.  Plug those samples into the probability density/mass function used as the likelihood in the model to generate a data set $y_{pred_1},\ldots,y_{pred_n}$.
+
+Each sample is an imaginary or potential data set.
+
+Create a function that does this:
+
+```{r}
+normal_predictive_distribution <-
+  function(mu_samples, sigma_samples, N_obs) {
+    # empty data frame with headers:
+    df_pred <- tibble(trialn = numeric(0),
+                      t_pred = numeric(0),
+                      iter = numeric(0))
+    # i iterates from 1 to the length of mu_samples,
+    # which we assume is identical to
+    # the length of the sigma_samples:
+    for (i in seq_along(mu_samples)) {
+      mu <- mu_samples[i]
+      sigma <- sigma_samples[i]
+      df_pred <- bind_rows(df_pred,
+                           tibble(trialn = seq_len(N_obs), 
+                                  # seq_len generates 1, 2,..., N_obs
+                                  t_pred = rnorm(N_obs, mu, sigma),
+                                  iter = i))
+    }
+    df_pred
+  }
+```
+
+The following code produces $1000$ samples of the prior predictive distribution of the model that we defined in section \@ref(sec-simplenormal). This means that it will produce $361000$ predicted values ($361$ predicted observations for each of the $1000$ simulations). Although this approach works, it's quite slow (a couple of seconds). See Box \@ref(thm:efficientpriorpd) for a more efficient version of this function. Section \@ref(sec-lognormal) will show that it's possible to use `brms` to sample from the priors, ignoring the `t` in the data by setting `sample_prior = "only"`. However, since `brms` still depends on Stan's sampler, which uses Hamiltonian Monte Carlo, the prior sampling process can also fail to converge, especially when one uses very uninformative priors, like the ones used in this example. In contrast, our function above, which uses `rnorm()`, cannot have convergence issues and will always produce multiple sets of prior predictive data $y_{pred_1},\ldots,y_{pred_n}$.
+
+```{r, echo = FALSE}
+set.seed(123)
+```
+
+```{r}
+N_samples <- 1000
+N_obs <- nrow(df_spacebar)
+mu_samples <- runif(N_samples, 0, 60000)
+sigma_samples <- runif(N_samples, 0, 2000)
+tic()
+prior_pred <-
+  normal_predictive_distribution(mu_samples = mu_samples,
+                                 sigma_samples = sigma_samples,
+                                 N_obs = N_obs)
+toc()
+prior_pred
+```
+
+\Begin{extra}
+<div class="extra">
+
+```{theorem, efficientpriorpd}
+**A more efficient function for generating prior predictive distribution**
+```
+
+A more efficient function can be created in the following way using the \index{\texttt{map\_2dfr}} `map2_dfr()` function from the \index{\texttt{purrr package}} `purrr` package. This function yields an approximately 10-fold increase in speed. Although the distributions should be the same with both functions, the specific numbers in the tables won't be, due to the randomness in the process of sampling.
+
+The `purrr` function \index{\texttt{map2\_dfr}} `map2_dfr()` (which works similarly to the base R function `lapply()` and `Map()`) essentially runs a for-loop, and builds a data frame with the output. It iterates over the values of two vectors (or lists) simultaneously, here, `mu_samples` and `sigma_samples`  and, in each iteration, it applies a function to each value of the two vectors, here, `mu` and `sigma`. The output of each function is a data frame (or tibble in this case) with `N_obs` observations which is bound in a larger data frame at the end of the loop. Each of these data frames bound together represents an iteration in the simulation, and we identify the iterations by setting `.id = "iter"`.
+
+Although this method for generating prior predictive distributions is a bit involved, it has an advantage in comparison to the more straightforward use of `predict()` (or `posterior_predict()`, which can also generate prior predictions) together with setting `sample_prior = "only"` in the `brms` model (as we will do in section \@ref(sec-lognormal)). Our method of generating prior predictive distributions does not depend on Stan's sampler, which means that no matter the number of iterations in our simulation or how uninformative our priors, there will never be any convergence problems. 
+
+```{r, echo = FALSE}
+set.seed(123)
+```
+```{r}
+library(purrr)
+# Define the function:
+normal_predictive_distribution <- function(mu_samples,
+                                           sigma_samples,
+                                           N_obs) {
+  map2_dfr(mu_samples, sigma_samples, function(mu, sigma) {
+    tibble(trialn = seq_len(N_obs),
+           t_pred = rnorm(N_obs, mu, sigma))
+  }, .id = "iter") %>%
+    # .id is always a string and
+    # needs to be converted to a number
+    mutate(iter = as.numeric(iter))
+}
+# Test the timing:
+tic()
+prior_pred <-
+  normal_predictive_distribution(mu_samples = mu_samples,
+                                 sigma_samples = sigma_samples,
+                                 N_obs = N_obs)
+toc()
+```
+\End{extra}
+</div>
+
+
+Figure \@ref(fig:priorpred-simple) shows the first 18 samples of the prior predictive distribution (i.e., 18 independently generated prior predicted data sets) with the code below.
+
+(ref:priorpred-simple) Eighteen samples from the prior predictive distribution of the model defined in section \@ref(sec-simplenormal).
+
+```{r priorpred-simple, fig.cap = "(ref:priorpred-simple)", message = FALSE}
+prior_pred %>%
+  filter(iter <= 18) %>%
+  ggplot(aes(t_pred)) +
+  geom_histogram(aes(y = after_stat(density))) +
+  xlab("predicted t (ms)") +
+  theme(axis.text.x = element_text(angle = 40,
+                                   vjust = 1,
+                                   hjust = 1,
+                                   size = 14)) +
+  scale_y_continuous(limits = c(0, 0.0005),
+                     breaks = c(0, 0.00025, 0.0005),
+                     name = "density") +
+  facet_wrap(~iter, ncol = 3)
+```
+
+
+The prior predictive distribution in Figure \@ref(fig:priorpred-simple)  shows \index{Prior data set} prior data sets that are not realistic: Apart from the fact that the data sets show that finger tapping times distributions are symmetrical--and we know from prior experience with such data that they are generally right-skewed--some data sets present finger tapping times that are unrealistically long. Worse yet, if we inspect enough samples from the prior predicted data, it will become clear that a few data sets have negative finger tapping time values.
+
+We can also look at the distribution of summary statistics in the prior predictive data. Even if we don't know beforehand what the data should look like, it's very likely that we have some expectations for possible mean, minimum, or maximum values. For example, in the button-pressing example, it seems reasonable to assume that average finger tapping times  are between $200$-$600$ ms; finger tapping times are very unlikely to be below $50$ ms, and even long lapses of attention won't be greater than a couple of seconds.^[We'll see later how to generate prior predictive distributions of statistics such as mean, minimum, or maximum value in section \@ref(sec-lognormal) using `brms` and `pp_check()`.] Three distributions of summary statistics are shown in Figure \@ref(fig:priorpred-stats).
+
+(ref:priorpred-stats) The prior predictive distributions of the mean, minimum, and maximum values of the button-pressing model defined in section \@ref(sec-simplenormal).
+
+```{r priorpred-stats,fig.cap="(ref:priorpred-stats)", message = FALSE, echo = FALSE}
+prior_pred %>%
+  group_by(iter) %>%
+  summarize(min_t = min(t_pred),
+            max_t = max(t_pred),
+            mean_t = mean(t_pred)) %>%
+  # we convert the previous data frame to a long one,
+  # where min_t, max_t, average_t are possible values
+  # of the columns "stat"
+  pivot_longer(cols = ends_with("t"),
+               names_to = "stat",
+               values_to = "t") %>%
+  mutate(stat = factor(stat, levels = c("mean_t", "min_t", "max_t"))) %>%
+  ggplot(aes(t)) +
+  geom_histogram(binwidth = 500, aes(y = after_stat(density))) +
+  facet_wrap(~stat, ncol = 1)
+```
+
+
+Figure \@ref(fig:priorpred-stats) shows that we used much less prior information than what we could have: Our priors were encoding the information that any mean between $0$ and $60000$ ms is equally likely. It seems clear that a value close to $0$ or to $60000$ ms would be extremely surprising. This wide range of mean values occurs because of the uniform prior on $\mu$. Similarly, maximum values are quite "uniform", spanning a much wider range than what one would expect. Finally, in the distribution of minimum values, negative finger tapping times occur. This might seem surprising (our prior for $\mu$ excluded negative values), but the reason that negative values appear is that the prior is interpreted together with the likelihood [@gelmanPriorCanOften2017], and  the likelihood is a normal distribution, which will allow for negative samples even if the location parameter $\mu$ has a positive value.
+
+To summarize the above discussion, the priors used in the example are clearly not very realistic given what we might know about finger tapping times for such a button pressing task. This raises the question: what priors should we have chosen? In the next section, we consider this question.
+
+## The influence of priors: \index{Sensitivity analysis} sensitivity analysis {#sec-sensitivity}
+
+For most cases that we will encounter in this book, there are four main classes of priors that we can choose from. In the Bayesian community, there is no fixed nomenclature for classifying different kinds of priors. For this book, we have chosen specific names for each type of prior, but this is just a convention that we follow for consistency. There are also other classes of prior that we do not discuss in this book. An example is \index{Improper prior} improper priors such as $\mathit{Uniform}(-\infty,+\infty)$, which are not proper probability distributions because the area under the curve does not sum to 1.
+
+When thinking about priors, the reader should not get hung up on what precisely the name is for a particular type of prior; they should rather focus on what that prior means in the context of the research problem.
+
+### \index{Flat, uninformative prior} Flat, uninformative priors
+
+One option is to choose priors that are as uninformative as possible. The idea behind this approach is to let the data "speak for itself" and to not bias the statistical inference with "subjective" priors. There are several issues with this approach: First, the prior is as subjective as the likelihood, and in fact, different choices of likelihood might have a much stronger impact on the posterior than different choices of priors. Second, uninformative priors are in general unrealistic because they give equal weight to all values within the support of the prior distribution, ignoring the fact that usually there is some minimal information about the parameters of interest. Usually, at the very least, the order of magnitude is known (response times or finger tapping times will be in milliseconds and not days, EEG signals some microvolts and not volts, etc.). Third, uninformative priors make the sampling slower and might lead to convergence problems. Unless there is a large amount of data, it would be wise to avoid such priors. Fourth, it is not always clear which parameterization of a given distribution the flat priors should be assigned to. For example, the Normal distribution is sometimes defined based on its standard deviation ($\sigma$), variance ($\sigma^2$), or precision ($1/\sigma^2$): a flat prior for the standard deviation is not flat for the precision of the distribution. Although it is sometimes possible to find an uninformative prior that is invariant under a change of parameters [also called Jeffreys priors; @jaynes2003probability, section 6.15; @jeffreys1939theory, Chapter 3], this is not always the case. Finally, if Bayes factors need to be computed, uninformative priors can lead to very misleading conclusions (chapter \@ref(ch-bf)).
+
+In the button-pressing example discussed in this chapter, an example of a flat, uninformative prior would be $\mu \sim \mathit{Uniform}(-10^{20},10^{20})$. On the millisecond scale, this is a very strange prior to use for a parameter representing mean button-pressing time: it allows for impossibly large positive values, and it also allows negative button-pressing times, which is of course impossible. It is technically possible to use such a prior, but it wouldn't make much sense.
+
+### \index{Regularizing prior} Regularizing priors
+
+If there does not exist much prior information (and if this information cannot be worked out through reasoning about the problem), and there is enough data (what "enough" means here will presently become clear when we look at specific examples), it is fine to use  *regularizing priors*. These are priors that down-weight extreme values (that is, they provide regularization), they are usually not very informative, and mostly let the likelihood dominate in determining the posteriors. These priors are theory-neutral; that is, they usually do not bias the parameters to values supported by any prior belief or theory.  The idea behind this type of prior is to help to stabilize computation. These priors are sometimes called \index{Weakly informative prior} *weakly informative* or \index{Mildly informative prior} *mildly informative* priors in the Bayesian literature. For many applications, they perform well, but discussed in chapter \@ref(ch-bf), they tend to be problematic if Bayes factors need to be computed.
+
+In the button-pressing example, an example of a regularizing prior would be $\mu \sim \mathit{Normal}_{+}(0,1000)$. This is a Normal distribution prior truncated at $0$ ms, and allows a relatively constrained range of positive values for button-pressing times (roughly, up to $2000$ ms or so). This is a regularizing prior because it rules out negative button-pressing times and down-weights extreme values over $2000$ ms.
+Here, one could assume a non-truncated prior like  $\mathit{Normal}(0,1000)$. This could still be seen as a regularizing prior even though we don't expect $\mu$ to be negative; the data would ensure that the posterior distribution has positive values (because we would have no negative button-pressing times in the data).
+
+
+### \index{Principled prior} Principled priors
+
+The idea here is to have priors that encode all (or most of) the theory-neutral information that the researcher has. Since one generally knows what one's data do and do not look like, it is possible to build priors that truly reflect the properties of potential data sets, using prior predictive checks. In this book, many examples of this class of priors will come up.
+
+In the button-pressing data, an example of a principled prior would be $\mu \sim \mathit{Normal}_{+}(250,100)$. This prior is not overly restrictive, but represents a guess about plausible button-pressing times. Prior predictive checks using principled priors should produce realistic distributions of the dependent variable.
+
+### \index{Informative prior} Informative priors
+
+There are cases where a lot of prior knowledge exists. In general, unless there are very good reasons for having relatively informative priors (see chapter \@ref(ch-bf)), it is not a good idea to let the priors have too much influence on the posterior. An example where informative priors would be important is when  investigating a language-impaired population from which we can't get many subjects, but a lot of previously published papers exist on the research topic.
+
+In the button-pressing data, an informative prior could be based on a meta-analysis of previously published or existing data, or the result of prior elicitation from an expert (or multiple experts) on the topic under investigation. An example of an informative prior would be  $\mu \sim \mathit{Normal}_{+}(200,20)$. This prior will have some influence on the posterior for $\mu$, especially when one has relatively sparse data.
+
+These four options constitute a continuum. The uniform prior from the last model (section \@ref(sec-simplenormal)) falls between flat, uninformative and regularizing priors.  In practical data analysis situations, we are mostly going to choose priors that fall between regularizing and principled. Informative priors, in the sense defined above, will be used only relatively rarely; but they become more important to consider when doing Bayes factor analyses (chapter \@ref(ch-bf)).
+
+## Revisiting the button-pressing example with different priors {#sec-revisit}
+
+What would happen if even wider priors were used for the model defined previously (in section \@ref(sec-simplenormal))? Suppose that every mean between $-10^{6}$ and $10^{6}$ ms is assumed to be equally likely. This prior is clearly unrealistic and actually makes no sense at all: we are not expecting negative finger tapping times. Regarding the standard deviation, one could assume that any value between $0$ and $10^{6}$ is equally likely.^[Even though, in theory, one could use even wider priors, in practice, these are the widest priors that achieve convergence using brms.] The likelihood remains unchanged.
+
+\begin{equation}
+\begin{aligned}
+\mu &\sim \mathit{Uniform}(-10^{6}, 10^{6}) \\
+\sigma &\sim \mathit{Uniform}(0,  10^{6})
+\end{aligned}
+(\#eq:rtpriorsflat)
+\end{equation}
+
+```{r, message = FALSE, cache = TRUE}
+# The default settings are used when they are not set explicitly:
+# 4 chains, with half of the iterations (set as 3000) as warmup.
+fit_press_unif <- brm(t ~ 1,
+                      data = df_spacebar,
+                      family = gaussian(),
+                      prior = c(prior(uniform(-10^6, 10^6),
+                                      class = Intercept,
+                                      lb = -10^6,
+                                      ub = 10^6),
+                                prior(uniform(0, 10^6),
+                                      class = sigma,
+                                      lb = 0,
+                                      ub = 10^6)),
+                      iter = 3000,
+                      control = list(adapt_delta = .99,
+                                     max_treedepth = 15))
+```
+
+Even with these extremely unrealistic priors, which require us to change the `adapt_delta` and `max_treedepth` default values to achieve convergence, the output of the model is virtually identical to the previous one (see Figure \@ref(fig:postcomp)).
+
+```{r, echo = FALSE}
+## Shorter output
+print.brmsfit <- short_summary
+```
+
+```{r, eval = FALSE}
+fit_press_unif
+```
+
+```{r, echo = FALSE}
+short_summary(fit_press_unif)
+```
+
+
+Next, consider what happens if very informative priors are used. Assume that mean values very close to $400$ ms are the most likely, and that the standard deviation of the finger tapping times is very close to $100$ ms. Given that this is a model of button-pressing times, such an informative prior seems wrong---$200$ ms seems like a more realistic mean button-pressing time, not $400$ ms. You can check this by doing an experiment yourself and looking at the recorded times; software like Linger (http://tedlab.mit.edu/~dr/Linger/) makes it easy to set up such an experiment.
+
+The $\mathit{Normal}_+$ notation indicates a normal distribution truncated at zero such that only positive values are allowed (Box \@ref(thm:truncation) discusses this type of distribution in detail). Even though the prior for the standard deviation is restricted to be positive, we are not required to add `lb = 0` to the prior, and it is automatically taken into account by `brms`.
+
+\begin{equation}
+\begin{aligned}
+\mu &\sim \mathit{Normal}(400, 10) \\
+\sigma &\sim \mathit{Normal}_+(100, 10)
+\end{aligned}
+(\#eq:infrtpriors)
+\end{equation}
+
+```{r, message = FALSE, cache = TRUE}
+fit_press_inf <- brm(t ~ 1,
+  data = df_spacebar,
+  family = gaussian(),
+  prior = c(prior(normal(400, 10), class = Intercept),
+            # `brms` knows that SDs need to be bounded
+            # to exclude values below zero:
+            prior(normal(100, 10), class = sigma)))
+```
+
+Despite these unrealistic but informative priors, the likelihood mostly dominates and the new posterior means and credible intervals are just a couple of milliseconds away from the previous estimates (see Figure \@ref(fig:postcomp)):
+
+```{r, eval = FALSE}
+fit_press_inf
+```
+
+```{r, echo = FALSE}
+short_summary(fit_press_inf)
+```
+
+As a final example of a sensitivity analysis, choose  some principled priors. Assuming that we have some prior  experience with previous similar experiments, suppose the mean response time is expected to be around $200$ ms, with a 95% probability of the mean ranging from $0$ to $400$ ms. This uncertainty is perhaps unreasonably large, but one might want to allow a bit more uncertainty than one really thinks is reasonable [this kind of conservativity in allowing somewhat more uncertainty is sometimes called Cromwell's rule in Bayesian statistics; see @kendall2004, section 3.19]. In such a case, one can decide on the prior $\mathit{Normal}(200, 100)$. Given that the experiment involves only one subject and the task is very simple, one might not expect the residual standard deviation $\sigma$ to be very large: As an example, one can settle on a location of $50$ ms for a truncated normal distribution, but still allow for relatively large uncertainty: $Normal_{+}(50,50)$.
+The prior specifications are summarized below.
+
+\begin{equation}
+\begin{aligned}
+\mu &\sim \mathit{Normal}(200, 100) \\
+\sigma &\sim \mathit{Normal}_+(50, 50)
+\end{aligned}
+\end{equation}
+
+Why are these priors principled? The designation "principled" here largely depends on our \index{Domain knowledge} domain knowledge. Chapter \@ref(ch-priors) discusses how one can use domain knowledge when specifying priors.
+
+One can achieve a better understanding of what a particular set of priors imply by visualizing the priors graphically, and carrying out prior predictive checks. These steps are skipped here, but these issues will be discussed in detail in chapters \@ref(ch-priors) and \@ref(ch-workflow). These chapters will give more detailed information about choosing priors and on developing a principled workflow for Bayesian data analysis.
+
+```{r, message = FALSE, cache = TRUE}
+fit_press_prin <-
+  brm(t ~ 1,
+      data = df_spacebar,
+      family = gaussian(),
+      prior = c(prior(normal(200, 100), class = Intercept),
+                prior(normal(50, 50), class = sigma)))
+```
+The new estimates are virtually the same as before (see Figure \@ref(fig:postcomp)):
+
+```{r, eval = FALSE}
+fit_press_prin
+```
+
+```{r, echo = FALSE}
+short_summary(fit_press_prin)
+```
+
+The above examples of using different priors should not be misunderstood to mean that priors never matter.  When there is enough data, the likelihood will dominate  in determining the posterior distributions. What constitutes "enough" data is also a function of the complexity of the model; as a general rule, more complex models require more data.
+
+
+(ref:postcomp) Comparison of the posterior distributions from the model with "realistically" bounded uniform prior distribution (though still not recommended), `fit_press`, against the model with extremely unrealistically wide priors, `fit_press_unif`, the model with misspecified informative priors, `fit_press_inf`, and the model with principled priors, `fit_press_prin`. All the posteriors virtually overlap except for the posterior of `fit_press_inf`, which is shifted by a few milliseconds.
+
+
+```{r postcomp, fig.cap="(ref:postcomp)", echo = FALSE}
+fit_press_all <- bind_rows(as.data.frame(fit_press) %>%
+                           select(-lp__, -lprior, -Intercept) %>%
+                           pivot_longer(everything(), names_to = "Parameter") %>%
+                           mutate(model = "fit_press"),
+                           as.data.frame(fit_press_unif) %>%
+                           select(-lp__, -lprior, -Intercept) %>%
+                           pivot_longer(everything(), names_to = "Parameter") %>%
+                           mutate(model = "fit_press_unif"),
+                           as.data.frame(fit_press_inf) %>%
+                           select(-lp__, -lprior, -Intercept) %>%
+                           pivot_longer(everything(), names_to = "Parameter") %>%
+                           mutate(model = "fit_press_inf"),
+                           as.data.frame(fit_press_prin) %>%
+                           select(-lp__, -lprior, -Intercept) %>%
+                           pivot_longer(everything(), names_to = "Parameter") %>%
+                           mutate(model = "fit_press_prin")) %>%
+  mutate(model = factor(model, levels = c("fit_press","fit_press_unif", "fit_press_inf","fit_press_prin")))
+
+# Define the colors and linetypes for the models
+model_colors <- c("fit_press" = "black", "fit_press_unif" = "black", "fit_press_inf" = "darkgrey", "fit_press_prin" = "darkgrey")
+model_linetypes <- c("fit_press" = "solid", "fit_press_unif" = "dashed", "fit_press_inf" = "solid", "fit_press_prin" = "dashed")
+
+ggplot(fit_press_all, aes(value, linetype = model, color = model)) +
+  stat_density(geom="line", position="identity", bw = .4)+
+  facet_wrap(. ~ Parameter, ncol = 2, scales = "free") +
+  scale_color_manual(values = model_colors) +
+  scale_linetype_manual(values = model_linetypes) +
+  xlab("Finger tapping times (ms)") +
+  theme(legend.position = "bottom")
+```
+
+
+
+Even in cases where there is enough data and the likelihood dominates in determining the posteriors, regularizing, principled priors (i.e., priors that are more consistent with our a priori beliefs about the data) will in general speed-up model convergence.
+
+In order to determine the extent to which the posterior is influenced by the priors, it is a good practice to carry out a sensitivity analysis:  try different priors and either verify that the posterior doesn't change drastically, or report how the posterior is affected by some specific priors [for examples from psycholinguistics, see @VasishthetalPLoSOne2013; @VasishthEngelmann2022]. Chapter \@ref(ch-bf) will demonstrate that sensitivity analysis becomes crucial for reporting Bayes factors; even in cases where the choice of priors does not affect the posterior distribution, it generally affects the Bayes factor.
+
+## \index{Posterior predictive distribution} Posterior predictive distribution {#sec-ppd}
+
+The posterior predictive distribution is a collection of data sets generated from the model (the likelihood and the priors). Having obtained the posterior distributions of the parameters after taking into account the data, the posterior distributions can be used to  generate future data from the model. In other words, given the posterior distributions of the parameters of the model, the posterior predictive distribution gives us some indication of what future data might look like.
+
+Once the posterior distributions $p(\boldsymbol{\Theta}\mid \boldsymbol{y})$ are available, the predictions based on these distributions can be generated by integrating out the parameters:
+
+\begin{equation}
+p(\boldsymbol{y_{pred}}\mid \boldsymbol{y} ) = \int_{\boldsymbol{\Theta}} p(\boldsymbol{y_{pred}}, \boldsymbol{\Theta}\mid \boldsymbol{y})\, d\boldsymbol{\Theta}= \int_{\boldsymbol{\Theta}}
+p(\boldsymbol{y_{pred}}\mid \boldsymbol{\Theta},\boldsymbol{y})p(\boldsymbol{\Theta}\mid \boldsymbol{y})\, d\boldsymbol{\Theta}
+\end{equation}
+
+Assuming that past and future observations are conditionally independent^[Two events A and B are defined to be conditionally independent given some event E if $P(A\cap B | E) = P(A|E) P(B|E)$. See chapter 2 of @blitzstein2014introduction for examples and more discussion of conditional independence.] given $\boldsymbol{\Theta}$, i.e., $p(\boldsymbol{y_{pred}}\mid \boldsymbol{\Theta},\boldsymbol{y})= p(\boldsymbol{y_{pred}}\mid \boldsymbol{\Theta})$, the above equation can be written as:
+
+\begin{equation}
+p(\boldsymbol{y_{pred}}\mid \boldsymbol{y} )=\int_{\boldsymbol{\Theta}} p(\boldsymbol{y_{pred}}\mid \boldsymbol{\Theta}) p(\boldsymbol{\Theta}\mid \boldsymbol{y})\, d\boldsymbol{\Theta}
+(\#eq:postpp)
+\end{equation}
+
+In Equation \@ref(eq:postpp), we are conditioning $\boldsymbol{y_{pred}}$ only on $\boldsymbol{y}$, we do not condition on what we don't know ($\boldsymbol{\Theta}$); the unknown parameters have been integrated out. This posterior predictive distribution has important differences from predictions obtained with the frequentist approach. The frequentist approach gives a point estimate of each predicted observation given the maximum likelihood estimate of $\boldsymbol{\Theta}$ (a point value), whereas the Bayesian approach gives a distribution of values for each predicted observation. As with the prior predictive distribution, the integration can be carried out computationally by generating samples from the posterior predictive distribution. The same function that we created before, `normal_predictive_distribution()`, can be used here. The only difference is that instead of sampling `mu` and `sigma` from the priors, the samples come from the posterior.
+
+```{r}
+N_obs <- nrow(df_spacebar)
+mu_samples <- as_draws_df(fit_press)$b_Intercept
+sigma_samples <- as_draws_df(fit_press)$sigma
+normal_predictive_distribution(mu_samples = mu_samples,
+                               sigma_samples = sigma_samples,
+                               N_obs = N_obs)
+```
+
+
+
+The `brms` function \index{\texttt{posterior\_predict}} `posterior_predict()` is a convenient function that delivers  samples from the  posterior predictive distribution. Using the command  `posterior_predict(fit_press)` yields the predicted finger tapping times in a matrix,  with the samples as rows and the observations (data-points) as columns. (Bear in mind that if a model is fit with `sample_prior = "only"`, the dependent variable is ignored and `posterior_predict` will yield samples from the prior predictive distribution).
+
+The posterior predictive distribution can be used to examine the "descriptive adequacy" of the model under consideration [@Gelman14, Chapter 6; @shiffrinSurveyModelEvaluation2008]. Examining the posterior predictive distribution to establish \index{Descriptive adequacy} descriptive adequacy is called \index{Posterior predictive check} posterior predictive checks. The goal here is to establish that the posterior predictive data look more or less similar to the observed data. Achieving descriptive adequacy means that the current data could have been generated by the model. Although passing a test of descriptive adequacy is not strong evidence in favor of a model, a major failure in descriptive adequacy can be interpreted as strong evidence against a model [@shiffrinSurveyModelEvaluation2008].
+For this reason, comparing the descriptive adequacy of different models is not enough to differentiate between their relative performance. When doing model comparison, it is important to consider the criteria that @rp define. Although @rp are more interested in process models and not necessarily Bayesian models, their criteria are important for any kind of model comparison. Their main point is that it is not enough to have a good fit to the data for a model to be convincing. One should check that the range of predictions that the model makes is reasonably constrained; if a model can capture any possible outcome, then the model fit to a particular data set is not so informative. In the Bayesian modeling context, although posterior predictive checking is important, it is only a sanity check to assess whether the model behavior is reasonable (for more on this point, see chapter \@ref(ch-workflow)).
+
+
+In many cases, one can simply use the plot functions from `brms` (that act as wrappers for  \index{\texttt{bayesplot}} `bayesplot` functions). For example, the plotting function \index{\texttt{pp\_check}} `pp_check()`  takes as arguments the model, the number of predicted data sets, and the type of visualization, and it can display different visualizations of posterior predictive checks. In these type of plots, the observed data are plotted as $y$ and predicted data as $y_{rep}$. Below, we use `pp_check()`  to investigate how well the observed distribution of finger tapping times fit our model based on some number ($11$ and $100$) of samples of the posterior predictive distributions (that is, simulated data sets) ; see Figures \@ref(fig:normalppc) and \@ref(fig:normalppc2).
+
+(ref:normalppc) Histograms of eleven samples from the posterior predictive distribution of the model `fit_press` ($y_{rep}$).
+```{r normalppc, fig.cap = "(ref:normalppc)", message = FALSE}
+pp_check(fit_press, ndraws = 11, type = "hist")
+```
+
+(ref:normalppc2) A posterior predictive check that shows the fit of the model `fit_press` in comparison to data sets from the posterior predictive distribution using an overlay of density plots.
+
+```{r normalppc2, fig.cap = "(ref:normalppc2)" , message = FALSE}
+pp_check(fit_press, ndraws = 100, type = "dens_overlay")
+```
+
+The data is slightly skewed and has no values smaller than $100$ ms, but the predictive distributions are centered and symmetrical; see Figures \@ref(fig:normalppc) and \@ref(fig:normalppc2). This posterior predictive check shows a slight mismatch between the observed and predicted data. Can we build a better model?  We’ll come back to this issue in the next section.
+
+## The influence of the likelihood
+
+Finger tapping times (and response times in general) are not usually normally distributed. A more realistic distribution is the log-normal. A random variable (such as time) that is log-normally distributed takes only positive real values and is right-skewed. Although other distributions can also produce data with such properties, the log-normal will turn out to be a pretty reasonable distribution for finger tapping times and response times.
+
+###  The \index{Log-normal likelihood} log-normal likelihood {#sec-lnfirst}
+
+If $\boldsymbol{y}$ is log-normally distributed, this means that $\log(\boldsymbol{y})$ is normally distributed.^[More precisely, $\log_e(\boldsymbol{y})$ or $\ln(\boldsymbol{y})$, but  we'll write it as just $\log(\boldsymbol{y})$.] The \index{Log-normal distribution} log-normal distribution is also defined using the parameters location, $\mu$, and scale, $\sigma$, but these are on the log ms scale; they correspond to the mean and standard deviation of the logarithm of the data $\boldsymbol{y}$, $\log(\boldsymbol{y})$, which will be normally distributed. Thus, when we model some data $\boldsymbol{y}$ using the log-normal likelihood, the parameters $\mu$ and $\sigma$ are on a different scale than the data $\boldsymbol{y}$. Equation \@ref(eq:lognormalequations) shows the relationship between the log-normal and the normal.
+
+\begin{equation}
+\begin{aligned}
+\log(\boldsymbol{y}) &\sim \mathit{Normal}( \mu, \sigma)\\
+\boldsymbol{y} &\sim \mathit{LogNormal}( \mu, \sigma)
+\end{aligned}
+(\#eq:lognormalequations)
+\end{equation}
+
+We can obtain samples from the log-normal distribution, using the normal distribution by first setting an auxiliary variable $z$, so that $z = \log(y)$. This means that $z \sim \mathit{Normal}(\mu, \sigma)$.
+Then we can just use $exp(z)$ as samples from the $\mathit{LogNormal}(\mu, \sigma)$, since $\exp(z) =\exp(\log(y)) =  y$. The code below produces Figure \@ref(fig:logndemo).
+
+
+```{r logndemo,out.width="48%",fig.cap="Two log-normal distributions with the same parameters generated by either generating samples from a log-normal distribution or exponentiating samples from a normal distribution.", message=FALSE, fig.show = "hold", fig.width=3}
+mu <- 6
+sigma <- 0.5
+N <- 500000
+# Generate N random samples from a log-normal distribution
+sl <- rlnorm(N, mu, sigma)
+ggplot(tibble(samples = sl), aes(samples)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 50) +
+  ggtitle("Log-normal distribution\n") +
+  coord_cartesian(xlim = c(0, 2000))
+# Generate N random samples from a normal distribution,
+# and then exponentiate them
+sn <- exp(rnorm(N, mu, sigma))
+ggplot(tibble(samples = sn), aes(samples)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 50) +
+  ggtitle("Exponentiated samples from\na normal distribution") +
+  coord_cartesian(xlim = c(0, 2000))
+```
+
+### Using a log-normal likelihood to fit data from a single subject pressing a button repeatedly {#sec-lognormal}
+
+If we assume that finger tapping times are log-normally distributed, the likelihood function changes as follows:
+
+\begin{equation}
+t_n \sim \mathit{LogNormal}(\mu,\sigma)
+\end{equation}
+
+
+But now the scale of the priors needs to change!  Let's start with uniform priors for ease of exposition, even though, as we mentioned earlier, these are not really appropriate here. (More realistic priors are discussed below.)
+
+\begin{equation}
+\begin{aligned}
+\mu &\sim \mathit{Uniform}(0, 11) \\
+\sigma &\sim \mathit{Uniform}(0, 1) \\
+\end{aligned}
+(\#eq:logpriorsunif)
+\end{equation}
+
+Because the parameters are on a different scale than the dependent variable, their  interpretation changes and it is more complex than if we were dealing with a linear model that assumes a normal likelihood (location and scale do not coincide with the mean and standard deviation of the log-normal):
+
+-   \index{Location} *The location $\mu$*: In our previous linear model, $\mu$ represented the mean (in a normal distribution, the mean happens to be identical to the median and the mode). But now, the mean needs to be calculated by computing $\exp(\mu +\sigma ^{2}/2)$. In other words, in the log-normal, the mean is dependent on both $\mu$ and $\sigma$. The median is just  $\exp(\mu)$.  Notice that the prior of $\mu$ is not on the  milliseconds scale, but rather on the log milliseconds scale.
+-   \index{Scale} *The scale $\sigma$*: This is the standard deviation of the normal distribution of $\log(\boldsymbol{y})$. The standard deviation of a log-normal distribution with *location* $\mu$ and *scale* $\sigma$ will be  $\exp(\mu +\sigma ^{2}/2)\times \sqrt{\exp(\sigma^2)- 1}$. Unlike the normal distribution, the spread of the log-normal distribution depends on both $\mu$ and $\sigma$.
+
+To understand the meaning of the priors on the millisecond scale, both the priors and the likelihood need to be taken into account. Generating a prior predictive distribution will help in interpreting the priors. This distribution can be generated by just exponentiating the samples produced by `normal_predictive_distribution()` (or, alternatively,  edit the function by replacing `rnorm()` with `rlnorm()`).
+
+```{r}
+N_samples <- 1000
+N_obs <- nrow(df_spacebar)
+mu_samples <- runif(N_samples, 0, 11)
+sigma_samples <- runif(N_samples, 0, 1)
+prior_pred_ln <-
+  normal_predictive_distribution(mu_samples = mu_samples,
+                                 sigma_samples = sigma_samples,
+                                 N_obs = N_obs) %>%
+  mutate(t_pred = exp(t_pred))
+```
+
+Next, plot the distribution of some representative statistics; see Figure \@ref(fig:priorpredlogunif).
+
+(ref:priorpredlogunif) The prior predictive distribution of the mean, median, minimum, and maximum value of the log-normal model with priors defined in Equation \@ref(eq:logpriorsunif), that is $\mu \sim \mathit{Uniform}(0, 11)$ and $\sigma \sim \mathit{Uniform}(0, 1)$. The x-axis is log-transformed.
+
+```{r priorpredlogunif,fig.cap="(ref:priorpredlogunif)", message = FALSE, echo = FALSE}
+prior_pred_ln %>%
+  group_by(iter) %>%
+  summarize(min_t = min(t_pred),
+            max_t = max(t_pred),
+            mean_t = mean(t_pred),
+            median_t = median(t_pred)) %>%
+  pivot_longer(cols = ends_with("t"), names_to = "stat", values_to = "t") %>%
+  mutate(stat = factor(stat, levels = c("mean_t", "median_t", "min_t", "max_t"))) %>%
+  ggplot(aes(t)) +
+  scale_x_continuous("Finger tapping times in ms",
+    trans = "log", breaks = c(0.001, 1, 10, 100, 1000, 10000, 100000)
+  ) +
+  geom_histogram(aes(y = after_stat(density))) +
+  ylab("density") +
+  facet_wrap(~stat, ncol = 1)
+```
+
+We cannot generate negative values any more, since $\exp($any finite real number$) > 0$. These priors might work in the sense that the model might converge; but it would be better to have regularizing priors for the model. An example of regularizing priors:
+
+\begin{equation}
+\begin{aligned}
+\mu &\sim \mathit{Normal}(6, 1.5) \\
+\sigma &\sim \mathit{Normal}_+(0, 1) \\
+\end{aligned}
+(\#eq:logpriorsnorm)
+\end{equation}
+
+
+The prior for $\sigma$ here is a \index{Truncated distribution} truncated distribution, and although its location is zero, this is not its mean. We can calculate its approximate mean from a large number of random samples of the prior distribution using the function \index{\texttt{rtnorm}} `rtnorm()` from the package `extraDistr`. In this function, we have to set the parameter `a = 0` to express the fact that the normal distribution is truncated from the left at 0. (Box \@ref(thm:truncation) discusses this type of
+distribution in detail):
+
+```{r}
+mean(rtnorm(100000, 0, 1, a = 0))
+```
+
+
+
+Even before generating the prior predictive distributions, we can calculate the values within which we are 95% sure that the expected median of the observations will lie. We do this by looking at what happens at two standard deviations away from the mean of the prior, $\mu$, that is $6 - 2\times 1.5$ and $6 + 2\times 1.5$, and exponentiating these values:
+
+
+```{r}
+c(lower = exp(6 - 2 * 1.5),
+  higher = exp(6 + 2 * 1.5))
+```
+
+This means that the prior for $\mu$ is still not too informative (these are medians; the actual values generated by the log-normal distribution can be much more spread out). Next, plot the distribution of some representative statistics of the prior predictive distributions.
+ `brms` allows one to sample from the priors, ignoring the observed data `t` , by setting `sample_prior = "only"` in the `brm` function.
+
+
+If we want to use `brms` to generate prior predictive data in this manner even before we have any data, we do need to have some non-`NA` values as the dependent variable `t`  (at least for the current version of `brms`). Setting \index{\texttt{sample\_prior}} `sample_prior = "only"` will ignore the values of the dependent variable, but we still need to add a data frame in the `data =` specification in the `brm()` function: In this case, we add a vector of `1` as `data`. The family is specified as `lognormal()`; recall that in the first example, the family was  `gaussian()`.
+
+```{r, results="hide", message= FALSE}
+df_spacebar_ref <- df_spacebar %>%
+  mutate(t = rep(1, n()))
+fit_prior_press_ln <-
+  brm(t ~ 1,
+      data = df_spacebar_ref,
+      family = lognormal(),
+      prior = c(prior(normal(6, 1.5), class = Intercept),
+                prior(normal(0, 1), class = sigma)),
+      sample_prior = "only",
+      control = list(adapt_delta = .9))
+```
+
+To avoid the warnings, increase the `adapt_delta` parameter's default value from $0.8$ to $0.9$ to simulate the data. Since Stan samples from the prior distributions in the same way that it samples from the posterior distribution, one should not ignore warnings; always ensure that the model  converged. In that respect, the custom function `normal_predictive_distribution()` defined in section \@ref(sec-priorpred) has the advantage that it will always yield independent samples from the prior distribution and will not experience any convergence problems. This is because it just relies on the `rnorm()` function in R.
+
+
+Plot the prior predictive distribution of means with the following code. In a prior predictive distribution, we generally want to ignore the data; this requires setting `prefix = "ppd"` in `pp_check()`.
+
+
+```{r priorpredcheck, eval = FALSE}
+pp_check(fit_prior_press_ln,
+         type = "stat",
+         stat = "mean",
+         prefix = "ppd") +
+  coord_cartesian(xlim = c(0.001, 300000)) +
+  scale_x_continuous("Finger tapping times [ms]",
+                     trans = "log",
+                     breaks = c(0.001, 1, 100, 1000, 10000, 100000),
+                     labels = c("0.001", "1", "100",
+                                "1000", "10000", "100000")) +
+  ggtitle("Prior predictive distribution of means")
+```
+
+
+To plot the distribution of minimum, and maximum values, just replace `mean` with `min`, and `max` respectively.  The distributions of the three statistics are displayed in Figure  \@ref(fig:priorpredlognorm).
+
+(ref:priorpredlognorm) The prior predictive distributions of the mean, maximum, and minimum values of the log-normal model  with priors defined in equation \@ref(eq:logpriorsnorm).  The prior predictive distributions are labeled $y_{pred}$. The x-axis shows values back-transformed from the log-scale.
+
+
+```{r priorpredlognorm, fig.cap="(ref:priorpredlognorm)", message = FALSE, tidy=FALSE, fig.height = 6, fig.show="hold", fold = TRUE}
+p1 <- pp_check(fit_prior_press_ln,
+               type = "stat",
+               stat = "mean",
+               prefix = "ppd") +
+  coord_cartesian(xlim = c(0.001, 300000)) +
+  scale_x_continuous("Finger tapping times [ms]",
+                     trans = "log",
+                     breaks = c(0.001, 1, 100, 1000, 10000, 100000),
+                     labels = c("0.001", "1", "100", "1000", "10000",
+                                "100000")) +
+  ggtitle("Prior predictive distribution of means")
+p2 <- pp_check(fit_prior_press_ln,
+               type = "stat",
+               stat = "min",
+               prefix = "ppd") +
+  coord_cartesian(xlim = c(0.001, 300000)) +
+  scale_x_continuous("Finger tapping times [ms]",
+                     trans = "log",
+                     breaks = c(0.001, 1, 100, 1000, 10000, 100000),
+                     labels = c("0.001", "1", "100", "1000", "10000",
+                                "100000")) +
+  ggtitle("Prior predictive distribution of minimum values")
+p3 <- pp_check(fit_prior_press_ln,
+               type = "stat",
+               stat = "max",
+               prefix = "ppd") +
+  coord_cartesian(xlim = c(0.001, 300000)) +
+  scale_x_continuous("Finger tapping times [ms]",
+                     trans = "log",
+                     breaks = c(0.001, 1, 100, 1000, 10000, 100000),
+                     labels = c("0.001", "1", "10", "1000", "10000",
+                                "100000")) +
+  ggtitle("Prior predictive distribution of maximum values")
+plot_grid(p1, p2, p3, nrow = 3, ncol =1)
+```
+
+Figure \@ref(fig:priorpredlognorm) shows that the priors used here are still quite uninformative. The tails of the prior predictive distributions that correspond to our normal priors shown in Figure \@ref(fig:priorpredlognorm) are even further to the right, reaching more extreme values than for the prior predictive distributions generated by uniform priors (shown in Figure \@ref(fig:priorpredlogunif)). The new priors are still far from representing our prior knowledge. We could run more iterations of choosing priors and generating prior predictive distributions until we have priors that generate realistic data. However, given that the bulk of the distributions of the mean, maximum, minimum values lies roughly in the correct order of magnitude, these priors are going to be acceptable. In general, summary statistics (e.g., mean, median, min, max) can be used to test whether the priors are in a plausible range. This can be done by defining, for the particular research problem under study, the extreme data that would be very implausible to ever observe (e.g., reading times at a word larger than one minute) and choosing priors such that such extreme finger tapping times occur only very rarely in the prior predictive distribution.
+
+
+Next, fit the model; recall that both the distribution family and prior change in comparison to the previous example.
+
+```{r, message = FALSE, cache = TRUE}
+fit_press_ln <-
+  brm(t ~ 1,
+      data = df_spacebar,
+      family = lognormal(),
+      prior = c(prior(normal(6, 1.5), class = Intercept),
+                prior(normal(0, 1), class = sigma)))
+```
+
+When we look at the summary of the posterior, the parameters are on the  log-scale:
+
+
+```{r, eval = FALSE}
+fit_press_ln
+```
+
+```{r, echo = FALSE}
+short_summary(fit_press_ln)
+```
+
+If the research goal is to find out how long it takes to press the space bar in milliseconds, we need to transform the $\mu$ (or `Intercept` in the model) to milliseconds. Because the median of the log-normal distribution is $\exp(\mu)$, the following returns the median estimate in milliseconds (recall that for the mean we would need to calculate $\exp(\mu +\sigma ^{2}/2)$):
+
+```{r, message = FALSE}
+estimate_ms <- exp(as_draws_df(fit_press_ln)$b_Intercept)
+```
+
+To display the mean and 95% credible interval of these samples, type:
+
+```{r}
+c(mean = mean(estimate_ms),
+  quantile(estimate_ms, probs = c(.025, .975)))
+```
+
+
+Next, check whether the predicted data sets look similar to
+the observed data set.  See Figure \@ref(fig:logppc); compare this with the earlier Figure \@ref(fig:normalppc2).
+
+(ref:logppc) The posterior predictive distribution of `fit_press_ln`.
+
+```{r logppc, message=FALSE, fig.cap="(ref:logppc)"}
+pp_check(fit_press_ln, ndraws = 100)
+```
+
+
+The key question is: Are the posterior predicted data now more similar to the observed data, compared to the case where  we had a Normal likelihood? According to Figure \@ref(fig:logppc), it seems so, but it's not easy to tell.
+
+Another way to examine the extent to which the predicted data looks similar to the observed data would be to look at the distribution of some summary statistic. As with prior predictive distributions, examine the distribution of representative summary statistics for the data sets generated by different models. However, in contrast with what occurs with prior predictive distributions, at this point we have a clear reference, our observations, and this means that we can compare the summary statistics with the observed statistics from our data. We suspect that the normal distribution would generate finger tapping times that are too fast (since it's symmetrical) and that the log-normal distribution may capture the long tail better than the normal model. Based on this supposition, compute the distribution of minimum and maximum values for the posterior predictive distributions, and compare them with the  minimum and maximum value respectively in the data. The function `pp_check()` implements this by specifying `stat` either `"min"` or `"max"` for both `fit_press`, and `fit_press_ln`; an example is shown below. The plots are shown in Figures \@ref(fig:ppcheckmin) and \@ref(fig:ppcheckmax).
+
+```{r, eval = FALSE}
+pp_check(fit_press, type = "stat", stat = "min")
+```
+
+(ref:ppcheckmin) The distributions of minimum values in a posterior predictive check, using the normal and log-normal probability density functions. The minimum in the data is $110$ ms.
+
+```{r ppcheckmin,fig.cap="(ref:ppcheckmin)", fig.height = 3, fig.show="hold", message=FALSE, out.width = "45%", fig.width=4, echo = FALSE}
+pp_check(fit_press, type = "stat", stat = "min") + ggtitle("Normal model")
+pp_check(fit_press_ln, type = "stat", stat = "min") + ggtitle("Log-normal model")
+```
+
+
+
+(ref:ppcheckmax) The distributions of maximum values in a posterior predictive check using the normal and log-normal. The maximum in the data is $409$ ms.
+
+```{r ppcheckmax,fig.cap="(ref:ppcheckmax)", fig.show="hold", fig.height = 3, message=FALSE, out.width = "45%", fig.width=4, echo = FALSE}
+pp_check(fit_press, type = "stat", stat = "max") + ggtitle("Normal model")
+pp_check(fit_press_ln, type = "stat", stat = "max") + ggtitle("Log-normal model")
+```
+
+Figure \@ref(fig:ppcheckmin) shows that the log-normal likelihood does a slightly better job since the minimum value is contained in the bulk of the log-normal distribution and in the tail of the normal one. Figure \@ref(fig:ppcheckmax) shows that both models  are unable to capture the maximum value of the observed data. One explanation for this is that the log-normal-ish observations in our data are being generated by the task of pressing as fast as possible, whereas the observations with long finger tapping times are being generated by lapses of attention.
+This would mean that two probability distributions are mixed here; modeling this process involves more complex tools that we will take up in chapter \@ref(ch-mixture).
+
+This completes our introduction to  `brms`. We are now ready to learn about more regression models.
+
+## List of the most important commands
+
+Here is a list of the most important commands we learned in this chapter.
+
+- The core `brms` function for fitting models, for generating prior predictive and posterior predictive data:
+
+```{r eval=FALSE}
+fit_press <-
+  brm(t ~ 1,
+      data = df_spacebar,
+      family = gaussian(),
+      prior = c(prior(uniform(0, 60000),
+                      class = Intercept,
+                      lb = 0,
+                      ub = 60000),
+                prior(uniform(0, 2000),
+                      class = sigma,
+                      lb = 0,
+                      ub = 2000)),
+      ## uncomment for prior predictive:
+      ## sample_prior = "only",
+      ## uncomment when dealing with divergent transitions
+      ## control = list(adapt_delta = .9)
+      ## default values for chains, iterations and warmup:
+      chains = 4,
+      iter = 2000,
+      warmup = 1000)
+```
+
+- Extract samples from fitted model:
+
+```{r eval=FALSE}
+as_draws_df(fit_press)
+```
+
+- Basic plot of posteriors
+
+```{r eval=FALSE}
+plot(fit_press)
+```
+
+- Plot prior predictive/posterior predictive data
+
+```{r eval=FALSE}
+## Posterior predictive check:
+pp_check(fit_press, ndraws = 100, type = "dens_overlay")
+## Plot posterior predictive distribution of statistical summaries:
+pp_check(fit_press, ndraws = 100, type = "stat", stat = "mean")
+## Plot prior predictive distribution of statistical summaries:
+pp_check(fit_press, ndraws = 100, type = "stat", stat = "mean",
+         prefix = "ppd")
+```
+
+## Summary
+
+This chapter showed how to fit and interpret a Bayesian model with a normal likelihood. We  looked at the effect of priors by investigating prior predictive distributions and by carrying out a sensitivity analysis. We also looked at the fit of the posterior, by inspecting the  posterior predictive distribution (which gives us some idea about the descriptive adequacy of the model). We also showed how to fit a Bayesian model with a log-normal likelihood, and how to compare the predictive accuracy of different models.
+
+
+## Further reading {#sec-ch3furtherreading}
+
+Sampling algorithms are discussed in detail in @gamerman. Also helpful are the sections on sampling from the short open-source book by Bob Carpenter, *Probability and Statistics: a simulation-based introduction* (https://github.com/bob-carpenter/prob-stats), and the sections on sampling algorithms in @lambert2018student and @lynch2007introduction.
+The evolution of probabilistic programming languages for Bayesian inference is discussed in @vstrumbelj2024past.
+Introductory linear modeling theory is covered in @dobson2011introduction; more advanced treatments are in @monty and @seber. Generalized linear models are covered in detail in @mccullagh2019generalized. The reader may also benefit from our own freely available online lecture notes on linear modeling: https://github.com/vasishth/LM.
+
+## Exercises {#ex:compbda}
+
+```{exercise, simulatedlinearmod}
+Check for parameter recovery in a linear model using simulated data.
+```
+
+Generate some simulated independent and identically distributed data with $n=100$ data points as follows:
+
+```{r}
+y <- rnorm(100, mean = 500, sd = 50)
+```
+
+Next, fit a simple linear model with a normal likelihood:
+
+\begin{equation}
+y_n  \sim \mathit{Normal}(\mu,\sigma) (\#eq:simrtlikLM)
+\end{equation}
+
+
+Specify the following priors:
+
+\begin{equation}
+\begin{aligned}
+\mu &\sim \mathit{Uniform}(0, 60000) \\
+\sigma &\sim \mathit{Uniform}(0, 2000)
+\end{aligned}
+(\#eq:simrtpriors)
+\end{equation}
+
+Generate posterior predictive distributions of the parameters and check that the true values of the parameters $\mu=500, \sigma=50$ are recovered by the model. What this means is that you should check whether these true values lie within the range of the posterior distributions of the two parameters. This is a good sanity check for finding out whether a model can in principle recover the true parameter values correctly.
+
+```{exercise, linearmod}
+A simple linear model.
+```
+
+\vspace{-.5cm}
+
+a. Fit the model `fit_press` with just a few iterations, say 50 iterations (set warmup to the default of 25, and use four chains). Does the model converge?
+
+b. Using normal distributions, choose priors that better represent **your** assumptions/beliefs about finger tapping times.  To think about a reasonable set of priors for $\mu$ and $\sigma$, you should come up with your own subjective assessment about what you think a reasonable range of values can be for $\mu$ and how much variability might happen. There is no correct answer here, we'll discuss priors in depth in chapter \@ref(ch-priors). Fit this model to the data. Do the posterior distributions change?
+
+```{exercise, compbda-biasedpost}
+Revisiting the button-pressing example with different priors.
+```
+
+\vspace{-.5cm}
+a. Can you come up with very informative priors that influence the posterior in a noticeable way (use normal distributions for priors, not uniform priors)? Again, there are no correct answers here; you may have to try several different priors before you can noticeably influence the posterior.
+b. Generate and plot prior predictive distributions based on this prior and plot them.
+
+c. Generate posterior predictive distributions based on this prior and plot them.
+
+```{exercise, ppd}
+Posterior predictive checks with a log-normal model.
+```
+
+
+\vspace{-.5cm}
+
+
+a.  For the log-normal model `fit_press_ln`, change the prior of $\sigma$ so that it is a log-normal distribution with location ($\mu$) of $-2$ and scale ($\sigma$) of $0.5$. What does such a prior imply about your belief regarding button-pressing times in milliseconds? Is it a good prior? Generate and plot prior predictive distributions. Do the new estimates change compared to earlier models when you fit the model?
+b.  For the log-normal model, what is the mean (rather than median) time that takes to press the space bar, what is the standard deviation of the finger tapping times in milliseconds?
+
+```{exercise, skew}
+A skew normal distribution.
+```
+
+Would it make sense to use a "skew normal distribution" instead of the log-normal? The skew normal distribution has three parameters:  location $\xi$ (this is the lower-case version of the Greek letter $\Xi$, pronounced "chi", with the "ch" pronounced like the "ch" in "Bach"), scale $\omega$ (omega), and shape $\alpha$. The distribution is right skewed if $\alpha >0$,  is left skewed if $\alpha <0$, and is identical to the regular normal distribution if $\alpha =0$. For fitting this in `brms`, one needs to change `family` and set it to `skew_normal()`, and add a prior of `class = alpha` (location remains `class = Intercept` and scale, `class = sigma`).
+
+  a.  Fit this model with a prior that assigns approximately 95% of the prior probability of `alpha` to be between 0 and 10.
+  b. Generate posterior predictive distributions and compare the posterior  distribution of summary statistics of the skew normal with the normal and log-normal.
