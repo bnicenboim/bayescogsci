@@ -538,9 +538,10 @@ for (i in 1:length(prior_sd)) {
     save_pars = save_pars(all = TRUE),
     data = df_eeg)
   # for each model we run a brigde sampler
-  lml_linear_beta <- bridge_sampler(fit, silent = TRUE)
+  margLogLik_linear_beta <- bridge_sampler(fit, silent = TRUE)
   # we store the Bayes factor compared to the null model
-  BF <- c(BF, bayes_factor(lml_linear_beta, lml_null)$bf)
+  BF <- c(BF,
+          bayes_factor(margLogLik_linear_beta, margLogLik_null)$bf)
 }
 BFs <- tibble(beta_sd = prior_sd, BF)
 ```
@@ -872,7 +873,7 @@ m_N400_h_null2 <- brm(n400 ~ 1 + (c_cloze | subject) + (c_cloze | item),
                       # iter    = 2000,
                       control = list(adapt_delta = 0.9),
                       save_pars = save_pars(all = TRUE),
-                      data = eeg_data)
+                      data = df_eeg)
 lml_null2 <- bridge_sampler(m_N400_h_null2, silent = TRUE)
 ```
 ```{r, echo= FALSE}
@@ -904,7 +905,7 @@ BFs2 <- map_dfr(prior_sd, function(psd) {
              # iter    = 2000,
              control = list(adapt_delta = 0.9),
              save_pars = save_pars(all = TRUE),
-             data = eeg_data)
+             data = df_eeg)
   # for each model we run a brigde sampler
   lml_linear_beta <- bridge_sampler(fit, silent = TRUE)
   # we store the Bayes factor compared to the null model
@@ -927,7 +928,7 @@ BFs3 <- map_dfr(prior_sd, function(psd) {
              # iter    = 2000,
              control = list(adapt_delta = 0.9),
              save_pars = save_pars(all = TRUE),
-             data = eeg_data
+             data = df_eeg
              )
   # for each model we run a brigde sampler
   lml_linear_beta <- bridge_sampler(fit, silent = TRUE)
@@ -962,7 +963,7 @@ BFs1 <- map_dfr(prior_sd, function(psd) {
              iter = 20000,
              control = list(adapt_delta = 0.9),
              save_pars = save_pars(all = TRUE),
-             data = eeg_data)
+             data = df_eeg)
   # for each model we run a brigde sampler
   lml_linear_beta <- bridge_sampler(fit, silent = TRUE)
   # we store the Bayes factor compared to the null model
@@ -996,7 +997,7 @@ for (i in 1:20) {
                # iter    = 2000,
                control = list(adapt_delta = 0.9),
                save_pars = save_pars(all = TRUE),
-               data = eeg_data
+               data = df_eeg
                )
     # for each model we run a brigde sampler
     lml_linear_beta <- bridge_sampler(fit, silent = TRUE)
