@@ -866,7 +866,7 @@ Indeed, the default number of iterations in `brms` is set as `iter = 2000` (and 
 As an illustration, we perform the same \index{Sensitivity analysis} sensitivity analysis again, now using the default number of $2000$ iterations in `brms`. The posterior sampling process now runs much quicker. Moreover, we check the stability of the Bayes factors in the sensitivity analyses by repeating both sensitivity analyses (with $n = 20000$ iterations and with the default number of $n = 2000$ iterations) a second time, to see whether the results for Bayes factors are stable.
 
 ```{r, echo=FALSE, message=FALSE, results = "hide", eval = !file.exists("dataR/m_N400_h_null2.RDS")}
-m_N400_h_null2 <- brm(n400 ~ 1 + (c_cloze | subject) + (c_cloze | item),
+m_N400_h_null2 <- brm(n400 ~ 1 + (c_cloze | subj) + (c_cloze | item),
                       prior = priors1[-2, ],
                       # default settings
                       # warmup  = 1000,
@@ -894,7 +894,7 @@ prior_sd <- c(1, 1.5, 2, 2.5, 5, 8, 10, 20, 40, 50, 100)
 BFs2 <- map_dfr(prior_sd, function(psd) {
   gc()
   # for each prior we fit the model
-  fit <- brm(n400 ~ c_cloze + (c_cloze | subject) + (c_cloze | item),
+  fit <- brm(n400 ~ c_cloze + (c_cloze | subj) + (c_cloze | item),
              prior = c(prior(normal(2, 5), class = Intercept),
                        set_prior(paste0("normal(0,", psd, ")"), class = "b"),
                        prior(normal(10, 5), class = sigma),
@@ -917,7 +917,7 @@ prior_sd <- c(1, 1.5, 2, 2.5, 5, 8, 10, 20, 40, 50, 100)
 BFs3 <- map_dfr(prior_sd, function(psd) {
   gc()
   # for each prior we fit the model
-  fit <- brm(n400 ~ c_cloze + (c_cloze | subject) + (c_cloze | item),
+  fit <- brm(n400 ~ c_cloze + (c_cloze | subj) + (c_cloze | item),
              prior = c(prior(normal(2, 5), class = Intercept),
                        set_prior(paste0("normal(0,", psd, ")"), class = "b"),
                        prior(normal(10, 5), class = sigma),
@@ -953,7 +953,7 @@ prior_sd <- c(1, 1.5, 2, 2.5, 5, 8, 10, 20, 40, 50, 100)
 BFs1 <- map_dfr(prior_sd, function(psd) {
   gc()
   # for each prior we fit the model
-  fit <- brm(n400 ~ c_cloze + (c_cloze | subject) + (c_cloze | item),
+  fit <- brm(n400 ~ c_cloze + (c_cloze | subj) + (c_cloze | item),
              prior = c(prior(normal(2, 5), class = Intercept),
                        set_prior(paste0("normal(0,", psd, ")"), class = "b"),
                        prior(normal(10, 5), class = sigma),
