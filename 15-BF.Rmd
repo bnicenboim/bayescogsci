@@ -986,7 +986,7 @@ for (i in 1:20) {
   BFsXX <- map_dfr(prior_sd, function(psd) {
     gc()
     # for each prior we fit the model
-    fit <- brm(n400 ~ c_cloze + (c_cloze | subject) + (c_cloze | item),
+    fit <- brm(n400 ~ c_cloze + (c_cloze | subj) + (c_cloze | item),
                prior = c(prior(normal(2, 5), class = Intercept),
                          set_prior(paste0("normal(0,", psd, ")"), class = "b"),
                          prior(normal(10, 5), class = sigma),
