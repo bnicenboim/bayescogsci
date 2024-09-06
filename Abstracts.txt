@@ -35,7 +35,7 @@ mean is a compromise between the prior mean and the maximum likelihood estimate.
 Chapter 3: Computational Bayesian data analysis
 
 This chapter introduces the basic usage of the brms library in R, focusing on a
-simple regression model. The chapter demonstrates how the posterior distribution
+model with a normal likelihood. The chapter demonstrates how the posterior distribution
 of a parameter can be derived using sampling rather than through the analytical
 approach discussed in chapter 2. The sensitivity of the posterior to the prior
 specification is discussed, and different categories of prior (ranging from
@@ -46,7 +46,7 @@ discussed.
 
 Chapter 4: Bayesian regression models
 
-Here, we extend the simple regression model to include a predictor variable, and
+Here, we introduce the simple regression model, including a predictor variable, and
 decide on a likelihood and priors, implementing the model in brms. We introduce
 here the lognormal likelihood and show how to communicate the results of the
 modeling. Logistic regression is also introduced in this chapter, with a
