@@ -181,10 +181,10 @@ Chapter 19: Mixture models
 
 Here, we discuss an important class of model whereby the data are assumed to come
 from two or more distinct distributions. A multivariate mixture model is discussed
-via a practical examplel; such a model includes two dependent variables simultaneously
+via a practical example; such a model includes two dependent variables simultaneously
 (in our example, accuracies and response times). A hierarchical version of
 such a model is also illustrated.
 
 Chapter 20: A simple accumulator model to account for choice response time
 
-Bruno should write this.
+This chapter introduces the log-normal race model, a type of sequential sampling model used to account for both response times and accuracy in decision-making tasks. We apply the model to a lexical decision task, using hierarchical modeling to analyze how word frequency affects performance. Posterior predictive checks, including quantile probability plots, are used to evaluate model fit. The chapter also discusses how to extend the model to account for contaminant responses--anticipation which are unrelated to the decision. Finally, we discuss the model's limitations, particularly its inability to capture fast errors, and we suggest ways to address these issues with more complex models.
