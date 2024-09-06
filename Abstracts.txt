@@ -173,7 +173,7 @@ Chapter 18: Multinomial processing trees
 This chapter introduces a class of cognitive model that is very widely used in
 mathematical psychology. These models allow the researcher to define
 probabilistically occurring latent (not directly observable) sub-events that can
-lead to an observed behavioral response. We show through a practical example how
+lead to an observed categorical behavioral response. We show through a practical example how
 the models can be implemented in Stan, and how such models can be made
 hierarchical.
 
@@ -182,7 +182,7 @@ Chapter 19: Mixture models
 Here, we discuss an important class of model whereby the data are assumed to come
 from two or more distinct distributions. A multivariate mixture model is discussed
 via a practical examplel; such a model includes two dependent variables simultaneously
-(in our example, accuracies and response/reading times). A hierarchical version of
+(in our example, accuracies and response times). A hierarchical version of
 such a model is also illustrated.
 
 Chapter 20: A simple accumulator model to account for choice response time
