@@ -1,0 +1,35 @@
+This book introduces Bayesian data analysis and Bayesian cognitive modeling to
+students and researchers in cognitive science (e.g., linguistics,
+psycholinguistics, psychology, computer science), with a particular focus on
+modeling data from planned experiments.  The book relies on the
+probabilistic programming language Stan and the front-end R package brms. The
+main text in the book only assumes that the reader is familiar with the
+statistical programming language R, and has basic high school exposure to
+pre-calculus mathematics; the important mathematical constructs needed for
+the book are introduced in the first chapter, and all the code used is
+publicly available at https://bruno.nicenboim.me/bayescogsci/.
+
+Through this book, the reader will be able to develop a practical ability to
+apply Bayesian modeling within their own fields. The book begins with an
+informal introduction to foundational topics such as probability theory, and
+univariate and bi-/multivariate discrete and continuous random variables. Then,
+the application of Bayes' rule for statistical inference is introduced with
+several simple analytical examples that require no computing software; the main
+insight here is that the posterior distribution of a parameter is a compromise
+between the prior and the likelihood functions. The book then gradually builds
+up the regression framework to hierarchical regression modeling (aka the linear
+mixed model). Along the way, there is detailed discussion about the topic of
+prior selection, and developing a well-defined workflow. Later chapters
+introduce the Stan programming language, and covers advanced topics such as
+model comparison using Bayes factors and cross-validation for model comparison.
+The last four chapters focus on implementing hierarchical computational
+cognitive models within the Stan environment; several practical examples from
+cognitive psychology and psycholinguistics are provided.
+
+Bruno Nicenboim is an assistant professor in the department of Cognitive Science
+and Artificial Intelligence at Tilburg University in the Netherlands, working
+within the area of computational psycholinguistics. Daniel J. Schad is a
+cognitive psychologists and is professor of Quantitative Methods at the Health
+and Medical University in Potsdam, Germany. Shravan Vasishth is professor of
+psycholinguistics at the department of Linguistics at the University of Potsdam,
+Germany; he is a chartered statistician (Royal Statistical Society, UK).
