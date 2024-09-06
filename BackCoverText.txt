@@ -20,12 +20,11 @@ the prior and the likelihood functions. The book then gradually builds up the
 regression framework to hierarchical regression modeling (aka the linear mixed
 model). Along the way, there is detailed discussion about the topic of prior
 selection, and developing a well-defined workflow. Later chapters introduce the
-Stan programming language, and covers advanced topics: contrast coding, model
-comparison using Bayes factors and cross-validation, hierarchical models and
-reparameterization, defining custom distributions,  measurement error models and
-meta-analysis, multinomial processing trees, finite mixture models, and
-accumulator models. These chapters provide several practical examples from
-cognitive psychology and psycholinguistics.
+Stan programming language, and cover advanced topics using practical examples:
+contrast coding, model comparison using Bayes factors and cross-validation,
+hierarchical models and reparameterization, defining custom distributions,
+measurement error models and meta-analysis, multinomial processing trees, finite
+mixture models, and accumulator models.
 
 Bruno Nicenboim is an assistant professor in the department of Cognitive Science
 and Artificial Intelligence at Tilburg University in the Netherlands, working
