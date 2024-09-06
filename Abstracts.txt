@@ -114,11 +114,9 @@ and varying intercepts and slopes models with and without correlations.
 
 Chapter 12: Custom distributions
 
-Sometimes it becomes necessary to define a custom probability density function (PDF);
-this requires a change of variables (a Jacobian adjustment). The basics
-of writing one's own PDF are discussed here, including a discussion about how
-to include a Jacobian adjustment. Two simple examples are discussed to illustrate
-the process.
+Sometimes it becomes necessary to define a custom probability density function (PDF).
+The basics of writing one's own PDF are discussed here, including a discussion about how
+to include a Jacobian adjustment, when a a change of variables is required. Two simple examples are discussed to illustrate the process.
 
 Chapter 13: Evidence synthesis and measurements with error
 
