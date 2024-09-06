@@ -10,7 +10,7 @@ the book are introduced in the first chapter, and all the code used is
 publicly available at https://bruno.nicenboim.me/bayescogsci/.
 
 Through this book, the reader will be able to develop a practical ability to
-apply Bayesian modeling within their own fields. The book begins with an
+apply Bayesian modeling within their own field. The book begins with an
 informal introduction to foundational topics such as probability theory, and
 univariate and bi-/multivariate discrete and continuous random variables. Then,
 the application of Bayes' rule for statistical inference is introduced with
