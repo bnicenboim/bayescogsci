@@ -1089,7 +1089,7 @@ Here, we perform this SBC approach. Across the $500$ simulations, we systematica
 #----------------------------------------
 # load data and functions
 #----------------------------------------
-load("data/external/DataAll1.rda")
+load("dataR/external/DataAll1.rda")
 # name <- "wagersE4"
 name <- "lagoE1"
 # unique(dat$expt)
