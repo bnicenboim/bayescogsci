@@ -29,7 +29,7 @@ mixture models, and accumulator models.
 Bruno Nicenboim is an assistant professor in the department of Cognitive Science
 and Artificial Intelligence at Tilburg University in the Netherlands, working
 within the area of computational psycholinguistics. Daniel J. Schad is a
-cognitive psychologists and is professor of Quantitative Methods at the Health
+cognitive psychologist and is professor of Quantitative Methods at the HMU Health
 and Medical University in Potsdam, Germany. Shravan Vasishth is professor of
 psycholinguistics at the department of Linguistics at the University of Potsdam,
 Germany; he is a chartered statistician (Royal Statistical Society, UK).
