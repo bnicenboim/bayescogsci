@@ -1028,30 +1028,11 @@ BFs12$iter <- factor(BFs12$iter)
 tmpYY <- (as.numeric(BFs12$iter) / 2) %% 1
 BFs12$beta_SD <- BFs12$beta_sd + tmpYY - 0.25
 breaks <- c(1 / 1000, 1 / 500, 1 / 200, 1 / 100, 1 / 50, 1 / 20, 1 / 10, 1 / 3, 1, 3, 5, 10, 20, 50, 100, 200, 500, 1000)
-if (FALSE) {
-  ggplot(BFs12, aes(x = beta_SD, y = BF, shape = iter, linetype = iter)) +
-    geom_point(size = 2) +
-    geom_line() +
-    geom_hline(yintercept = 1, linetype = "dashed") +
-    scale_x_continuous("Normal prior width (SD)\n") +
-    scale_y_log10("BF10", breaks = breaks, labels = MASS::fractions(breaks)) +
-    scale_shape_discrete(name = "") +
-    scale_linetype_discrete(name = "") +
-    coord_cartesian(ylim = c(1 / 1000, 1000)) +
-    annotate("text", x = 38 * 2, y = 200, label = "Evidence in favor of M1", size = 5) +
-    annotate("text", x = 38 * 2, y = 1 / 200, label = "Evidence in favor of M0", size = 5) +
-    theme(
-      axis.text.y = element_text(size = 8),
-      legend.position = c(0.25, 0.25),
-      legend.background = element_blank()
-    ) +
-    ggtitle("Bayes factors")
-}
 
 ggplot() +
   geom_line(data = BFsX, aes(x = beta_sd, y = BF, group = iter), colour = "grey") +
-  geom_point(data = BFs12, aes(x = beta_SD, y = BF, shape = iter, linetype = iter), size = 2) +
-  geom_line(data = BFs12, aes(x = beta_SD, y = BF, shape = iter, linetype = iter)) +
+  geom_point(data = BFs12, aes(x = beta_SD, y = BF, shape = iter), size = 2) +
+  geom_line(data = BFs12, aes(x = beta_SD, y = BF, linetype = iter)) +
   geom_hline(yintercept = 1, linetype = "dashed") +
   scale_x_continuous("Normal prior width (SD)\n") +
   scale_y_log10("BF10", breaks = breaks, labels = MASS::fractions(breaks)) +
