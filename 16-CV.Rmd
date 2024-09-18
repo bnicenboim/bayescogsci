@@ -1,5 +1,10 @@
 # Cross-validation  {#ch-cv}
 
+```{r, echo = FALSE, message = FALSE}
+#just in case:
+library(future)
+```
+
 
 A popular way to evaluate and compare models is to investigate their ability to make predictions for \index{Out-of-sample data} "out-of-sample data", that is, to use what we learned from the observed data to predict future or \index{Unseen observation} unseen observations. \index{Cross-validation} Cross-validation is used to test which of the models under consideration is/are able to learn the most from our data in order to make better predictions. In cognitive science, the goal is only rarely to predict future observations, but rather to compare how well different models fare in accounting for the observed data. Nevertheless, there are situations in cognitive science where evaluating the predictive performance of models becomes important.
 
@@ -318,7 +323,6 @@ Because the \(\hat{elpd}\) values depend on how the folds were formed, K-fold CV
 An alternative to splitting the observations randomly using stratification is to treat naturally occurring clusters as folds;  this is \index{Leave-one-group-out cross-validation} leave-one-group-out cross-validation \index{LOGO-CV} (LOGO-CV). The output of LOGO-CV tells us about the capacity of the models for generalizing to unseen clusters. LOGO-CV is implemented next using  subjects as the group of interest.
 
 In general, there is some tension between the arguments for K-fold-CV with folds stratified by subject, which ensures data from all subjects in each fold, and for LOGO-CV, which isolates data from different subjects. However, the two approaches have different goals and merits. The first approach answers how well the model generalizes to unseen data from this particular set of participants. The second approach addresses how well the model generalizes to the behavior of unseen participants if we were to collect more data.
-
 
 ```{r lgo-nested1, message = FALSE, results = "hide", eval = !file.exists("dataR/lgo_sih.RDS")}
 plan(multisession, workers = 4)
