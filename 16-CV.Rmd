@@ -595,10 +595,8 @@ Fit the models:
 
 ```{r pupilll, message = FALSE, eval = !file.exists("dataR/fit_pupil_int_pos_ll.RDS") & !file.exists("dataR/fit_pupil_int_null_ll.RDS")}
 fit_pupil_int_ll <- stan(file = pupil_cv,
-                         iter = 3000,
                          data = ls_pupil)
 fit_pupil_int_null_ll <- stan(file = pupil_null,
-                              iter = 3000,
                               data = ls_pupil)
 ```
 
