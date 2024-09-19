@@ -1,3 +1,8 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 # Bayes factors  {#ch-bf}
 
 This chapter is based on a longer manuscript available on arXiv: @SchadEtAlBF; our terminology used here is based on the conventions used in that paper. A published version of the arXiv article appears in Schad, D. J., Nicenboim, B., Bürkner, P. C., Betancourt, M., and Vasishth, S. (2022). Workflow techniques for the robust use of Bayes factors. Psychological Methods. In this chapter, whenever we refer to the published version of the arXiv paper, we mean this article.
@@ -1452,6 +1457,7 @@ m1_lagoE1_list <- h_lagoE1_list <- list()
 BF10_lagoE1 <- c()
 datT <- data.frame()
 FIX.EF <- as.data.frame(matrix(NA, nrow = nsim, ncol = 4))
+datTmp <- lagoE1
 for (i in 1:nsim) {
   print(i)
   datTmp$rt <- pred_lagoE1[i, ]
