@@ -1144,9 +1144,9 @@ print(fit_mix_data,
 ```
 
 
-The traceplots in Figure \@ref(fig:traceplotmulti) show that the chains are not mixing at all. It seems that the posterior is \index{Multimodal} multimodal, and there are at least three combinations of parameters that would fit the data equally well.
+The traceplots in Figure \@ref(fig:traceplotmulti) show that the chains are not mixing at all. It seems that the posterior is \index{Multimodal} multimodal, and there are at least two combinations of parameters that would fit the data equally well.  (Rerunning the model might sometimes reveal three combinations.)
 
-(ref:traceplotmulti) Traceplots from the hierarchical model (`mixture_h.stan`) fit to (a subset) of the real data. The traceplot shows clearly that the posterior has at least three modes.
+(ref:traceplotmulti) Traceplots from the hierarchical model (`mixture_h.stan`) fit to (a subset) of the real data. The traceplot shows clearly that the posterior has at least two  modes, though rerunning the model might sometimes reveal three modes.
 
 ```{r traceplotmulti, fig.cap = "(ref:traceplotmulti)", message = FALSE }
 traceplot(fit_mix_data) +
