@@ -38,7 +38,7 @@ One difficulty in the above equation showing Bayes' rule is that the marginal li
 p(\boldsymbol{\Theta} \mid \boldsymbol{y}, \mathcal{M}_1)  = \frac{p(\boldsymbol{y} \mid \boldsymbol{\Theta}, \mathcal{M}_1) p(\boldsymbol{\Theta} \mid \mathcal{M}_1)}{p(\boldsymbol{y} \mid \mathcal{M}_1)}
 \end{equation}
 
-The marginal likelihood does not depend on the model parameters $\Theta$; the parameters are "marginalized" or integrated out:
+In the marginal likelihood, the parameters are being integrated out:
 
 \begin{equation}
 p(\boldsymbol{y} \mid \mathcal{M}_1) = \int p(\boldsymbol{y} \mid \boldsymbol{\Theta}, \mathcal{M}_1) p(\boldsymbol{\Theta} \mid \mathcal{M}_1) d \boldsymbol{\Theta}
