@@ -6,4 +6,5 @@ bayescogsci.log
 bayescogsci_files/
 bayescogsci_cache/
 _bookdown_files/
-
+_todo.txt
+_not_recompiled.txt

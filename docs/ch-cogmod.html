@@ -4,18 +4,18 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>An Introduction to Bayesian Data Analysis for Cognitive Science</title>
+  <title>Chapter 17 Introduction to cognitive modeling | An Introduction to Bayesian Data Analysis for Cognitive Science</title>
   <meta name="description" content="An introduction to Bayesian data analysis for Cognitive Science." />
   <meta name="generator" content="bookdown 0.39 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="An Introduction to Bayesian Data Analysis for Cognitive Science" />
+  <meta property="og:title" content="Chapter 17 Introduction to cognitive modeling | An Introduction to Bayesian Data Analysis for Cognitive Science" />
   <meta property="og:type" content="book" />
   <meta property="og:image" content="https://bruno.nicenboim.me/bayescogsci/images/temporarycover.jpg" />
   <meta property="og:description" content="An introduction to Bayesian data analysis for Cognitive Science." />
   <meta name="github-repo" content="https://github.com/bnicenboim/bayescogsci" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="An Introduction to Bayesian Data Analysis for Cognitive Science" />
+  <meta name="twitter:title" content="Chapter 17 Introduction to cognitive modeling | An Introduction to Bayesian Data Analysis for Cognitive Science" />
   
   <meta name="twitter:description" content="An introduction to Bayesian data analysis for Cognitive Science." />
   <meta name="twitter:image" content="https://bruno.nicenboim.me/bayescogsci/images/temporarycover.jpg" />
@@ -30,8 +30,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-
-<link rel="next" href="about-the-authors.html"/>
+<link rel="prev" href="ch-cv.html"/>
+<link rel="next" href="ch-MPT.html"/>
 <script src="libs/jquery/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
 <link href="libs/gitbook/css/style.css" rel="stylesheet" />
@@ -1281,321 +1281,169 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">An Introduction to Bayesian Data Analysis for Cognitive Science</h1>
-<p class="author"><em>Bruno Nicenboim, Daniel Schad, and Shravan Vasishth</em></p>
-<p class="date"><em>2024-09-20</em></p>
+<div id="ch-cogmod" class="section level1 hasAnchor" number="17">
+<h1><span class="header-section-number">Chapter 17</span> Introduction to cognitive modeling<a href="ch-cogmod.html#ch-cogmod" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>Until this point in the book, we have been discussing models that specify a  generative process for the observed data. This generative process could be as simple as <span class="math inline">\(Y \sim Normal(\mu,\sigma)\)</span> or it could be an elaborate hierarchical model that incorporates multiple variance components. Usually, in these kinds of models, what is of interest is a parameter that represents a so-called “effect” of interest. Examples that we encountered in the present book are: the effect of word frequency on reading time; effect of relative clause type on reading time; and the effect of attentional load on pupil size.</p>
+<div id="what-characterizes-a-computational-cognitive-model" class="section level2 hasAnchor" number="17.1">
+<h2><span class="header-section-number">17.1</span> What characterizes a computational cognitive model?<a href="ch-cogmod.html#what-characterizes-a-computational-cognitive-model" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>One characteristic common to the models seen so far is that no underlying  latent cognitive process is specified that elaborates on the generative process that produces the observed dependent variable. For example, in a logistic regression, the correct or incorrect response (say, to a yes/no comprehension question) could be the result of a cascade of alternative steps taken unconsciously (or consciously) by the subject as they generate a response. To make this concrete, a subject could give a yes/no response to a comprehension question after seeing a target sentence by probabilistically processing the sentence deeply or superficially; once the deep/shallow path is taken, the subject might end up giving either a correct or incorrect answer (the latter by misinterpreting the meaning of the sentence). What is observed in the data is a correct or incorrect response, but the reason that that particular response was given could be underlyingly due to deep or superficial processing.</p>
+<p>In this book, we use the phrase “computational cognitive modeling” to refer to generative models that are implemented computationally (as a computer program), and that specify latent (unobserved and, usually, unobservable) processes that result in a behavioral or other kind of response. Cognitive modeling as presented in this section goes beyond estimates of “effects” in the sense discussed above; the principal goal is to explain and understand how a particular cognitive process unfolds, often at an individual trial level and incorporating assumptions about individual-level variation in the way the assumed latent processes are deployed.</p>
+<p>Unpacking the latent cognitive process that produces a response has a long history in cognitive science. For example, in sentence processing research, early models like the classic  garden-path model <span class="citation">(Frazier <a href="#ref-frazier79" role="doc-biblioref">1979</a>)</span> seek to spell out the steps that occur when the human sentence processing system (the  parser) attempts to build  syntactic structure incrementally when faced with a temporarily  ambiguous sentence. To make this concrete, consider the sentence: “While Mary bathed the baby happily played in the living room.” Compared to the unambiguous baseline sentence
+“While Mary bathed, the baby happily played in the living room,” the garden-path model assumes that in the ambiguous sentence the parser initially connects the noun phrase “the baby” as a grammatical object of the verb “bathed.” It is only when the verb “played” is encountered that the parser reassigns “the baby” as a grammatical subject of the verb “played”, leading to the correct parse whereby Mary being the one who is bathing, and not that Mary is bathing the baby. This process of reassigning “the baby”’s grammatical role is computationally costly and is called  reanalysis in sentence processing. The slowdown observed (e.g., in reading studies) at the verb “played” is often called the  garden-path effect.</p>
+<p>This kind of paper-pencil model implicitly posits an overly simplistic and deterministic parsing process: Although this is never spelled out in the garden-path model, there is no assumption that the parser could only probabilistically misparse the sentence when it encounters “the baby”; misparses are implicitly assumed to happen every single time such a temporarily ambiguous sentence is encountered. Such a model does not explicitly allow alternative parsing constraints to come into play; by contrast, a computational model allows the empirical consequences of multiple parsing constraints to be considered quantitatively <span class="citation">(e.g., Jurafsky <a href="#ref-jurafsky96" role="doc-biblioref">1996</a>; Paape and Vasishth <a href="#ref-paapevasishthmpt2022" role="doc-biblioref">2022</a>)</span>.</p>
 </div>
-<div id="preface" class="section level1 unnumbered hasAnchor" number="">
-<h1>Preface<a href="index.html#preface" class="anchor-section" aria-label="Anchor link to header"></a></h1>
-<p>This book is intended to be a relatively gentle introduction to carrying out Bayesian data analysis and cognitive modeling using the probabilistic programming language Stan <span class="citation">(Carpenter et al. <a href="#ref-carpenter2017stan" role="doc-biblioref">2017</a>)</span>, and the front-end to Stan called <code>brms</code> <span class="citation">(Bürkner <a href="#ref-R-brms" role="doc-biblioref">2024</a>)</span>. Our target audience is cognitive scientists (e.g., linguists, psychologists, and computer scientists) who carry out planned behavioral experiments, and who are interested in learning the Bayesian data analysis methodology from the ground up and in a principled manner. Our aim is to make Bayesian statistics a standard part of the data analysis toolkit for experimental linguistics, psycholinguistics, psychology, and related disciplines.</p>
-<p>Many excellent introductory textbooks already exist for Bayesian data analysis. Why write yet another book? Our text is different from other attempts in two respects. First, our main focus is on showing how to analyze data from planned experiments involving repeated measures; this type of experimental data involves unique complexities. We provide many examples of data sets involving time measurements (e.g., self-paced reading, eye-tracking-while-reading, voice onset time), event-related potentials, pupil sizes, accuracies (e.g., recall tasks, yes-no questions), categorical answers (e.g., picture naming), choice-reaction time (e.g, Stroop task, motion detection task), etc. Second, from the very outset, we emphasize a particular workflow that has as its centerpiece simulating data; we aim to teach a philosophy that involves thinking hard about the assumed underlying generative process, <strong>even before the data are collected</strong>. The data analysis approach that we hope to teach through this book involves a cycle of prior predictive and posterior predictive checks, sensitivity analyses, and model validation using simulated data. We try to inculcate a sense of how inferences can be drawn from the posterior distribution of theoretically interesting parameters without resorting to binary decisions like “significant” or “not-significant”. We are hopeful that this will set a new standard for reporting and interpreting results of data analyses in a more nuanced manner, and lead to more measured claims in the published literature.</p>
-<p>Please report typos, errors, or suggestions for improvement at
-<a href="https://github.com/bnicenboim/bayescogsci/issues" class="uri">https://github.com/bnicenboim/bayescogsci/issues</a>.</p>
-<div id="why-read-this-book-and-what-is-its-target-audience" class="section level2 unnumbered hasAnchor" number="">
-<h2>Why read this book, and what is its target audience?<a href="index.html#why-read-this-book-and-what-is-its-target-audience" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>A commonly-held belief in psychology, psycholinguistics, and other areas is that statistical data analysis is secondary to the science, and should be quick and easy. For example, a senior mathematical psychologist once told the last author of this book: “if you need to run anything more complicated than a paired t-test, you are asking the wrong question.” We take a different perspective here: the science and the statistical modeling are one unitary thing. The statistical model should represent some reasonable approximation of the latent cognitive processes that are assumed to be in play.</p>
-<p>The target audience for this book is students and researchers who want to treat statistics as an equal partner in their scientific work. We expect that the reader is willing to take the time to both understand and to run the computational analyses.</p>
-<p>Any rigorous introduction to Bayesian data analysis requires at least a passive knowledge of probability theory, calculus, and linear algebra. However, we do not require that the reader has this background when they start the book. Instead, the relevant ideas are introduced informally and just in time, as soon as they are needed. The reader is never required to have an active ability to solve probability problems, to solve integrals or compute derivatives, or to carry out matrix computations (such as inverting matrices) by hand. There are a few places where the discussion becomes technical and requires some knowledge of calculus or related topics. However, the reader unfamiliar with the required mathematics can simply skip those sections, as these are not really necessary to follow the main thread of the book.</p>
-<p>What we do expect is familiarity with arithmetic, basic set theory and elementary probability theory (e.g., sum and product rules, conditional probability), simple matrix operations like addition and multiplication, and simple algebraic operations. A quick look through chapter 1 of <span class="citation">Gill (<a href="#ref-gill2006essential" role="doc-biblioref">2006</a>)</span> before starting this book is highly recommended. We also presuppose that, when the need arises, the reader is willing to look up concepts that that they might have forgotten (e.g., logarithms). We also provide a self-paced course on some basic concepts in mathematics (aimed at non-mathematicians) which the reader can work through: see <a href="https://vasishth.github.io/FoM/" class="uri">https://vasishth.github.io/FoM/</a>.</p>
-<p>We also expect that the reader already knows and/or is willing to learn enough of the programming language R <span class="citation">(R Core Team <a href="#ref-R-base" role="doc-biblioref">2023</a>)</span> to reproduce the examples presented and to carry out the exercises. If the reader is completely unfamiliar with R, before starting this book they should first consult books like <a href="https://r4ds.had.co.nz/">R for data science</a>, and <a href="https://csgillespie.github.io/efficientR/">Efficient R programming</a>.</p>
-<p>We also assume that the reader has encountered simple linear modeling, and linear mixed models <span class="citation">(Bates, Mächler, et al. <a href="#ref-R-lme4" role="doc-biblioref">2015</a>; Baayen, Davidson, and Bates <a href="#ref-baayen2008mixed" role="doc-biblioref">2008</a>)</span>. What this means in practice is that the reader should have used the <code>lm()</code> and <code>lmer()</code> functions in R. A passing acquaintance with basic statistical concepts, like the correlation between two variables, is also taken for granted.</p>
-<p>This book is not appropriate for complete beginners to data analysis. Newcomers to data analysis should start with a freely available textbook like <span class="citation">Kerns (<a href="#ref-kerns2014introduction" role="doc-biblioref">2014</a>)</span>, and then read our introduction to frequentist data analysis, which is also available freely online <span class="citation">(Vasishth et al. <a href="#ref-VasishthEtAlFreq2021" role="doc-biblioref">2021</a>)</span>. This latter book will prepare the reader well for the material presented here.</p>
+<div id="some-advantages-of-taking-the-latent-variable-modeling-approach" class="section level2 hasAnchor" number="17.2">
+<h2><span class="header-section-number">17.2</span> Some advantages of taking the latent-variable modeling approach<a href="ch-cogmod.html#some-advantages-of-taking-the-latent-variable-modeling-approach" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Although this kind of simple paper-pencil model is an excellent start towards modeling the latent process of sentence comprehension, just stopping with such a description has several disadvantages.
+First, no  quantitative predictions can be derived; a corollary is that a slowdown at the verb “played” (due to reanalysis) of 10 ms or 500 ms would both be equally consistent with the predictions of the model—the model cannot say anything about how much time the reanalysis process would take. This is a problem for  model evaluation, not least because overly large effect sizes observed in data could just be  Type M errors and therefore very misleading <span class="citation">(Gelman and Carlin <a href="#ref-gelmancarlin" role="doc-biblioref">2014</a>; Vasishth et al. <a href="#ref-VasishthMertzenJaegerGelman2018" role="doc-biblioref">2018</a>)</span>.
+Second, such paper-pencil models encourage an excessive (in fact, exclusive) focus on the  average effect size (here, the garden-path effect); the  variability among individuals (which would affect the standard error of the estimated effect from data) plays no role in determining whether the model’s prediction is consistent with the data.
+A third problem with such verbally stated models is that it is often not clear what the exact assumptions are. This makes it difficult to establish whether the model’s predictions are consistent with observed patterns in the data. As a concrete example of these hidden degrees of freedom, an influential theory in sentence processing is the Dependency Locality Theory or DLT <span class="citation">(Gibson <a href="#ref-gibson00" role="doc-biblioref">2000</a>)</span>. This theory explicitly assumes that interposing new discourse referents intervening between, say, a subject and a verb, will make it more difficult to complete the subject-verb dependency. The status of the intervening discourse referent is crucial for dependency completion cost to increase. A further descriptive elaboration of the model is presented in <span class="citation">Warren and Gibson (<a href="#ref-warren2002influence" role="doc-biblioref">2002</a>)</span>; there, the authors argued that the cost of an intervening discourse referent should be graded according to its discourse accessibility. There was no quantitative implementation of what that implies empirically; for example, do old vs. new discourse referents eliminate dependency completion cost entirely, or is the cost attentuated by some amount (if so, how much?)? Interestingly, in later work, the discourse status of the intervener was ignored; in <span class="citation">Gibson and Wu (<a href="#ref-gibsonwu" role="doc-biblioref">2013</a>)</span>, the intervening discourse referents are all old (previously introduced in an immediately preceding context), but they are assumed to have the same impact on dependency completion as new discourse referents, as described in <span class="citation">Gibson (<a href="#ref-gibson00" role="doc-biblioref">2000</a>)</span>. Had the model been computationally implemented, the empirical impact of relaxing the model assumption would have had a quantitative impact on the predictions. This example also illustrates how easy it is to be misled by paper-pencil statements of theories.</p>
+<p>Thus, the absence of quantitative predictions, the inability to quantitatively investigate individual-level variation, and hidden degrees of freedom in the model, are three major drawbacks of paper-pencil models. As <span class="citation">Roberts and Pashler (<a href="#ref-rp" role="doc-biblioref">2000</a>)</span> have discussed at length, a good fit of a model to data is not merely about the sign of the predicted effect being correct; the model must be able to commit a priori to the uncertainty of the predicted effect, and the estimated effect from the data and its uncertainty need to be compared to the predictions of the model. A good fit ideally requires a tightly constrained quantitative prediction derived from the model that is then validated by comparing the prediction with unseen data; this point has also been eloquently made by the psychologist <span class="citation">Meehl (<a href="#ref-meehl97" role="doc-biblioref">1997</a>)</span>. Meehl suggests that the model makes risky numerical predictions (by which he means tighly constrained quantitative predictions), which should then be compared with the observed effect size and its confidence interval—this is essentially the <span class="citation">Roberts and Pashler (<a href="#ref-rp" role="doc-biblioref">2000</a>)</span> criterion for a good fit.</p>
+<p>For example, if a  computational implementation of the garden-path model were to exist, one could have derived (through prior specifications on the parameters of the model)  prior predictive distributions of the garden-path effect, and compared these predictions to the estimates of the effect from a  statistical model fit to new, unseen data <span class="citation">(for an example from psycholinguistics, see Vasishth and Engelmann <a href="#ref-VasishthEngelmann2022" role="doc-biblioref">2022</a>)</span>. Using  parameteric variation, one could even investigate the implications of the model for individual-level differences <span class="citation">(e.g., Yadav et al. <a href="#ref-yadavindiff2021" role="doc-biblioref">2022</a>)</span>; such implications of models are impossible to derive unless the model is implemented computationally. In the absence of an implemented model, one is reduced to classifying subjects into groups (e.g., by working memory capacity measures) and investigating average group-level effects <span class="citation">(e.g., Caplan and Waters <a href="#ref-cw99" role="doc-biblioref">1999</a>)</span>. This makes the question a binary one: are there individual differences or are there none? The right question to ask about individual differences is a quantitative one <span class="citation">(Haaf and Rouder <a href="#ref-haaf2019some" role="doc-biblioref">2019</a>)</span>.</p>
 </div>
-<div id="developing-the-right-mindset-for-this-book" class="section level2 unnumbered hasAnchor" number="">
-<h2>Developing the right mindset for this book<a href="index.html#developing-the-right-mindset-for-this-book" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>One very important characteristic that the reader should bring to this book is a can-do spirit. There will be many places where the going will get tough, and the reader will have to slow down and play around with the material, or refresh their understanding of arithmetic or middle-school algebra.
-The basic principles of such a can-do spirit are nicely summarized in the book by <span class="citation">Burger and Starbird (<a href="#ref-burger" role="doc-biblioref">2012</a>)</span>; also see <span class="citation">Levy (<a href="#ref-danlevy" role="doc-biblioref">2021</a>)</span>. Although we cannot summarize all the insights from these books in a few words, inspired by the <span class="citation">Burger and Starbird (<a href="#ref-burger" role="doc-biblioref">2012</a>)</span> book, here is a short enumeration of the kind of mindset the reader will need to cultivate:</p>
-<ul>
-<li>Spend time on the basic, apparently easy material; make sure you understand it deeply. Look for gaps in your understanding. Reading different presentations of the same material (in different books or articles) can yield new insights.</li>
-<li>Let mistakes and errors be your teacher. We instinctively recoil from our mistakes, but errors are ultimately our friends; they have the potential to teach us more than our correct answers can. In this sense, a correct solution can be less interesting than an incorrect one.</li>
-<li>When you are intimidated by some exercise or problem, give up and admit defeat immediately. This relaxes the mind; you’ve already given up, there’s nothing more to do. Then, after a while, try to solve a simpler version of the problem. Sometimes, it is useful to break the problem down to smaller parts, each of which may be easier to solve.</li>
-<li>Create your own questions. Don’t wait to be asked questions; develop your own problems and then try to solve them.</li>
-<li>Don’t expect to understand everything in the first pass. Just mentally note the gaps in your understanding, and return to them later and work on these gaps.</li>
-<li>Step back periodically to try to sketch out a broader picture of what you are learning. Writing down what you know, without looking up anything, is one helpful way to achieve this. Don’t wait for the teacher to give you bullet-point summaries of what you should have learned; develop such summaries yourself.</li>
-<li>Develop the art of finding information. When confronted with something you don’t know, or with some obscure error message, use google to find some answers.</li>
-<li>Do not hesitate to re-read a chapter; often, one only understands a topic after one revisits the material.</li>
-</ul>
-<p>As instructors, we have noticed over the years that students with such a mindset generally do very well. Some students already have that spirit, but others need to explicitly develop it. We firmly believe that everyone can develop such a mindset, but one may have to work on acquiring it. In any case, such an attitude is necessary for a book of this sort.</p>
+<div id="types-of-computational-cognitive-model" class="section level2 hasAnchor" number="17.3">
+<h2><span class="header-section-number">17.3</span> Types of computational cognitive model<a href="ch-cogmod.html#types-of-computational-cognitive-model" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>There are many different classes of computational cognitive model. For example, <span class="citation">Newell (<a href="#ref-utc" role="doc-biblioref">1990</a>)</span> pioneered a cognitive architectures approach, where a model of a particular cognitive process (like sentence processing) occurs within a broader computational framework that defines very general constraints on human information processing. Examples of cognitive architectures are SOAR <span class="citation">(Laird <a href="#ref-laird2019soar" role="doc-biblioref">2019</a>)</span>, the CAPS family of models <span class="citation">(Just, Carpenter, and Varma <a href="#ref-justetal99" role="doc-biblioref">1999</a>)</span>, and ACT-R <span class="citation">(Anderson et al. <a href="#ref-abbl02" role="doc-biblioref">2004</a>)</span>. Other approaches include connectionist models <span class="citation">(e.g., McClelland and Rumelhart <a href="#ref-mcclelland1989explorations" role="doc-biblioref">1989</a>)</span> and dynamical systems-based models <span class="citation">(e.g., Port and Van Gelder <a href="#ref-port1995mind" role="doc-biblioref">1995</a>; Tabor and Tanenhaus <a href="#ref-tabor1999dynamical" role="doc-biblioref">1999</a>; Beer <a href="#ref-beer2000dynamical" role="doc-biblioref">2000</a>; Rabe et al. <a href="#ref-Rabe2019" role="doc-biblioref">2021</a>, <a href="#ref-RabePaapeJML2023" role="doc-biblioref">2024</a>; Engbert et al. <a href="#ref-engbertetal06" role="doc-biblioref">2005</a>)</span>.</p>
+<p>In this book, we focus on Bayesian cognitive models <span class="citation">(Lee and Wagenmakers <a href="#ref-LeeWagenmakers2014" role="doc-biblioref">2014</a>)</span>; these are distinct from models that assume that human cognitive processes involve Bayesian inference <span class="citation">(e.g., Feldman <a href="#ref-feldman2017true" role="doc-biblioref">2017</a>)</span>. The type of model we discuss here has the characteristic that the underlying generative process spells out the latent, probabilistically occurring sub-processes. The latent processes are spelled out by specifying a Bayesian model that allows different events to happen probabilistically in each trial.
+An example is  multinomial processing tree models, which specify a sequence of possible latent sub-processes. Another example is a  hierarchical finite mixture process which specifies that, in some proportion of trials, the observed response comes from one distribution, and in another proportion from a different distribution. A third example is the assumption that the observed response (e.g., response time) is the result of an unobserved (latent)  race process in the cognitive system. Probabilistic programming languages like Stan allow us to implement such latent process models, allowing for hierarchical structure (individual-level variability). Additionally, we can make prior assumptions about plausible parameter values, this especially important because the parameters have a meaning in terms of latent processes.</p>
+<p>This part of the book introduces these three types of cognitive models using Stan. In many cases, a great deal of cognitive detail is sacrificed for tractability, but this is a characteristic shared by all computational models—by definition, a model is a simplification of the underlying process being modeled <span class="citation">(McClelland <a href="#ref-mcclellandPlaceModelingCognitive2009" role="doc-biblioref">2009</a>)</span>.</p>
 </div>
-<div id="how-to-read-this-book" class="section level2 unnumbered hasAnchor" number="">
-<h2>How to read this book<a href="index.html#how-to-read-this-book" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>The chapters in this book are intended to be read in sequence, but during the first pass through the book, the reader should feel free to completely skip the boxes. These boxes provide a more formal development <span class="citation">(useful to transition to more advanced textbooks like Gelman et al. <a href="#ref-Gelman14" role="doc-biblioref">2014</a>)</span>, or deal with tangential aspects of the topics presented in the chapter.</p>
-<p>Here are some suggested paths through this book, depending on the reader’s goals:</p>
-<ul>
-<li>For a short course for complete beginners, read chapters <a href="ch-intro.html#ch-intro">1</a> to <a href="ch-hierarchical.html#ch-hierarchical">5</a>. We usually cover these five chapters in a five-day summer school course that we teach annually. Most of the material in this chapter is also covered in a free four-week course available online: <a href="https://open.hpi.de/courses/bayesian-statistics2023" class="uri">https://open.hpi.de/courses/bayesian-statistics2023</a>.</li>
-<li>For a course that focuses on regression models with the R package <code>brms</code>, read chapters <a href="ch-intro.html#ch-intro">1</a> to <a href="ch-coding2x2.html#ch-coding2x2">9</a> and, optionally, <a href="ch-bf.html#ch-bf">15</a>.</li>
-<li>For an advanced course that focuses on complex models involving Stan, read chapters <a href="ch-introstan.html#ch-introstan">10</a> to <a href="ch-lognormalrace.html#ch-lognormalrace">20</a>.</li>
-</ul>
+<div id="summary-14" class="section level2 hasAnchor" number="17.4">
+<h2><span class="header-section-number">17.4</span> Summary<a href="ch-cogmod.html#summary-14" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>The main take-away from this section is that it is possible to specify an underlying generative process for the data that reflects theoretical assumptions in a particular research area. The gain is that: (i) the assumptions of the underlying theory, and their consequences, become transparent and explicit <span class="citation">(Epstein <a href="#ref-epstein2008model" role="doc-biblioref">2008</a>)</span>; (ii) one can derive quantitative predictions (along with the uncertainty of those predictions) which, as <span class="citation">Roberts and Pashler (<a href="#ref-rp" role="doc-biblioref">2000</a>)</span> point out, are vital for model evaluation; (iii) it becomes possible (at least in principle) to eliminate competing theoretical proposals through quantitative model comparison using benchmark data <span class="citation">(Nicenboim and Vasishth <a href="#ref-nicenboimModelsRetrievalSentence2018" role="doc-biblioref">2018</a>; Lissón et al. <a href="#ref-lisson_2020" role="doc-biblioref">2021</a>; Lissón et al. <a href="#ref-LissonEtAlInterference2021" role="doc-biblioref">2023</a>; Yadav et al. <a href="#ref-YadavetalJML2022" role="doc-biblioref">2023</a>)</span>; and (iv) the implications of models, for average behavior <span class="citation">(e.g., Yadav et al. <a href="#ref-YadavetalJML2022" role="doc-biblioref">2023</a>)</span> as well as for individual-level differences <span class="citation">(e.g., Yadav et al. <a href="#ref-yadavindiff2021" role="doc-biblioref">2022</a>)</span> can be investigated.</p>
 </div>
-<div id="some-conventions-used-in-this-book" class="section level2 unnumbered hasAnchor" number="">
-<h2>Some conventions used in this book<a href="index.html#some-conventions-used-in-this-book" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>We adopt the following conventions:</p>
-<ul>
-<li>All distribution names are lower-case unless they are also a proper name (e.g., Poisson, Bernoulli).</li>
-<li>The univariate normal distribution is parameterized by the mean and standard deviation (not variance).</li>
-<li>The code for figures is provided only in some cases, where we consider it to be pedagogically useful. In other cases, the code remains hidden, but it can be found in the web version of the book. Notice that all the R code from the book can be extracted from the Rmd source files for each chapter, which are released with the book.</li>
-</ul>
-</div>
-<div id="online-materials" class="section level2 unnumbered hasAnchor" number="">
-<h2>Online materials<a href="index.html#online-materials" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>The entire book, including all data and source code, is available online for free on <a href="https://bruno.nicenboim.me/bayescogsci/">https://bruno.nicenboim.me/bayescogsci/</a>. The solutions to exercises will be made available on request.</p>
-</div>
-<div id="software-needed" class="section level2 unnumbered hasAnchor" number="">
-<h2>Software needed<a href="index.html#software-needed" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>Before you start, please install</p>
-<ul>
-<li><a href="https://cran.r-project.org/">R</a> and <a href="https://www.rstudio.com/">RStudio</a>, or any other Integrated Development Environment that you prefer, such as <a href="https://code.visualstudio.com/">Visual Studio Code</a> and <a href="https://ess.r-project.org/">Emacs Speaks Statistics</a>.</li>
-<li>The R package <code>rstan</code>. At the time of writing this book, the CRAN version of <code>rstan</code> lags behind the latest developments in Stan so it is recommended to install <code>rstan</code> from <code>https://mc-stan.org/r-packages/</code> as indicated in <a href="https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started" class="uri">https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started</a></li>
-<li>The R packages <code>dplyr</code>, <code>purrr</code>, <code>tidyr</code>, <code>extraDistr</code>, <code>brms</code>, <code>hypr</code> and <code>lme4</code> are used in many chapters of the book and can be installed the usual way: <code>install.packages(c("dplyr","purrr","tidyr", "extraDistr", "brms","hypr","lme4"))</code>. We use <code>ggplot2</code> for figures; please consult the relevant documentation if you are unfamiliar with <code>ggplot2</code> <span class="citation">(e.g., Wickham, Chang, et al. <a href="#ref-R-ggplot2" role="doc-biblioref">2024</a>)</span>.</li>
-<li>The following R packages are optional: <code>tictoc</code>, <code>rootSolve</code>, <code>SHELF</code>, <code>cmdstanr</code>, and <code>SBC</code>.</li>
-<li>Some packages and their dependencies, such as <code>intoo</code>, <code>barsurf</code>, <code>bivariate</code>, and <code>SIN</code> could require manual installation from archived or github versions.</li>
-<li>The data and Stan models used in this book can be installed using <code>remotes::install_github("bnicenboim/bcogsci")</code>. This command uses the function <code>install_github</code> from the package <code>remotes</code>. (Thus this package should be in the system as well.)</li>
-</ul>
-<p>In every R session, load these packages, and set the options shown below for Stan.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1-1"><a href="index.html#cb1-1" aria-hidden="true"></a><span class="kw">library</span>(MASS)</span>
-<span id="cb1-2"><a href="index.html#cb1-2" aria-hidden="true"></a><span class="co">## be careful to load dplyr after MASS</span></span>
-<span id="cb1-3"><a href="index.html#cb1-3" aria-hidden="true"></a><span class="kw">library</span>(dplyr)</span>
-<span id="cb1-4"><a href="index.html#cb1-4" aria-hidden="true"></a><span class="kw">library</span>(tidyr)</span>
-<span id="cb1-5"><a href="index.html#cb1-5" aria-hidden="true"></a><span class="kw">library</span>(purrr)</span>
-<span id="cb1-6"><a href="index.html#cb1-6" aria-hidden="true"></a><span class="kw">library</span>(extraDistr)</span>
-<span id="cb1-7"><a href="index.html#cb1-7" aria-hidden="true"></a><span class="kw">library</span>(ggplot2)</span>
-<span id="cb1-8"><a href="index.html#cb1-8" aria-hidden="true"></a><span class="kw">library</span>(loo)</span>
-<span id="cb1-9"><a href="index.html#cb1-9" aria-hidden="true"></a><span class="kw">library</span>(bridgesampling)</span>
-<span id="cb1-10"><a href="index.html#cb1-10" aria-hidden="true"></a><span class="kw">library</span>(brms)</span>
-<span id="cb1-11"><a href="index.html#cb1-11" aria-hidden="true"></a><span class="kw">library</span>(bayesplot)</span>
-<span id="cb1-12"><a href="index.html#cb1-12" aria-hidden="true"></a><span class="kw">library</span>(tictoc)</span>
-<span id="cb1-13"><a href="index.html#cb1-13" aria-hidden="true"></a><span class="kw">library</span>(hypr)</span>
-<span id="cb1-14"><a href="index.html#cb1-14" aria-hidden="true"></a><span class="kw">library</span>(bcogsci)</span>
-<span id="cb1-15"><a href="index.html#cb1-15" aria-hidden="true"></a><span class="kw">library</span>(lme4)</span>
-<span id="cb1-16"><a href="index.html#cb1-16" aria-hidden="true"></a><span class="kw">library</span>(rstan)</span>
-<span id="cb1-17"><a href="index.html#cb1-17" aria-hidden="true"></a><span class="co"># This package is optional, see https://mc-stan.org/cmdstanr/:</span></span>
-<span id="cb1-18"><a href="index.html#cb1-18" aria-hidden="true"></a><span class="kw">library</span>(cmdstanr)</span>
-<span id="cb1-19"><a href="index.html#cb1-19" aria-hidden="true"></a><span class="co"># This package is optional, see https://hyunjimoon.github.io/SBC/:</span></span>
-<span id="cb1-20"><a href="index.html#cb1-20" aria-hidden="true"></a><span class="kw">library</span>(SBC)</span>
-<span id="cb1-21"><a href="index.html#cb1-21" aria-hidden="true"></a><span class="kw">library</span>(SHELF)</span>
-<span id="cb1-22"><a href="index.html#cb1-22" aria-hidden="true"></a><span class="kw">library</span>(rootSolve)</span>
-<span id="cb1-23"><a href="index.html#cb1-23" aria-hidden="true"></a></span>
-<span id="cb1-24"><a href="index.html#cb1-24" aria-hidden="true"></a><span class="co">## Save compiled models:</span></span>
-<span id="cb1-25"><a href="index.html#cb1-25" aria-hidden="true"></a><span class="kw">rstan_options</span>(<span class="dt">auto_write =</span> <span class="ot">FALSE</span>)</span>
-<span id="cb1-26"><a href="index.html#cb1-26" aria-hidden="true"></a><span class="co">## Parallelize the chains using all the cores:</span></span>
-<span id="cb1-27"><a href="index.html#cb1-27" aria-hidden="true"></a><span class="kw">options</span>(<span class="dt">mc.cores =</span> parallel<span class="op">::</span><span class="kw">detectCores</span>())</span>
-<span id="cb1-28"><a href="index.html#cb1-28" aria-hidden="true"></a><span class="co"># To solve some conflicts between packages:</span></span>
-<span id="cb1-29"><a href="index.html#cb1-29" aria-hidden="true"></a>select &lt;-<span class="st"> </span>dplyr<span class="op">::</span>select</span>
-<span id="cb1-30"><a href="index.html#cb1-30" aria-hidden="true"></a>extract &lt;-<span class="st"> </span>rstan<span class="op">::</span>extract</span></code></pre></div>
-</div>
-<div id="acknowledgments" class="section level2 unnumbered hasAnchor" number="">
-<h2>Acknowledgments<a href="index.html#acknowledgments" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>We are grateful to the many generations of students at the University of Potsdam, various summer schools at ESSLLI, the LOT winter school, the Open HPI MOOC on Bayesian statistics (<a href="https://open.hpi.de/courses/bayesian-statistics2023" class="uri">https://open.hpi.de/courses/bayesian-statistics2023</a>), other short courses we have taught at various institutions, and the annual summer school on <a href="https://vasishth.github.io/smlp/">Statistical Methods for Linguistics and Psychology (SMLP)</a> held annually at Potsdam, Germany. The participants in these courses helped us considerably in improving the material presented here. A special thanks to Anna Laurinavichyute, Paula Lissón, and Himanshu Yadav for co-teaching the the Bayesian courses at SMLP. We are also grateful to members of Vasishth lab, especially Dorothea Pregla, for comments on earlier drafts of this book. We would also like to thank Douglas Bates, Ben Bolker, Christian Robert (otherwise known as Xi’an), Robin Ryder, Nicolas Chopin, Michael Betancourt, Andrew Gelman, the Stan developers (especially Bob Carpenter and Paul-Christian Bürkner), Philip D. Loewen, and Leendert Van Maanen for their comments and advice; to Pavel Logačev for his feedback, and Athanassios Protopapas, Patricia Mirabile, Masataka Ogawa, Alex Swiderski, Andrew Ellis, Jakub Szewczyk, Chi Hou Pau, Alec Shaw, Patrick Wen, Riccardo Fusaroli, Abdulrahman Dallak, Elizabeth Pankratz, João Veríssimo, Jean-Pierre Haeberly, Chris Hammill, Florian Wickelmaier, Ole Seeth, Jules Bouton, Siqi Zheng, Michael Gaunt, Benjamin Senst, Chris Moreh, Richard Hatcher, Noelia Stetie, Robert Lew, Leonardo Cerliani, Stefan Riedel, Raluca Rilla, Arne Schernich, Sven Koch, Joy Sarow, Iñigo Urrestarazu-Porta, Jan Winkowski, Adrian Staub, Brian Dillon, Job Schepens, Katja Politt, Cui Ding, Marc Tortorello, Michael Vrazitulis, Marisol Murujosa, and Ander Egurtzegi for catching typos, unclear passages, and errors in the book. A special thanks to Daniel Heck, Alexandre Cremers, Henrik Singmann, and Martin Modrák for reading (parts of) the book and catching many mistakes and typos. Our apologies to anyone that we have forgotten to mention. Thanks also go to Jeremy Oakley and other statisticians at the School of Mathematics and Statistics, University of Sheffield, UK, for helpful discussions, and ideas for exercises that were inspired from the MSc program taught online at Sheffield.</p>
-<p>This book would have been impossible to write without the following software: R <span class="citation">(Version 4.3.2; R Core Team <a href="#ref-R-base" role="doc-biblioref">2023</a>)</span> and the R-packages <em>afex</em> <span class="citation">(Singmann et al. <a href="#ref-R-afex" role="doc-biblioref">2020</a>)</span>, <em>barsurf</em> <span class="citation">(Version 0.7.0; Spurdle <a href="#ref-R-barsurf" role="doc-biblioref">2020</a>)</span>, <em>bayesplot</em> <span class="citation">(Version 1.11.1; Gabry and Mahr <a href="#ref-R-bayesplot" role="doc-biblioref">2024</a>)</span>, <em>bcogsci</em> <span class="citation">(Version 0.0.0.9000; Nicenboim, Schad, and Vasishth <a href="#ref-R-bcogsci" role="doc-biblioref">2024</a>)</span>, <em>bibtex</em> <span class="citation">(Francois <a href="#ref-R-bibtex" role="doc-biblioref">2017</a>)</span>, <em>bivariate</em> <span class="citation">(Version 0.7.0; Spurdle <a href="#ref-R-bivariate" role="doc-biblioref">2021</a>)</span>, <em>bookdown</em> <span class="citation">(Version 0.39; Xie <a href="#ref-R-bookdown" role="doc-biblioref">2024</a><a href="#ref-R-bookdown" role="doc-biblioref">a</a>)</span>, <em>bridgesampling</em> <span class="citation">(Version 1.1.2; Gronau, Singmann, and Wagenmakers <a href="#ref-R-bridgesampling" role="doc-biblioref">2020</a>)</span>, <em>brms</em> <span class="citation">(Version 2.21.0; Bürkner <a href="#ref-R-brms" role="doc-biblioref">2024</a>)</span>, <em>citr</em> <span class="citation">(Aust <a href="#ref-R-citr" role="doc-biblioref">2019</a>)</span>, <em>cmdstanr</em> <span class="citation">(Version 0.8.0; Gabry et al. <a href="#ref-R-cmdstanr" role="doc-biblioref">2024</a>)</span>, <em>cowplot</em> <span class="citation">(Version 1.1.3; Wilke <a href="#ref-R-cowplot" role="doc-biblioref">2024</a>)</span>, <em>digest</em> <span class="citation">(Version 0.6.35; Antoine Lucas et al. <a href="#ref-R-digest" role="doc-biblioref">2021</a>)</span>, <em>dplyr</em> <span class="citation">(Version 1.1.4; Wickham, François, et al. <a href="#ref-R-dplyr" role="doc-biblioref">2023</a>)</span>, <em>DT</em> <span class="citation">(Xie, Cheng, and Tan <a href="#ref-R-DT" role="doc-biblioref">2019</a>)</span>, <em>extraDistr</em> <span class="citation">(Version 1.10.0; Wolodzko <a href="#ref-R-extraDistr" role="doc-biblioref">2023</a>)</span>, <em>forcats</em> <span class="citation">(Wickham <a href="#ref-R-forcats" role="doc-biblioref">2019</a><a href="#ref-R-forcats" role="doc-biblioref">a</a>)</span>, <em>gdtools</em> <span class="citation">(Gohel et al. <a href="#ref-R-gdtools" role="doc-biblioref">2019</a>)</span>, <em>ggplot2</em> <span class="citation">(Version 3.5.1; Wickham, Chang, et al. <a href="#ref-R-ggplot2" role="doc-biblioref">2024</a>)</span>, <em>gridExtra</em> <span class="citation">(Version 2.3; Auguie <a href="#ref-R-gridExtra" role="doc-biblioref">2017</a>)</span>, <em>htmlwidgets</em> <span class="citation">(Version 1.6.4; Vaidyanathan et al. <a href="#ref-R-htmlwidgets" role="doc-biblioref">2023</a>)</span>, <em>hypr</em> <span class="citation">(Version 0.2.8; Schad et al. <a href="#ref-R-hypr_a" role="doc-biblioref">2019</a>; Rabe et al. <a href="#ref-R-hypr_b" role="doc-biblioref">2020</a><a href="#ref-R-hypr_b" role="doc-biblioref">b</a>)</span>, <em>intoo</em> <span class="citation">(Version 0.4.0; Spurdle and Bode <a href="#ref-R-intoo" role="doc-biblioref">2020</a>)</span>, <em>kableExtra</em> <span class="citation">(Version 1.4.0; Zhu <a href="#ref-R-kableExtra" role="doc-biblioref">2024</a>)</span>, <em>knitr</em> <span class="citation">(Version 1.47; Xie <a href="#ref-R-knitr" role="doc-biblioref">2024</a><a href="#ref-R-knitr" role="doc-biblioref">b</a>)</span>, <em>lme4</em> <span class="citation">(Version 1.1.35.3; Bates, Mächler, et al. <a href="#ref-R-lme4" role="doc-biblioref">2015</a>)</span>, <em>loo</em> <span class="citation">(Version 2.7.0; Vehtari, Gelman, and Gabry <a href="#ref-R-loo_a" role="doc-biblioref">2017</a><a href="#ref-R-loo_a" role="doc-biblioref">a</a>; Yao et al. <a href="#ref-R-loo_b" role="doc-biblioref">2017</a>)</span>, <em>MASS</em> <span class="citation">(Version 7.3.60; Ripley <a href="#ref-R-MASS" role="doc-biblioref">2023</a>)</span>, <em>Matrix</em> <span class="citation">(Version 1.6.1.1; Bates, Maechler, and Jagan <a href="#ref-R-Matrix" role="doc-biblioref">2023</a>)</span>, <em>miniUI</em> <span class="citation">(Version 0.1.1.1; Cheng <a href="#ref-R-miniUI" role="doc-biblioref">2018</a>)</span>, <em>papaja</em> <span class="citation">(Version 0.1.2; Aust and Barth <a href="#ref-R-papaja" role="doc-biblioref">2020</a>)</span>, <em>pdftools</em> <span class="citation">(Version 3.4.0; Ooms <a href="#ref-R-pdftools" role="doc-biblioref">2023</a>)</span>, <em>purrr</em> <span class="citation">(Version 1.0.2; Wickham and Henry <a href="#ref-R-purrr" role="doc-biblioref">2023</a>)</span>, <em>Rcpp</em> <span class="citation">(Version 1.0.12; Eddelbuettel et al. <a href="#ref-R-Rcpp" role="doc-biblioref">2024</a>)</span>, <em>readr</em> <span class="citation">(Wickham, Hester, and Francois <a href="#ref-R-readr" role="doc-biblioref">2018</a>)</span>, <em>RefManageR</em> <span class="citation">(McLean <a href="#ref-R-RefManageR" role="doc-biblioref">2017</a>)</span>, <em>remotes</em> <span class="citation">(Version 2.5.0; Hester et al. <a href="#ref-R-remotes" role="doc-biblioref">2021</a>)</span>, <em>rethinking</em> <span class="citation">(Version 2.40; McElreath <a href="#ref-R-rethinking" role="doc-biblioref">2021</a>)</span>, <em>RJ-2021-048</em> <span class="citation">(Bengtsson <a href="#ref-R-RJ-2021-048" role="doc-biblioref">2021</a>, <a href="#ref-R-RJ-2021-048" role="doc-biblioref">2021</a>, <a href="#ref-R-RJ-2021-048" role="doc-biblioref">2021</a>, <a href="#ref-R-RJ-2021-048" role="doc-biblioref">2021</a>, <a href="#ref-R-RJ-2021-048" role="doc-biblioref">2021</a>, <a href="#ref-R-RJ-2021-048" role="doc-biblioref">2021</a>)</span>, <em>rmarkdown</em> <span class="citation">(Version 2.27; Allaire et al. <a href="#ref-R-rmarkdown" role="doc-biblioref">2024</a>)</span>, <em>rootSolve</em> <span class="citation">(Version 1.8.2.4; Soetaert and Herman <a href="#ref-R-rootSolve" role="doc-biblioref">2009</a>)</span>, <em>rstan</em> <span class="citation">(Version 2.35.0.9000; Guo et al. <a href="#ref-R-rstan" role="doc-biblioref">2024</a>)</span>, <em>SBC</em> <span class="citation">(Version 0.3.0.9000; Kim et al. <a href="#ref-R-SBC" role="doc-biblioref">2024</a>)</span>, <em>servr</em> <span class="citation">(Xie <a href="#ref-R-servr" role="doc-biblioref">2019</a>)</span>, <em>SHELF</em> <span class="citation">(Version 1.10.0; Oakley <a href="#ref-R-SHELF" role="doc-biblioref">2024</a>)</span>, <em>SIN</em> <span class="citation">(Version 0.6; Drton <a href="#ref-R-SIN" role="doc-biblioref">2013</a>)</span>, <em>StanHeaders</em> <span class="citation">(Version 2.35.0.9000; Goodrich et al. <a href="#ref-R-StanHeaders" role="doc-biblioref">2024</a>)</span>, <em>stringr</em> <span class="citation">(Version 1.5.1; Wickham <a href="#ref-R-stringr" role="doc-biblioref">2019</a><a href="#ref-R-stringr" role="doc-biblioref">b</a>)</span>, <em>texPreview</em> <span class="citation">(Sidi and Polhamus <a href="#ref-R-texPreview" role="doc-biblioref">2020</a>)</span>, <em>tibble</em> <span class="citation">(Version 3.2.1; Müller and Wickham <a href="#ref-R-tibble" role="doc-biblioref">2020</a>)</span>, <em>tictoc</em> <span class="citation">(Version 1.2.1; Izrailev <a href="#ref-R-tictoc" role="doc-biblioref">2024</a>)</span>, <em>tidyr</em> <span class="citation">(Version 1.3.1; Wickham, Vaughan, and Girlich <a href="#ref-R-tidyr" role="doc-biblioref">2024</a>)</span>, <em>tidyverse</em> <span class="citation">(Wickham, Averick, et al. <a href="#ref-R-tidyverse" role="doc-biblioref">2019</a>)</span>, <em>tinylabels</em> <span class="citation">(Version 0.2.4; Barth <a href="#ref-R-tinylabels" role="doc-biblioref">2023</a>)</span>, and <em>webshot</em> <span class="citation">(Chang <a href="#ref-R-webshot" role="doc-biblioref">2018</a>)</span>.</p>
-
-<p class="flushright">
-Bruno Nicenboim (Tilburg, the Netherlands),
-Daniel Schad (Potsdam, Germany),
-Shravan Vasishth (Potsdam, Germany)
-</p>
+<div id="further-reading-14" class="section level2 hasAnchor" number="17.5">
+<h2><span class="header-section-number">17.5</span> Further reading<a href="ch-cogmod.html#further-reading-14" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>General textbooks on computational modeling for cognitive science are <span class="citation">Busemeyer and Diederich (<a href="#ref-busemeyer2010cognitive" role="doc-biblioref">2010</a>)</span>, and <span class="citation">Farrell and Lewandowsky (<a href="#ref-farrell2018computational" role="doc-biblioref">2018</a>)</span>. The textbook by <span class="citation">Lee and Wagenmakers (<a href="#ref-LeeWagenmakers2014" role="doc-biblioref">2014</a>)</span> focuses on relatively simple computational cognitive models implemented in a Bayesian framework (using the BUGS language).
+A good free textbook on computational modeling for cognitive science is <span class="citation">Blokpoel and Rooij (<a href="#ref-blokpoelvanrooij" role="doc-biblioref">2021</a>)</span>. The entire special issue <span class="citation">(Lee <a href="#ref-mathpsych2011" role="doc-biblioref">2011</a><a href="#ref-mathpsych2011" role="doc-biblioref">a</a>)</span> on hierarchical Bayesian modeling in the Journal of Mathematical Psychology is highly recommended <span class="citation">(in particular, see the article by Lee <a href="#ref-Lee2011" role="doc-biblioref">2011</a><a href="#ref-Lee2011" role="doc-biblioref">b</a>)</span>. <span class="citation">Wilson and Collins (<a href="#ref-WilsonEtAl2019" role="doc-biblioref">2019</a>)</span> discuss good practices in the computational modeling of behavioral data using examples from reinforcement learning. <span class="citation">Haines et al. (<a href="#ref-haines2020learning" role="doc-biblioref">2020</a>)</span> discuss how generative models produce higher test-retest reliability and more theoretically informative parameter estimates than do traditional methods. For an overview of the different modeling approaches in cognitive science and the relationships between them, see <span class="citation">McClelland (<a href="#ref-mcclellandPlaceModelingCognitive2009" role="doc-biblioref">2009</a>)</span>.
+<span class="citation">Luce (<a href="#ref-luce1986response" role="doc-biblioref">1991</a>)</span> is a classic book that focuses on modeling response times.</p>
 
 </div>
 </div>
 <h3>References<a href="references.html#references" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <div id="refs" class="references hanging-indent">
-<div id="ref-R-rmarkdown">
-<p>Allaire, J. J., Yihui Xie, Christophe Dervieux, Jonathan McPherson, Javier Luraschi, Kevin Ushey, Aron Atkins, et al. 2024. <em>rmarkdown: Dynamic Documents for R</em>. <a href="https://github.com/rstudio/rmarkdown">https://github.com/rstudio/rmarkdown</a>.</p>
+<div id="ref-abbl02">
+<p>Anderson, John R., Dan Bothell, Michael D Byrne, Scott Douglass, Christian Lebiere, and Yulin Qin. 2004. “An Integrated Theory of the Mind.” <em>Psychological Review</em> 111 (4): 1036–60.</p>
 </div>
-<div id="ref-R-digest">
-<p>Antoine Lucas, Dirk Eddelbuettel with contributions by, Jarek Tuszynski, Henrik Bengtsson, Simon Urbanek, Mario Frasca, Bryan Lewis, Murray Stokely, et al. 2021. <em>Digest: Create Compact Hash Digests of R Objects</em>. <a href="https://CRAN.R-project.org/package=digest">https://CRAN.R-project.org/package=digest</a>.</p>
+<div id="ref-beer2000dynamical">
+<p>Beer, Randall D. 2000. “Dynamical Approaches to Cognitive Science.” <em>Trends in Cognitive Sciences</em> 4 (3): 91–99.</p>
 </div>
-<div id="ref-R-gridExtra">
-<p>Auguie, Baptiste. 2017. <em>GridExtra: Miscellaneous Functions for "Grid" Graphics</em>. <a href="https://CRAN.R-project.org/package=gridExtra">https://CRAN.R-project.org/package=gridExtra</a>.</p>
+<div id="ref-blokpoelvanrooij">
+<p>Blokpoel, Mark, and Iris van Rooij. 2021. <em>Theoretical Modeling for Cognitive Science and Psychology</em>. <a href="https://computationalcognitivescience.github.io/lovelace/">https://computationalcognitivescience.github.io/lovelace/</a>.</p>
 </div>
-<div id="ref-R-citr">
-<p>Aust, Frederik. 2019. <em>citr: RStudio Add-in to Insert Markdown Citations</em>. <a href="https://CRAN.R-project.org/package=citr">https://CRAN.R-project.org/package=citr</a>.</p>
+<div id="ref-busemeyer2010cognitive">
+<p>Busemeyer, Jerome R, and Adele Diederich. 2010. <em>Cognitive Modeling</em>. Sage.</p>
 </div>
-<div id="ref-R-papaja">
-<p>Aust, Frederik, and Marius Barth. 2020. <em>papaja: Create APA Manuscripts with R Markdown</em>. <a href="https://github.com/crsh/papaja">https://github.com/crsh/papaja</a>.</p>
+<div id="ref-cw99">
+<p>Caplan, David, and G. S. Waters. 1999. “Verbal Working Memory and Sentence Comprehension.” <em>Behavioral and Brain Science</em> 22: 77–94. <a href="https://doi.org/https://doi.org/10.1017/S0140525X99001788">https://doi.org/https://doi.org/10.1017/S0140525X99001788</a>.</p>
 </div>
-<div id="ref-baayen2008mixed">
-<p>Baayen, R. Harald, Douglas J. Davidson, and Douglas M. Bates. 2008. “Mixed-Effects Modeling with Crossed Random Effects for Subjects and Items.” <em>Journal of Memory and Language</em> 59 (4): 390–412.</p>
+<div id="ref-engbertetal06">
+<p>Engbert, Ralf, Antje Nuthmann, Eike M. Richter, and Reinhold Kliegl. 2005. “SWIFT: A Dynamical Model of Saccade Generation During Reading.” <em>Psychological Review</em> 112: 777–813. <a href="https://doi.org/https://doi.org/10.1037/0033-295X.112.4.777">https://doi.org/https://doi.org/10.1037/0033-295X.112.4.777</a>.</p>
 </div>
-<div id="ref-R-tinylabels">
-<p>Barth, Marius. 2023. <em>tinylabels: Lightweight Variable Labels</em>. <a href="https://github.com/mariusbarth/tinylabels">https://github.com/mariusbarth/tinylabels</a>.</p>
+<div id="ref-epstein2008model">
+<p>Epstein, Joshua M. 2008. “Why Model?” <em>Journal of Artificial Societies and Social Simulation</em> 11 (4): 12. <a href="https://www.jasss.org/11/4/12.html">https://www.jasss.org/11/4/12.html</a>.</p>
 </div>
-<div id="ref-R-lme4">
-<p>Bates, Douglas M., Martin Mächler, Ben Bolker, and Steve Walker. 2015. “Fitting Linear Mixed-Effects Models Using lme4.” <em>Journal of Statistical Software</em> 67 (1): 1–48. <a href="https://doi.org/10.18637/jss.v067.i01">https://doi.org/10.18637/jss.v067.i01</a>.</p>
+<div id="ref-farrell2018computational">
+<p>Farrell, Simon, and Stephan Lewandowsky. 2018. <em>Computational Modeling of Cognition and Behavior</em>. Cambridge University Press.</p>
 </div>
-<div id="ref-R-Matrix">
-<p>Bates, Douglas M., Martin Maechler, and Mikael Jagan. 2023. <em>Matrix: Sparse and Dense Matrix Classes and Methods</em>. <a href="https://Matrix.R-forge.R-project.org">https://Matrix.R-forge.R-project.org</a>.</p>
+<div id="ref-feldman2017true">
+<p>Feldman, Jacob. 2017. “What Are the ‘True’ Statistics of the Environment?” <em>Cognitive Science</em> 41 (7): 1871–1903. <a href="https://doi.org/https://doi.org/10.1111/cogs.12444">https://doi.org/https://doi.org/10.1111/cogs.12444</a>.</p>
 </div>
-<div id="ref-R-RJ-2021-048">
-<p>Bengtsson, Henrik. 2021. “A Unifying Framework for Parallel and Distributed Processing in R Using Futures.” <em>The R Journal</em> 13 (2): 208–27. <a href="https://doi.org/10.32614/RJ-2021-048">https://doi.org/10.32614/RJ-2021-048</a>.</p>
+<div id="ref-frazier79">
+<p>Frazier, Lyn. 1979. “On Comprehending Sentences: Syntactic Parsing Strategies.” PhD thesis, Amherst: University of Massachusetts.</p>
 </div>
-<div id="ref-burger">
-<p>Burger, Edward B., and Michael Starbird. 2012. <em>The 5 Elements of Effective Thinking</em>. Princeton University Press.</p>
+<div id="ref-gelmancarlin">
+<p>Gelman, Andrew, and John B. Carlin. 2014. “Beyond Power Calculations: Assessing Type S (Sign) and Type M (Magnitude) Errors.” <em>Perspectives on Psychological Science</em> 9 (6): 641–51. <a href="https://doi.org/https://doi.org/10.1177/1745691614551642">https://doi.org/https://doi.org/10.1177/1745691614551642</a>.</p>
 </div>
-<div id="ref-R-brms">
-<p>Bürkner, Paul-Christian. 2024. <em>brms: Bayesian Regression Models Using “Stan”</em>. <a href="https://github.com/paul-buerkner/brms">https://github.com/paul-buerkner/brms</a>.</p>
+<div id="ref-gibson00">
+<p>Gibson, Edward. 2000. “Dependency Locality Theory: A Distance-Based Theory of Linguistic Complexity.” In <em>Image, Language, Brain: Papers from the First Mind Articulation Project Symposium</em>, edited by Alec Marantz, Yasushi Miyashita, and Wayne O’Neil. Cambridge, MA: MIT Press.</p>
 </div>
-<div id="ref-carpenter2017stan">
-<p>Carpenter, Bob, Andrew Gelman, Matthew D. Hoffman, Daniel Lee, Ben Goodrich, Michael J. Betancourt, Marcus Brubaker, Jiqiang Guo, Peter Li, and Allen Riddell. 2017. “Stan: A Probabilistic Programming Language.” <em>Journal of Statistical Software</em> 76 (1).</p>
+<div id="ref-gibsonwu">
+<p>Gibson, Edward, and H.-H. Iris Wu. 2013. “Processing Chinese Relative Clauses in Context.” <em>Language and Cognitive Processes</em> 28 (1-2): 125–55. <a href="https://doi.org/https://doi.org/10.1080/01690965.2010.536656">https://doi.org/https://doi.org/10.1080/01690965.2010.536656</a>.</p>
 </div>
-<div id="ref-R-webshot">
-<p>Chang, Winston. 2018. <em>webshot: Take Screenshots of Web Pages</em>. <a href="https://CRAN.R-project.org/package=webshot">https://CRAN.R-project.org/package=webshot</a>.</p>
+<div id="ref-haaf2019some">
+<p>Haaf, Julia M., and Jeffrey N Rouder. 2019. “Some Do and Some Don’t? Accounting for Variability of Individual Difference Structures.” <em>Psychonomic Bulletin &amp; Review</em> 26 (3): 772–89.</p>
 </div>
-<div id="ref-R-miniUI">
-<p>Cheng, Joe. 2018. <em>miniUI: Shiny Ui Widgets for Small Screens</em>. <a href="https://CRAN.R-project.org/package=miniUI">https://CRAN.R-project.org/package=miniUI</a>.</p>
+<div id="ref-haines2020learning">
+<p>Haines, Nathaniel, Peter D. Kvam, Louis H. Irving, Colin Smith, Theodore P. Beauchaine, Mark A. Pitt, Woo-Young Ahn, and Brandon M Turner. 2020. “Learning from the Reliability Paradox: How Theoretically Informed Generative Models Can Advance the Social, Behavioral, and Brain Sciences.” <a href="https://ccs-lab.github.io/pdfs/papers/haines2020_reliability.pdf">https://ccs-lab.github.io/pdfs/papers/haines2020_reliability.pdf</a>.</p>
 </div>
-<div id="ref-R-SIN">
-<p>Drton, Mathias. 2013. <em>SIN: A SINful Approach to Selection of Gaussian Graphical Markov Models</em>. <a href="https://CRAN.R-project.org/package=SIN">https://CRAN.R-project.org/package=SIN</a>.</p>
+<div id="ref-jurafsky96">
+<p>Jurafsky, Daniel. 1996. “A Probabilistic Model of Lexical and Syntactic Access and Disambiguation.” <em>Cognition</em> 20: 137–94. <a href="https://doi.org/https://doi.org/10.1207/s15516709cog2002_1">https://doi.org/https://doi.org/10.1207/s15516709cog2002_1</a>.</p>
 </div>
-<div id="ref-R-Rcpp">
-<p>Eddelbuettel, Dirk, Romain Francois, J. J. Allaire, Kevin Ushey, Qiang Kou, Nathan Russell, Inaki Ucar, Douglas M. Bates, and John Chambers. 2024. <em>Rcpp: Seamless R and C++ Integration</em>. <a href="https://www.rcpp.org">https://www.rcpp.org</a>.</p>
+<div id="ref-justetal99">
+<p>Just, Marcel Adam, Patricia A. Carpenter, and S. Varma. 1999. “Computational Modeling of High-Level Cognition and Brain Function.” <em>Human Brain Mapping</em> 8: 128–36. <a href="https://doi.org/https://doi.org/10.1002/(SICI)1097-0193(1999)8:2/3%3C128::AID-HBM10%3E3.0.CO;2-G">https://doi.org/https://doi.org/10.1002/(SICI)1097-0193(1999)8:2/3&lt;128::AID-HBM10&gt;3.0.CO;2-G</a>.</p>
 </div>
-<div id="ref-R-bibtex">
-<p>Francois, Romain. 2017. <em>Bibtex: Bibtex Parser</em>. <a href="https://CRAN.R-project.org/package=bibtex">https://CRAN.R-project.org/package=bibtex</a>.</p>
+<div id="ref-laird2019soar">
+<p>Laird, John E. 2019. <em>The Soar Cognitive Architecture</em>. MIT Press.</p>
 </div>
-<div id="ref-R-cmdstanr">
-<p>Gabry, Jonah, Rok Češnovar, Andrew Johnson, and Steve Bronder. 2024. <em>cmdstanr: R Interface to “CmdStan”</em>. <a href="https://mc-stan.org/cmdstanr/">https://mc-stan.org/cmdstanr/</a>.</p>
+<div id="ref-mathpsych2011">
+<p>Lee, Michael D, ed. 2011a. “Special Issue on Hierarchical Bayesian Models.” <em>Journal of Mathematical Psychology</em> 55 (1). <a href="https://www.sciencedirect.com/journal/journal-of-mathematical-psychology/vol/55/issue/1">https://www.sciencedirect.com/journal/journal-of-mathematical-psychology/vol/55/issue/1</a>.</p>
 </div>
-<div id="ref-R-bayesplot">
-<p>Gabry, Jonah, and Tristan Mahr. 2024. <em>bayesplot: Plotting for Bayesian Models</em>. <a href="https://mc-stan.org/bayesplot/">https://mc-stan.org/bayesplot/</a>.</p>
+<div id="ref-Lee2011">
+<p>Lee, Michael D, ed. 2011b. “How Cognitive Modeling Can Benefit from Hierarchical Bayesian Models.” <em>Journal of Mathematical Psychology</em> 55 (1): 1–7. <a href="https://doi.org/10.1016/j.jmp.2010.08.013">https://doi.org/10.1016/j.jmp.2010.08.013</a>.</p>
 </div>
-<div id="ref-Gelman14">
-<p>Gelman, Andrew, John B. Carlin, Hal S. Stern, David B. Dunson, Aki Vehtari, and Donald B. Rubin. 2014. <em>Bayesian Data Analysis</em>. Third Edition. Boca Raton, FL: Chapman; Hall/CRC Press.</p>
+<div id="ref-LeeWagenmakers2014">
+<p>Lee, Michael D, and Eric-Jan Wagenmakers. 2014. <em>Bayesian Cognitive Modeling: A Practical Course</em>. Cambridge University Press.</p>
 </div>
-<div id="ref-gill2006essential">
-<p>Gill, Jeff. 2006. <em>Essential Mathematics for Political and Social Research</em>. Cambridge University Press Cambridge.</p>
+<div id="ref-LissonEtAlInterference2021">
+<p>Lissón, Paula, Dario Paape, Dorothea Pregla, Frank Burchert, Nicole Stadie, and Shravan Vasishth. 2023. “Similarity-Based Interference in Sentence Comprehension in Aphasia: A Computational Evaluation of Two Models of Cue-Based Retrieval.” <em>Computational Brain and Behavior</em>. <a href="https://doi.org/10.1007/s42113-023-00168-3">https://doi.org/10.1007/s42113-023-00168-3</a>.</p>
 </div>
-<div id="ref-R-gdtools">
-<p>Gohel, David, Hadley Wickham, Lionel Henry, and Jeroen Ooms. 2019. <em>gdtools: Utilities for Graphical Rendering</em>. <a href="https://CRAN.R-project.org/package=gdtools">https://CRAN.R-project.org/package=gdtools</a>.</p>
+<div id="ref-lisson_2020">
+<p>Lissón, Paula, Dorothea Pregla, Bruno Nicenboim, Dario Paape, Mick van het Nederend, Frank Burchert, Nicole Stadie, David Caplan, and Shravan Vasishth. 2021. “A Computational Evaluation of Two Models of Retrieval Processes in Sentence Processing in Aphasia.” <em>Cognitive Science</em> 45 (4): e12956. <a href="https://onlinelibrary.wiley.com/doi/full/10.1111/cogs.12956">https://onlinelibrary.wiley.com/doi/full/10.1111/cogs.12956</a>.</p>
 </div>
-<div id="ref-R-StanHeaders">
-<p>Goodrich, Ben, Andrew Gelman, Bob Carpenter, Matthew D. Hoffman, Daniel Lee, Michael J. Betancourt, Marcus Brubaker, et al. 2024. <em>StanHeaders: C++ Header Files for Stan</em>. <a href="https://mc-stan.org/">https://mc-stan.org/</a>.</p>
+<div id="ref-luce1986response">
+<p>Luce, R. Duncan. 1991. <em>Response Times: Their Role in Inferring Elementary Mental Organization</em>. Oxford University Press.</p>
 </div>
-<div id="ref-R-bridgesampling">
-<p>Gronau, Quentin F., Henrik Singmann, and Eric-Jan Wagenmakers. 2017. “Bridgesampling: An R Package for Estimating Normalizing Constants.” <em>arXiv Preprint arXiv:1710.08162</em>. <a href="http://arxiv.org/abs/1710.08162">http://arxiv.org/abs/1710.08162</a>.</p> 2020. “bridgesampling: An R Package for Estimating Normalizing Constants.” <em>Journal of Statistical Software</em> 92 (10): 1–29. <a href="https://doi.org/10.18637/jss.v092.i10">https://doi.org/10.18637/jss.v092.i10</a>.</p>
+<div id="ref-mcclellandPlaceModelingCognitive2009">
+<p>McClelland, James L. 2009. “The Place of Modeling in Cognitive Science.” <em>Topics in Cognitive Science</em> 1 (1): 11–38. <a href="https://doi.org/10.1111/j.1756-8765.2008.01003.x">https://doi.org/10.1111/j.1756-8765.2008.01003.x</a>.</p>
 </div>
-<div id="ref-R-rstan">
-<p>Guo, Jiqiang, Jonah Gabry, Ben Goodrich, Andrew Johnson, Sebastian Weber, and Hamada S. Badr. 2024. <em>rstan: R Interface to Stan</em>. <a href="https://mc-stan.org/rstan/">https://mc-stan.org/rstan/</a>.</p>
+<div id="ref-mcclelland1989explorations">
+<p>McClelland, James L., and David E. Rumelhart. 1989. <em>Explorations in Parallel Distributed Processing: A Handbook of Models, Programs, and Exercises</em>. MIT Press.</p>
 </div>
-<div id="ref-R-remotes">
-<p>Hester, Jim, Gábor Csárdi, Hadley Wickham, Winston Chang, Martin Morgan, and Dan Tenenbaum. 2021. <em>Remotes: R Package Installation from Remote Repositories, Including ’Github’</em>. <a href="https://CRAN.R-project.org/package=remotes">https://CRAN.R-project.org/package=remotes</a>.</p>
+<div id="ref-meehl97">
+<p>Meehl, Paul E. 1997. “The Problem Is Epistemology, Not Statistics: Replace Significance Tests by Confidence Intervals and Quantify Accuracy of Risky Numerical Predictions.” In <em>What If There Were No Significance Tests?</em>, edited by L. L. Harlow, S. A. Mulaik, and J. H. Steiger. Mahwah, New Jersey: Erlbaum.</p>
 </div>
-<div id="ref-R-tictoc">
-<p>Izrailev, Sergei. 2024. <em>Tictoc: Functions for Timing R Scripts, as Well as Implementations of "Stack" and "Stacklist" Structures</em>. <a href="https://github.com/jabiru/tictoc">https://github.com/jabiru/tictoc</a>.</p>
+<div id="ref-utc">
+<p>Newell, Allen. 1990. <em>Unified Theories of Cognition</em>. Cambridge: MA: Harvard University Press.</p>
 </div>
-<div id="ref-kerns2014introduction">
-<p>Kerns, G. J. 2014. <em>Introduction to Probability and Statistics Using R</em>. Second Edition.</p>
+<div id="ref-nicenboimModelsRetrievalSentence2018">
+<p>Nicenboim, Bruno, and Shravan Vasishth. 2018. “Models of Retrieval in Sentence Comprehension: A Computational Evaluation Using Bayesian Hierarchical Modeling.” <em>Journal of Memory and Language</em> 99: 1–34. <a href="https://doi.org/10.1016/j.jml.2017.08.004">https://doi.org/10.1016/j.jml.2017.08.004</a>.</p>
 </div>
-<div id="ref-R-SBC">
-<p>Kim, Shinyoung, Hyunji Moon, Martin Modrák, and Teemu Säilynoja. 2024. <em>SBC: Simulation Based Calibration for Rstan/Cmdstanr Models</em>. <a href="https://hyunjimoon.github.io/SBC/">https://hyunjimoon.github.io/SBC/</a>.</p>
+<div id="ref-paapevasishthmpt2022">
+<p>Paape, Dario, and Shravan Vasishth. 2022. “Estimating the True Cost of Garden-Pathing: A Computational Model of Latent Cognitive Processes.” <em>Cognitive Science</em> 46 (8): e13186. <a href="https://doi.org/https://doi.org/10.1111/cogs.13186">https://doi.org/https://doi.org/10.1111/cogs.13186</a>.</p>
 </div>
-<div id="ref-danlevy">
-<p>Levy, Dan. 2021. <em>Maxims for Thinking Analytically: The Wisdom of Legendary Harvard Professor Richard Zeckhauser</em>. Dan Levy.</p>
+<div id="ref-port1995mind">
+<p>Port, Robert F., and Timothy Van Gelder. 1995. <em>Mind as Motion: Explorations in the Dynamics of Cognition</em>. MIT Press.</p>
 </div>
-<div id="ref-R-rethinking">
-<p>McElreath, Richard. 2021. <em>Rethinking: Statistical Rethinking Book Package</em>.</p>
+<div id="ref-Rabe2019">
+<p>Rabe, Maximilian M., Johan Chandra, André Krügel, Stefan A. Seelig, Shravan Vasishth, and Ralf Engbert. 2021. “A Bayesian Approach to Dynamical Modeling of Eye-Movement Control in Reading of Normal, Mirrored, and Scrambled Texts.” <em>Psychological Review</em>. <a href="https://doi.org/10.1037/rev0000268">https://doi.org/10.1037/rev0000268</a>.</p>
 </div>
-<div id="ref-R-RefManageR">
-<p>McLean, Mathew William. 2017. “RefManageR: Import and Manage Bibtex and Biblatex References in R.” <em>The Journal of Open Source Software</em>. <a href="https://doi.org/10.21105/joss.00338">https://doi.org/10.21105/joss.00338</a>.</p>
+<div id="ref-RabePaapeJML2023">
+<p>Rabe, Maximilian M., Dario Paape, Daniela Metzen, Shravan Vasishth, and Ralf Engbert. 2024. “SEAM: An Integrated Activation-Coupled Model of Sentence Processing and Eye Movements in Reading.” <em>Journal of Memory and Language</em>. <a href="https://doi.org/https://doi.org/10.1016/j.jml.2023.104496">https://doi.org/https://doi.org/10.1016/j.jml.2023.104496</a>.</p>
 </div>
-<div id="ref-R-tibble">
-<p>Müller, Kirill, and Hadley Wickham. 2020. <em>Tibble: Simple Data Frames</em>. <a href="https://CRAN.R-project.org/package=tibble">https://CRAN.R-project.org/package=tibble</a>.</p>
+<div id="ref-rp">
+<p>Roberts, Seth, and Harold Pashler. 2000. “How Persuasive Is a Good Fit? A Comment on Theory Testing.” <em>Psychological Review</em> 107 (2): 358–67. <a href="https://doi.org/https://doi.org/10.1037/0033-295X.107.2.358">https://doi.org/https://doi.org/10.1037/0033-295X.107.2.358</a>.</p>
 </div>
-<div id="ref-R-bcogsci">
-<p>Nicenboim, Bruno, Daniel J. Schad, and Shravan Vasishth. 2024. <em>bcogsci: Data and Models for the Book “An Introduction to Bayesian Data Analysis for Cognitive Science”</em>.</p>
+<div id="ref-tabor1999dynamical">
+<p>Tabor, Whitney, and Michael K. Tanenhaus. 1999. “Dynamical Models of Sentence Processing.” <em>Cognitive Science</em> 23 (4): 491–515.</p>
 </div>
-<div id="ref-R-SHELF">
-<p>Oakley, Jeremy E. 2024. <em>SHELF: Tools to Support the Sheffield Elicitation Framework</em>. <a href="https://github.com/OakleyJ/SHELF">https://github.com/OakleyJ/SHELF</a>.</p>
+<div id="ref-VasishthEngelmann2022">
+<p>Vasishth, Shravan, and Felix Engelmann. 2022. <em>Sentence Comprehension as a Cognitive Process: A Computational Approach</em>. Cambridge, UK: Cambridge University Press. <a href="https://books.google.de/books?id=6KZKzgEACAAJ">https://books.google.de/books?id=6KZKzgEACAAJ</a>.</p>
 </div>
-<div id="ref-R-pdftools">
-<p>Ooms, Jeroen. 2023. <em>pdftools: Text Extraction, Rendering and Converting of Pdf Documents</em>. <a href="https://docs.ropensci.org/pdftools/">https://docs.ropensci.org/pdftools/</a>.</p>
+<div id="ref-VasishthMertzenJaegerGelman2018">
+<p>Vasishth, Shravan, Daniela Mertzen, Lena A. Jäger, and Andrew Gelman. 2018. “The Statistical Significance Filter Leads to Overoptimistic Expectations of Replicability.” <em>Journal of Memory and Language</em> 103: 151–75. <a href="https://doi.org/https://doi.org/10.1016/j.jml.2018.07.004">https://doi.org/https://doi.org/10.1016/j.jml.2018.07.004</a>.</p>
 </div>
-<div id="ref-R-hypr_b">
-<p>Rabe, Maximilian M., Shravan Vasishth, Sven Hohenstein, Reinhold Kliegl, and Daniel J. Schad. 2020a. “hypr: An R Package for Hypothesis-Driven Contrast Coding.” <em>Journal of Open Source Software</em> 5 (48): 2134.</p> 2020b. “Hypr: An R Package for Hypothesis-Driven Contrast Coding.” <em>The Journal of Open Source Software</em>. <a href="https://doi.org/10.21105/joss.02134">https://doi.org/10.21105/joss.02134</a>.</p>
+<div id="ref-warren2002influence">
+<p>Warren, Tessa, and Edward Gibson. 2002. “The Influence of Referential Processing on Sentence Complexity.” <em>Cognition</em> 85: 79–112. <a href="https://doi.org/https://doi.org/10.1016/S0010-0277(02)00087-2">https://doi.org/https://doi.org/10.1016/S0010-0277(02)00087-2</a>.</p>
 </div>
-<div id="ref-R-base">
-<p>R Core Team. 2023. <em>R: A Language and Environment for Statistical Computing</em>. Vienna, Austria: R Foundation for Statistical Computing. <a href="https://www.R-project.org/">https://www.R-project.org/</a>.</p>
+<div id="ref-WilsonEtAl2019">
+<p>Wilson, Robert C., and Anne G. E. Collins. 2019. “Ten Simple Rules for the Computational Modeling of Behavioral Data.” Edited by Timothy E Behrens. <em>eLife</em> 8 (November): e49547. <a href="https://doi.org/10.7554/eLife.49547">https://doi.org/10.7554/eLife.49547</a>.</p>
 </div>
-<div id="ref-R-MASS">
-<p>Ripley, Brian D. 2023. <em>MASS: Support Functions and Datasets for Venables and Ripley’s MASS</em>. <a href="http://www.stats.ox.ac.uk/pub/MASS4/">http://www.stats.ox.ac.uk/pub/MASS4/</a>.</p>
+<div id="ref-yadavindiff2021">
+<p>Yadav, Himanshu, Dario Paape, Garrett Smith, Brian W. Dillon, and Shravan Vasishth. 2022. “Individual Differences in Cue Weighting in Sentence Comprehension: An evaluation using Approximate Bayesian Computation.” <em>Open Mind</em>. <a href="https://doi.org/https://doi.org/10.1162/opmi_a_00052">https://doi.org/https://doi.org/10.1162/opmi_a_00052</a>.</p>
 </div>
-<div id="ref-R-hypr_a">
-<p>Schad, Daniel J., Shravan Vasishth, Sven Hohenstein, and Reinhold Kliegl. 2019. “How to Capitalize on a Priori Contrasts in Linear (Mixed) Models: A Tutorial.” <em>Journal of Memory and Language</em> 110. <a href="https://doi.org/10.1016/j.jml.2019.104038">https://doi.org/10.1016/j.jml.2019.104038</a>.</p>
-</div>
-<div id="ref-R-texPreview">
-<p>Sidi, Jonathan, and Daniel Polhamus. 2020. <em>TexPreview: Compile and Preview Snippets of “Latex”</em>. <a href="https://CRAN.R-project.org/package=texPreview">https://CRAN.R-project.org/package=texPreview</a>.</p>
-</div>
-<div id="ref-R-afex">
-<p>Singmann, Henrik, Ben Bolker, Jake Westfall, Frederik Aust, and Mattan S. Ben-Shachar. 2020. <em>Afex: Analysis of Factorial Experiments</em>. <a href="https://CRAN.R-project.org/package=afex">https://CRAN.R-project.org/package=afex</a>.</p>
-</div>
-<div id="ref-R-rootSolve">
-<p>Soetaert, Karline, and Peter M. J. Herman. 2009. <em>A Practical Guide to Ecological Modelling. Using R as a Simulation Platform</em>. Springer.</p>
-</div>
-<div id="ref-R-barsurf">
-<p>Spurdle, Abby. 2020. <em>Barsurf: Heatmap-Related Plots and Smooth Multiband Color Interpolation</em>. <a href="https://CRAN.R-project.org/package=barsurf">https://CRAN.R-project.org/package=barsurf</a>.</p>
-</div>
-<div id="ref-R-bivariate">
-<p>Spurdle, Abby. 2021. <em>Bivariate: Bivariate Probability Distributions</em>. <a href="https://sites.google.com/site/spurdlea/r">https://sites.google.com/site/spurdlea/r</a>.</p>
-</div>
-<div id="ref-R-intoo">
-<p>Spurdle, Abby, and Emil Bode. 2020. <em>Intoo: Minimal Language-Like Extensions</em>. <a href="https://CRAN.R-project.org/package=intoo">https://CRAN.R-project.org/package=intoo</a>.</p>
-</div>
-<div id="ref-R-htmlwidgets">
-<p>Vaidyanathan, Ramnath, Yihui Xie, J. J. Allaire, Joe Cheng, and Kenton Russell. 2023. <em>htmlwidgets: HTML Widgets for R</em>. <a href="https://github.com/ramnathv/htmlwidgets">https://github.com/ramnathv/htmlwidgets</a>.</p>
-</div>
-<div id="ref-VasishthEtAlFreq2021">
-<p>Vasishth, Shravan, Daniel J. Schad, Audrey Bürki, and Reinhold Kliegl. 2021. “Linear Mixed Models for Linguistics and Psychology: A Comprehensive Introduction.” <a href="https://vasishth.github.io/Freq_CogSci/">https://vasishth.github.io/Freq_CogSci/</a>.</p>
-</div>
-<div id="ref-R-loo_a">
-<p>Vehtari, Aki, Andrew Gelman, and Jonah Gabry. 2017a. “Practical Bayesian Model Evaluation Using Leave-One-Out Cross-Validation and Waic.” <em>Statistics and Computing</em> 27 (5): 1413–32. <a href="https://doi.org/10.1007/s11222-016-9696-4">https://doi.org/10.1007/s11222-016-9696-4</a>.</p>
-</div>
-<div id="ref-R-forcats">
-<p>Wickham, Hadley. 2019a. <em>forcats: Tools for Working with Categorical Variables (Factors)</em>. <a href="https://CRAN.R-project.org/package=forcats">https://CRAN.R-project.org/package=forcats</a>.</p>
-</div>
-<div id="ref-R-stringr">
-<p>Wickham, Hadley. 2019b. <em>stringr: Simple, Consistent Wrappers for Common String Operations</em>. <a href="https://CRAN.R-project.org/package=stringr">https://CRAN.R-project.org/package=stringr</a>.</p>
-</div>
-<div id="ref-R-tidyverse">
-<p>Wickham, Hadley, Mara Averick, Jennifer Bryan, Winston Chang, Lucy D’Agostino McGowan, Romain François, Garrett Grolemund, et al. 2019. “Welcome to the tidyverse.” <em>Journal of Open Source Software</em> 4 (43): 1686. <a href="https://doi.org/10.21105/joss.01686">https://doi.org/10.21105/joss.01686</a>.</p>
-</div>
-<div id="ref-R-ggplot2">
-<p>Wickham, Hadley, Winston Chang, Lionel Henry, Thomas Lin Pedersen, Kohske Takahashi, Claus O. Wilke, Kara Woo, Hiroaki Yutani, and Teun van den Brand. 2024. <em>ggplot2: Create Elegant Data Visualisations Using the Grammar of Graphics</em>. <a href="https://ggplot2.tidyverse.org">https://ggplot2.tidyverse.org</a>.</p>
-</div>
-<div id="ref-R-dplyr">
-<p>Wickham, Hadley, Romain François, Lionel Henry, Kirill Müller, and Davis Vaughan. 2023. <em>dplyr: A Grammar of Data Manipulation</em>. <a href="https://dplyr.tidyverse.org">https://dplyr.tidyverse.org</a>.</p>
-</div>
-<div id="ref-R-purrr">
-<p>Wickham, Hadley, and Lionel Henry. 2023. <em>purrr: Functional Programming Tools</em>. <a href="https://purrr.tidyverse.org/">https://purrr.tidyverse.org/</a>.</p>
-</div>
-<div id="ref-R-readr">
-<p>Wickham, Hadley, Jim Hester, and Romain Francois. 2018. <em>readr: Read Rectangular Text Data</em>. <a href="https://CRAN.R-project.org/package=readr">https://CRAN.R-project.org/package=readr</a>.</p>
-</div>
-<div id="ref-R-tidyr">
-<p>Wickham, Hadley, Davis Vaughan, and Maximilian Girlich. 2024. <em>Tidyr: Tidy Messy Data</em>. <a href="https://tidyr.tidyverse.org">https://tidyr.tidyverse.org</a>.</p>
-</div>
-<div id="ref-R-cowplot">
-<p>Wilke, Claus O. 2024. <em>cowplot: Streamlined Plot Theme and Plot Annotations for ’Ggplot2’</em>. <a href="https://wilkelab.org/cowplot/">https://wilkelab.org/cowplot/</a>.</p>
-</div>
-<div id="ref-R-extraDistr">
-<p>Wolodzko, Tymoteusz. 2023. <em>extraDistr: Additional Univariate and Multivariate Distributions</em>. <a href="https://github.com/twolodzko/extraDistr">https://github.com/twolodzko/extraDistr</a>.</p>
-</div>
-<div id="ref-R-servr">
-<p>Xie, Yihui. 2019. <em>servr: A Simple Http Server to Serve Static Files or Dynamic Documents</em>. <a href="https://CRAN.R-project.org/package=servr">https://CRAN.R-project.org/package=servr</a>.</p>
-</div>
-<div id="ref-R-bookdown">
-<p>Xie, Yihui. 2024a. <em>bookdown: Authoring Books and Technical Documents with R Markdown</em>. <a href="https://github.com/rstudio/bookdown">https://github.com/rstudio/bookdown</a>.</p>
-</div>
-<div id="ref-R-knitr">
-<p>Xie, Yihui. 2024b. <em>knitr: A General-Purpose Package for Dynamic Report Generation in R</em>. <a href="https://yihui.org/knitr/">https://yihui.org/knitr/</a>.</p>
-</div>
-<div id="ref-R-DT">
-<p>Xie, Yihui, Joe Cheng, and Xianying Tan. 2019. <em>DT: A Wrapper of the Javascript Library ’Datatables’</em>. <a href="https://CRAN.R-project.org/package=DT">https://CRAN.R-project.org/package=DT</a>.</p>
-</div>
-<div id="ref-R-loo_b">
-<p>Yao, Yuling, Aki Vehtari, Daniel P. Simpson, and Andrew Gelman. 2017. “Using Stacking to Average Bayesian Predictive Distributions.” <em>Bayesian Analysis</em>. <a href="https://doi.org/10.1214/17-BA1091">https://doi.org/10.1214/17-BA1091</a>.</p>
-</div>
-<div id="ref-R-kableExtra">
-<p>Zhu, Hao. 2024. <em>KableExtra: Construct Complex Table with ’Kable’ and Pipe Syntax</em>. <a href="http://haozhu233.github.io/kableExtra/">http://haozhu233.github.io/kableExtra/</a>.</p>
+<div id="ref-YadavetalJML2022">
+<p>Yadav, Himanshu, Garrett Smith, Sebastian Reich, and Shravan Vasishth. 2023. “Number Feature Distortion Modulates Cue-Based Retrieval in Reading.” <em>Journal of Memory and Language</em> 129. <a href="https://doi.org/10.1016/j.jml.2022.104400">https://doi.org/10.1016/j.jml.2022.104400</a>.</p>
 </div>
 </div>
             </section>
@@ -1603,8 +1451,8 @@ Shravan Vasishth (Potsdam, Germany)
           </div>
         </div>
       </div>
-
-<a href="about-the-authors.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="ch-cv.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="ch-MPT.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook/js/app.min.js"></script>

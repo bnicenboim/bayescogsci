@@ -10,20 +10,20 @@
 
   <meta property="og:title" content="Chapter 1 Introduction | An Introduction to Bayesian Data Analysis for Cognitive Science" />
   <meta property="og:type" content="book" />
-  <meta property="og:image" content="https://vasishth.github.io/Bayes_CogSci//images/temporarycover.jpg" />
+  <meta property="og:image" content="https://bruno.nicenboim.me/bayescogsci/images/temporarycover.jpg" />
   <meta property="og:description" content="An introduction to Bayesian data analysis for Cognitive Science." />
-  <meta name="github-repo" content="https://github.com/vasishth/Bayes_CogSci" />
+  <meta name="github-repo" content="https://github.com/bnicenboim/bayescogsci" />
 
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Chapter 1 Introduction | An Introduction to Bayesian Data Analysis for Cognitive Science" />
   
   <meta name="twitter:description" content="An introduction to Bayesian data analysis for Cognitive Science." />
-  <meta name="twitter:image" content="https://vasishth.github.io/Bayes_CogSci//images/temporarycover.jpg" />
+  <meta name="twitter:image" content="https://bruno.nicenboim.me/bayescogsci/images/temporarycover.jpg" />
 
 <meta name="author" content="Bruno Nicenboim, Daniel Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2024-09-02" />
+<meta name="date" content="2024-09-20" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -31,7 +31,7 @@
   
   
 <link rel="prev" href="about-the-authors.html"/>
-
+<link rel="next" href="ch-introBDA.html"/>
 <script src="libs/jquery/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
 <link href="libs/gitbook/css/style.css" rel="stylesheet" />
@@ -917,6 +917,350 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="1.10" data-path="ch-intro.html"><a href="ch-intro.html#further-reading"><i class="fa fa-check"></i><b>1.10</b> Further reading</a></li>
 <li class="chapter" data-level="1.11" data-path="ch-intro.html"><a href="ch-intro.html#sec-Foundationsexercises"><i class="fa fa-check"></i><b>1.11</b> Exercises</a></li>
 </ul></li>
+<li class="chapter" data-level="2" data-path="ch-introBDA.html"><a href="ch-introBDA.html"><i class="fa fa-check"></i><b>2</b> Introduction to Bayesian data analysis</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="ch-introBDA.html"><a href="ch-introBDA.html#bayes-rule"><i class="fa fa-check"></i><b>2.1</b>  Bayes’ rule</a></li>
+<li class="chapter" data-level="2.2" data-path="ch-introBDA.html"><a href="ch-introBDA.html#sec-analytical"><i class="fa fa-check"></i><b>2.2</b> Deriving the  posterior using Bayes’ rule: An analytical example</a>
+<ul>
+<li class="chapter" data-level="2.2.1" data-path="ch-introBDA.html"><a href="ch-introBDA.html#choosing-a-likelihood"><i class="fa fa-check"></i><b>2.2.1</b> Choosing a  likelihood</a></li>
+<li class="chapter" data-level="2.2.2" data-path="ch-introBDA.html"><a href="ch-introBDA.html#sec-choosepriortheta"><i class="fa fa-check"></i><b>2.2.2</b> Choosing a  prior for <span class="math inline">\(\theta\)</span></a></li>
+<li class="chapter" data-level="2.2.3" data-path="ch-introBDA.html"><a href="ch-introBDA.html#using-bayes-rule-to-compute-the-posterior-pthetank"><i class="fa fa-check"></i><b>2.2.3</b> Using  Bayes’ rule to compute the  posterior <span class="math inline">\(p(\theta|n,k)\)</span></a></li>
+<li class="chapter" data-level="2.2.4" data-path="ch-introBDA.html"><a href="ch-introBDA.html#summary-of-the-procedure"><i class="fa fa-check"></i><b>2.2.4</b> Summary of the procedure</a></li>
+<li class="chapter" data-level="2.2.5" data-path="ch-introBDA.html"><a href="ch-introBDA.html#visualizing-the-prior-likelihood-and-posterior"><i class="fa fa-check"></i><b>2.2.5</b> Visualizing the prior, likelihood, and posterior</a></li>
+<li class="chapter" data-level="2.2.6" data-path="ch-introBDA.html"><a href="ch-introBDA.html#the-posterior-distribution-is-a-compromise-between-the-prior-and-the-likelihood"><i class="fa fa-check"></i><b>2.2.6</b> The  posterior distribution is a compromise between the prior and the likelihood</a></li>
+<li class="chapter" data-level="2.2.7" data-path="ch-introBDA.html"><a href="ch-introBDA.html#incremental-knowledge-gain-using-prior-knowledge"><i class="fa fa-check"></i><b>2.2.7</b> Incremental knowledge gain using prior knowledge</a></li>
+</ul></li>
+<li class="chapter" data-level="2.3" data-path="ch-introBDA.html"><a href="ch-introBDA.html#summary-1"><i class="fa fa-check"></i><b>2.3</b> Summary</a></li>
+<li class="chapter" data-level="2.4" data-path="ch-introBDA.html"><a href="ch-introBDA.html#further-reading-1"><i class="fa fa-check"></i><b>2.4</b> Further reading</a></li>
+<li class="chapter" data-level="2.5" data-path="ch-introBDA.html"><a href="ch-introBDA.html#sec-BDAexercises"><i class="fa fa-check"></i><b>2.5</b> Exercises</a></li>
+</ul></li>
+<li class="part"><span><b>II Regression models with brms</b></span></li>
+<li class="chapter" data-level="3" data-path="ch-compbda.html"><a href="ch-compbda.html"><i class="fa fa-check"></i><b>3</b> Computational Bayesian data analysis</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="ch-compbda.html"><a href="ch-compbda.html#sec-sampling"><i class="fa fa-check"></i><b>3.1</b> Deriving the  posterior through  sampling</a></li>
+<li class="chapter" data-level="3.2" data-path="ch-compbda.html"><a href="ch-compbda.html#bayesian-regression-models-using-stan-brms"><i class="fa fa-check"></i><b>3.2</b>  Bayesian Regression Models using Stan:  brms</a>
+<ul>
+<li class="chapter" data-level="3.2.1" data-path="ch-compbda.html"><a href="ch-compbda.html#sec-simplenormal"><i class="fa fa-check"></i><b>3.2.1</b> A simple linear model: A single subject pressing a button repeatedly (a finger tapping task)</a></li>
+</ul></li>
+<li class="chapter" data-level="3.3" data-path="ch-compbda.html"><a href="ch-compbda.html#sec-priorpred"><i class="fa fa-check"></i><b>3.3</b>  Prior predictive distribution</a></li>
+<li class="chapter" data-level="3.4" data-path="ch-compbda.html"><a href="ch-compbda.html#sec-sensitivity"><i class="fa fa-check"></i><b>3.4</b> The influence of priors:  sensitivity analysis</a>
+<ul>
+<li class="chapter" data-level="3.4.1" data-path="ch-compbda.html"><a href="ch-compbda.html#flat-uninformative-priors"><i class="fa fa-check"></i><b>3.4.1</b>  Flat, uninformative priors</a></li>
+<li class="chapter" data-level="3.4.2" data-path="ch-compbda.html"><a href="ch-compbda.html#regularizing-priors"><i class="fa fa-check"></i><b>3.4.2</b>  Regularizing priors</a></li>
+<li class="chapter" data-level="3.4.3" data-path="ch-compbda.html"><a href="ch-compbda.html#principled-priors"><i class="fa fa-check"></i><b>3.4.3</b>  Principled priors</a></li>
+<li class="chapter" data-level="3.4.4" data-path="ch-compbda.html"><a href="ch-compbda.html#informative-priors"><i class="fa fa-check"></i><b>3.4.4</b>  Informative priors</a></li>
+</ul></li>
+<li class="chapter" data-level="3.5" data-path="ch-compbda.html"><a href="ch-compbda.html#sec-revisit"><i class="fa fa-check"></i><b>3.5</b> Revisiting the button-pressing example with different priors</a></li>
+<li class="chapter" data-level="3.6" data-path="ch-compbda.html"><a href="ch-compbda.html#sec-ppd"><i class="fa fa-check"></i><b>3.6</b>  Posterior predictive distribution</a></li>
+<li class="chapter" data-level="3.7" data-path="ch-compbda.html"><a href="ch-compbda.html#the-influence-of-the-likelihood"><i class="fa fa-check"></i><b>3.7</b> The influence of the likelihood</a>
+<ul>
+<li class="chapter" data-level="3.7.1" data-path="ch-compbda.html"><a href="ch-compbda.html#sec-lnfirst"><i class="fa fa-check"></i><b>3.7.1</b> The  log-normal likelihood</a></li>
+<li class="chapter" data-level="3.7.2" data-path="ch-compbda.html"><a href="ch-compbda.html#sec-lognormal"><i class="fa fa-check"></i><b>3.7.2</b> Using a log-normal likelihood to fit data from a single subject pressing a button repeatedly</a></li>
+</ul></li>
+<li class="chapter" data-level="3.8" data-path="ch-compbda.html"><a href="ch-compbda.html#list-of-the-most-important-commands"><i class="fa fa-check"></i><b>3.8</b> List of the most important commands</a></li>
+<li class="chapter" data-level="3.9" data-path="ch-compbda.html"><a href="ch-compbda.html#summary-2"><i class="fa fa-check"></i><b>3.9</b> Summary</a></li>
+<li class="chapter" data-level="3.10" data-path="ch-compbda.html"><a href="ch-compbda.html#sec-ch3furtherreading"><i class="fa fa-check"></i><b>3.10</b> Further reading</a></li>
+<li class="chapter" data-level="3.11" data-path="ch-compbda.html"><a href="ch-compbda.html#ex:compbda"><i class="fa fa-check"></i><b>3.11</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="ch-reg.html"><a href="ch-reg.html"><i class="fa fa-check"></i><b>4</b> Bayesian regression models</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="ch-reg.html"><a href="ch-reg.html#sec-pupil"><i class="fa fa-check"></i><b>4.1</b> A first  linear regression: Does attentional load affect pupil size?</a>
+<ul>
+<li class="chapter" data-level="4.1.1" data-path="ch-reg.html"><a href="ch-reg.html#likelihood-and-priors"><i class="fa fa-check"></i><b>4.1.1</b>  Likelihood and  priors</a></li>
+<li class="chapter" data-level="4.1.2" data-path="ch-reg.html"><a href="ch-reg.html#the-brms-model"><i class="fa fa-check"></i><b>4.1.2</b> The  <code>brms</code> model</a></li>
+<li class="chapter" data-level="4.1.3" data-path="ch-reg.html"><a href="ch-reg.html#how-to-communicate-the-results"><i class="fa fa-check"></i><b>4.1.3</b> How to communicate the results?</a></li>
+<li class="chapter" data-level="4.1.4" data-path="ch-reg.html"><a href="ch-reg.html#sec-pupiladq"><i class="fa fa-check"></i><b>4.1.4</b> Descriptive adequacy</a></li>
+</ul></li>
+<li class="chapter" data-level="4.2" data-path="ch-reg.html"><a href="ch-reg.html#sec-trial"><i class="fa fa-check"></i><b>4.2</b>  Log-normal model: Does trial affect response times?</a>
+<ul>
+<li class="chapter" data-level="4.2.1" data-path="ch-reg.html"><a href="ch-reg.html#likelihood-and-priors-for-the-log-normal-model"><i class="fa fa-check"></i><b>4.2.1</b> Likelihood and priors for the log-normal model</a></li>
+<li class="chapter" data-level="4.2.2" data-path="ch-reg.html"><a href="ch-reg.html#the-brms-model-1"><i class="fa fa-check"></i><b>4.2.2</b> The  <code>brms</code> model</a></li>
+<li class="chapter" data-level="4.2.3" data-path="ch-reg.html"><a href="ch-reg.html#how-to-communicate-the-results-1"><i class="fa fa-check"></i><b>4.2.3</b> How to communicate the results?</a></li>
+<li class="chapter" data-level="4.2.4" data-path="ch-reg.html"><a href="ch-reg.html#descriptive-adequacy"><i class="fa fa-check"></i><b>4.2.4</b> Descriptive adequacy</a></li>
+</ul></li>
+<li class="chapter" data-level="4.3" data-path="ch-reg.html"><a href="ch-reg.html#sec-logistic"><i class="fa fa-check"></i><b>4.3</b>  Logistic regression: Does  set size affect  free recall?</a>
+<ul>
+<li class="chapter" data-level="4.3.1" data-path="ch-reg.html"><a href="ch-reg.html#the-likelihood-for-the-logistic-regression-model"><i class="fa fa-check"></i><b>4.3.1</b> The likelihood for the logistic regression model</a></li>
+<li class="chapter" data-level="4.3.2" data-path="ch-reg.html"><a href="ch-reg.html#sec-priorslogisticregression"><i class="fa fa-check"></i><b>4.3.2</b> Priors for the logistic regression</a></li>
+<li class="chapter" data-level="4.3.3" data-path="ch-reg.html"><a href="ch-reg.html#the-brms-model-2"><i class="fa fa-check"></i><b>4.3.3</b> The <code>brms</code> model</a></li>
+<li class="chapter" data-level="4.3.4" data-path="ch-reg.html"><a href="ch-reg.html#sec-comlogis"><i class="fa fa-check"></i><b>4.3.4</b> How to communicate the results?</a></li>
+<li class="chapter" data-level="4.3.5" data-path="ch-reg.html"><a href="ch-reg.html#descriptive-adequacy-1"><i class="fa fa-check"></i><b>4.3.5</b>  Descriptive adequacy</a></li>
+</ul></li>
+<li class="chapter" data-level="4.4" data-path="ch-reg.html"><a href="ch-reg.html#summary-3"><i class="fa fa-check"></i><b>4.4</b> Summary</a></li>
+<li class="chapter" data-level="4.5" data-path="ch-reg.html"><a href="ch-reg.html#sec-ch4furtherreading"><i class="fa fa-check"></i><b>4.5</b> Further reading</a></li>
+<li class="chapter" data-level="4.6" data-path="ch-reg.html"><a href="ch-reg.html#sec-LMexercises"><i class="fa fa-check"></i><b>4.6</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="ch-hierarchical.html"><a href="ch-hierarchical.html"><i class="fa fa-check"></i><b>5</b> Bayesian hierarchical models</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="ch-hierarchical.html"><a href="ch-hierarchical.html#exchangeability-and-hierarchical-models"><i class="fa fa-check"></i><b>5.1</b> Exchangeability and hierarchical models</a></li>
+<li class="chapter" data-level="5.2" data-path="ch-hierarchical.html"><a href="ch-hierarchical.html#sec-N400hierarchical"><i class="fa fa-check"></i><b>5.2</b> A hierarchical model with a normal likelihood: The N400 effect</a>
+<ul>
+<li class="chapter" data-level="5.2.1" data-path="ch-hierarchical.html"><a href="ch-hierarchical.html#sec-Mcp"><i class="fa fa-check"></i><b>5.2.1</b>  Complete pooling model (<span class="math inline">\(M_{cp}\)</span>)</a></li>
+<li class="chapter" data-level="5.2.2" data-path="ch-hierarchical.html"><a href="ch-hierarchical.html#no-pooling-model-m_np"><i class="fa fa-check"></i><b>5.2.2</b>  No pooling model (<span class="math inline">\(M_{np}\)</span>)</a></li>
+<li class="chapter" data-level="5.2.3" data-path="ch-hierarchical.html"><a href="ch-hierarchical.html#sec-uncorrelated"><i class="fa fa-check"></i><b>5.2.3</b>  Varying intercepts and  varying slopes model (<span class="math inline">\(M_{v}\)</span>)</a></li>
+<li class="chapter" data-level="5.2.4" data-path="ch-hierarchical.html"><a href="ch-hierarchical.html#sec-mcvivs"><i class="fa fa-check"></i><b>5.2.4</b> Correlated varying intercept varying slopes model (<span class="math inline">\(M_{h}\)</span>)</a></li>
+<li class="chapter" data-level="5.2.5" data-path="ch-hierarchical.html"><a href="ch-hierarchical.html#sec-sih"><i class="fa fa-check"></i><b>5.2.5</b> By-subjects and by-items correlated varying intercept varying slopes model (<span class="math inline">\(M_{sih}\)</span>)</a></li>
+<li class="chapter" data-level="5.2.6" data-path="ch-hierarchical.html"><a href="ch-hierarchical.html#sec-distrmodel"><i class="fa fa-check"></i><b>5.2.6</b> Beyond the maximal model–Distributional regression models</a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="ch-hierarchical.html"><a href="ch-hierarchical.html#sec-stroop"><i class="fa fa-check"></i><b>5.3</b> A  hierarchical log-normal model: The  Stroop effect</a>
+<ul>
+<li class="chapter" data-level="5.3.1" data-path="ch-hierarchical.html"><a href="ch-hierarchical.html#a-correlated-varying-intercept-varying-slopes-log-normal-model"><i class="fa fa-check"></i><b>5.3.1</b> A correlated varying intercept varying slopes  log-normal model</a></li>
+</ul></li>
+<li class="chapter" data-level="5.4" data-path="ch-hierarchical.html"><a href="ch-hierarchical.html#why-fitting-a-bayesian-hierarchical-model-is-worth-the-effort"><i class="fa fa-check"></i><b>5.4</b> Why fitting a Bayesian hierarchical model is worth the effort</a></li>
+<li class="chapter" data-level="5.5" data-path="ch-hierarchical.html"><a href="ch-hierarchical.html#summary-4"><i class="fa fa-check"></i><b>5.5</b> Summary</a></li>
+<li class="chapter" data-level="5.6" data-path="ch-hierarchical.html"><a href="ch-hierarchical.html#further-reading-2"><i class="fa fa-check"></i><b>5.6</b> Further reading</a></li>
+<li class="chapter" data-level="5.7" data-path="ch-hierarchical.html"><a href="ch-hierarchical.html#sec-HLMexercises"><i class="fa fa-check"></i><b>5.7</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="ch-priors.html"><a href="ch-priors.html"><i class="fa fa-check"></i><b>6</b> The Art and Science of  Prior Elicitation</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="ch-priors.html"><a href="ch-priors.html#sec-simpleexamplepriors"><i class="fa fa-check"></i><b>6.1</b> Eliciting priors from oneself for a self-paced reading study: An example</a>
+<ul>
+<li class="chapter" data-level="6.1.1" data-path="ch-priors.html"><a href="ch-priors.html#an-example-english-relative-clauses"><i class="fa fa-check"></i><b>6.1.1</b> An example: English  relative clauses</a></li>
+<li class="chapter" data-level="6.1.2" data-path="ch-priors.html"><a href="ch-priors.html#eliciting-a-prior-for-the-intercept"><i class="fa fa-check"></i><b>6.1.2</b> Eliciting a prior for the intercept</a></li>
+<li class="chapter" data-level="6.1.3" data-path="ch-priors.html"><a href="ch-priors.html#eliciting-a-prior-for-the-slope"><i class="fa fa-check"></i><b>6.1.3</b> Eliciting a prior for the slope</a></li>
+<li class="chapter" data-level="6.1.4" data-path="ch-priors.html"><a href="ch-priors.html#sec-varcomppriors"><i class="fa fa-check"></i><b>6.1.4</b> Eliciting priors for the  variance components</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="ch-priors.html"><a href="ch-priors.html#eliciting-priors-from-experts"><i class="fa fa-check"></i><b>6.2</b>  Eliciting priors from experts</a></li>
+<li class="chapter" data-level="6.3" data-path="ch-priors.html"><a href="ch-priors.html#deriving-priors-from-meta-analyses"><i class="fa fa-check"></i><b>6.3</b> Deriving priors from  meta-analyses</a></li>
+<li class="chapter" data-level="6.4" data-path="ch-priors.html"><a href="ch-priors.html#using-previous-experiments-posteriors-as-priors-for-a-new-study"><i class="fa fa-check"></i><b>6.4</b> Using previous experiments’  posteriors as priors for a new study</a></li>
+<li class="chapter" data-level="6.5" data-path="ch-priors.html"><a href="ch-priors.html#summary-5"><i class="fa fa-check"></i><b>6.5</b> Summary</a></li>
+<li class="chapter" data-level="6.6" data-path="ch-priors.html"><a href="ch-priors.html#further-reading-3"><i class="fa fa-check"></i><b>6.6</b> Further reading</a></li>
+<li class="chapter" data-level="6.7" data-path="ch-priors.html"><a href="ch-priors.html#sec-priorsexercises"><i class="fa fa-check"></i><b>6.7</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="ch-workflow.html"><a href="ch-workflow.html"><i class="fa fa-check"></i><b>7</b> Workflow</a>
+<ul>
+<li class="chapter" data-level="7.1" data-path="ch-workflow.html"><a href="ch-workflow.html#building-a-model"><i class="fa fa-check"></i><b>7.1</b>  Building a model</a></li>
+<li class="chapter" data-level="7.2" data-path="ch-workflow.html"><a href="ch-workflow.html#principled-questions-to-ask-on-a-model"><i class="fa fa-check"></i><b>7.2</b> Principled questions to ask on a model</a>
+<ul>
+<li class="chapter" data-level="7.2.1" data-path="ch-workflow.html"><a href="ch-workflow.html#checking-whether-assumptions-are-consistent-with-domain-expertise-prior-predictive-checks"><i class="fa fa-check"></i><b>7.2.1</b>  Checking whether assumptions are consistent with  domain expertise: Prior predictive checks</a></li>
+<li class="chapter" data-level="7.2.2" data-path="ch-workflow.html"><a href="ch-workflow.html#testing-for-correct-posterior-approximations-checks-of-computational-faithfulness"><i class="fa fa-check"></i><b>7.2.2</b>  Testing for correct posterior approximations: Checks of computational faithfulness</a></li>
+<li class="chapter" data-level="7.2.3" data-path="ch-workflow.html"><a href="ch-workflow.html#sensitivity-of-the-model"><i class="fa fa-check"></i><b>7.2.3</b>  Sensitivity of the model</a></li>
+<li class="chapter" data-level="7.2.4" data-path="ch-workflow.html"><a href="ch-workflow.html#does-the-model-adequately-capture-the-dataposterior-predictive-checks"><i class="fa fa-check"></i><b>7.2.4</b>  Does the model adequately capture the data?–Posterior predictive checks</a></li>
+</ul></li>
+<li class="chapter" data-level="7.3" data-path="ch-workflow.html"><a href="ch-workflow.html#further-reading-4"><i class="fa fa-check"></i><b>7.3</b> Further reading</a></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="ch-contr.html"><a href="ch-contr.html"><i class="fa fa-check"></i><b>8</b>  Contrast coding</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="ch-contr.html"><a href="ch-contr.html#basic-concepts-illustrated-using-a-two-level-factor"><i class="fa fa-check"></i><b>8.1</b> Basic concepts illustrated using a two-level factor</a>
+<ul>
+<li class="chapter" data-level="8.1.1" data-path="ch-contr.html"><a href="ch-contr.html#treatmentcontrasts"><i class="fa fa-check"></i><b>8.1.1</b> Default contrast coding:  Treatment contrasts</a></li>
+<li class="chapter" data-level="8.1.2" data-path="ch-contr.html"><a href="ch-contr.html#inverseMatrix"><i class="fa fa-check"></i><b>8.1.2</b> Defining comparisons</a></li>
+<li class="chapter" data-level="8.1.3" data-path="ch-contr.html"><a href="ch-contr.html#effectcoding"><i class="fa fa-check"></i><b>8.1.3</b>  Sum contrasts</a></li>
+<li class="chapter" data-level="8.1.4" data-path="ch-contr.html"><a href="ch-contr.html#sec-cellMeans"><i class="fa fa-check"></i><b>8.1.4</b>  Cell means parameterization and  posterior comparisons</a></li>
+</ul></li>
+<li class="chapter" data-level="8.2" data-path="ch-contr.html"><a href="ch-contr.html#the-hypothesis-matrix-illustrated-with-a-three-level-factor"><i class="fa fa-check"></i><b>8.2</b> The hypothesis matrix illustrated with a three-level factor</a>
+<ul>
+<li class="chapter" data-level="8.2.1" data-path="ch-contr.html"><a href="ch-contr.html#sumcontrasts"><i class="fa fa-check"></i><b>8.2.1</b>  Sum contrasts</a></li>
+<li class="chapter" data-level="8.2.2" data-path="ch-contr.html"><a href="ch-contr.html#the-hypothesis-matrix"><i class="fa fa-check"></i><b>8.2.2</b> The  hypothesis matrix</a></li>
+<li class="chapter" data-level="8.2.3" data-path="ch-contr.html"><a href="ch-contr.html#generating-contrasts-the-hypr-package"><i class="fa fa-check"></i><b>8.2.3</b> Generating contrasts: The  <code>hypr</code> package</a></li>
+</ul></li>
+<li class="chapter" data-level="8.3" data-path="ch-contr.html"><a href="ch-contr.html#sec-4levelFactor"><i class="fa fa-check"></i><b>8.3</b> Other types of contrasts: illustration with a factor of four levels</a>
+<ul>
+<li class="chapter" data-level="8.3.1" data-path="ch-contr.html"><a href="ch-contr.html#repeatedcontrasts"><i class="fa fa-check"></i><b>8.3.1</b>  Repeated contrasts</a></li>
+<li class="chapter" data-level="8.3.2" data-path="ch-contr.html"><a href="ch-contr.html#helmertcontrasts"><i class="fa fa-check"></i><b>8.3.2</b>  Helmert contrasts</a></li>
+<li class="chapter" data-level="8.3.3" data-path="ch-contr.html"><a href="ch-contr.html#contrasts-in-linear-regression-analysis-the-design-or-model-matrix"><i class="fa fa-check"></i><b>8.3.3</b> Contrasts in linear regression analysis: The design or  model matrix</a></li>
+<li class="chapter" data-level="8.3.4" data-path="ch-contr.html"><a href="ch-contr.html#polynomialContrasts"><i class="fa fa-check"></i><b>8.3.4</b>  Polynomial contrasts</a></li>
+<li class="chapter" data-level="8.3.5" data-path="ch-contr.html"><a href="ch-contr.html#an-alternative-to-contrasts-monotonic-effects"><i class="fa fa-check"></i><b>8.3.5</b> An alternative to contrasts:  Monotonic effects</a></li>
+</ul></li>
+<li class="chapter" data-level="8.4" data-path="ch-contr.html"><a href="ch-contr.html#nonOrthogonal"><i class="fa fa-check"></i><b>8.4</b> What makes a good set of contrasts?</a>
+<ul>
+<li class="chapter" data-level="8.4.1" data-path="ch-contr.html"><a href="ch-contr.html#centered-contrasts"><i class="fa fa-check"></i><b>8.4.1</b>  Centered contrasts</a></li>
+<li class="chapter" data-level="8.4.2" data-path="ch-contr.html"><a href="ch-contr.html#orthogonal-contrasts"><i class="fa fa-check"></i><b>8.4.2</b>  Orthogonal contrasts</a></li>
+<li class="chapter" data-level="8.4.3" data-path="ch-contr.html"><a href="ch-contr.html#the-role-of-the-intercept-in-non-centered-contrasts"><i class="fa fa-check"></i><b>8.4.3</b> The role of the  intercept in  non-centered contrasts</a></li>
+</ul></li>
+<li class="chapter" data-level="8.5" data-path="ch-contr.html"><a href="ch-contr.html#computing-condition-means-from-estimated-contrasts"><i class="fa fa-check"></i><b>8.5</b> Computing condition means from estimated contrasts</a></li>
+<li class="chapter" data-level="8.6" data-path="ch-contr.html"><a href="ch-contr.html#summary-6"><i class="fa fa-check"></i><b>8.6</b> Summary</a></li>
+<li class="chapter" data-level="8.7" data-path="ch-contr.html"><a href="ch-contr.html#further-reading-5"><i class="fa fa-check"></i><b>8.7</b> Further reading</a></li>
+<li class="chapter" data-level="8.8" data-path="ch-contr.html"><a href="ch-contr.html#sec-Contrastsexercises"><i class="fa fa-check"></i><b>8.8</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html"><i class="fa fa-check"></i><b>9</b> Contrast coding for designs with two predictor variables</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html#sec-MR-ANOVA"><i class="fa fa-check"></i><b>9.1</b> Contrast coding in a factorial  <span class="math inline">\(2 \times 2\)</span> design</a>
+<ul>
+<li class="chapter" data-level="9.1.1" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html#nestedEffects"><i class="fa fa-check"></i><b>9.1.1</b>  Nested effects</a></li>
+<li class="chapter" data-level="9.1.2" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html#interactions-between-contrasts"><i class="fa fa-check"></i><b>9.1.2</b>  Interactions between contrasts</a></li>
+</ul></li>
+<li class="chapter" data-level="9.2" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html#sec-contrast-covariate"><i class="fa fa-check"></i><b>9.2</b> One factor and one  covariate</a>
+<ul>
+<li class="chapter" data-level="9.2.1" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html#estimating-a-group-difference-and-controlling-for-a-covariate"><i class="fa fa-check"></i><b>9.2.1</b> Estimating a  group difference and controlling for a covariate</a></li>
+<li class="chapter" data-level="9.2.2" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html#estimating-differences-in-slopes"><i class="fa fa-check"></i><b>9.2.2</b> Estimating differences in slopes</a></li>
+</ul></li>
+<li class="chapter" data-level="9.3" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html#sec-interactions-NLM"><i class="fa fa-check"></i><b>9.3</b> Interactions in generalized linear models (with non-linear link functions) and non-linear models</a></li>
+<li class="chapter" data-level="9.4" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html#summary-7"><i class="fa fa-check"></i><b>9.4</b> Summary</a></li>
+<li class="chapter" data-level="9.5" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html#further-reading-6"><i class="fa fa-check"></i><b>9.5</b> Further reading</a></li>
+<li class="chapter" data-level="9.6" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html#sec-Contrasts2x2exercises"><i class="fa fa-check"></i><b>9.6</b> Exercises</a></li>
+</ul></li>
+<li class="part"><span><b>III Advanced models with Stan</b></span></li>
+<li class="chapter" data-level="10" data-path="ch-introstan.html"><a href="ch-introstan.html"><i class="fa fa-check"></i><b>10</b> Introduction to the probabilistic programming language Stan</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="ch-introstan.html"><a href="ch-introstan.html#stan-syntax"><i class="fa fa-check"></i><b>10.1</b> Stan syntax</a></li>
+<li class="chapter" data-level="10.2" data-path="ch-introstan.html"><a href="ch-introstan.html#sec-firststan"><i class="fa fa-check"></i><b>10.2</b> A first simple example with Stan:  Normal likelihood</a></li>
+<li class="chapter" data-level="10.3" data-path="ch-introstan.html"><a href="ch-introstan.html#sec-clozestan"><i class="fa fa-check"></i><b>10.3</b> Another simple example:  Cloze probability with Stan with the  binomial likelihood</a></li>
+<li class="chapter" data-level="10.4" data-path="ch-introstan.html"><a href="ch-introstan.html#regression-models-in-stan"><i class="fa fa-check"></i><b>10.4</b>  Regression models in Stan</a>
+<ul>
+<li class="chapter" data-level="10.4.1" data-path="ch-introstan.html"><a href="ch-introstan.html#sec-pupilstan"><i class="fa fa-check"></i><b>10.4.1</b> A first  linear regression in Stan: Does attentional load affect  pupil size?</a></li>
+<li class="chapter" data-level="10.4.2" data-path="ch-introstan.html"><a href="ch-introstan.html#sec-interstan"><i class="fa fa-check"></i><b>10.4.2</b>  Interactions in Stan: Does attentional load interact with trial number affecting  pupil size?</a></li>
+<li class="chapter" data-level="10.4.3" data-path="ch-introstan.html"><a href="ch-introstan.html#sec-logisticstan"><i class="fa fa-check"></i><b>10.4.3</b>  Logistic regression in Stan: Does set size and trial affect free recall?</a></li>
+</ul></li>
+<li class="chapter" data-level="10.5" data-path="ch-introstan.html"><a href="ch-introstan.html#summary-8"><i class="fa fa-check"></i><b>10.5</b> Summary</a></li>
+<li class="chapter" data-level="10.6" data-path="ch-introstan.html"><a href="ch-introstan.html#further-reading-7"><i class="fa fa-check"></i><b>10.6</b> Further reading</a></li>
+<li class="chapter" data-level="10.7" data-path="ch-introstan.html"><a href="ch-introstan.html#exercises"><i class="fa fa-check"></i><b>10.7</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="11" data-path="ch-complexstan.html"><a href="ch-complexstan.html"><i class="fa fa-check"></i><b>11</b> Hierarchical models and reparameterization </a>
+<ul>
+<li class="chapter" data-level="11.1" data-path="ch-complexstan.html"><a href="ch-complexstan.html#sec-hierstan"><i class="fa fa-check"></i><b>11.1</b> Hierarchical models with Stan</a>
+<ul>
+<li class="chapter" data-level="11.1.1" data-path="ch-complexstan.html"><a href="ch-complexstan.html#varying-intercept-model-with-stan"><i class="fa fa-check"></i><b>11.1.1</b> Varying intercept model with Stan</a></li>
+<li class="chapter" data-level="11.1.2" data-path="ch-complexstan.html"><a href="ch-complexstan.html#sec-uncorrstan"><i class="fa fa-check"></i><b>11.1.2</b> Uncorrelated  varying intercept and slopes model with Stan</a></li>
+<li class="chapter" data-level="11.1.3" data-path="ch-complexstan.html"><a href="ch-complexstan.html#sec-corrstan"><i class="fa fa-check"></i><b>11.1.3</b>  Correlated varying intercept varying slopes model</a></li>
+<li class="chapter" data-level="11.1.4" data-path="ch-complexstan.html"><a href="ch-complexstan.html#sec-crosscorrstan"><i class="fa fa-check"></i><b>11.1.4</b> By-subject and by-items correlated varying intercept varying slopes model</a></li>
+</ul></li>
+<li class="chapter" data-level="11.2" data-path="ch-complexstan.html"><a href="ch-complexstan.html#summary-9"><i class="fa fa-check"></i><b>11.2</b> Summary</a></li>
+<li class="chapter" data-level="11.3" data-path="ch-complexstan.html"><a href="ch-complexstan.html#further-reading-8"><i class="fa fa-check"></i><b>11.3</b> Further reading</a></li>
+<li class="chapter" data-level="11.4" data-path="ch-complexstan.html"><a href="ch-complexstan.html#exercises-1"><i class="fa fa-check"></i><b>11.4</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="12" data-path="ch-custom.html"><a href="ch-custom.html"><i class="fa fa-check"></i><b>12</b> Custom distributions in Stan</a>
+<ul>
+<li class="chapter" data-level="12.1" data-path="ch-custom.html"><a href="ch-custom.html#sec-change"><i class="fa fa-check"></i><b>12.1</b> A change of variables with the reciprocal normal distribution</a>
+<ul>
+<li class="chapter" data-level="12.1.1" data-path="ch-custom.html"><a href="ch-custom.html#scaling-a-probability-density-with-the-jacobian-adjustment"><i class="fa fa-check"></i><b>12.1.1</b> Scaling a probability density with the Jacobian adjustment</a></li>
+</ul></li>
+<li class="chapter" data-level="12.2" data-path="ch-custom.html"><a href="ch-custom.html#sec-validSBC"><i class="fa fa-check"></i><b>12.2</b>  Validation of a computed posterior distribution</a>
+<ul>
+<li class="chapter" data-level="12.2.1" data-path="ch-custom.html"><a href="ch-custom.html#the-simulation-based-calibration-procedure"><i class="fa fa-check"></i><b>12.2.1</b> The  simulation-based calibration procedure</a></li>
+<li class="chapter" data-level="12.2.2" data-path="ch-custom.html"><a href="ch-custom.html#an-example-where-simulation-based-calibration-reveals-a-problem"><i class="fa fa-check"></i><b>12.2.2</b> An example where simulation-based calibration reveals a problem</a></li>
+<li class="chapter" data-level="12.2.3" data-path="ch-custom.html"><a href="ch-custom.html#issues-with-and-limitations-of-simulation-based-calibration"><i class="fa fa-check"></i><b>12.2.3</b> Issues with and limitations of simulation-based calibration</a></li>
+</ul></li>
+<li class="chapter" data-level="12.3" data-path="ch-custom.html"><a href="ch-custom.html#another-custom-distribution-the-exponential-distribution-implemented-manually"><i class="fa fa-check"></i><b>12.3</b> Another  custom distribution: The exponential distribution  implemented manually</a></li>
+<li class="chapter" data-level="12.4" data-path="ch-custom.html"><a href="ch-custom.html#summary-10"><i class="fa fa-check"></i><b>12.4</b> Summary</a></li>
+<li class="chapter" data-level="12.5" data-path="ch-custom.html"><a href="ch-custom.html#further-reading-9"><i class="fa fa-check"></i><b>12.5</b> Further reading</a></li>
+<li class="chapter" data-level="12.6" data-path="ch-custom.html"><a href="ch-custom.html#sec-customexercises"><i class="fa fa-check"></i><b>12.6</b> Exercises</a></li>
+</ul></li>
+<li class="part"><span><b>IV Evidence synthesis and measurements with error</b></span></li>
+<li class="chapter" data-level="13" data-path="ch-remame.html"><a href="ch-remame.html"><i class="fa fa-check"></i><b>13</b>  Meta-analysis and  measurement error models</a>
+<ul>
+<li class="chapter" data-level="13.1" data-path="ch-remame.html"><a href="ch-remame.html#meta-analysis"><i class="fa fa-check"></i><b>13.1</b> Meta-analysis</a>
+<ul>
+<li class="chapter" data-level="13.1.1" data-path="ch-remame.html"><a href="ch-remame.html#a-meta-analysis-of-similarity-based-interference-in-sentence-comprehension"><i class="fa fa-check"></i><b>13.1.1</b> A meta-analysis of similarity-based interference in sentence comprehension</a></li>
+</ul></li>
+<li class="chapter" data-level="13.2" data-path="ch-remame.html"><a href="ch-remame.html#measurement-error-models"><i class="fa fa-check"></i><b>13.2</b>  Measurement-error models</a>
+<ul>
+<li class="chapter" data-level="13.2.1" data-path="ch-remame.html"><a href="ch-remame.html#accounting-for-measurement-error-in-individual-differences-in-working-memory-capacity-and-reading-fluency"><i class="fa fa-check"></i><b>13.2.1</b> Accounting for measurement error in individual differences in working memory capacity and reading fluency</a></li>
+</ul></li>
+<li class="chapter" data-level="13.3" data-path="ch-remame.html"><a href="ch-remame.html#summary-11"><i class="fa fa-check"></i><b>13.3</b> Summary</a></li>
+<li class="chapter" data-level="13.4" data-path="ch-remame.html"><a href="ch-remame.html#further-reading-10"><i class="fa fa-check"></i><b>13.4</b> Further reading</a></li>
+<li class="chapter" data-level="13.5" data-path="ch-remame.html"><a href="ch-remame.html#sec-REMAMEexercises"><i class="fa fa-check"></i><b>13.5</b> Exercises</a></li>
+</ul></li>
+<li class="part"><span><b>V Model comparison</b></span></li>
+<li class="chapter" data-level="14" data-path="ch-comparison.html"><a href="ch-comparison.html"><i class="fa fa-check"></i><b>14</b> Introduction to model comparison</a>
+<ul>
+<li class="chapter" data-level="14.1" data-path="ch-comparison.html"><a href="ch-comparison.html#prior-predictive-vs.-posterior-predictive-model-comparison"><i class="fa fa-check"></i><b>14.1</b> Prior predictive vs. posterior predictive model comparison</a></li>
+<li class="chapter" data-level="14.2" data-path="ch-comparison.html"><a href="ch-comparison.html#some-important-points-to-consider-when-comparing-models"><i class="fa fa-check"></i><b>14.2</b> Some important points to consider when comparing models</a></li>
+<li class="chapter" data-level="14.3" data-path="ch-comparison.html"><a href="ch-comparison.html#further-reading-11"><i class="fa fa-check"></i><b>14.3</b> Further reading</a></li>
+</ul></li>
+<li class="chapter" data-level="15" data-path="ch-bf.html"><a href="ch-bf.html"><i class="fa fa-check"></i><b>15</b> Bayes factors</a>
+<ul>
+<li class="chapter" data-level="15.1" data-path="ch-bf.html"><a href="ch-bf.html#hypothesis-testing-using-the-bayes-factor"><i class="fa fa-check"></i><b>15.1</b> Hypothesis testing using the Bayes factor</a>
+<ul>
+<li class="chapter" data-level="15.1.1" data-path="ch-bf.html"><a href="ch-bf.html#marginal-likelihood"><i class="fa fa-check"></i><b>15.1.1</b> Marginal likelihood</a></li>
+<li class="chapter" data-level="15.1.2" data-path="ch-bf.html"><a href="ch-bf.html#bayes-factor"><i class="fa fa-check"></i><b>15.1.2</b> Bayes factor</a></li>
+</ul></li>
+<li class="chapter" data-level="15.2" data-path="ch-bf.html"><a href="ch-bf.html#sec-N400BF"><i class="fa fa-check"></i><b>15.2</b> Examining the N400 effect with Bayes factor</a>
+<ul>
+<li class="chapter" data-level="15.2.1" data-path="ch-bf.html"><a href="ch-bf.html#sensitivity-analysis-1"><i class="fa fa-check"></i><b>15.2.1</b> Sensitivity analysis</a></li>
+<li class="chapter" data-level="15.2.2" data-path="ch-bf.html"><a href="ch-bf.html#sec-BFnonnested"><i class="fa fa-check"></i><b>15.2.2</b>  Non-nested models</a></li>
+</ul></li>
+<li class="chapter" data-level="15.3" data-path="ch-bf.html"><a href="ch-bf.html#the-influence-of-the-priors-on-bayes-factors-beyond-the-effect-of-interest"><i class="fa fa-check"></i><b>15.3</b> The influence of the priors on Bayes factors: beyond the effect of interest</a></li>
+<li class="chapter" data-level="15.4" data-path="ch-bf.html"><a href="ch-bf.html#sec-stanBF"><i class="fa fa-check"></i><b>15.4</b>  Bayes factor in Stan</a></li>
+<li class="chapter" data-level="15.5" data-path="ch-bf.html"><a href="ch-bf.html#bayes-factors-in-theory-and-in-practice"><i class="fa fa-check"></i><b>15.5</b> Bayes factors in theory and in practice</a>
+<ul>
+<li class="chapter" data-level="15.5.1" data-path="ch-bf.html"><a href="ch-bf.html#bayes-factors-in-theory-stability-and-accuracy"><i class="fa fa-check"></i><b>15.5.1</b> Bayes factors in theory: Stability and  accuracy</a></li>
+<li class="chapter" data-level="15.5.2" data-path="ch-bf.html"><a href="ch-bf.html#sec-BFvar"><i class="fa fa-check"></i><b>15.5.2</b> Bayes factors in practice: Variability with the data</a></li>
+<li class="chapter" data-level="15.5.3" data-path="ch-bf.html"><a href="ch-bf.html#sec-caution"><i class="fa fa-check"></i><b>15.5.3</b> A cautionary note about Bayes factors</a></li>
+</ul></li>
+<li class="chapter" data-level="15.6" data-path="ch-bf.html"><a href="ch-bf.html#sample-size-determination-using-bayes-factors"><i class="fa fa-check"></i><b>15.6</b> Sample size determination using Bayes factors</a></li>
+<li class="chapter" data-level="15.7" data-path="ch-bf.html"><a href="ch-bf.html#summary-12"><i class="fa fa-check"></i><b>15.7</b> Summary</a></li>
+<li class="chapter" data-level="15.8" data-path="ch-bf.html"><a href="ch-bf.html#further-reading-12"><i class="fa fa-check"></i><b>15.8</b> Further reading</a></li>
+<li class="chapter" data-level="15.9" data-path="ch-bf.html"><a href="ch-bf.html#exercises-2"><i class="fa fa-check"></i><b>15.9</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="16" data-path="ch-cv.html"><a href="ch-cv.html"><i class="fa fa-check"></i><b>16</b> Cross-validation</a>
+<ul>
+<li class="chapter" data-level="16.1" data-path="ch-cv.html"><a href="ch-cv.html#the-expected-log-predictive-density-of-a-model"><i class="fa fa-check"></i><b>16.1</b> The expected log predictive density of a model</a></li>
+<li class="chapter" data-level="16.2" data-path="ch-cv.html"><a href="ch-cv.html#k-fold-and-leave-one-out-cross-validation"><i class="fa fa-check"></i><b>16.2</b> K-fold and leave-one-out cross-validation</a></li>
+<li class="chapter" data-level="16.3" data-path="ch-cv.html"><a href="ch-cv.html#testing-the-n400-effect-using-cross-validation"><i class="fa fa-check"></i><b>16.3</b> Testing the N400 effect using cross-validation</a>
+<ul>
+<li class="chapter" data-level="16.3.1" data-path="ch-cv.html"><a href="ch-cv.html#cross-validation-with-psis-loo"><i class="fa fa-check"></i><b>16.3.1</b> Cross-validation with PSIS-LOO</a></li>
+<li class="chapter" data-level="16.3.2" data-path="ch-cv.html"><a href="ch-cv.html#cross-validation-with-k-fold"><i class="fa fa-check"></i><b>16.3.2</b> Cross-validation with K-fold</a></li>
+<li class="chapter" data-level="16.3.3" data-path="ch-cv.html"><a href="ch-cv.html#leave-one-group-out-cross-validation"><i class="fa fa-check"></i><b>16.3.3</b> Leave-one-group-out cross-validation</a></li>
+</ul></li>
+<li class="chapter" data-level="16.4" data-path="ch-cv.html"><a href="ch-cv.html#sec-logcv"><i class="fa fa-check"></i><b>16.4</b>  Comparing different likelihoods with cross-validation</a></li>
+<li class="chapter" data-level="16.5" data-path="ch-cv.html"><a href="ch-cv.html#sec-issuesCV"><i class="fa fa-check"></i><b>16.5</b> Issues with cross-validation</a></li>
+<li class="chapter" data-level="16.6" data-path="ch-cv.html"><a href="ch-cv.html#cross-validation-in-stan"><i class="fa fa-check"></i><b>16.6</b> Cross-validation in Stan</a>
+<ul>
+<li class="chapter" data-level="16.6.1" data-path="ch-cv.html"><a href="ch-cv.html#psis-loo-cv-in-stan"><i class="fa fa-check"></i><b>16.6.1</b>  PSIS-LOO-CV in Stan</a></li>
+</ul></li>
+<li class="chapter" data-level="16.7" data-path="ch-cv.html"><a href="ch-cv.html#summary-13"><i class="fa fa-check"></i><b>16.7</b> Summary</a></li>
+<li class="chapter" data-level="16.8" data-path="ch-cv.html"><a href="ch-cv.html#further-reading-13"><i class="fa fa-check"></i><b>16.8</b> Further reading</a></li>
+<li class="chapter" data-level="16.9" data-path="ch-cv.html"><a href="ch-cv.html#exercises-3"><i class="fa fa-check"></i><b>16.9</b> Exercises</a></li>
+</ul></li>
+<li class="part"><span><b>VI Cognitive modeling with Stan</b></span></li>
+<li class="chapter" data-level="17" data-path="ch-cogmod.html"><a href="ch-cogmod.html"><i class="fa fa-check"></i><b>17</b> Introduction to cognitive modeling</a>
+<ul>
+<li class="chapter" data-level="17.1" data-path="ch-cogmod.html"><a href="ch-cogmod.html#what-characterizes-a-computational-cognitive-model"><i class="fa fa-check"></i><b>17.1</b> What characterizes a computational cognitive model?</a></li>
+<li class="chapter" data-level="17.2" data-path="ch-cogmod.html"><a href="ch-cogmod.html#some-advantages-of-taking-the-latent-variable-modeling-approach"><i class="fa fa-check"></i><b>17.2</b> Some advantages of taking the latent-variable modeling approach</a></li>
+<li class="chapter" data-level="17.3" data-path="ch-cogmod.html"><a href="ch-cogmod.html#types-of-computational-cognitive-model"><i class="fa fa-check"></i><b>17.3</b> Types of computational cognitive model</a></li>
+<li class="chapter" data-level="17.4" data-path="ch-cogmod.html"><a href="ch-cogmod.html#summary-14"><i class="fa fa-check"></i><b>17.4</b> Summary</a></li>
+<li class="chapter" data-level="17.5" data-path="ch-cogmod.html"><a href="ch-cogmod.html#further-reading-14"><i class="fa fa-check"></i><b>17.5</b> Further reading</a></li>
+</ul></li>
+<li class="chapter" data-level="18" data-path="ch-MPT.html"><a href="ch-MPT.html"><i class="fa fa-check"></i><b>18</b> Multinomial processing trees</a>
+<ul>
+<li class="chapter" data-level="18.1" data-path="ch-MPT.html"><a href="ch-MPT.html#modeling-multiple-categorical-responses"><i class="fa fa-check"></i><b>18.1</b> Modeling  multiple categorical responses</a>
+<ul>
+<li class="chapter" data-level="18.1.1" data-path="ch-MPT.html"><a href="ch-MPT.html#sec-mult"><i class="fa fa-check"></i><b>18.1.1</b> A model for multiple responses using the multinomial likelihood</a></li>
+<li class="chapter" data-level="18.1.2" data-path="ch-MPT.html"><a href="ch-MPT.html#sec-cat"><i class="fa fa-check"></i><b>18.1.2</b> A model for multiple responses using the categorical distribution</a></li>
+</ul></li>
+<li class="chapter" data-level="18.2" data-path="ch-MPT.html"><a href="ch-MPT.html#modeling-picture-naming-abilities-in-aphasia-with-mpt-models"><i class="fa fa-check"></i><b>18.2</b> Modeling picture naming abilities in aphasia with MPT models</a>
+<ul>
+<li class="chapter" data-level="18.2.1" data-path="ch-MPT.html"><a href="ch-MPT.html#calculation-of-the-probabilities-in-the-mpt-branches"><i class="fa fa-check"></i><b>18.2.1</b> Calculation of the probabilities in the MPT branches</a></li>
+<li class="chapter" data-level="18.2.2" data-path="ch-MPT.html"><a href="ch-MPT.html#sec-mpt-data"><i class="fa fa-check"></i><b>18.2.2</b> A simple MPT model</a></li>
+<li class="chapter" data-level="18.2.3" data-path="ch-MPT.html"><a href="ch-MPT.html#sec-MPT-reg"><i class="fa fa-check"></i><b>18.2.3</b> An MPT model assuming by-item variability</a></li>
+<li class="chapter" data-level="18.2.4" data-path="ch-MPT.html"><a href="ch-MPT.html#sec-MPT-h"><i class="fa fa-check"></i><b>18.2.4</b> A  hierarchical MPT</a></li>
+</ul></li>
+<li class="chapter" data-level="18.3" data-path="ch-MPT.html"><a href="ch-MPT.html#summary-15"><i class="fa fa-check"></i><b>18.3</b> Summary</a></li>
+<li class="chapter" data-level="18.4" data-path="ch-MPT.html"><a href="ch-MPT.html#further-reading-15"><i class="fa fa-check"></i><b>18.4</b> Further reading</a></li>
+<li class="chapter" data-level="18.5" data-path="ch-MPT.html"><a href="ch-MPT.html#exercises-4"><i class="fa fa-check"></i><b>18.5</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="19" data-path="ch-mixture.html"><a href="ch-mixture.html"><i class="fa fa-check"></i><b>19</b> Mixture models</a>
+<ul>
+<li class="chapter" data-level="19.1" data-path="ch-mixture.html"><a href="ch-mixture.html#a-mixture-model-of-the-speed-accuracy-trade-off-the-fast-guess-model-account"><i class="fa fa-check"></i><b>19.1</b> A mixture model of the speed-accuracy trade-off: The fast-guess model account</a>
+<ul>
+<li class="chapter" data-level="19.1.1" data-path="ch-mixture.html"><a href="ch-mixture.html#the-global-motion-detection-task"><i class="fa fa-check"></i><b>19.1.1</b> The global motion detection task</a></li>
+<li class="chapter" data-level="19.1.2" data-path="ch-mixture.html"><a href="ch-mixture.html#sec-simplefastguess"><i class="fa fa-check"></i><b>19.1.2</b> A very simple implementation of the fast-guess model</a></li>
+<li class="chapter" data-level="19.1.3" data-path="ch-mixture.html"><a href="ch-mixture.html#sec-multmix"><i class="fa fa-check"></i><b>19.1.3</b> A  multivariate implementation of the fast-guess model</a></li>
+<li class="chapter" data-level="19.1.4" data-path="ch-mixture.html"><a href="ch-mixture.html#an-implementation-of-the-fast-guess-model-that-takes-instructions-into-account"><i class="fa fa-check"></i><b>19.1.4</b> An implementation of the fast-guess model that takes instructions into account</a></li>
+<li class="chapter" data-level="19.1.5" data-path="ch-mixture.html"><a href="ch-mixture.html#sec-fastguessh"><i class="fa fa-check"></i><b>19.1.5</b> A  hierarchical implementation of the fast-guess model</a></li>
+</ul></li>
+<li class="chapter" data-level="19.2" data-path="ch-mixture.html"><a href="ch-mixture.html#summary-16"><i class="fa fa-check"></i><b>19.2</b> Summary</a></li>
+<li class="chapter" data-level="19.3" data-path="ch-mixture.html"><a href="ch-mixture.html#further-reading-16"><i class="fa fa-check"></i><b>19.3</b> Further reading</a></li>
+<li class="chapter" data-level="19.4" data-path="ch-mixture.html"><a href="ch-mixture.html#exercises-5"><i class="fa fa-check"></i><b>19.4</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="20" data-path="ch-lognormalrace.html"><a href="ch-lognormalrace.html"><i class="fa fa-check"></i><b>20</b> A simple accumulator model to account for choice response time</a>
+<ul>
+<li class="chapter" data-level="20.1" data-path="ch-lognormalrace.html"><a href="ch-lognormalrace.html#modeling-a-lexical-decision-task"><i class="fa fa-check"></i><b>20.1</b> Modeling a lexical decision task</a>
+<ul>
+<li class="chapter" data-level="20.1.1" data-path="ch-lognormalrace.html"><a href="ch-lognormalrace.html#sec-acccoding"><i class="fa fa-check"></i><b>20.1.1</b> Modeling the lexical decision task with the log-normal race model</a></li>
+<li class="chapter" data-level="20.1.2" data-path="ch-lognormalrace.html"><a href="ch-lognormalrace.html#sec-genaccum"><i class="fa fa-check"></i><b>20.1.2</b> A generative model for a race between accumulators</a></li>
+<li class="chapter" data-level="20.1.3" data-path="ch-lognormalrace.html"><a href="ch-lognormalrace.html#fitting-the-log-normal-race-model"><i class="fa fa-check"></i><b>20.1.3</b> Fitting the log-normal race model</a></li>
+<li class="chapter" data-level="20.1.4" data-path="ch-lognormalrace.html"><a href="ch-lognormalrace.html#sec-lognormalh"><i class="fa fa-check"></i><b>20.1.4</b> A hierarchical implementation of the log-normal race model</a></li>
+<li class="chapter" data-level="20.1.5" data-path="ch-lognormalrace.html"><a href="ch-lognormalrace.html#sec-contaminant"><i class="fa fa-check"></i><b>20.1.5</b> Dealing with  contaminant responses</a></li>
+</ul></li>
+<li class="chapter" data-level="20.2" data-path="ch-lognormalrace.html"><a href="ch-lognormalrace.html#posterior-predictive-check-with-the-quantile-probability-plots"><i class="fa fa-check"></i><b>20.2</b> Posterior predictive check with the quantile probability plots</a></li>
+<li class="chapter" data-level="20.3" data-path="ch-lognormalrace.html"><a href="ch-lognormalrace.html#summary-17"><i class="fa fa-check"></i><b>20.3</b> Summary</a></li>
+<li class="chapter" data-level="20.4" data-path="ch-lognormalrace.html"><a href="ch-lognormalrace.html#further-reading-17"><i class="fa fa-check"></i><b>20.4</b> Further reading</a></li>
+<li class="chapter" data-level="20.5" data-path="ch-lognormalrace.html"><a href="ch-lognormalrace.html#exercises-6"><i class="fa fa-check"></i><b>20.5</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="21" data-path="ch-closing.html"><a href="ch-closing.html"><i class="fa fa-check"></i><b>21</b> In closing</a></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
 <li class="divider"></li>
 <li><a href="https://bookdown.org" target="_blank">Published with bookdown</a></li>
 
@@ -954,7 +1298,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul>
 <p>The above definitions are based on the axiomatic definition of probability by <span class="citation">Kolmogorov (<a href="#ref-kolmogorov2018foundations" role="doc-biblioref">1933</a>)</span>.</p>
 <p>In the context of data analysis, we will talk about probability in the following way. Consider some data that we might have collected. This could be discrete 0,1 responses in a question-response accuracy task, or continuous measurements of reading times in milliseconds from an eyetracking study, etc. In any such cases, we will say that the data are being generated from a  <em>random variable</em>, which we will designate with a capital letter such as <span class="math inline">\(Y\)</span>.<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a></p>
-<p>The actually observed outcome (a 0,1 response; reading time, etc.) will be distinguished from the random variable that generated it by using lower case <span class="math inline">\(y\)</span>. We can call <span class="math inline">\(y\)</span> an instance of <span class="math inline">\(Y\)</span>; every new observed outcome will be slightly different due to random variability.</p>
+<p>The actually observed outcome (a 0,1 response; reading time, etc.) will be distinguished from the random variable that generated it by using lower case <span class="math inline">\(y\)</span>. We can call <span class="math inline">\(y\)</span> an instance of <span class="math inline">\(Y\)</span>; every new observed outcome can be different due to random variability.</p>
 <p>We can summarize the above informal concepts relating to random variables very compactly if we re-state them in mathematical form. A mathematical statement has the advantage not only of brevity but also of reducing (and hopefully eliminating) ambiguity.</p>
 <p>So, stating the definition of random variables formally <span class="citation">(following Blitzstein and Hwang <a href="#ref-blitzstein2014introduction" role="doc-biblioref">2014</a>)</span>, we define a random variable <span class="math inline">\(Y\)</span> as a function from a sample space of possible  outcomes <span class="math inline">\(S\)</span> to the real number system:<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a></p>
 <p><span class="math display">\[\begin{equation}
@@ -1034,7 +1378,7 @@ FIGURE 1.1: An illustration of the law of total probability.
 <div class="sourceCode" id="cb2"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb2-1"><a href="ch-intro.html#cb2-1" aria-hidden="true"></a><span class="co">## n=the number of observations (no. of experiments)</span></span>
 <span id="cb2-2"><a href="ch-intro.html#cb2-2" aria-hidden="true"></a><span class="co">## size=the number of trials in each observation</span></span>
 <span id="cb2-3"><a href="ch-intro.html#cb2-3" aria-hidden="true"></a><span class="kw">rbinom</span>(<span class="dt">n =</span> <span class="dv">20</span>, <span class="dt">size =</span> <span class="dv">10</span>, <span class="dt">prob =</span> <span class="fl">0.5</span>)</span></code></pre></div>
-<pre><code>##  [1] 4 6 4 3 3 5 7 4 7 4 7 3 4 4 5 2 3 4 5 5</code></pre>
+<pre><code>##  [1] 7 5 6 5 5 7 6 2 5 6 3 6 6 3 6 3 3 4 7 6</code></pre>
 <p>The number of successes in each of the <span class="math inline">\(20\)</span> simulated observations above is being generated by a discrete random variable <span class="math inline">\(Y\)</span> with a probability distribution <span class="math inline">\(p(y|\theta)\)</span> called the <em>binomial distribution</em>.</p>
 <p>For discrete random variables such as the binomial, the probability distribution <span class="math inline">\(p(y|\theta)\)</span> is called a  probability mass function  (PMF). The PMF defines the probability of each possible event. In the above example, with the number of trials <span class="math inline">\(\hbox{size}=10\)</span>, there are in principle <span class="math inline">\(11\)</span> possible events that could produce <span class="math inline">\(y=0,1,2,...,10\)</span> successes. Which of these is most probable depends on the parameter <span class="math inline">\(\theta\)</span> in the binomial distribution that represents the probability of success.</p>
 <p>The left-hand side plot in Figure <a href="ch-intro.html#fig:binomplot">1.2</a> shows an example of a binomial PMF with <span class="math inline">\(10\)</span> trials, with the parameter <span class="math inline">\(\theta\)</span> fixed at <span class="math inline">\(0.5\)</span>. Setting <span class="math inline">\(\theta\)</span> to <span class="math inline">\(0.5\)</span> leads to a PMF where the most probable outcome is <span class="math inline">\(5\)</span> successes out of <span class="math inline">\(10\)</span>. If we had set <span class="math inline">\(\theta\)</span> to, say <span class="math inline">\(0.1\)</span>, then the most probable outcome would be <span class="math inline">\(1\)</span> success out of <span class="math inline">\(10\)</span>; and if we had set <span class="math inline">\(\theta\)</span> to <span class="math inline">\(0.9\)</span>, then the most probable outcome would be <span class="math inline">\(9\)</span> successes out of <span class="math inline">\(10\)</span>.</p>
@@ -1162,19 +1506,19 @@ FIGURE 1.6: The inverse CDF for the binomial with 10 trials (size=10) and probab
 <h4><span class="header-section-number">1.4.2.4</span> Generate simulated data from a <span class="math inline">\(\mathit{Binomial}(n,\theta)\)</span> distribution<a href="ch-intro.html#generate-simulated-data-from-a-mathitbinomialntheta-distribution" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p>We can generate  simulated data from a binomial distribution by specifying the number of observations or experiments (<code>n</code>), the number of trials (<code>size</code>), and the probability of success <span class="math inline">\(\theta\)</span>. In <code>R</code>, we do this as follows:</p>
 <div class="sourceCode" id="cb19"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb19-1"><a href="ch-intro.html#cb19-1" aria-hidden="true"></a><span class="kw">rbinom</span>(<span class="dt">n =</span> <span class="dv">1</span>, <span class="dt">size =</span> <span class="dv">10</span>, <span class="dt">prob =</span> <span class="fl">0.5</span>)</span></code></pre></div>
-<pre><code>## [1] 4</code></pre>
+<pre><code>## [1] 6</code></pre>
 <p>The above code generates the number of successes in an experiment with <span class="math inline">\(10\)</span> trials. Repeatedly run the above code; we will get different numbers of successes each time.</p>
 <p>As mentioned earlier, if there is only one trial, then instead of the binomial distribution, we have a  Bernoulli distribution. For example, if we have 10 experiments from a Bernoulli distribution, where the probability of success is 0.5, we can simulate data as follows using the function <code>rbern()</code> from the package <code>extraDistr</code>.</p>
 <div class="sourceCode" id="cb21"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb21-1"><a href="ch-intro.html#cb21-1" aria-hidden="true"></a><span class="kw">rbern</span>(<span class="dt">n =</span> <span class="dv">10</span>, <span class="dt">prob =</span> <span class="fl">0.5</span>)</span></code></pre></div>
-<pre><code>##  [1] 0 0 1 1 0 0 1 1 1 0</code></pre>
+<pre><code>##  [1] 0 1 1 1 1 1 0 0 1 1</code></pre>
 <p>The above kind of output can also be generated by using the <code>rbinom()</code> function: <code>rbinom(n = 10, size = 1, prob = 0.5)</code>.
 When the data are generated using the <code>rbinom()</code> function in this way, one can calculate the number of successes by just summing up the vector, or computing its mean and multiplying by the number of trials, here <span class="math inline">\(10\)</span>:</p>
 <div class="sourceCode" id="cb23"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb23-1"><a href="ch-intro.html#cb23-1" aria-hidden="true"></a>(y &lt;-<span class="st"> </span><span class="kw">rbinom</span>(<span class="dt">n =</span> <span class="dv">10</span>, <span class="dt">size =</span> <span class="dv">1</span>, <span class="dt">prob =</span> <span class="fl">0.5</span>))</span></code></pre></div>
-<pre><code>##  [1] 0 0 0 0 1 0 0 1 1 1</code></pre>
+<pre><code>##  [1] 1 0 1 0 1 1 1 1 0 1</code></pre>
 <div class="sourceCode" id="cb25"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb25-1"><a href="ch-intro.html#cb25-1" aria-hidden="true"></a><span class="kw">mean</span>(y) <span class="op">*</span><span class="st"> </span><span class="dv">10</span></span></code></pre></div>
-<pre><code>## [1] 4</code></pre>
+<pre><code>## [1] 7</code></pre>
 <div class="sourceCode" id="cb27"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb27-1"><a href="ch-intro.html#cb27-1" aria-hidden="true"></a><span class="kw">sum</span>(y)</span></code></pre></div>
-<pre><code>## [1] 4</code></pre>
+<pre><code>## [1] 7</code></pre>
 </div>
 </div>
 </div>
@@ -1219,14 +1563,14 @@ sd(y) = \sqrt{\frac{\sum_{i=1}^n (y_i-
 <p>For example, we can generate <span class="math inline">\(10\)</span> data points using the <code>rnorm()</code> function, and then use the simulated data to compute the mean and standard deviation:</p>
 <div class="sourceCode" id="cb33"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb33-1"><a href="ch-intro.html#cb33-1" aria-hidden="true"></a>y &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">10</span>, <span class="dt">mean =</span> <span class="dv">500</span>, <span class="dt">sd =</span> <span class="dv">100</span>)</span>
 <span id="cb33-2"><a href="ch-intro.html#cb33-2" aria-hidden="true"></a><span class="kw">mean</span>(y)</span></code></pre></div>
-<pre><code>## [1] 490</code></pre>
+<pre><code>## [1] 471</code></pre>
 <div class="sourceCode" id="cb35"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb35-1"><a href="ch-intro.html#cb35-1" aria-hidden="true"></a><span class="kw">sd</span>(y)</span></code></pre></div>
-<pre><code>## [1] 85.8</code></pre>
+<pre><code>## [1] 146</code></pre>
 <p>Again, the sample mean and sample standard deviation computed from a particular (simulated or real) data set need not necessarily be close to the true values of the respective parameters. Especially when sample size is small, one can end up with mis-estimates of the mean and standard deviation.</p>
 <p>Incidentally, simulated data can be used to generate all kinds of statistics. For example, we can compute the lower and upper quantiles such that 95% of the simulated data are contained within these quantiles:</p>
 <div class="sourceCode" id="cb37"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb37-1"><a href="ch-intro.html#cb37-1" aria-hidden="true"></a><span class="kw">quantile</span>(y, <span class="dt">probs =</span> <span class="kw">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>))</span></code></pre></div>
 <pre><code>##  2.5% 97.5% 
-##   379   597</code></pre>
+##   295   699</code></pre>
 <p>Later on, this function will be used to generate summary statistics once we have obtained samples of a parameter after we have fit a model using Stan/brms.</p>
 <div id="an-important-distinction-probability-vs.-density-in-a-continuous-random-variable" class="section level3 hasAnchor" number="1.5.1">
 <h3><span class="header-section-number">1.5.1</span> An important distinction: probability vs. density in a continuous random variable<a href="ch-intro.html#an-important-distinction-probability-vs.-density-in-a-continuous-random-variable" class="anchor-section" aria-label="Anchor link to header"></a></h3>
@@ -1267,7 +1611,7 @@ k \int_{-\infty}^{0} f(x)\, dx = 1
 <p>For the standard normal case, in <code>R</code>, this factor would require us to use the CDF:</p>
 <div class="sourceCode" id="cb53"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb53-1"><a href="ch-intro.html#cb53-1" aria-hidden="true"></a><span class="kw">pnorm</span>(<span class="dv">0</span>, <span class="dt">mean =</span> <span class="dv">0</span>, <span class="dt">sd =</span> <span class="dv">1</span>, <span class="dt">lower.tail =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
 <pre><code>## [1] 0.5</code></pre>
-<p>Later in this book, we will be using such truncated distributions when doing Bayesian modeling, and when we use them, we will want to multiply the truncated distribution by the factor <span class="math inline">\(k\)</span> to ensure that it is still a proper PDF whose area under the curve sums to <span class="math inline">\(1\)</span>. Truncated normal distributions will be discussed in more detail in Box <a href="#thm:truncation"><strong>??</strong></a>.</p>
+<p>Later in this book, we will be using such truncated distributions when doing Bayesian modeling, and when we use them, we will want to multiply the truncated distribution by the factor <span class="math inline">\(k\)</span> to ensure that it is still a proper PDF whose area under the curve sums to <span class="math inline">\(1\)</span>. Truncated normal distributions will be discussed in more detail in Box <a href="ch-reg.html#thm:truncation">4.1</a>.</p>
 </div>
 </div>
 <div id="bivariate-and-multivariate-distributions" class="section level2 hasAnchor" number="1.6">
@@ -1570,10 +1914,10 @@ FIGURE 1.12: A bivariate normal distribution with a positive correlation of 0.6.
 <span id="cb64-4"><a href="ch-intro.html#cb64-4" aria-hidden="true"></a><span class="co">## generate data:</span></span>
 <span id="cb64-5"><a href="ch-intro.html#cb64-5" aria-hidden="true"></a>u &lt;-<span class="st"> </span><span class="kw">mvrnorm</span>(<span class="dt">n =</span> <span class="dv">100</span>, <span class="dt">mu =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">0</span>), <span class="dt">Sigma =</span> Sigma)</span>
 <span id="cb64-6"><a href="ch-intro.html#cb64-6" aria-hidden="true"></a><span class="kw">head</span>(u, <span class="dt">n =</span> <span class="dv">3</span>)</span></code></pre></div>
-<pre><code>##        [,1]  [,2]
-## [1,]  7.246 11.70
-## [2,] -3.222 -4.88
-## [3,]  0.715  3.93</code></pre>
+<pre><code>##       [,1]   [,2]
+## [1,] -5.36  -4.19
+## [2,]  3.59   9.58
+## [3,] -1.70 -18.46</code></pre>
 <p>Figure <a href="ch-intro.html#fig:poscordata">1.13</a> confirms that the simulated data are positively correlated.</p>
 <div class="figure"><span style="display:block;" id="fig:poscordata"></span>
 <img src="bayescogsci_files/figure-html/poscordata-1.svg" alt="The relationship between two positively correlated random variables, generated by simulating data using the R function mvrnorm from the MASS library." width="672" />
@@ -1644,7 +1988,7 @@ FIGURE 1.13: The relationship between two positively correlated random variables
 </div>
 <div id="sec-marginal" class="section level2 hasAnchor" number="1.7">
 <h2><span class="header-section-number">1.7</span> An important concept: The  marginal likelihood  (integrating out a parameter)<a href="ch-intro.html#sec-marginal" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>Here, we introduce a concept that will turn up many times in this book. The concept we unpack here is called “integrating out a parameter”. We will need this when we encounter Bayes’ rule in the next chapter, and when we use Bayes factors later in the book (chapter <a href="#ch-bf"><strong>??</strong></a>).</p>
+<p>Here, we introduce a concept that will turn up many times in this book. The concept we unpack here is called “integrating out a parameter”. We will need this when we encounter Bayes’ rule in the next chapter, and when we use Bayes factors later in the book (chapter <a href="ch-bf.html#ch-bf">15</a>).</p>
 <p>Integrating out a parameter refers to the following situation. The example used here discusses the binomial distribution, but the approach is generally applicable for any distribution.</p>
 <p>Suppose we have a binomial random variable <span class="math inline">\(Y\)</span> with PMF <span class="math inline">\(p(Y)\)</span>. Suppose also that this PMF is defined in terms of parameter <span class="math inline">\(\theta\)</span> that can have only three possible values, <span class="math inline">\(0.1, 0.5, 0.9\)</span>, each with equal probability. In other words, the probability that <span class="math inline">\(\theta\)</span> is <span class="math inline">\(0.1, 0.5,\)</span> or <span class="math inline">\(0.9\)</span> is <span class="math inline">\(1/3\)</span> each.</p>
 <p>We stick with our earlier example of <span class="math inline">\(n=10\)</span> trials and <span class="math inline">\(k=7\)</span> successes.
@@ -1802,7 +2146,7 @@ Compute the lower and upper boundaries such that:</p>
 <div class="exercise">
 <p><span id="exr:Foundationsexercisessamples2" class="exercise"><strong>Exercise 1.7  </strong></span>Practice getting summaries from samples–Part 2.</p>
 </div>
-<p>This time we generate the data with a truncated normal distribution from the package <code>extraDistr</code>. The details of this distribution will be discussed later in section <a href="#sec-pupil"><strong>??</strong></a> and in the Box <a href="#thm:truncation"><strong>??</strong></a>, but for now we can treat it as an unknown generative process:</p>
+<p>This time we generate the data with a truncated normal distribution from the package <code>extraDistr</code>. The details of this distribution will be discussed later in section <a href="ch-reg.html#sec-pupil">4.1</a> and in the Box <a href="ch-reg.html#thm:truncation">4.1</a>, but for now we can treat it as an unknown generative process:</p>
 <div class="sourceCode" id="cb79"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb79-1"><a href="ch-intro.html#cb79-1" aria-hidden="true"></a>data_gen1 &lt;-<span class="st"> </span><span class="kw">rtnorm</span>(<span class="dv">1000</span>, <span class="dt">mean =</span> <span class="dv">300</span>, <span class="dt">sd =</span> <span class="dv">200</span>, <span class="dt">a =</span> <span class="dv">0</span>)</span></code></pre></div>
 <p>Using the sample data, calculate the mean, variance, and the lower quantile q1 and the upper quantile q2, such that the probability of observing values between these two quantiles is 80%.</p>
 <div class="exercise">
@@ -1810,248 +2154,9 @@ Compute the lower and upper boundaries such that:</p>
 </div>
 <p>Suppose that you have a bivariate distribution where one of the two random variables comes from a normal distribution with mean <span class="math inline">\(\mu_X=600\)</span> and standard deviation <span class="math inline">\(\sigma_X=100\)</span>, and the other from a normal distribution with mean <span class="math inline">\(\mu_Y=400\)</span> and standard deviation <span class="math inline">\(\sigma_Y=50\)</span>. The correlation <span class="math inline">\(\rho_{XY}\)</span> between the two random variables is <span class="math inline">\(0.4\)</span>. Write down the variance-covariance matrix of this bivariate distribution as a matrix (with numerical values, not mathematical symbols), and then use it to generate <span class="math inline">\(100\)</span> pairs of simulated data points. Plot the simulated data such that the relationship between the random variables <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> is clear. Generate two sets of new data (<span class="math inline">\(100\)</span> pairs of data points each) with correlation <span class="math inline">\(-0.4\)</span> and <span class="math inline">\(0\)</span>, and plot these alongside the plot for the data with correlation <span class="math inline">\(0.4\)</span>.</p>
 
-<div id="refs" class="references hanging-indent">
-<div>
-<p>Allaire, J. J., Yihui Xie, Christophe Dervieux, Jonathan McPherson, Javier Luraschi, Kevin Ushey, Aron Atkins, et al. 2024. <em>rmarkdown: Dynamic Documents for R</em>. <a href="https://github.com/rstudio/rmarkdown">https://github.com/rstudio/rmarkdown</a>.</p>
 </div>
-<div>
-<p>Antoine Lucas, Dirk Eddelbuettel with contributions by, Jarek Tuszynski, Henrik Bengtsson, Simon Urbanek, Mario Frasca, Bryan Lewis, Murray Stokely, et al. 2021. <em>Digest: Create Compact Hash Digests of R Objects</em>. <a href="https://CRAN.R-project.org/package=digest">https://CRAN.R-project.org/package=digest</a>.</p>
 </div>
-<div>
-<p>Auguie, Baptiste. 2017. <em>GridExtra: Miscellaneous Functions for "Grid" Graphics</em>. <a href="https://CRAN.R-project.org/package=gridExtra">https://CRAN.R-project.org/package=gridExtra</a>.</p>
-</div>
-<div>
-<p>Aust, Frederik. 2019. <em>citr: RStudio Add-in to Insert Markdown Citations</em>. <a href="https://CRAN.R-project.org/package=citr">https://CRAN.R-project.org/package=citr</a>.</p>
-</div>
-<div>
-<p>Aust, Frederik, and Marius Barth. 2020. <em>papaja: Create APA Manuscripts with R Markdown</em>. <a href="https://github.com/crsh/papaja">https://github.com/crsh/papaja</a>.</p>
-</div>
-<div>
-<p>Baayen, R. Harald, Douglas J. Davidson, and Douglas M. Bates. 2008. “Mixed-Effects Modeling with Crossed Random Effects for Subjects and Items.” <em>Journal of Memory and Language</em> 59 (4): 390–412.</p>
-</div>
-<div>
-<p>Barth, Marius. 2023. <em>tinylabels: Lightweight Variable Labels</em>. <a href="https://github.com/mariusbarth/tinylabels">https://github.com/mariusbarth/tinylabels</a>.</p>
-</div>
-<div>
-<p>Bates, Douglas M., Martin Mächler, Ben Bolker, and Steve Walker. 2015. “Fitting Linear Mixed-Effects Models Using lme4.” <em>Journal of Statistical Software</em> 67 (1): 1–48. <a href="https://doi.org/10.18637/jss.v067.i01">https://doi.org/10.18637/jss.v067.i01</a>.</p>
-</div>
-<div>
-<p>Bates, Douglas M., Martin Maechler, and Mikael Jagan. 2023. <em>Matrix: Sparse and Dense Matrix Classes and Methods</em>. <a href="https://Matrix.R-forge.R-project.org">https://Matrix.R-forge.R-project.org</a>.</p>
-</div>
-<div>
-<p>Blitzstein, Joseph K., and Jessica Hwang. 2014. <em>Introduction to Probability</em>. Chapman; Hall/CRC.</p>
-</div>
-<div>
-<p>Burger, Edward B., and Michael Starbird. 2012. <em>The 5 Elements of Effective Thinking</em>. Princeton University Press.</p>
-</div>
-<div>
-<p>Bürkner, Paul-Christian. 2024. <em>brms: Bayesian Regression Models Using “Stan”</em>. <a href="https://github.com/paul-buerkner/brms">https://github.com/paul-buerkner/brms</a>.</p>
-</div>
-<div>
-<p>Carpenter, Bob, Andrew Gelman, Matthew D. Hoffman, Daniel Lee, Ben Goodrich, Michael J. Betancourt, Marcus Brubaker, Jiqiang Guo, Peter Li, and Allen Riddell. 2017. “Stan: A Probabilistic Programming Language.” <em>Journal of Statistical Software</em> 76 (1).</p>
-</div>
-<div>
-<p>Chang, Winston. 2018. <em>webshot: Take Screenshots of Web Pages</em>. <a href="https://CRAN.R-project.org/package=webshot">https://CRAN.R-project.org/package=webshot</a>.</p>
-</div>
-<div>
-<p>Cheng, Joe. 2018. <em>miniUI: Shiny Ui Widgets for Small Screens</em>. <a href="https://CRAN.R-project.org/package=miniUI">https://CRAN.R-project.org/package=miniUI</a>.</p>
-</div>
-<div>
-<p>Drton, Mathias. 2013. <em>SIN: A SINful Approach to Selection of Gaussian Graphical Markov Models</em>. <a href="https://CRAN.R-project.org/package=SIN">https://CRAN.R-project.org/package=SIN</a>.</p>
-</div>
-<div>
-<p>Eddelbuettel, Dirk, Romain Francois, J. J. Allaire, Kevin Ushey, Qiang Kou, Nathan Russell, Inaki Ucar, Douglas M. Bates, and John Chambers. 2024. <em>Rcpp: Seamless R and C++ Integration</em>. <a href="https://www.rcpp.org">https://www.rcpp.org</a>.</p>
-</div>
-<div>
-<p>Fieller, Nick. 2016. <em>Basics of Matrix Algebra for Statistics with R</em>. Boca Raton, FL: CRC Press.</p>
-</div>
-<div>
-<p>Fox, John. 2009. <em>A Mathematical Primer for Social Statistics</em>. Vol. 159. Sage.</p>
-</div>
-<div>
-<p>Francois, Romain. 2017. <em>Bibtex: Bibtex Parser</em>. <a href="https://CRAN.R-project.org/package=bibtex">https://CRAN.R-project.org/package=bibtex</a>.</p>
-</div>
-<div>
-<p>Gabry, Jonah, Rok Češnovar, Andrew Johnson, and Steve Bronder. 2024. <em>cmdstanr: R Interface to “CmdStan”</em>. <a href="https://mc-stan.org/cmdstanr/">https://mc-stan.org/cmdstanr/</a>.</p>
-</div>
-<div>
-<p>Gabry, Jonah, and Tristan Mahr. 2024. <em>bayesplot: Plotting for Bayesian Models</em>. <a href="https://mc-stan.org/bayesplot/">https://mc-stan.org/bayesplot/</a>.</p>
-</div>
-<div>
-<p>Gelman, Andrew, John B. Carlin, Hal S. Stern, David B. Dunson, Aki Vehtari, and Donald B. Rubin. 2014. <em>Bayesian Data Analysis</em>. Third Edition. Boca Raton, FL: Chapman; Hall/CRC Press.</p>
-</div>
-<div>
-<p>Gill, Jeff. 2006. <em>Essential Mathematics for Political and Social Research</em>. Cambridge University Press Cambridge.</p>
-</div>
-<div>
-<p>Gohel, David, Hadley Wickham, Lionel Henry, and Jeroen Ooms. 2019. <em>gdtools: Utilities for Graphical Rendering</em>. <a href="https://CRAN.R-project.org/package=gdtools">https://CRAN.R-project.org/package=gdtools</a>.</p>
-</div>
-<div>
-<p>Goodrich, Ben, Andrew Gelman, Bob Carpenter, Matthew D. Hoffman, Daniel Lee, Michael J. Betancourt, Marcus Brubaker, et al. 2024. <em>StanHeaders: C++ Header Files for Stan</em>. <a href="https://mc-stan.org/">https://mc-stan.org/</a>.</p>
-</div>
-<div>
-<p>Gronau, Quentin F., Henrik Singmann, and Eric-Jan Wagenmakers. 2020. “bridgesampling: An R Package for Estimating Normalizing Constants.” <em>Journal of Statistical Software</em> 92 (10): 1–29. <a href="https://doi.org/10.18637/jss.v092.i10">https://doi.org/10.18637/jss.v092.i10</a>.</p>
-</div>
-<div>
-<p>Guo, Jiqiang, Jonah Gabry, Ben Goodrich, Andrew Johnson, Sebastian Weber, and Hamada S. Badr. 2024. <em>rstan: R Interface to Stan</em>. <a href="https://mc-stan.org/rstan/">https://mc-stan.org/rstan/</a>.</p>
-</div>
-<div>
-<p>Hester, Jim, Gábor Csárdi, Hadley Wickham, Winston Chang, Martin Morgan, and Dan Tenenbaum. 2021. <em>Remotes: R Package Installation from Remote Repositories, Including ’Github’</em>. <a href="https://CRAN.R-project.org/package=remotes">https://CRAN.R-project.org/package=remotes</a>.</p>
-</div>
-<div>
-<p>Izrailev, Sergei. 2024. <em>Tictoc: Functions for Timing R Scripts, as Well as Implementations of "Stack" and "Stacklist" Structures</em>. <a href="https://github.com/jabiru/tictoc">https://github.com/jabiru/tictoc</a>.</p>
-</div>
-<div>
-<p>Kerns, G. J. 2014. <em>Introduction to Probability and Statistics Using R</em>. Second Edition.</p>
-</div>
-<div>
-<p>Kim, Shinyoung, Hyunji Moon, Martin Modrák, and Teemu Säilynoja. 2024. <em>SBC: Simulation Based Calibration for Rstan/Cmdstanr Models</em>. <a href="https://hyunjimoon.github.io/SBC/">https://hyunjimoon.github.io/SBC/</a>.</p>
-</div>
-<div>
-<p>Kolmogorov, Andreı̆ Nikolaevich. 1933. <em>Foundations of the Theory of Probability: Second English Edition</em>. Courier Dover Publications.</p>
-</div>
-<div>
-<p>Laurinavichyute, Anna. 2020. “Similarity-Based Interference and Faulty Encoding Accounts of Sentence Processing.” Dissertation, University of Potsdam. <a href="https://publishup.uni-potsdam.de/frontdoor/index/index/docId/50966">https://publishup.uni-potsdam.de/frontdoor/index/index/docId/50966</a>.</p>
-</div>
-<div>
-<p>Levy, Dan. 2021. <em>Maxims for Thinking Analytically: The Wisdom of Legendary Harvard Professor Richard Zeckhauser</em>. Dan Levy.</p>
-</div>
-<div>
-<p>McElreath, Richard. 2021. <em>Rethinking: Statistical Rethinking Book Package</em>.</p>
-</div>
-<div>
-<p>McLean, Mathew William. 2017. “RefManageR: Import and Manage Bibtex and Biblatex References in R.” <em>The Journal of Open Source Software</em>. <a href="https://doi.org/10.21105/joss.00338">https://doi.org/10.21105/joss.00338</a>.</p>
-</div>
-<div>
-<p>Miller, I., and M. Miller. 2004. <em>John E. Freund’s Mathematical Statistics with Applications</em>. Upper Saddle River, NJ: Prentice Hall.</p>
-</div>
-<div>
-<p>Morin, David J. 2016. <em>Probability: For the Enthusiastic Beginner</em>. Createspace Independent Publishing Platform.</p>
-</div>
-<div>
-<p>Müller, Kirill, and Hadley Wickham. 2020. <em>Tibble: Simple Data Frames</em>. <a href="https://CRAN.R-project.org/package=tibble">https://CRAN.R-project.org/package=tibble</a>.</p>
-</div>
-<div>
-<p>Nicenboim, Bruno, Daniel J. Schad, and Shravan Vasishth. 2024. <em>bcogsci: Data and Models for the Book “An Introduction to Bayesian Data Analysis for Cognitive Science”</em>.</p>
-</div>
-<div>
-<p>Oakley, Jeremy E. 2024. <em>SHELF: Tools to Support the Sheffield Elicitation Framework</em>. <a href="https://github.com/OakleyJ/SHELF">https://github.com/OakleyJ/SHELF</a>.</p>
-</div>
-<div>
-<p>Ooms, Jeroen. 2023. <em>pdftools: Text Extraction, Rendering and Converting of Pdf Documents</em>. <a href="https://docs.ropensci.org/pdftools/">https://docs.ropensci.org/pdftools/</a>.</p>
-</div>
-<div>
-<p>Rabe, Maximilian M., Shravan Vasishth, Sven Hohenstein, Reinhold Kliegl, and Daniel J. Schad. 2020. “Hypr: An R Package for Hypothesis-Driven Contrast Coding.” <em>The Journal of Open Source Software</em>. <a href="https://doi.org/10.21105/joss.02134">https://doi.org/10.21105/joss.02134</a>.</p>
-</div>
-<div>
-<p>R Core Team. 2023. <em>R: A Language and Environment for Statistical Computing</em>. Vienna, Austria: R Foundation for Statistical Computing. <a href="https://www.R-project.org/">https://www.R-project.org/</a>.</p>
-</div>
-<div>
-<p>Resnick, Sidney. 2019. <em>A Probability Path</em>. Springer.</p>
-</div>
-<div>
-<p>Ripley, Brian D. 2023. <em>MASS: Support Functions and Datasets for Venables and Ripley’s MASS</em>. <a href="http://www.stats.ox.ac.uk/pub/MASS4/">http://www.stats.ox.ac.uk/pub/MASS4/</a>.</p>
-</div>
-<div>
-<p>Ross, Sheldon. 2002. <em>A First Course in Probability</em>. Pearson Education.</p>
-</div>
-<div>
-<p>Schad, Daniel J., Shravan Vasishth, Sven Hohenstein, and Reinhold Kliegl. 2019. “How to Capitalize on a Priori Contrasts in Linear (Mixed) Models: A Tutorial.” <em>Journal of Memory and Language</em> 110. <a href="https://doi.org/10.1016/j.jml.2019.104038">https://doi.org/10.1016/j.jml.2019.104038</a>.</p>
-</div>
-<div>
-<p>Sidi, Jonathan, and Daniel Polhamus. 2020. <em>TexPreview: Compile and Preview Snippets of “Latex”</em>. <a href="https://CRAN.R-project.org/package=texPreview">https://CRAN.R-project.org/package=texPreview</a>.</p>
-</div>
-<div>
-<p>Singmann, Henrik, Ben Bolker, Jake Westfall, Frederik Aust, and Mattan S. Ben-Shachar. 2020. <em>Afex: Analysis of Factorial Experiments</em>. <a href="https://CRAN.R-project.org/package=afex">https://CRAN.R-project.org/package=afex</a>.</p>
-</div>
-<div>
-<p>Soetaert, Karline, and Peter M. J. Herman. 2009. <em>A Practical Guide to Ecological Modelling. Using R as a Simulation Platform</em>. Springer.</p>
-</div>
-<div>
-<p>Spurdle, Abby. 2020. <em>Barsurf: Heatmap-Related Plots and Smooth Multiband Color Interpolation</em>. <a href="https://CRAN.R-project.org/package=barsurf">https://CRAN.R-project.org/package=barsurf</a>.</p>
-</div>
-<div>
-<p>———. 2021. <em>Bivariate: Bivariate Probability Distributions</em>. <a href="https://sites.google.com/site/spurdlea/r">https://sites.google.com/site/spurdlea/r</a>.</p>
-</div>
-<div>
-<p>Spurdle, Abby, and Emil Bode. 2020. <em>Intoo: Minimal Language-Like Extensions</em>. <a href="https://CRAN.R-project.org/package=intoo">https://CRAN.R-project.org/package=intoo</a>.</p>
-</div>
-<div>
-<p>Steyer, Rolf, and Werner Nagel. 2017. <em>Probability and Conditional Expectation: Fundamentals for the Empirical Sciences</em>. Vol. 5. John Wiley &amp; Sons.</p>
-</div>
-<div>
-<p>Vaidyanathan, Ramnath, Yihui Xie, J. J. Allaire, Joe Cheng, and Kenton Russell. 2023. <em>htmlwidgets: HTML Widgets for R</em>. <a href="https://github.com/ramnathv/htmlwidgets">https://github.com/ramnathv/htmlwidgets</a>.</p>
-</div>
-<div>
-<p>Vasishth, Shravan, Daniel J. Schad, Audrey Bürki, and Reinhold Kliegl. 2021. “Linear Mixed Models for Linguistics and Psychology: A Comprehensive Introduction.” <a href="https://vasishth.github.io/Freq_CogSci/">https://vasishth.github.io/Freq_CogSci/</a>.</p>
-</div>
-<div>
-<p>Vehtari, Aki, Andrew Gelman, and Jonah Gabry. 2017. “Practical Bayesian Model Evaluation Using Leave-One-Out Cross-Validation and Waic.” <em>Statistics and Computing</em> 27 (5): 1413–32. <a href="https://doi.org/10.1007/s11222-016-9696-4">https://doi.org/10.1007/s11222-016-9696-4</a>.</p>
-</div>
-<div>
-<p>Wickham, Hadley. 2019a. <em>forcats: Tools for Working with Categorical Variables (Factors)</em>. <a href="https://CRAN.R-project.org/package=forcats">https://CRAN.R-project.org/package=forcats</a>.</p>
-</div>
-<div>
-<p>———. 2019b. <em>stringr: Simple, Consistent Wrappers for Common String Operations</em>. <a href="https://CRAN.R-project.org/package=stringr">https://CRAN.R-project.org/package=stringr</a>.</p>
-</div>
-<div>
-<p>Wickham, Hadley, Mara Averick, Jennifer Bryan, Winston Chang, Lucy D’Agostino McGowan, Romain François, Garrett Grolemund, et al. 2019. “Welcome to the tidyverse.” <em>Journal of Open Source Software</em> 4 (43): 1686. <a href="https://doi.org/10.21105/joss.01686">https://doi.org/10.21105/joss.01686</a>.</p>
-</div>
-<div>
-<p>Wickham, Hadley, Winston Chang, Lionel Henry, Thomas Lin Pedersen, Kohske Takahashi, Claus O. Wilke, Kara Woo, Hiroaki Yutani, and Teun van den Brand. 2024. <em>ggplot2: Create Elegant Data Visualisations Using the Grammar of Graphics</em>. <a href="https://ggplot2.tidyverse.org">https://ggplot2.tidyverse.org</a>.</p>
-</div>
-<div>
-<p>Wickham, Hadley, Romain François, Lionel Henry, Kirill Müller, and Davis Vaughan. 2023. <em>dplyr: A Grammar of Data Manipulation</em>. <a href="https://dplyr.tidyverse.org">https://dplyr.tidyverse.org</a>.</p>
-</div>
-<div>
-<p>Wickham, Hadley, and Lionel Henry. 2023. <em>purrr: Functional Programming Tools</em>. <a href="https://purrr.tidyverse.org/">https://purrr.tidyverse.org/</a>.</p>
-</div>
-<div>
-<p>Wickham, Hadley, Jim Hester, and Romain Francois. 2018. <em>readr: Read Rectangular Text Data</em>. <a href="https://CRAN.R-project.org/package=readr">https://CRAN.R-project.org/package=readr</a>.</p>
-</div>
-<div>
-<p>Wickham, Hadley, Davis Vaughan, and Maximilian Girlich. 2024. <em>Tidyr: Tidy Messy Data</em>. <a href="https://tidyr.tidyverse.org">https://tidyr.tidyverse.org</a>.</p>
-</div>
-<div>
-<p>Wilke, Claus O. 2024. <em>cowplot: Streamlined Plot Theme and Plot Annotations for ’Ggplot2’</em>. <a href="https://wilkelab.org/cowplot/">https://wilkelab.org/cowplot/</a>.</p>
-</div>
-<div>
-<p>Wolodzko, Tymoteusz. 2023. <em>extraDistr: Additional Univariate and Multivariate Distributions</em>. <a href="https://github.com/twolodzko/extraDistr">https://github.com/twolodzko/extraDistr</a>.</p>
-</div>
-<div>
-<p>Xie, Yihui. 2019. <em>servr: A Simple Http Server to Serve Static Files or Dynamic Documents</em>. <a href="https://CRAN.R-project.org/package=servr">https://CRAN.R-project.org/package=servr</a>.</p>
-</div>
-<div>
-<p>———. 2024a. <em>bookdown: Authoring Books and Technical Documents with R Markdown</em>. <a href="https://github.com/rstudio/bookdown">https://github.com/rstudio/bookdown</a>.</p>
-</div>
-<div>
-<p>———. 2024b. <em>knitr: A General-Purpose Package for Dynamic Report Generation in R</em>. <a href="https://yihui.org/knitr/">https://yihui.org/knitr/</a>.</p>
-</div>
-<div>
-<p>Xie, Yihui, Joe Cheng, and Xianying Tan. 2019. <em>DT: A Wrapper of the Javascript Library ’Datatables’</em>. <a href="https://CRAN.R-project.org/package=DT">https://CRAN.R-project.org/package=DT</a>.</p>
-</div>
-<div>
-<p>Yao, Yuling, Aki Vehtari, Daniel P. Simpson, and Andrew Gelman. 2017. “Using Stacking to Average Bayesian Predictive Distributions.” <em>Bayesian Analysis</em>. <a href="https://doi.org/10.1214/17-BA1091">https://doi.org/10.1214/17-BA1091</a>.</p>
-</div>
-<div>
-<p>Zhu, Hao. 2024. <em>KableExtra: Construct Complex Table with ’Kable’ and Pipe Syntax</em>. <a href="http://haozhu233.github.io/kableExtra/">http://haozhu233.github.io/kableExtra/</a>.</p>
-</div>
-</div>
-</div>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-<h3>References</h3>
+<h3>References<a href="references.html#references" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <div id="refs" class="references hanging-indent">
 <div id="ref-blitzstein2014introduction">
 <p>Blitzstein, Joseph K., and Jessica Hwang. 2014. <em>Introduction to Probability</em>. Chapman; Hall/CRC.</p>
@@ -2107,8 +2212,8 @@ Compute the lower and upper boundaries such that:</p>
           </div>
         </div>
       </div>
-<a href="about-the-authors.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-
+<a href="about-the-authors.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="ch-introBDA.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook/js/app.min.js"></script>

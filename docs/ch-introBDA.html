@@ -4,18 +4,18 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>An Introduction to Bayesian Data Analysis for Cognitive Science</title>
+  <title>Chapter 2 Introduction to Bayesian data analysis | An Introduction to Bayesian Data Analysis for Cognitive Science</title>
   <meta name="description" content="An introduction to Bayesian data analysis for Cognitive Science." />
   <meta name="generator" content="bookdown 0.39 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="An Introduction to Bayesian Data Analysis for Cognitive Science" />
+  <meta property="og:title" content="Chapter 2 Introduction to Bayesian data analysis | An Introduction to Bayesian Data Analysis for Cognitive Science" />
   <meta property="og:type" content="book" />
   <meta property="og:image" content="https://bruno.nicenboim.me/bayescogsci/images/temporarycover.jpg" />
   <meta property="og:description" content="An introduction to Bayesian data analysis for Cognitive Science." />
   <meta name="github-repo" content="https://github.com/bnicenboim/bayescogsci" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="An Introduction to Bayesian Data Analysis for Cognitive Science" />
+  <meta name="twitter:title" content="Chapter 2 Introduction to Bayesian data analysis | An Introduction to Bayesian Data Analysis for Cognitive Science" />
   
   <meta name="twitter:description" content="An introduction to Bayesian data analysis for Cognitive Science." />
   <meta name="twitter:image" content="https://bruno.nicenboim.me/bayescogsci/images/temporarycover.jpg" />
@@ -30,8 +30,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-
-<link rel="next" href="about-the-authors.html"/>
+<link rel="prev" href="ch-intro.html"/>
+<link rel="next" href="ch-compbda.html"/>
 <script src="libs/jquery/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
 <link href="libs/gitbook/css/style.css" rel="stylesheet" />
@@ -1281,321 +1281,410 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">An Introduction to Bayesian Data Analysis for Cognitive Science</h1>
-<p class="author"><em>Bruno Nicenboim, Daniel Schad, and Shravan Vasishth</em></p>
-<p class="date"><em>2024-09-20</em></p>
-</div>
-<div id="preface" class="section level1 unnumbered hasAnchor" number="">
-<h1>Preface<a href="index.html#preface" class="anchor-section" aria-label="Anchor link to header"></a></h1>
-<p>This book is intended to be a relatively gentle introduction to carrying out Bayesian data analysis and cognitive modeling using the probabilistic programming language Stan <span class="citation">(Carpenter et al. <a href="#ref-carpenter2017stan" role="doc-biblioref">2017</a>)</span>, and the front-end to Stan called <code>brms</code> <span class="citation">(Bürkner <a href="#ref-R-brms" role="doc-biblioref">2024</a>)</span>. Our target audience is cognitive scientists (e.g., linguists, psychologists, and computer scientists) who carry out planned behavioral experiments, and who are interested in learning the Bayesian data analysis methodology from the ground up and in a principled manner. Our aim is to make Bayesian statistics a standard part of the data analysis toolkit for experimental linguistics, psycholinguistics, psychology, and related disciplines.</p>
-<p>Many excellent introductory textbooks already exist for Bayesian data analysis. Why write yet another book? Our text is different from other attempts in two respects. First, our main focus is on showing how to analyze data from planned experiments involving repeated measures; this type of experimental data involves unique complexities. We provide many examples of data sets involving time measurements (e.g., self-paced reading, eye-tracking-while-reading, voice onset time), event-related potentials, pupil sizes, accuracies (e.g., recall tasks, yes-no questions), categorical answers (e.g., picture naming), choice-reaction time (e.g, Stroop task, motion detection task), etc. Second, from the very outset, we emphasize a particular workflow that has as its centerpiece simulating data; we aim to teach a philosophy that involves thinking hard about the assumed underlying generative process, <strong>even before the data are collected</strong>. The data analysis approach that we hope to teach through this book involves a cycle of prior predictive and posterior predictive checks, sensitivity analyses, and model validation using simulated data. We try to inculcate a sense of how inferences can be drawn from the posterior distribution of theoretically interesting parameters without resorting to binary decisions like “significant” or “not-significant”. We are hopeful that this will set a new standard for reporting and interpreting results of data analyses in a more nuanced manner, and lead to more measured claims in the published literature.</p>
-<p>Please report typos, errors, or suggestions for improvement at
-<a href="https://github.com/bnicenboim/bayescogsci/issues" class="uri">https://github.com/bnicenboim/bayescogsci/issues</a>.</p>
-<div id="why-read-this-book-and-what-is-its-target-audience" class="section level2 unnumbered hasAnchor" number="">
-<h2>Why read this book, and what is its target audience?<a href="index.html#why-read-this-book-and-what-is-its-target-audience" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>A commonly-held belief in psychology, psycholinguistics, and other areas is that statistical data analysis is secondary to the science, and should be quick and easy. For example, a senior mathematical psychologist once told the last author of this book: “if you need to run anything more complicated than a paired t-test, you are asking the wrong question.” We take a different perspective here: the science and the statistical modeling are one unitary thing. The statistical model should represent some reasonable approximation of the latent cognitive processes that are assumed to be in play.</p>
-<p>The target audience for this book is students and researchers who want to treat statistics as an equal partner in their scientific work. We expect that the reader is willing to take the time to both understand and to run the computational analyses.</p>
-<p>Any rigorous introduction to Bayesian data analysis requires at least a passive knowledge of probability theory, calculus, and linear algebra. However, we do not require that the reader has this background when they start the book. Instead, the relevant ideas are introduced informally and just in time, as soon as they are needed. The reader is never required to have an active ability to solve probability problems, to solve integrals or compute derivatives, or to carry out matrix computations (such as inverting matrices) by hand. There are a few places where the discussion becomes technical and requires some knowledge of calculus or related topics. However, the reader unfamiliar with the required mathematics can simply skip those sections, as these are not really necessary to follow the main thread of the book.</p>
-<p>What we do expect is familiarity with arithmetic, basic set theory and elementary probability theory (e.g., sum and product rules, conditional probability), simple matrix operations like addition and multiplication, and simple algebraic operations. A quick look through chapter 1 of <span class="citation">Gill (<a href="#ref-gill2006essential" role="doc-biblioref">2006</a>)</span> before starting this book is highly recommended. We also presuppose that, when the need arises, the reader is willing to look up concepts that that they might have forgotten (e.g., logarithms). We also provide a self-paced course on some basic concepts in mathematics (aimed at non-mathematicians) which the reader can work through: see <a href="https://vasishth.github.io/FoM/" class="uri">https://vasishth.github.io/FoM/</a>.</p>
-<p>We also expect that the reader already knows and/or is willing to learn enough of the programming language R <span class="citation">(R Core Team <a href="#ref-R-base" role="doc-biblioref">2023</a>)</span> to reproduce the examples presented and to carry out the exercises. If the reader is completely unfamiliar with R, before starting this book they should first consult books like <a href="https://r4ds.had.co.nz/">R for data science</a>, and <a href="https://csgillespie.github.io/efficientR/">Efficient R programming</a>.</p>
-<p>We also assume that the reader has encountered simple linear modeling, and linear mixed models <span class="citation">(Bates, Mächler, et al. <a href="#ref-R-lme4" role="doc-biblioref">2015</a>; Baayen, Davidson, and Bates <a href="#ref-baayen2008mixed" role="doc-biblioref">2008</a>)</span>. What this means in practice is that the reader should have used the <code>lm()</code> and <code>lmer()</code> functions in R. A passing acquaintance with basic statistical concepts, like the correlation between two variables, is also taken for granted.</p>
-<p>This book is not appropriate for complete beginners to data analysis. Newcomers to data analysis should start with a freely available textbook like <span class="citation">Kerns (<a href="#ref-kerns2014introduction" role="doc-biblioref">2014</a>)</span>, and then read our introduction to frequentist data analysis, which is also available freely online <span class="citation">(Vasishth et al. <a href="#ref-VasishthEtAlFreq2021" role="doc-biblioref">2021</a>)</span>. This latter book will prepare the reader well for the material presented here.</p>
-</div>
-<div id="developing-the-right-mindset-for-this-book" class="section level2 unnumbered hasAnchor" number="">
-<h2>Developing the right mindset for this book<a href="index.html#developing-the-right-mindset-for-this-book" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>One very important characteristic that the reader should bring to this book is a can-do spirit. There will be many places where the going will get tough, and the reader will have to slow down and play around with the material, or refresh their understanding of arithmetic or middle-school algebra.
-The basic principles of such a can-do spirit are nicely summarized in the book by <span class="citation">Burger and Starbird (<a href="#ref-burger" role="doc-biblioref">2012</a>)</span>; also see <span class="citation">Levy (<a href="#ref-danlevy" role="doc-biblioref">2021</a>)</span>. Although we cannot summarize all the insights from these books in a few words, inspired by the <span class="citation">Burger and Starbird (<a href="#ref-burger" role="doc-biblioref">2012</a>)</span> book, here is a short enumeration of the kind of mindset the reader will need to cultivate:</p>
+<div id="ch-introBDA" class="section level1 hasAnchor" number="2">
+<h1><span class="header-section-number">Chapter 2</span> Introduction to Bayesian data analysis<a href="ch-introBDA.html#ch-introBDA" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>Before we can start analyzing realistic data sets using Bayes’ rule, it is important to understand the application of Bayes’ rule in one of the simplest of cases, data involving the binomial likelihood. This simple case is important to understand because it encapsulates the essence of the Bayesian approach to data analysis, and because it allows us to analytically work out the posterior distribution of the parameter of interest, using just a pen and paper. This simple case also helps us to appreciate a crucial point: The posterior distribution of a parameter is a compromise between the prior and the likelihood. This important insight will play a central role in the realistic data analysis situations we will cover in the remainder of this book.</p>
+<div id="bayes-rule" class="section level2 hasAnchor" number="2.1">
+<h2><span class="header-section-number">2.1</span>  Bayes’ rule<a href="ch-introBDA.html#bayes-rule" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Recall Bayes’ rule: When <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> are observable discrete events (such as “it has been raining” or “the streets are wet”), we can state the rule as follows:</p>
+<p><span class="math display" id="eq:bayes-P">\[\begin{equation}
+P(A\mid B) = \frac{P(B\mid A) P(A)}{P(B)}
+\tag{2.1}
+\end{equation}\]</span></p>
+<p>Given a vector of data <span class="math inline">\(\boldsymbol{y}\)</span>, Bayes’ rule allows us to work out the posterior distributions of the parameters of interest, which we can represent as the vector of parameters <span class="math inline">\(\boldsymbol{\Theta}\)</span>. This computation is achieved by rewriting <a href="ch-introBDA.html#eq:bayes-P">(2.1)</a> as <a href="ch-introBDA.html#eq:bayes">(2.2)</a>. What is different here is that Bayes’ rule is written in terms of probability distributions. Here, <span class="math inline">\(p(\cdot)\)</span> is a probability density function (continuous case) or a probability mass function (discrete case).</p>
+<p><span class="math display" id="eq:bayes">\[\begin{equation}
+p(\boldsymbol{\Theta}|\boldsymbol{y}) = \cfrac{ p(\boldsymbol{y}|\boldsymbol{\Theta}) \times p(\boldsymbol{\Theta}) }{p(\boldsymbol{y})}
+\tag{2.2}
+\end{equation}\]</span></p>
+<p>The above statement can be rewritten in words as follows:</p>
+<p><span class="math display">\[\begin{equation}
+\hbox{Posterior} = \frac{\hbox{Likelihood} \times \hbox{Prior}}{\hbox{Marginal Likelihood}}
+\end{equation}\]</span></p>
+<p>The terms here have the following meaning. We elaborate on each point with an example below.</p>
 <ul>
-<li>Spend time on the basic, apparently easy material; make sure you understand it deeply. Look for gaps in your understanding. Reading different presentations of the same material (in different books or articles) can yield new insights.</li>
-<li>Let mistakes and errors be your teacher. We instinctively recoil from our mistakes, but errors are ultimately our friends; they have the potential to teach us more than our correct answers can. In this sense, a correct solution can be less interesting than an incorrect one.</li>
-<li>When you are intimidated by some exercise or problem, give up and admit defeat immediately. This relaxes the mind; you’ve already given up, there’s nothing more to do. Then, after a while, try to solve a simpler version of the problem. Sometimes, it is useful to break the problem down to smaller parts, each of which may be easier to solve.</li>
-<li>Create your own questions. Don’t wait to be asked questions; develop your own problems and then try to solve them.</li>
-<li>Don’t expect to understand everything in the first pass. Just mentally note the gaps in your understanding, and return to them later and work on these gaps.</li>
-<li>Step back periodically to try to sketch out a broader picture of what you are learning. Writing down what you know, without looking up anything, is one helpful way to achieve this. Don’t wait for the teacher to give you bullet-point summaries of what you should have learned; develop such summaries yourself.</li>
-<li>Develop the art of finding information. When confronted with something you don’t know, or with some obscure error message, use google to find some answers.</li>
-<li>Do not hesitate to re-read a chapter; often, one only understands a topic after one revisits the material.</li>
+<li><p>The <em>Posterior</em>, <span class="math inline">\(p(\boldsymbol{\Theta}|\boldsymbol{y})\)</span>, is the probability distribution of the parameters conditional on the data.</p></li>
+<li><p>The <em>Likelihood</em>, <span class="math inline">\(p(\boldsymbol{y}|\boldsymbol{\Theta}\)</span>) is as described in chapter <a href="ch-intro.html#ch-intro">1</a>: it is the PMF (discrete case) or the PDF (continuous case) expressed as a function of <span class="math inline">\(\boldsymbol{\Theta}\)</span>.</p></li>
+<li><p>The <em>Prior</em>, <span class="math inline">\(p(\boldsymbol{\Theta})\)</span>, is the initial probability distribution of the parameter(s), before seeing the data.</p></li>
+<li><p>The <em>Marginal Likelihood</em>, <span class="math inline">\(p(\boldsymbol{y})\)</span>, was introduced in chapter <a href="ch-intro.html#ch-intro">1</a> and standardizes the posterior distribution to ensure that the area under the curve of the distribution sums to 1, that is, it ensures that the posterior is a valid probability distribution.</p></li>
 </ul>
-<p>As instructors, we have noticed over the years that students with such a mindset generally do very well. Some students already have that spirit, but others need to explicitly develop it. We firmly believe that everyone can develop such a mindset, but one may have to work on acquiring it. In any case, such an attitude is necessary for a book of this sort.</p>
+<p>An example will clarify all these terms, as we explain below.</p>
 </div>
-<div id="how-to-read-this-book" class="section level2 unnumbered hasAnchor" number="">
-<h2>How to read this book<a href="index.html#how-to-read-this-book" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>The chapters in this book are intended to be read in sequence, but during the first pass through the book, the reader should feel free to completely skip the boxes. These boxes provide a more formal development <span class="citation">(useful to transition to more advanced textbooks like Gelman et al. <a href="#ref-Gelman14" role="doc-biblioref">2014</a>)</span>, or deal with tangential aspects of the topics presented in the chapter.</p>
-<p>Here are some suggested paths through this book, depending on the reader’s goals:</p>
-<ul>
-<li>For a short course for complete beginners, read chapters <a href="ch-intro.html#ch-intro">1</a> to <a href="ch-hierarchical.html#ch-hierarchical">5</a>. We usually cover these five chapters in a five-day summer school course that we teach annually. Most of the material in this chapter is also covered in a free four-week course available online: <a href="https://open.hpi.de/courses/bayesian-statistics2023" class="uri">https://open.hpi.de/courses/bayesian-statistics2023</a>.</li>
-<li>For a course that focuses on regression models with the R package <code>brms</code>, read chapters <a href="ch-intro.html#ch-intro">1</a> to <a href="ch-coding2x2.html#ch-coding2x2">9</a> and, optionally, <a href="ch-bf.html#ch-bf">15</a>.</li>
-<li>For an advanced course that focuses on complex models involving Stan, read chapters <a href="ch-introstan.html#ch-introstan">10</a> to <a href="ch-lognormalrace.html#ch-lognormalrace">20</a>.</li>
-</ul>
+<div id="sec-analytical" class="section level2 hasAnchor" number="2.2">
+<h2><span class="header-section-number">2.2</span> Deriving the  posterior using Bayes’ rule: An analytical example<a href="ch-introBDA.html#sec-analytical" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Recall our cloze probability example earlier. Subjects are shown sentences like</p>
+<p>“It’s raining. I’m going to take the …”</p>
+<p>Suppose that 100 subjects are asked to complete the sentence.
+If <span class="math inline">\(80\)</span> out of <span class="math inline">\(100\)</span> subjects complete the sentence with “umbrella,” the estimated cloze probability or predictability (given the preceding context) would be <span class="math inline">\(\frac{80}{100}=0.8\)</span>. This is the maximum likelihood estimate of the probability of producing this word; we will designate the estimate with a “hat” on the parameter name: <span class="math inline">\(\hat \theta=0.8\)</span>. In the frequentist paradigm, <span class="math inline">\(\hat \theta=0.8\)</span> is an estimate of an unknown point value <span class="math inline">\(\theta\)</span> “out there in nature.”</p>
+<p>A crucial point to notice here is that the proportion <span class="math inline">\(0.8\)</span> that we estimated above from the data can vary from one data set to another, and the variability in the estimate will be influenced by the sample size (the number of trials). For example, assuming that the true value of the <span class="math inline">\(\theta\)</span> parameter is in fact <span class="math inline">\(0.8\)</span>, if we repeatedly carry out the above experiment with say <span class="math inline">\(10\)</span> trials, we will get some variability in the estimated proportion. Let’s check this by carrying out <span class="math inline">\(100\)</span> simulated experiments and computing the variability of the estimated means under repeated sampling:</p>
+<div class="sourceCode" id="cb80"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb80-1"><a href="ch-introBDA.html#cb80-1" aria-hidden="true"></a>estimated_means &lt;-<span class="st"> </span><span class="kw">rbinom</span>(<span class="dv">100</span>, <span class="dt">size =</span> <span class="dv">10</span>, <span class="dt">prob =</span> <span class="fl">0.8</span>) <span class="op">/</span><span class="st"> </span><span class="dv">10</span></span>
+<span id="cb80-2"><a href="ch-introBDA.html#cb80-2" aria-hidden="true"></a><span class="kw">sd</span>(estimated_means)</span></code></pre></div>
+<pre><code>## [1] 0.135</code></pre>
+<p>The repeated runs of the (simulated) experiment are the sole underlying cause for the variability (shown by the output of the <code>sd(estimated)</code> command above) in the estimated proportion; the parameter <span class="math inline">\(\theta=0.80\)</span> itself is invariant here (we are repeatedly estimating this point value).</p>
+<p>However, consider now an alternative radical idea: what if we treat <span class="math inline">\(\theta\)</span> as a random variable? That is, suppose now that <span class="math inline">\(\theta\)</span> has a PDF associated with it. This PDF would now represent our belief about possible values of <span class="math inline">\(\theta\)</span>, even before we have seen any data. For example, if at the outset of the experiment, we believe that all possible values between <span class="math inline">\(0\)</span> and <span class="math inline">\(1\)</span> are equally likely, we could represent that belief by stating that <span class="math inline">\(\theta \sim \mathit{Uniform}(0,1)\)</span>. The radical new idea here is that we now have a way to represent our prior belief or knowledge about plausible values of the parameter.</p>
+<p>Now, if we were to run our simulated experiments again and again, there would be <em>two</em> sources of variability in the estimate of the parameter: the data as well as the uncertainty associated with <span class="math inline">\(\theta\)</span>.</p>
+<div class="sourceCode" id="cb82"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb82-1"><a href="ch-introBDA.html#cb82-1" aria-hidden="true"></a>theta &lt;-<span class="st"> </span><span class="kw">runif</span>(<span class="dv">100</span>, <span class="dt">min =</span> <span class="dv">0</span>, <span class="dt">max =</span> <span class="dv">1</span>)</span>
+<span id="cb82-2"><a href="ch-introBDA.html#cb82-2" aria-hidden="true"></a>estimated_means &lt;-<span class="st"> </span><span class="kw">rbinom</span>(<span class="dv">100</span>, <span class="dt">size =</span> <span class="dv">10</span>, <span class="dt">prob =</span> theta) <span class="op">/</span><span class="st"> </span><span class="dv">10</span></span>
+<span id="cb82-3"><a href="ch-introBDA.html#cb82-3" aria-hidden="true"></a><span class="kw">sd</span>(estimated_means)</span></code></pre></div>
+<pre><code>## [1] 0.317</code></pre>
+<p>The higher standard deviation is now coming from the uncertainty associated with the <span class="math inline">\(\theta\)</span> parameter. To see this, assume a “tighter” PDF for <span class="math inline">\(\theta\)</span>, say <span class="math inline">\(\theta \sim \mathit{Uniform}(0.3,0.8)\)</span>, then the variability in the estimated means would again be smaller, but not as small as when we assumed that <span class="math inline">\(\theta\)</span> was a point value:</p>
+<div class="sourceCode" id="cb84"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb84-1"><a href="ch-introBDA.html#cb84-1" aria-hidden="true"></a>theta &lt;-<span class="st"> </span><span class="kw">runif</span>(<span class="dv">100</span>, <span class="dt">min =</span> <span class="fl">0.3</span>, <span class="dt">max =</span> <span class="fl">0.8</span>)</span>
+<span id="cb84-2"><a href="ch-introBDA.html#cb84-2" aria-hidden="true"></a>estimated_means &lt;-<span class="st"> </span><span class="kw">rbinom</span>(<span class="dt">n=</span><span class="dv">100</span>, <span class="dt">size =</span> <span class="dv">10</span>, <span class="dt">prob =</span> theta) <span class="op">/</span><span class="st"> </span><span class="dv">10</span></span>
+<span id="cb84-3"><a href="ch-introBDA.html#cb84-3" aria-hidden="true"></a><span class="kw">sd</span>(estimated_means)</span></code></pre></div>
+<pre><code>## [1] 0.192</code></pre>
+<p>In other words, the greater the uncertainty associated with the parameter <span class="math inline">\(\theta\)</span>, the greater the variability in the data.</p>
+<p>The Bayesian approach to parameter estimation makes a radical departure from the standard frequentist assumption, which assumes that the true, unknown value of <span class="math inline">\(\theta\)</span> is some point value. In the Bayesian approach, <span class="math inline">\(\theta\)</span> is a random variable with a probability density/mass function associated with it. This PDF is called a prior distribution, and represents our prior belief or prior knowledge about possible values of this parameter. Once we obtain data, these data serve to modify our prior belief about this distribution; this updated probability density function of the parameter is called the posterior distribution. These ideas are unpacked in the sections below.</p>
+<div id="choosing-a-likelihood" class="section level3 hasAnchor" number="2.2.1">
+<h3><span class="header-section-number">2.2.1</span> Choosing a  likelihood<a href="ch-introBDA.html#choosing-a-likelihood" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Under the assumptions we have set up above, the responses follow a binomial distribution, and so the PMF can be written as follows.</p>
+<p><span class="math display" id="eq:binom">\[\begin{equation}
+p(k|n,\theta) = \binom{n}
+{k} \theta^k (1-\theta)^{n-k}
+\tag{2.3}
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(k\)</span> indicates the number of times “umbrella” is given as an answer, and <span class="math inline">\(n\)</span> is the number of trials. In our running example, <span class="math inline">\(k\)</span> can therefore be any whole number going from <span class="math inline">\(0\)</span> to <span class="math inline">\(100\)</span>.</p>
+<p>In a particular experiment that we carry out, if we collect <span class="math inline">\(100\)</span> data points (<span class="math inline">\(n=100\)</span>) and it turns out that <span class="math inline">\(k = 80\)</span>, these data are now a fixed quantity. The only variable now in the PMF above is <span class="math inline">\(\theta\)</span>:</p>
+<p><span class="math display">\[\begin{equation}
+p(k=80 | n= 100,  \theta) = \binom{100}{80} \theta^{80} (1-\theta)^{20}
+\end{equation}\]</span></p>
+<p>The above function is a now a continuous function of the value <span class="math inline">\(\theta\)</span>, which has possible values ranging from <span class="math inline">\(0\)</span> to <span class="math inline">\(1\)</span>. Compare this to the PMF of the binomial, which treats <span class="math inline">\(\theta\)</span> as a fixed value and defines a discrete distribution over the <span class="math inline">\(n+1\)</span> possible discrete values <span class="math inline">\(k\)</span> that we can observe (the possible number of successes).</p>
+<p>Recall that the  PMF and the  likelihood are the same function seen from different points of view. The only difference between the two is what is considered to be fixed and what is varying. The PMF treats data as varying from experiment to experiment and <span class="math inline">\(\theta\)</span> as fixed, whereas the likelihood function treats the data that have been collected as fixed and the parameter <span class="math inline">\(\theta\)</span> as varying.</p>
+<p>We now turn our attention back to our main goal, which is to find out, using Bayes’ rule, the posterior distribution of <span class="math inline">\(\theta\)</span> given our data: <span class="math inline">\(p(\theta|n,k)\)</span>. In order to use Bayes’ rule to calculate this posterior distribution, we need to define a prior distribution over the parameter <span class="math inline">\(\theta\)</span>. In doing so, we are explicitly expressing our prior uncertainty about plausible values of <span class="math inline">\(\theta\)</span>.</p>
 </div>
-<div id="some-conventions-used-in-this-book" class="section level2 unnumbered hasAnchor" number="">
-<h2>Some conventions used in this book<a href="index.html#some-conventions-used-in-this-book" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>We adopt the following conventions:</p>
-<ul>
-<li>All distribution names are lower-case unless they are also a proper name (e.g., Poisson, Bernoulli).</li>
-<li>The univariate normal distribution is parameterized by the mean and standard deviation (not variance).</li>
-<li>The code for figures is provided only in some cases, where we consider it to be pedagogically useful. In other cases, the code remains hidden, but it can be found in the web version of the book. Notice that all the R code from the book can be extracted from the Rmd source files for each chapter, which are released with the book.</li>
-</ul>
-</div>
-<div id="online-materials" class="section level2 unnumbered hasAnchor" number="">
-<h2>Online materials<a href="index.html#online-materials" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>The entire book, including all data and source code, is available online for free on <a href="https://bruno.nicenboim.me/bayescogsci/">https://bruno.nicenboim.me/bayescogsci/</a>. The solutions to exercises will be made available on request.</p>
-</div>
-<div id="software-needed" class="section level2 unnumbered hasAnchor" number="">
-<h2>Software needed<a href="index.html#software-needed" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>Before you start, please install</p>
-<ul>
-<li><a href="https://cran.r-project.org/">R</a> and <a href="https://www.rstudio.com/">RStudio</a>, or any other Integrated Development Environment that you prefer, such as <a href="https://code.visualstudio.com/">Visual Studio Code</a> and <a href="https://ess.r-project.org/">Emacs Speaks Statistics</a>.</li>
-<li>The R package <code>rstan</code>. At the time of writing this book, the CRAN version of <code>rstan</code> lags behind the latest developments in Stan so it is recommended to install <code>rstan</code> from <code>https://mc-stan.org/r-packages/</code> as indicated in <a href="https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started" class="uri">https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started</a></li>
-<li>The R packages <code>dplyr</code>, <code>purrr</code>, <code>tidyr</code>, <code>extraDistr</code>, <code>brms</code>, <code>hypr</code> and <code>lme4</code> are used in many chapters of the book and can be installed the usual way: <code>install.packages(c("dplyr","purrr","tidyr", "extraDistr", "brms","hypr","lme4"))</code>. We use <code>ggplot2</code> for figures; please consult the relevant documentation if you are unfamiliar with <code>ggplot2</code> <span class="citation">(e.g., Wickham, Chang, et al. <a href="#ref-R-ggplot2" role="doc-biblioref">2024</a>)</span>.</li>
-<li>The following R packages are optional: <code>tictoc</code>, <code>rootSolve</code>, <code>SHELF</code>, <code>cmdstanr</code>, and <code>SBC</code>.</li>
-<li>Some packages and their dependencies, such as <code>intoo</code>, <code>barsurf</code>, <code>bivariate</code>, and <code>SIN</code> could require manual installation from archived or github versions.</li>
-<li>The data and Stan models used in this book can be installed using <code>remotes::install_github("bnicenboim/bcogsci")</code>. This command uses the function <code>install_github</code> from the package <code>remotes</code>. (Thus this package should be in the system as well.)</li>
-</ul>
-<p>In every R session, load these packages, and set the options shown below for Stan.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1-1"><a href="index.html#cb1-1" aria-hidden="true"></a><span class="kw">library</span>(MASS)</span>
-<span id="cb1-2"><a href="index.html#cb1-2" aria-hidden="true"></a><span class="co">## be careful to load dplyr after MASS</span></span>
-<span id="cb1-3"><a href="index.html#cb1-3" aria-hidden="true"></a><span class="kw">library</span>(dplyr)</span>
-<span id="cb1-4"><a href="index.html#cb1-4" aria-hidden="true"></a><span class="kw">library</span>(tidyr)</span>
-<span id="cb1-5"><a href="index.html#cb1-5" aria-hidden="true"></a><span class="kw">library</span>(purrr)</span>
-<span id="cb1-6"><a href="index.html#cb1-6" aria-hidden="true"></a><span class="kw">library</span>(extraDistr)</span>
-<span id="cb1-7"><a href="index.html#cb1-7" aria-hidden="true"></a><span class="kw">library</span>(ggplot2)</span>
-<span id="cb1-8"><a href="index.html#cb1-8" aria-hidden="true"></a><span class="kw">library</span>(loo)</span>
-<span id="cb1-9"><a href="index.html#cb1-9" aria-hidden="true"></a><span class="kw">library</span>(bridgesampling)</span>
-<span id="cb1-10"><a href="index.html#cb1-10" aria-hidden="true"></a><span class="kw">library</span>(brms)</span>
-<span id="cb1-11"><a href="index.html#cb1-11" aria-hidden="true"></a><span class="kw">library</span>(bayesplot)</span>
-<span id="cb1-12"><a href="index.html#cb1-12" aria-hidden="true"></a><span class="kw">library</span>(tictoc)</span>
-<span id="cb1-13"><a href="index.html#cb1-13" aria-hidden="true"></a><span class="kw">library</span>(hypr)</span>
-<span id="cb1-14"><a href="index.html#cb1-14" aria-hidden="true"></a><span class="kw">library</span>(bcogsci)</span>
-<span id="cb1-15"><a href="index.html#cb1-15" aria-hidden="true"></a><span class="kw">library</span>(lme4)</span>
-<span id="cb1-16"><a href="index.html#cb1-16" aria-hidden="true"></a><span class="kw">library</span>(rstan)</span>
-<span id="cb1-17"><a href="index.html#cb1-17" aria-hidden="true"></a><span class="co"># This package is optional, see https://mc-stan.org/cmdstanr/:</span></span>
-<span id="cb1-18"><a href="index.html#cb1-18" aria-hidden="true"></a><span class="kw">library</span>(cmdstanr)</span>
-<span id="cb1-19"><a href="index.html#cb1-19" aria-hidden="true"></a><span class="co"># This package is optional, see https://hyunjimoon.github.io/SBC/:</span></span>
-<span id="cb1-20"><a href="index.html#cb1-20" aria-hidden="true"></a><span class="kw">library</span>(SBC)</span>
-<span id="cb1-21"><a href="index.html#cb1-21" aria-hidden="true"></a><span class="kw">library</span>(SHELF)</span>
-<span id="cb1-22"><a href="index.html#cb1-22" aria-hidden="true"></a><span class="kw">library</span>(rootSolve)</span>
-<span id="cb1-23"><a href="index.html#cb1-23" aria-hidden="true"></a></span>
-<span id="cb1-24"><a href="index.html#cb1-24" aria-hidden="true"></a><span class="co">## Save compiled models:</span></span>
-<span id="cb1-25"><a href="index.html#cb1-25" aria-hidden="true"></a><span class="kw">rstan_options</span>(<span class="dt">auto_write =</span> <span class="ot">FALSE</span>)</span>
-<span id="cb1-26"><a href="index.html#cb1-26" aria-hidden="true"></a><span class="co">## Parallelize the chains using all the cores:</span></span>
-<span id="cb1-27"><a href="index.html#cb1-27" aria-hidden="true"></a><span class="kw">options</span>(<span class="dt">mc.cores =</span> parallel<span class="op">::</span><span class="kw">detectCores</span>())</span>
-<span id="cb1-28"><a href="index.html#cb1-28" aria-hidden="true"></a><span class="co"># To solve some conflicts between packages:</span></span>
-<span id="cb1-29"><a href="index.html#cb1-29" aria-hidden="true"></a>select &lt;-<span class="st"> </span>dplyr<span class="op">::</span>select</span>
-<span id="cb1-30"><a href="index.html#cb1-30" aria-hidden="true"></a>extract &lt;-<span class="st"> </span>rstan<span class="op">::</span>extract</span></code></pre></div>
-</div>
-<div id="acknowledgments" class="section level2 unnumbered hasAnchor" number="">
-<h2>Acknowledgments<a href="index.html#acknowledgments" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>We are grateful to the many generations of students at the University of Potsdam, various summer schools at ESSLLI, the LOT winter school, the Open HPI MOOC on Bayesian statistics (<a href="https://open.hpi.de/courses/bayesian-statistics2023" class="uri">https://open.hpi.de/courses/bayesian-statistics2023</a>), other short courses we have taught at various institutions, and the annual summer school on <a href="https://vasishth.github.io/smlp/">Statistical Methods for Linguistics and Psychology (SMLP)</a> held annually at Potsdam, Germany. The participants in these courses helped us considerably in improving the material presented here. A special thanks to Anna Laurinavichyute, Paula Lissón, and Himanshu Yadav for co-teaching the the Bayesian courses at SMLP. We are also grateful to members of Vasishth lab, especially Dorothea Pregla, for comments on earlier drafts of this book. We would also like to thank Douglas Bates, Ben Bolker, Christian Robert (otherwise known as Xi’an), Robin Ryder, Nicolas Chopin, Michael Betancourt, Andrew Gelman, the Stan developers (especially Bob Carpenter and Paul-Christian Bürkner), Philip D. Loewen, and Leendert Van Maanen for their comments and advice; to Pavel Logačev for his feedback, and Athanassios Protopapas, Patricia Mirabile, Masataka Ogawa, Alex Swiderski, Andrew Ellis, Jakub Szewczyk, Chi Hou Pau, Alec Shaw, Patrick Wen, Riccardo Fusaroli, Abdulrahman Dallak, Elizabeth Pankratz, João Veríssimo, Jean-Pierre Haeberly, Chris Hammill, Florian Wickelmaier, Ole Seeth, Jules Bouton, Siqi Zheng, Michael Gaunt, Benjamin Senst, Chris Moreh, Richard Hatcher, Noelia Stetie, Robert Lew, Leonardo Cerliani, Stefan Riedel, Raluca Rilla, Arne Schernich, Sven Koch, Joy Sarow, Iñigo Urrestarazu-Porta, Jan Winkowski, Adrian Staub, Brian Dillon, Job Schepens, Katja Politt, Cui Ding, Marc Tortorello, Michael Vrazitulis, Marisol Murujosa, and Ander Egurtzegi for catching typos, unclear passages, and errors in the book. A special thanks to Daniel Heck, Alexandre Cremers, Henrik Singmann, and Martin Modrák for reading (parts of) the book and catching many mistakes and typos. Our apologies to anyone that we have forgotten to mention. Thanks also go to Jeremy Oakley and other statisticians at the School of Mathematics and Statistics, University of Sheffield, UK, for helpful discussions, and ideas for exercises that were inspired from the MSc program taught online at Sheffield.</p>
-<p>This book would have been impossible to write without the following software: R <span class="citation">(Version 4.3.2; R Core Team <a href="#ref-R-base" role="doc-biblioref">2023</a>)</span> and the R-packages <em>afex</em> <span class="citation">(Singmann et al. <a href="#ref-R-afex" role="doc-biblioref">2020</a>)</span>, <em>barsurf</em> <span class="citation">(Version 0.7.0; Spurdle <a href="#ref-R-barsurf" role="doc-biblioref">2020</a>)</span>, <em>bayesplot</em> <span class="citation">(Version 1.11.1; Gabry and Mahr <a href="#ref-R-bayesplot" role="doc-biblioref">2024</a>)</span>, <em>bcogsci</em> <span class="citation">(Version 0.0.0.9000; Nicenboim, Schad, and Vasishth <a href="#ref-R-bcogsci" role="doc-biblioref">2024</a>)</span>, <em>bibtex</em> <span class="citation">(Francois <a href="#ref-R-bibtex" role="doc-biblioref">2017</a>)</span>, <em>bivariate</em> <span class="citation">(Version 0.7.0; Spurdle <a href="#ref-R-bivariate" role="doc-biblioref">2021</a>)</span>, <em>bookdown</em> <span class="citation">(Version 0.39; Xie <a href="#ref-R-bookdown" role="doc-biblioref">2024</a><a href="#ref-R-bookdown" role="doc-biblioref">a</a>)</span>, <em>bridgesampling</em> <span class="citation">(Version 1.1.2; Gronau, Singmann, and Wagenmakers <a href="#ref-R-bridgesampling" role="doc-biblioref">2020</a>)</span>, <em>brms</em> <span class="citation">(Version 2.21.0; Bürkner <a href="#ref-R-brms" role="doc-biblioref">2024</a>)</span>, <em>citr</em> <span class="citation">(Aust <a href="#ref-R-citr" role="doc-biblioref">2019</a>)</span>, <em>cmdstanr</em> <span class="citation">(Version 0.8.0; Gabry et al. <a href="#ref-R-cmdstanr" role="doc-biblioref">2024</a>)</span>, <em>cowplot</em> <span class="citation">(Version 1.1.3; Wilke <a href="#ref-R-cowplot" role="doc-biblioref">2024</a>)</span>, <em>digest</em> <span class="citation">(Version 0.6.35; Antoine Lucas et al. <a href="#ref-R-digest" role="doc-biblioref">2021</a>)</span>, <em>dplyr</em> <span class="citation">(Version 1.1.4; Wickham, François, et al. <a href="#ref-R-dplyr" role="doc-biblioref">2023</a>)</span>, <em>DT</em> <span class="citation">(Xie, Cheng, and Tan <a href="#ref-R-DT" role="doc-biblioref">2019</a>)</span>, <em>extraDistr</em> <span class="citation">(Version 1.10.0; Wolodzko <a href="#ref-R-extraDistr" role="doc-biblioref">2023</a>)</span>, <em>forcats</em> <span class="citation">(Wickham <a href="#ref-R-forcats" role="doc-biblioref">2019</a><a href="#ref-R-forcats" role="doc-biblioref">a</a>)</span>, <em>gdtools</em> <span class="citation">(Gohel et al. <a href="#ref-R-gdtools" role="doc-biblioref">2019</a>)</span>, <em>ggplot2</em> <span class="citation">(Version 3.5.1; Wickham, Chang, et al. <a href="#ref-R-ggplot2" role="doc-biblioref">2024</a>)</span>, <em>gridExtra</em> <span class="citation">(Version 2.3; Auguie <a href="#ref-R-gridExtra" role="doc-biblioref">2017</a>)</span>, <em>htmlwidgets</em> <span class="citation">(Version 1.6.4; Vaidyanathan et al. <a href="#ref-R-htmlwidgets" role="doc-biblioref">2023</a>)</span>, <em>hypr</em> <span class="citation">(Version 0.2.8; Schad et al. <a href="#ref-R-hypr_a" role="doc-biblioref">2019</a>; Rabe et al. <a href="#ref-R-hypr_b" role="doc-biblioref">2020</a><a href="#ref-R-hypr_b" role="doc-biblioref">b</a>)</span>, <em>intoo</em> <span class="citation">(Version 0.4.0; Spurdle and Bode <a href="#ref-R-intoo" role="doc-biblioref">2020</a>)</span>, <em>kableExtra</em> <span class="citation">(Version 1.4.0; Zhu <a href="#ref-R-kableExtra" role="doc-biblioref">2024</a>)</span>, <em>knitr</em> <span class="citation">(Version 1.47; Xie <a href="#ref-R-knitr" role="doc-biblioref">2024</a><a href="#ref-R-knitr" role="doc-biblioref">b</a>)</span>, <em>lme4</em> <span class="citation">(Version 1.1.35.3; Bates, Mächler, et al. <a href="#ref-R-lme4" role="doc-biblioref">2015</a>)</span>, <em>loo</em> <span class="citation">(Version 2.7.0; Vehtari, Gelman, and Gabry <a href="#ref-R-loo_a" role="doc-biblioref">2017</a><a href="#ref-R-loo_a" role="doc-biblioref">a</a>; Yao et al. <a href="#ref-R-loo_b" role="doc-biblioref">2017</a>)</span>, <em>MASS</em> <span class="citation">(Version 7.3.60; Ripley <a href="#ref-R-MASS" role="doc-biblioref">2023</a>)</span>, <em>Matrix</em> <span class="citation">(Version 1.6.1.1; Bates, Maechler, and Jagan <a href="#ref-R-Matrix" role="doc-biblioref">2023</a>)</span>, <em>miniUI</em> <span class="citation">(Version 0.1.1.1; Cheng <a href="#ref-R-miniUI" role="doc-biblioref">2018</a>)</span>, <em>papaja</em> <span class="citation">(Version 0.1.2; Aust and Barth <a href="#ref-R-papaja" role="doc-biblioref">2020</a>)</span>, <em>pdftools</em> <span class="citation">(Version 3.4.0; Ooms <a href="#ref-R-pdftools" role="doc-biblioref">2023</a>)</span>, <em>purrr</em> <span class="citation">(Version 1.0.2; Wickham and Henry <a href="#ref-R-purrr" role="doc-biblioref">2023</a>)</span>, <em>Rcpp</em> <span class="citation">(Version 1.0.12; Eddelbuettel et al. <a href="#ref-R-Rcpp" role="doc-biblioref">2024</a>)</span>, <em>readr</em> <span class="citation">(Wickham, Hester, and Francois <a href="#ref-R-readr" role="doc-biblioref">2018</a>)</span>, <em>RefManageR</em> <span class="citation">(McLean <a href="#ref-R-RefManageR" role="doc-biblioref">2017</a>)</span>, <em>remotes</em> <span class="citation">(Version 2.5.0; Hester et al. <a href="#ref-R-remotes" role="doc-biblioref">2021</a>)</span>, <em>rethinking</em> <span class="citation">(Version 2.40; McElreath <a href="#ref-R-rethinking" role="doc-biblioref">2021</a>)</span>, <em>RJ-2021-048</em> <span class="citation">(Bengtsson <a href="#ref-R-RJ-2021-048" role="doc-biblioref">2021</a>, <a href="#ref-R-RJ-2021-048" role="doc-biblioref">2021</a>, <a href="#ref-R-RJ-2021-048" role="doc-biblioref">2021</a>, <a href="#ref-R-RJ-2021-048" role="doc-biblioref">2021</a>, <a href="#ref-R-RJ-2021-048" role="doc-biblioref">2021</a>, <a href="#ref-R-RJ-2021-048" role="doc-biblioref">2021</a>)</span>, <em>rmarkdown</em> <span class="citation">(Version 2.27; Allaire et al. <a href="#ref-R-rmarkdown" role="doc-biblioref">2024</a>)</span>, <em>rootSolve</em> <span class="citation">(Version 1.8.2.4; Soetaert and Herman <a href="#ref-R-rootSolve" role="doc-biblioref">2009</a>)</span>, <em>rstan</em> <span class="citation">(Version 2.35.0.9000; Guo et al. <a href="#ref-R-rstan" role="doc-biblioref">2024</a>)</span>, <em>SBC</em> <span class="citation">(Version 0.3.0.9000; Kim et al. <a href="#ref-R-SBC" role="doc-biblioref">2024</a>)</span>, <em>servr</em> <span class="citation">(Xie <a href="#ref-R-servr" role="doc-biblioref">2019</a>)</span>, <em>SHELF</em> <span class="citation">(Version 1.10.0; Oakley <a href="#ref-R-SHELF" role="doc-biblioref">2024</a>)</span>, <em>SIN</em> <span class="citation">(Version 0.6; Drton <a href="#ref-R-SIN" role="doc-biblioref">2013</a>)</span>, <em>StanHeaders</em> <span class="citation">(Version 2.35.0.9000; Goodrich et al. <a href="#ref-R-StanHeaders" role="doc-biblioref">2024</a>)</span>, <em>stringr</em> <span class="citation">(Version 1.5.1; Wickham <a href="#ref-R-stringr" role="doc-biblioref">2019</a><a href="#ref-R-stringr" role="doc-biblioref">b</a>)</span>, <em>texPreview</em> <span class="citation">(Sidi and Polhamus <a href="#ref-R-texPreview" role="doc-biblioref">2020</a>)</span>, <em>tibble</em> <span class="citation">(Version 3.2.1; Müller and Wickham <a href="#ref-R-tibble" role="doc-biblioref">2020</a>)</span>, <em>tictoc</em> <span class="citation">(Version 1.2.1; Izrailev <a href="#ref-R-tictoc" role="doc-biblioref">2024</a>)</span>, <em>tidyr</em> <span class="citation">(Version 1.3.1; Wickham, Vaughan, and Girlich <a href="#ref-R-tidyr" role="doc-biblioref">2024</a>)</span>, <em>tidyverse</em> <span class="citation">(Wickham, Averick, et al. <a href="#ref-R-tidyverse" role="doc-biblioref">2019</a>)</span>, <em>tinylabels</em> <span class="citation">(Version 0.2.4; Barth <a href="#ref-R-tinylabels" role="doc-biblioref">2023</a>)</span>, and <em>webshot</em> <span class="citation">(Chang <a href="#ref-R-webshot" role="doc-biblioref">2018</a>)</span>.</p>
-
-<p class="flushright">
-Bruno Nicenboim (Tilburg, the Netherlands),
-Daniel Schad (Potsdam, Germany),
-Shravan Vasishth (Potsdam, Germany)
+<div id="sec-choosepriortheta" class="section level3 hasAnchor" number="2.2.2">
+<h3><span class="header-section-number">2.2.2</span> Choosing a  prior for <span class="math inline">\(\theta\)</span><a href="ch-introBDA.html#sec-choosepriortheta" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>For the choice of prior for <span class="math inline">\(\theta\)</span> in the binomial distribution, we need to assume that the parameter <span class="math inline">\(\theta\)</span> is a random variable that has a PDF whose range lies within [0,1], the range over which <span class="math inline">\(\theta\)</span> can vary (this is because <span class="math inline">\(\theta\)</span> represents a probability). The  beta distribution, which is a PDF for a continuous random variable, is commonly used as prior for parameters representing probabilities. One reason for this choice is that its PDF ranges over the interval <span class="math inline">\([0,1]\)</span>. The other reason for this choice is that it makes the Bayes’ rule calculation remarkably easy.</p>
+<p>The beta distribution has the following PDF.</p>
+<p><span class="math display" id="eq:betach2">\[\begin{equation}
+p(\theta|a,b)=  \frac{1}{B(a,b)} \theta^{a - 1} (1-\theta)^{b-1}
+\tag{2.4}
+\end{equation}\]</span></p>
+<p>The term <span class="math inline">\(B(a,b)\)</span> expands to <span class="math inline">\(\int_0^1 \theta^{a-1}(1-\theta)^{b-1}\, d\theta\)</span>, and is a normalizing constant that ensures that the area under the curve sums to one. In some textbooks, you may see the PDF of the beta distribution with the normalizing constant <span class="math inline">\(\frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}\)</span> (the expression <span class="math inline">\(\Gamma(n)\)</span> is defined as (n-1)!): <span class="math display">\[p(\theta|a,b)=  \frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)} \theta^{a - 1} (1-\theta)^{b-1}\]</span> These two statements for the beta distribution are identical because <span class="math inline">\(B(a,b)\)</span> can be shown to be equal to <span class="math inline">\(\frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}\)</span> <span class="citation">(Ross <a href="#ref-RossProb" role="doc-biblioref">2002</a>)</span>.</p>
+<p>The beta distribution’s parameters <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> can be interpreted as expressing our prior beliefs about the probability of success; <span class="math inline">\(a\)</span> represents the number of “successes”, in our case, answers that are “umbrella” and <span class="math inline">\(b\)</span> the number of failures, the answers that are not “umbrella”. Figure <a href="ch-introBDA.html#fig:betas2">2.1</a> shows the different beta distribution shapes given different values of <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>.</p>
+<div class="figure"><span style="display:block;" id="fig:betas2"></span>
+<img src="bayescogsci_files/figure-html/betas2-1.svg" alt="Examples of beta distributions with different parameters." width="672" />
+<p class="caption">
+FIGURE 2.1: Examples of beta distributions with different parameters.
 </p>
+</div>
+<p>As in the binomial and normal distributions that we saw in chapter 1, one can analytically derive the formulas for the expectation and variance of the beta distribution. These are:</p>
+<p><span class="math display" id="eq:meanvar">\[\begin{equation}
+\operatorname{E}[X] = \frac{a}{a+b} \quad \operatorname{Var}(X)=\frac {a \times b }{(a + b )^{2}(a + b +1)}
+\tag{2.5}
+\end{equation}\]</span></p>
+<p>As an example, choosing <span class="math inline">\(a=4\)</span> and <span class="math inline">\(b=4\)</span> would mean that the answer “umbrella” is as likely as a different answer, but we are relatively unsure about this. We could express our uncertainty by computing the region over which we are 95% certain that the value of the parameter lies; this is the  <em>95% credible interval</em>. For this, we would use the <code>qbeta</code> function in R; the parameters <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> are called <code>shape1</code> and <code>shape2</code> in <code>R</code>.</p>
+<div class="sourceCode" id="cb86"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb86-1"><a href="ch-introBDA.html#cb86-1" aria-hidden="true"></a><span class="kw">qbeta</span>(<span class="kw">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>), <span class="dt">shape1 =</span> <span class="dv">4</span>, <span class="dt">shape2 =</span> <span class="dv">4</span>)</span></code></pre></div>
+<pre><code>## [1] 0.184 0.816</code></pre>
+<p>The credible interval chosen above is an equal-tailed interval: the area below the lower bound and above the upper bound is the same (<span class="math inline">\(0.025\)</span> in the above case). One could define alternative intervals; for example, in a distribution with only one mode (one peak; a unimodal distribution), one could choose to use the narrowest interval that contains the mode. This is called the  highest posterior density interval (HDI). In skewed posterior distributions, the equal-tailed credible interval and the HDI will not be identical, because the HDI will have unequal tail probabilities. Some authors, such as <span class="citation">Kruschke (<a href="#ref-kruschke2014doing" role="doc-biblioref">2014</a>)</span>, prefer to report the HDI. We will use the equal-tailed interval in this book, simply because this is the standard output in Stan and <code>brms</code>.</p>
+<p>If we were to choose <span class="math inline">\(a=10\)</span> and <span class="math inline">\(b=10\)</span>, we would still be assuming that a priori the answer “umbrella” is just as likely as some other answer, but now our prior uncertainty about this mean is lower, as the 95% credible interval computed below shows.</p>
+<div class="sourceCode" id="cb88"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb88-1"><a href="ch-introBDA.html#cb88-1" aria-hidden="true"></a><span class="kw">qbeta</span>(<span class="kw">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>), <span class="dt">shape1 =</span> <span class="dv">10</span>, <span class="dt">shape2 =</span> <span class="dv">10</span>)</span></code></pre></div>
+<pre><code>## [1] 0.289 0.711</code></pre>
+<p>In Figure <a href="ch-introBDA.html#fig:betas2">2.1</a>, we can see also the difference in uncertainty in these two examples graphically.</p>
+<p>Which prior should we choose? In a real data analysis problem, the choice of prior would depend on what prior knowledge we want to bring into the analysis (see chapter <a href="ch-priors.html#ch-priors">6</a>). If we don’t have much prior information, we could use <span class="math inline">\(a=b=1\)</span>; this gives us a uniform prior (i.e., <span class="math inline">\(\mathit{Uniform}(0,1)\)</span>). This kind of prior goes by various names, such as  <em>flat, non-informative prior</em>, or  <em>uninformative prior</em>. By contrast, if we have a lot of prior knowledge and/or a strong belief (e.g., based on a particular theory’s predictions, or prior data) that <span class="math inline">\(\theta\)</span> has a particular range of plausible values, we can use a different set of <span class="math inline">\(a, b\)</span> values to reflect our belief about the parameter. Generally speaking, the larger our parameters a and b, the narrower the spread of the distribution; i.e., the lower our uncertainty about the mean value of the parameter.</p>
+<p>We will discuss prior specification in detail later in chapter <a href="ch-priors.html#ch-priors">6</a>. For the moment, just for illustration, we choose the values <span class="math inline">\(a=4\)</span> and <span class="math inline">\(b=4\)</span> for the beta prior. Then, our prior for <span class="math inline">\(\theta\)</span> is the following beta PDF:</p>
+<p><span class="math display">\[\begin{equation}
+p(\theta) = \frac{1}{B(4,4)} \theta^{3} (1-\theta)^{3}
+\end{equation}\]</span></p>
+<p>Having chosen a likelihood, and having defined a prior on <span class="math inline">\(\theta\)</span>, we are ready to carry out our first Bayesian analysis to derive a posterior distribution for <span class="math inline">\(\theta\)</span>.</p>
+</div>
+<div id="using-bayes-rule-to-compute-the-posterior-pthetank" class="section level3 hasAnchor" number="2.2.3">
+<h3><span class="header-section-number">2.2.3</span> Using  Bayes’ rule to compute the  posterior <span class="math inline">\(p(\theta|n,k)\)</span><a href="ch-introBDA.html#using-bayes-rule-to-compute-the-posterior-pthetank" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Having specified the likelihood and the prior, we will now use Bayes’ rule to calculate <span class="math inline">\(p(\theta|n,k)\)</span>. Using Bayes’ rule simply involves replacing the likelihood and the prior we defined above into the equation we saw earlier:</p>
+<p><span class="math display">\[\begin{equation}
+\hbox{Posterior} = \frac{\hbox{Likelihood} \times  \hbox{Prior}}{\hbox{Marginal Likelihood}}
+\end{equation}\]</span></p>
+<p>Replace the terms for likelihood and prior into this equation:</p>
+<p><span class="math display" id="eq:betaunpost">\[\begin{equation}
+p(\theta|n=100,k=80) = \frac{\left[\binom{100}{80} \theta^{80} \times  (1-\theta)^{20}\right]  \times \left[\frac{1}{B(4,4)} \times \theta^{3} (1-\theta)^{3}\right]}{p(k=80)}
+\tag{2.6}
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(p(k=80)\)</span> is <span class="math inline">\(\int_{0}^1 p(k=80|n=100,\theta) p(\theta)\, d\theta\)</span>. This term will be a constant once the number of successes <span class="math inline">\(k\)</span> is known; this is the marginal likelihood we encountered in chapter 1. In fact, once <span class="math inline">\(k\)</span> is known, there are several constant values in the above equation; they are constants because none of them depend on the parameter of interest, <span class="math inline">\(\theta\)</span>. We can collect all of these together:</p>
+<p><span class="math display" id="eq:betaunpost2">\[\begin{equation}
+p(\theta|n=100,k=80) =   \left[ \frac{\binom{100}{80}}{B(4,4)\times p(k=80)} \right]   [\theta^{80} (1-\theta)^{20} \times  \theta^{3} (1-\theta)^{3}]
+\tag{2.7}
+\end{equation}\]</span></p>
+<p>The first term that is in square brackets, <span class="math inline">\(\frac{\binom{100}{80}}{B(4,4)\times p(k=80)}\)</span>, is all the constants collected together, and is the normalizing constant we have seen before; it makes the posterior distribution <span class="math inline">\(p(\theta|n=100,k=80)\)</span> sum to one. Since it is a constant, we can ignore it for now and focus on the two other terms in the equation. Because we are ignoring the constant, we will now say that the posterior is proportional to the right-hand side.</p>
+<p><span class="math display" id="eq:betaunpost3">\[\begin{equation}
+p(\theta|n=100,k=80) \propto   [\theta^{80} (1-\theta)^{20} \times \theta^{3} (1-\theta)^{3} ]
+\tag{2.8}
+\end{equation}\]</span></p>
+<p>A common way of writing the above equation is:</p>
+<p><span class="math display">\[\begin{equation}
+\hbox{Posterior} \propto \hbox{Likelihood} \times \hbox{Prior}
+\end{equation}\]</span></p>
+<p>Resolving the right-hand side now simply involves adding up the exponents! In this example, computing the posterior really does boil down to this simple addition operation on the exponents.</p>
+<p><span class="math display" id="eq:betaunpost4">\[\begin{equation}
+p(\theta|n=100,k=80) \propto   [\theta^{80+3} (1-\theta)^{20+3}] = \theta^{83} (1-\theta)^{23}
+\tag{2.9}
+\end{equation}\]</span></p>
+<p>The expression on the right-hand side corresponds to a beta distribution with parameters <span class="math inline">\(a=84\)</span>, and <span class="math inline">\(b=24\)</span>. This becomes evident if we rewrite the right-hand side such that it represents the core part of a beta PDF (see equation <a href="ch-introBDA.html#eq:betach2">(2.4)</a>). All that is missing is a normalizing constant which would make the area under the curve sum to one.</p>
+<p><span class="math display">\[\begin{equation}
+\theta^{83} (1-\theta)^{23} = \theta^{84-1} (1-\theta)^{24-1}
+\end{equation}\]</span></p>
+<p>This core part of any PDF or PMF is called the  kernel of that distribution. Without a normalizing constant, the  area under the curve will not sum to one. Let’s check this:</p>
+<div class="sourceCode" id="cb90"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb90-1"><a href="ch-introBDA.html#cb90-1" aria-hidden="true"></a>PostFun &lt;-<span class="st"> </span><span class="cf">function</span>(theta) {</span>
+<span id="cb90-2"><a href="ch-introBDA.html#cb90-2" aria-hidden="true"></a>  theta<span class="op">^</span><span class="dv">84</span> <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>theta)<span class="op">^</span><span class="dv">24</span></span>
+<span id="cb90-3"><a href="ch-introBDA.html#cb90-3" aria-hidden="true"></a>}</span>
+<span id="cb90-4"><a href="ch-introBDA.html#cb90-4" aria-hidden="true"></a>(AUC &lt;-<span class="st"> </span><span class="kw">integrate</span>(PostFun, <span class="dt">lower =</span> <span class="dv">0</span>, <span class="dt">upper =</span> <span class="dv">1</span>)<span class="op">$</span>value)</span></code></pre></div>
+<pre><code>## [1] 1.42e-26</code></pre>
+<p>So the area under the curve (AUC) is not <span class="math inline">\(1\)</span>—the posterior that we computed above is not a proper probability distribution. What we have just done above is to compute the following integral:</p>
+<p><span class="math display">\[\begin{equation}
+\int_{0}^{1} \theta^{84} (1-\theta)^{24}
+\end{equation}\]</span></p>
+<p>We can use this integral to figure out what the normalizing constant is. Basically, we want to know what the constant k is such that the area under the curve sums to <span class="math inline">\(1\)</span>:</p>
+<p><span class="math display">\[\begin{equation}
+k \int_{0}^{1} \theta^{84} (1-\theta)^{24} = 1
+\end{equation}\]</span></p>
+<p>We know what <span class="math inline">\(\int_{0}^{1} \theta^{84} (1-\theta)^{24}\)</span> is; we just computed that value (called <code>AUC</code> in the <code>R</code> code above). So, the  normalizing constant is:</p>
+<p><span class="math display">\[\begin{equation}
+k  = \frac{1}{\int_{0}^{1} \theta^{84} (1-\theta)^{24}} = \frac{1}{AUC}
+\end{equation}\]</span></p>
+<p>So, all that is needed to make the kernel <span class="math inline">\(\theta^{84} (1-\theta)^{24}\)</span> into a proper probability distribution is to include a normalizing constant, which, according to the definition of the beta distribution (equation <a href="ch-introBDA.html#eq:betach2">(2.4)</a>), would be <span class="math inline">\(B(84,24)\)</span>. This term is in fact the integral we computed above.</p>
+<p>So, what we have is the distribution of <span class="math inline">\(\theta\)</span> given the data, expressed as a PDF:</p>
+<p><span class="math display">\[\begin{equation}
+p(\theta|n=100,k=80) = \frac{1}{B(84,24)} \theta^{84-1} (1-\theta)^{24-1}
+\end{equation}\]</span></p>
+<p>Now, this function will sum to one:</p>
+<div class="sourceCode" id="cb92"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb92-1"><a href="ch-introBDA.html#cb92-1" aria-hidden="true"></a>PostFun &lt;-<span class="st"> </span><span class="cf">function</span>(theta) {</span>
+<span id="cb92-2"><a href="ch-introBDA.html#cb92-2" aria-hidden="true"></a>  theta<span class="op">^</span><span class="dv">84</span> <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>theta)<span class="op">^</span><span class="dv">24</span> <span class="op">/</span><span class="st"> </span>AUC</span>
+<span id="cb92-3"><a href="ch-introBDA.html#cb92-3" aria-hidden="true"></a>}</span>
+<span id="cb92-4"><a href="ch-introBDA.html#cb92-4" aria-hidden="true"></a><span class="kw">integrate</span>(PostFun, <span class="dt">lower =</span> <span class="dv">0</span>, <span class="dt">upper =</span> <span class="dv">1</span>)<span class="op">$</span>value</span></code></pre></div>
+<pre><code>## [1] 1</code></pre>
+</div>
+<div id="summary-of-the-procedure" class="section level3 hasAnchor" number="2.2.4">
+<h3><span class="header-section-number">2.2.4</span> Summary of the procedure<a href="ch-introBDA.html#summary-of-the-procedure" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>To summarize, we started with data (<span class="math inline">\(n=100, k=80\)</span>) and a binomial likelihood, multiplied it with the prior <span class="math inline">\(\theta \sim \mathit{Beta}(4,4)\)</span>, and obtained the posterior <span class="math inline">\(p(\theta|n,k) \sim \mathit{Beta}(84,24)\)</span>. The constants were ignored when carrying out the multiplication; we say that we computed the posterior <em>up to proportionality</em>. Finally, we showed how, in this simple example, the posterior can be rescaled to become a probability distribution, by including a proportionality constant.</p>
+<p>The above example is a case of a  <em>conjugate</em> analysis: the posterior on the parameter has the same form (belongs to the same family of probability distributions) as the prior. The above combination of likelihood and prior is called the  beta-binomial conjugate case. There are several other such combinations of Likelihoods and Priors that yield a posterior that has a PDF that belongs to the same family as the PDF on the prior; some examples will appear in the exercises.</p>
+<p>Formally, conjugacy is defined as follows: Given the likelihood <span class="math inline">\(p(y| \theta)\)</span>, if the prior <span class="math inline">\(p(\theta)\)</span> results in a posterior <span class="math inline">\(p(\theta|y)\)</span> that has the same form as <span class="math inline">\(p(\theta)\)</span>, then we call <span class="math inline">\(p(\theta)\)</span> a  conjugate prior.</p>
+<p>For the beta-binomial conjugate case, we can derive a very general relationship between the likelihood, prior, and posterior. Given the binomial likelihood up to proportionality (ignoring the constant) <span class="math inline">\(\theta^k (1-\theta)^{n-k}\)</span>, and given the prior, also up to proportionality, <span class="math inline">\(\theta^{a-1} (1-\theta)^{b-1}\)</span>, their product will be:</p>
+<p><span class="math display">\[\begin{equation}
+\theta^k (1-\theta)^{n-k} \theta^{a-1} (1-\theta)^{b-1} = \theta^{a+k-1} (1-\theta)^{b+n-k-1}
+\end{equation}\]</span></p>
+<p>Thus, given a <span class="math inline">\(\mathit{Binomial}(n,k|\theta)\)</span> likelihood, and a <span class="math inline">\(\mathit{Beta}(a,b)\)</span> prior on <span class="math inline">\(\theta\)</span>, the posterior will be <span class="math inline">\(\mathit{Beta}(a+k,b+n-k)\)</span>.</p>
+</div>
+<div id="visualizing-the-prior-likelihood-and-posterior" class="section level3 hasAnchor" number="2.2.5">
+<h3><span class="header-section-number">2.2.5</span> Visualizing the prior, likelihood, and posterior<a href="ch-introBDA.html#visualizing-the-prior-likelihood-and-posterior" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>We established in the example above that the posterior is a beta distribution with parameters <span class="math inline">\(a = 84\)</span>, and <span class="math inline">\(b = 24\)</span>. We visualize the likelihood, prior, and the posterior side by side in Figure <a href="ch-introBDA.html#fig:postbeta-viz">2.2</a>.</p>
+
+<div class="figure"><span style="display:block;" id="fig:postbeta-viz"></span>
+<img src="bayescogsci_files/figure-html/postbeta-viz-1.svg" alt="The (scaled) likelihood, prior, and posterior in the beta-binomial conjugate example. The likelihood is scaled to integrate to 1 to make it easier to compare to the prior and posterior distributions." width="672" />
+<p class="caption">
+FIGURE 2.2: The (scaled) likelihood, prior, and posterior in the beta-binomial conjugate example. The likelihood is scaled to integrate to 1 to make it easier to compare to the prior and posterior distributions.
+</p>
+</div>
+<p>We can summarize the posterior distribution either graphically as we did above, or summarize it by computing the mean and the variance. The mean gives us an estimate of the cloze probability of producing “umbrella” in that sentence (given the model, i.e., given the likelihood and prior):</p>
+<p><span class="math display" id="eq:meanPb">\[\begin{equation}
+\operatorname{E}[\hat\theta] = \frac{84}{84+24}=0.78
+\tag{2.10}
+\end{equation}\]</span></p>
+<p><span class="math display" id="eq:varPb">\[\begin{equation}
+\operatorname{var}[\hat\theta]=\frac {84 \times 24 }{(84+24 )^{2}(84+24 +1)}= 0.0016
+\tag{2.11}
+\end{equation}\]</span></p>
+<p>We could also display the 95% credible interval, the range over which we are 95% certain that <span class="math inline">\(\theta\)</span> lies, given the data and model.</p>
+<div class="sourceCode" id="cb94"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb94-1"><a href="ch-introBDA.html#cb94-1" aria-hidden="true"></a><span class="kw">qbeta</span>(<span class="kw">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>), <span class="dt">shape1 =</span> <span class="dv">84</span>, <span class="dt">shape2 =</span> <span class="dv">24</span>)</span></code></pre></div>
+<pre><code>## [1] 0.695 0.851</code></pre>
+<p>Typically, we would summarize the results of a Bayesian analysis by displaying the posterior distribution of the parameter (or parameters) graphically, along with the above summary statistics: the mean, the standard deviation or variance, and the 95% credible interval. You will see many examples of such summaries later.</p>
+</div>
+<div id="the-posterior-distribution-is-a-compromise-between-the-prior-and-the-likelihood" class="section level3 hasAnchor" number="2.2.6">
+<h3><span class="header-section-number">2.2.6</span> The  posterior distribution is a compromise between the prior and the likelihood<a href="ch-introBDA.html#the-posterior-distribution-is-a-compromise-between-the-prior-and-the-likelihood" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Recall from the preceding sections that the <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> parameters in the beta distribution determine the shape of the prior distribution on the <span class="math inline">\(\theta\)</span> parameter. Just for the sake of illustration, let’s take four different beta priors, which reflect increasing prior certainty about <span class="math inline">\(\theta\)</span>.</p>
+<ul>
+<li><span class="math inline">\(\mathit{Beta}(a=2,b=2)\)</span></li>
+<li><span class="math inline">\(\mathit{Beta}(a=3,b=3)\)</span></li>
+<li><span class="math inline">\(\mathit{Beta}(a=6,b=6)\)</span></li>
+<li><span class="math inline">\(\mathit{Beta}(a=21,b=21)\)</span></li>
+</ul>
+<p>Each of these priors reflects a belief that <span class="math inline">\(\theta=0.5\)</span>, but with varying degrees of (un)certainty. Given the general formula we developed above for the beta-binomial case, we just need to plug in the likelihood and the prior to get the posterior:</p>
+<p><span class="math display">\[\begin{equation}
+p(\theta | n,k) \propto p(k |n,\theta) p(\theta)
+\end{equation}\]</span></p>
+<p>The four corresponding posterior distributions would be:</p>
+<p><span class="math display">\[\begin{equation}
+p(\theta\mid k,n) \propto [\theta^{80} (1-\theta)^{20}] [\theta^{2-1}(1-\theta)^{2-1}] = \theta^{82-1} (1-\theta)^{22-1}
+\end{equation}\]</span></p>
+<p><span class="math display">\[\begin{equation}
+p(\theta\mid k,n) \propto [\theta^{80} (1-\theta)^{20}] [\theta^{3-1}(1-\theta)^{3-1}] = \theta^{83-1} (1-\theta)^{23-1}
+\end{equation}\]</span></p>
+<p><span class="math display">\[\begin{equation}
+p(\theta\mid k,n) \propto [\theta^{80} (1-\theta)^{20}] [\theta^{6-1}(1-\theta)^{6-1}] = \theta^{86-1} (1-\theta)^{26-1}
+\end{equation}\]</span></p>
+<p><span class="math display">\[\begin{equation}
+p(\theta\mid k,n) \propto [\theta^{80} (1-\theta)^{20}] [\theta^{21-1}(1-\theta)^{21-1}] = \theta^{101-1} (1-\theta)^{41-1}
+\end{equation}\]</span></p>
+<p>We can visualize each of these triplets of priors, likelihoods and posteriors; see Figure <a href="ch-introBDA.html#fig:postbetavizvar">2.3</a>.</p>
+<div class="figure"><span style="display:block;" id="fig:postbetavizvar"></span>
+<img src="bayescogsci_files/figure-html/postbetavizvar-1.svg" alt="The (scaled) likelihood, prior, and posterior in the beta-binomial conjugate example, for different uncertainties in the prior. The likelihood is scaled to integrate to 1 to make its comparison easier.  " width="672" />
+<p class="caption">
+FIGURE 2.3: The (scaled) likelihood, prior, and posterior in the beta-binomial conjugate example, for different uncertainties in the prior. The likelihood is scaled to integrate to 1 to make its comparison easier.
+</p>
+</div>
+<p>Given some data and given a likelihood function, the tighter the prior, the greater the extent to which the posterior orients itself towards the prior. In general, we can say the following about the likelihood-prior-posterior relationship:</p>
+<ul>
+<li>The posterior distribution of a parameter is a compromise between the prior and the likelihood.</li>
+<li>For a given set of data, the greater the certainty in the prior, the more heavily will the posterior be influenced by the prior mean.</li>
+<li>Conversely, for a given set of data, the greater the <em>un</em>certainty in the prior, the more heavily will the posterior be influenced by the likelihood.</li>
+</ul>
+<p>Another important observation emerges if we increase the sample size (here, the number of trials) from <span class="math inline">\(100\)</span> to, say, <span class="math inline">\(1000000\)</span>. Suppose we still get a sample mean of <span class="math inline">\(0.8\)</span> here, so that <span class="math inline">\(k=800000\)</span>. Now, the posterior mean will be influenced almost entirely by the sample mean. This is because, in the general form for the posterior <span class="math inline">\(\mathit{Beta}(a+k,b+n-k)\)</span> that we computed above, the <span class="math inline">\(n\)</span> and <span class="math inline">\(k\)</span> become very large relative to the a, b values, and dominate in determining the posterior mean.</p>
+<p>Whenever we do a Bayesian analysis, it is good practice to check whether the parameter you are interested in estimating is sensitive to the prior specification. Such an investigation is called a  <em>sensitivity analysis</em>. Later in this book, we will see many examples of sensitivity analyses in realistic data-analysis settings.</p>
+</div>
+<div id="incremental-knowledge-gain-using-prior-knowledge" class="section level3 hasAnchor" number="2.2.7">
+<h3><span class="header-section-number">2.2.7</span> Incremental knowledge gain using prior knowledge<a href="ch-introBDA.html#incremental-knowledge-gain-using-prior-knowledge" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>In the above example, we used an artificial example where we asked <span class="math inline">\(100\)</span> subjects to complete the sentence shown at the beginning of the chapter, and then we counted the number of times that they produced “umbrella” vs. some other word as a continuation. Given <span class="math inline">\(80\)</span> instances of “umbrella”, and using a <span class="math inline">\(\mathit{Beta}(4,4)\)</span> prior, we derived the posterior to be <span class="math inline">\(\mathit{Beta}(84,24)\)</span>. We could now use this posterior as our prior for the next study. Suppose that we were to carry out a second experiment, again with <span class="math inline">\(100\)</span> subjects, and this time <span class="math inline">\(60\)</span> produced “umbrella”. We could now use our new prior (<span class="math inline">\(\mathit{Beta}(84,24)\)</span>) to obtain an updated posterior. We have <span class="math inline">\(a=84, b=24, n=100, k=60\)</span>. This gives us as posterior:
+<span class="math inline">\(\mathit{Beta}(a+k,b+n-k) = \mathit{Beta}(84+60,24+100-60)=\mathit{Beta}(144,64)\)</span>.</p>
+<p>Now, if we were to pool all our data that we have from the two experiments, then we would have as data <span class="math inline">\(n=200, k=140\)</span>. Suppose that we keep our initial prior of <span class="math inline">\(a=4,b=4\)</span>. Then, our posterior would be <span class="math inline">\(\mathit{Beta}(4+140,4+200-140)=\mathit{Beta}(144,64)\)</span>. This is exactly the same posterior that we got when first analyzed the first <span class="math inline">\(100\)</span> subjects’ data, derived the posterior, and then used that posterior as a prior for the next <span class="math inline">\(100\)</span> subjects’ data.</p>
+<p>This toy example illustrates an important point that has great practical importance for cognitive science. One can incrementally gain information about a research question by using information from previous studies and deriving a posterior, and then use that posterior as a prior. For practical examples from psycholinguistics showing how information can be pooled from previous studies, see <span class="citation">Jäger, Engelmann, and Vasishth (<a href="#ref-JaegerEngelmannVasishth2017" role="doc-biblioref">2017</a>)</span> and <span class="citation">Nicenboim, Roettger, and Vasishth (<a href="#ref-NicenboimRoettgeretal" role="doc-biblioref">2018</a>)</span>. <span class="citation">Vasishth and Engelmann (<a href="#ref-VasishthEngelmann2022" role="doc-biblioref">2022</a>)</span> illustrates an example of how the posterior from a previous study or collection of studies can be used to compute the posterior derived from new data.</p>
+</div>
+</div>
+<div id="summary-1" class="section level2 hasAnchor" number="2.3">
+<h2><span class="header-section-number">2.3</span> Summary<a href="ch-introBDA.html#summary-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>In this chapter, we learned how to use Bayes’ rule in the specific case of a binomial likelihood, and a beta prior on the <span class="math inline">\(\theta\)</span> parameter in the likelihood function. Our goal in any Bayesian analysis will follow the path we took in this simple example: decide on an appropriate likelihood function, decide on priors for all the parameters involved in the likelihood function, and use this model (i.e., the likelihood and the priors) to derive the posterior distribution of each parameter. Then we draw inferences about our research question based on the posterior distribution of the parameter.</p>
+<p>In the example discussed in this chapter, Bayesian analysis was easy. This was because we considered the simple conjugate case of the beta-binomial. In realistic data-analysis settings, our likelihood function will be very complex, and many parameters will be involved. Multiplying the likelihood function and the priors will become mathematically difficult or impossible. For such situations, we use computational methods to obtain samples from the posterior distributions of the parameters.</p>
+</div>
+<div id="further-reading-1" class="section level2 hasAnchor" number="2.4">
+<h2><span class="header-section-number">2.4</span> Further reading<a href="ch-introBDA.html#further-reading-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Accessible introductions to conjugate Bayesian analysis are
+<span class="citation">Lynch (<a href="#ref-lynch2007introduction" role="doc-biblioref">2007</a>)</span>, and <span class="citation">Lunn et al. (<a href="#ref-lunn2012bugs" role="doc-biblioref">2012</a>)</span>. Somewhat more demanding discussions of conjugate analysis are in <span class="citation">Lee (<a href="#ref-lee2012bayesian" role="doc-biblioref">2012</a>)</span>, <span class="citation">Carlin and Louis (<a href="#ref-carlin2008bayesian" role="doc-biblioref">2008</a>)</span>, <span class="citation">Christensen et al. (<a href="#ref-christensen2011" role="doc-biblioref">2011</a>)</span>, <span class="citation">O’Hagan and Forster (<a href="#ref-kendall2004" role="doc-biblioref">2004</a>)</span> and <span class="citation">Bernardo and Smith (<a href="#ref-bernardosmith" role="doc-biblioref">2009</a>)</span>.</p>
+</div>
+<div id="sec-BDAexercises" class="section level2 hasAnchor" number="2.5">
+<h2><span class="header-section-number">2.5</span> Exercises<a href="ch-introBDA.html#sec-BDAexercises" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div class="exercise">
+<p><span id="exr:BDAexercisesDerivingBayes" class="exercise"><strong>Exercise 2.1  </strong></span>Deriving Bayes’ rule</p>
+</div>
+<p>Let <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> be two observable events. <span class="math inline">\(P(A)\)</span> is the probability that <span class="math inline">\(A\)</span> occurs, and <span class="math inline">\(P(B)\)</span> is the probability that <span class="math inline">\(B\)</span> occurs. <span class="math inline">\(P(A|B)\)</span> is the conditional probability that <span class="math inline">\(A\)</span> occurs given that <span class="math inline">\(B\)</span> has happened. <span class="math inline">\(P(A,B)\)</span> is the joint probability of <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> both occurring.</p>
+<p>You are given the definition of conditional probability:</p>
+<p><span class="math display">\[\begin{equation}
+P(A|B)= \frac{P(A,B)}{P(B)} \hbox{ where } P(B)&gt;0
+\end{equation}\]</span></p>
+<p>Using the above definition, and using the fact that <span class="math inline">\(P(A,B)=P(B,A)\)</span> (i.e., the probability of <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> both occurring is the same as the probability of <span class="math inline">\(B\)</span> and <span class="math inline">\(A\)</span> both occurring),
+derive an expression for <span class="math inline">\(P(B|A)\)</span>. Show the steps clearly in the derivation.</p>
+<div class="exercise">
+<p><span id="exr:BDAexercisesConj1" class="exercise"><strong>Exercise 2.2  </strong></span>Conjugate forms 1</p>
+</div>
+<ul>
+<li>Computing the general form of a PDF for a posterior</li>
+</ul>
+<p>Suppose you are given data <span class="math inline">\(k\)</span> consisting of the number of successes, coming from a <span class="math inline">\(\mathit{Binomial}(n,\theta)\)</span> distribution.
+Given <span class="math inline">\(k\)</span> successes in n trials coming from a binomial distribution, we define a <span class="math inline">\(\mathit{Beta}(a,b)\)</span> prior on the parameter <span class="math inline">\(\theta\)</span>.</p>
+<p>Write down the Beta distribution that represents the posterior, in terms of <span class="math inline">\(a,b, n,\)</span> and <span class="math inline">\(k\)</span>.</p>
+<ul>
+<li>Practical application</li>
+</ul>
+<p>We ask 10 yes/no questions from a subject, and the subject returns 0 correct answers. We assume a binomial likelihood function for these data. Also assume a <span class="math inline">\(\mathit{Beta}(1,1)\)</span> prior on the parameter <span class="math inline">\(\theta\)</span>, which represents the probability of success. Use the result you derived above to write down the posterior distribution of the <span class="math inline">\(\theta\)</span> parameter.</p>
+<div class="exercise">
+<p><span id="exr:BDAexercisesConj2" class="exercise"><strong>Exercise 2.3  </strong></span>Conjugate forms 2</p>
+</div>
+<p>Suppose that we perform <span class="math inline">\(n\)</span> independent trials until we get a success (e.g., a heads in a coin toss). For coin tosses, the possible outcomes could be, H, TH, . The probability of success in each trial is <span class="math inline">\(\theta\)</span>. Then, the Geometric random variable, call it <span class="math inline">\(X\)</span>, gives us the probability of getting a success in <span class="math inline">\(n\)</span> trials as follows:</p>
+<p><span class="math display">\[\begin{equation}
+Prob(X=n)=\theta(1-\theta)^{ n-1}
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(n=1,2,\dots\)</span>.</p>
+<p>Let the prior on <span class="math inline">\(\theta\)</span> be <span class="math inline">\(\mathit{Beta}(a,b)\)</span>, a beta distribution with parameters <span class="math inline">\(a\)</span>,<span class="math inline">\(b\)</span>.
+The posterior distribution is a beta distribution with parameters <span class="math inline">\(a*\)</span> and <span class="math inline">\(b*\)</span>. Determine these parameters in terms of <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>, and <span class="math inline">\(n\)</span>.</p>
+<div class="exercise">
+<p><span id="exr:BDAexercisesConj3" class="exercise"><strong>Exercise 2.4  </strong></span>Conjugate forms 3</p>
+</div>
+<p>The  Gamma distribution is defined in terms of the parameters <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>: <span class="math inline">\(\mathit{Gamma}(a,b)\)</span>. If there is a random variable <span class="math inline">\(Y\)</span> (where <span class="math inline">\(y\geq 0\)</span>) that has a Gamma distribution as a PDF (<span class="math inline">\(Y\sim \mathit{Gamma}(a,b)\)</span>), then:</p>
+<p><span class="math display">\[\begin{equation}
+\mathit{Gamma}(y | a,b)=\frac{b^a y^{a-1} \exp(-by)}{\Gamma(a)}
+\end{equation}\]</span></p>
+<p>Suppose that we have <span class="math inline">\(n\)</span> data points, <span class="math inline">\(x_1,\dots, x_n\)</span>, that are drawn from an exponentially distributed. The  exponential likelihood function is:</p>
+<p><span class="math display">\[\begin{equation}
+p(x_1,\dots,x_n | \lambda)=\lambda^n \exp (-\lambda \sum_{i=1}^n x_i )
+\end{equation}\]</span></p>
+<p>It turns out that if we assume a <span class="math inline">\(\mathit{Gamma}(a,b)\)</span> prior distribution for <span class="math inline">\(\lambda\)</span> and the above exponential likelihood, the posterior distribution of <span class="math inline">\(\lambda\)</span> is a Gamma distribution. In other words, the <span class="math inline">\(\mathit{Gamma}(a,b)\)</span> prior on the <span class="math inline">\(\lambda\)</span> parameter in the exponential distribution will be written:</p>
+<p><span class="math display">\[\begin{equation}
+\mathit{Gamma}(\lambda | a,b)=\frac{b^a \lambda^{a-1} \exp(-b\lambda)}{\Gamma(a)}
+\end{equation}\]</span></p>
+<p>Find the parameters <span class="math inline">\(a*\)</span> and <span class="math inline">\(b*\)</span> of the posterior distribution.</p>
+<div class="exercise">
+<p><span id="exr:BDAexercisesConj4" class="exercise"><strong>Exercise 2.5  </strong></span>Conjugate forms 4</p>
+</div>
+<ul>
+<li>Computing the posterior</li>
+</ul>
+<p>This is a contrived example. Suppose we are modeling the number of times that a speaker says the word “I” per day. This could be of interest if we are studying, for example, how self-oriented a speaker is. The number of times <span class="math inline">\(x\)</span> that the word is uttered in over a particular time period (here, one day) can be modeled by a  Poisson distribution (<span class="math inline">\(x=0,1,2,\dots\)</span>):</p>
+<p><span class="math display">\[\begin{equation}
+f(x\mid \theta) = \frac{\exp(-\theta) \theta^x}{x!}
+\end{equation}\]</span></p>
+<p>where the rate <span class="math inline">\(\theta\)</span> is unknown, and the numbers of utterances of the target word on each day are independent given <span class="math inline">\(\theta\)</span>.</p>
+<p>We are told that the prior mean of <span class="math inline">\(\theta\)</span> is 100 and prior variance for <span class="math inline">\(\theta\)</span> is 225. This information is based on the results of previous studies on the topic. We will use the <span class="math inline">\(\mathit{Gamma}(a,b)\)</span> density (see previous question) as a prior for <span class="math inline">\(\theta\)</span> because this is a conjugate prior to the Poisson distribution.</p>
+<ol style="list-style-type: lower-alpha">
+<li>First, visualize the prior, a Gamma density prior for <span class="math inline">\(\theta\)</span> based on the above information.</li>
+</ol>
+<p>[Hint: we know that for a Gamma density with parameters <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>, the mean is <span class="math inline">\(\frac{a}{b}\)</span> and the variance is <span class="math inline">\(\frac{a}{b^2}\)</span>. Since we are given values for the mean and variance, we can solve for a,b, which gives us the Gamma density.]</p>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>Next, derive the posterior distribution of the parameter <span class="math inline">\(\theta\)</span> up to proportionality, and write down the posterior distribution in terms of the parameters of a Gamma distribution.</li>
+</ol>
+<ul>
+<li>Practical application</li>
+</ul>
+<p>Suppose we know that the number of “I” utterances from a particular individual is <span class="math inline">\(115, 97, 79, 131\)</span>. Use the result you derived above to obtain the posterior distribution. In other words, write down the parameters of the Gamma distribution (call them <span class="math inline">\(a*,b*\)</span>) representing the posterior distribution of <span class="math inline">\(\theta\)</span>.</p>
+<p>Plot the prior and the posterior distributions alongside each other.</p>
+<p>Now suppose you get one new data point: 200. Using the posterior <span class="math inline">\(\mathit{Gamma}(a*,b*)\)</span> as your prior, write down the updated posterior (in terms of the updated parameters of the Gamma distribution) given this new data point. Add the updated posterior to the plot you made above.</p>
+<div class="exercise">
+<p><span id="exr:BDAexercisesWeightedMean" class="exercise"><strong>Exercise 2.6  </strong></span>The posterior mean is a weighted mean of the prior mean and the MLE (Poisson-Gamma conjugate case)</p>
+</div>
+<p>The number of times an event happens per unit time can be modeled using a Poisson distribution, whose PMF is:</p>
+<p><span class="math display">\[\begin{equation}
+f(x\mid \theta) = \frac{\exp(-\theta) \theta^x}{x!}
+\end{equation}\]</span></p>
+<p>Suppose that we define a Gamma(a,b) prior for the rate parameter <span class="math inline">\(\theta\)</span>. It is a fact (see exercises above) that the posterior of the <span class="math inline">\(\theta\)</span> parameter is a <span class="math inline">\(Gamma(a*,b*)\)</span> distribution, where <span class="math inline">\(a*\)</span> and <span class="math inline">\(b*\)</span> are the updated parameters given the data: <span class="math inline">\(\theta \sim Gamma(a*,b*)\)</span>.</p>
+<ul>
+<li>Prove that the posterior mean is a weighted mean of the prior mean and the maximum likelihood estimate (mean) of the Poisson-distributed data, <span class="math inline">\(\bar{x} = \sum_{i=1}^n x/n\)</span>. Hint: the mean of a Gamma distribution is <span class="math inline">\(\frac{a}{b}\)</span>.</li>
+</ul>
+<p>Specifically, what you have to prove is that:</p>
+<p><span class="math display" id="eq:weightingpoisga">\[\begin{equation}
+\frac{a*}{b*} = \frac{a}{b} \times \frac{w_1}{w_1 + w_2} + \bar{x} \times \frac{w_2}{w_1 + w_2}
+\tag{2.12}
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(w_1 = 1\)</span> and <span class="math inline">\(w_2=\frac{n}{b}\)</span>.</p>
+<ul>
+<li><p>Given equation <a href="ch-introBDA.html#eq:weightingpoisga">(2.12)</a>, show that as <span class="math inline">\(n\)</span> increases (as sample size goes up), the maximum likelihood estimate <span class="math inline">\(\bar{x}\)</span> dominates in determining the posterior mean, and when <span class="math inline">\(n\)</span> gets smaller and smaller, the prior mean dominates in determining the posterior mean.</p></li>
+<li><p>Finally, given that the variance of a Gamma distribution is <span class="math inline">\(\frac{a}{b^2}\)</span>, show that as <span class="math inline">\(n\)</span> increases, the posterior variance will get smaller and smaller (the uncertainty on the posterior will go down).</p></li>
+</ul>
 
 </div>
 </div>
+
+
+
 <h3>References<a href="references.html#references" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <div id="refs" class="references hanging-indent">
-<div id="ref-R-rmarkdown">
-<p>Allaire, J. J., Yihui Xie, Christophe Dervieux, Jonathan McPherson, Javier Luraschi, Kevin Ushey, Aron Atkins, et al. 2024. <em>rmarkdown: Dynamic Documents for R</em>. <a href="https://github.com/rstudio/rmarkdown">https://github.com/rstudio/rmarkdown</a>.</p>
+<div id="ref-bernardosmith">
+<p>Bernardo, José M., and Adrian F. M. Smith. 2009. <em>Bayesian Theory</em>. Vol. 405. John Wiley &amp; Sons.</p>
 </div>
-<div id="ref-R-digest">
-<p>Antoine Lucas, Dirk Eddelbuettel with contributions by, Jarek Tuszynski, Henrik Bengtsson, Simon Urbanek, Mario Frasca, Bryan Lewis, Murray Stokely, et al. 2021. <em>Digest: Create Compact Hash Digests of R Objects</em>. <a href="https://CRAN.R-project.org/package=digest">https://CRAN.R-project.org/package=digest</a>.</p>
+<div id="ref-carlin2008bayesian">
+<p>Carlin, Bradley P., and Thomas A Louis. 2008. <em>Bayesian Methods for Data Analysis</em>. CRC Press.</p>
 </div>
-<div id="ref-R-gridExtra">
-<p>Auguie, Baptiste. 2017. <em>GridExtra: Miscellaneous Functions for "Grid" Graphics</em>. <a href="https://CRAN.R-project.org/package=gridExtra">https://CRAN.R-project.org/package=gridExtra</a>.</p>
+<div id="ref-christensen2011">
+<p>Christensen, Ronald, Wesley Johnson, Adam Branscum, and Timothy Hanson. 2011. “Bayesian Ideas and Data Analysis.” CRC Press.</p>
 </div>
-<div id="ref-R-citr">
-<p>Aust, Frederik. 2019. <em>citr: RStudio Add-in to Insert Markdown Citations</em>. <a href="https://CRAN.R-project.org/package=citr">https://CRAN.R-project.org/package=citr</a>.</p>
+<div id="ref-JaegerEngelmannVasishth2017">
+<p>Jäger, Lena A., Felix Engelmann, and Shravan Vasishth. 2017. “Similarity-Based Interference in Sentence Comprehension: Literature review and Bayesian meta-analysis.” <em>Journal of Memory and Language</em> 94: 316–39. <a href="https://doi.org/https://doi.org/10.1016/j.jml.2017.01.004">https://doi.org/https://doi.org/10.1016/j.jml.2017.01.004</a>.</p>
 </div>
-<div id="ref-R-papaja">
-<p>Aust, Frederik, and Marius Barth. 2020. <em>papaja: Create APA Manuscripts with R Markdown</em>. <a href="https://github.com/crsh/papaja">https://github.com/crsh/papaja</a>.</p>
+<div id="ref-kruschke2014doing">
+<p>Kruschke, John K. 2014. <em>Doing Bayesian Data Analysis: A tutorial with R, JAGS, and Stan</em>. Academic Press.</p>
 </div>
-<div id="ref-baayen2008mixed">
-<p>Baayen, R. Harald, Douglas J. Davidson, and Douglas M. Bates. 2008. “Mixed-Effects Modeling with Crossed Random Effects for Subjects and Items.” <em>Journal of Memory and Language</em> 59 (4): 390–412.</p>
+<div id="ref-lee2012bayesian">
+<p>Lee, Peter M. 2012. <em>Bayesian Statistics: An Introduction</em>. John Wiley &amp; Sons.</p>
 </div>
-<div id="ref-R-tinylabels">
-<p>Barth, Marius. 2023. <em>tinylabels: Lightweight Variable Labels</em>. <a href="https://github.com/mariusbarth/tinylabels">https://github.com/mariusbarth/tinylabels</a>.</p>
+<div id="ref-lunn2012bugs">
+<p>Lunn, David J., Chris Jackson, David J. Spiegelhalter, Nichola G. Best, and Andrew Thomas. 2012. <em>The BUGS Book: A Practical Introduction to Bayesian Analysis</em>. Vol. 98. CRC Press.</p>
 </div>
-<div id="ref-R-lme4">
-<p>Bates, Douglas M., Martin Mächler, Ben Bolker, and Steve Walker. 2015. “Fitting Linear Mixed-Effects Models Using lme4.” <em>Journal of Statistical Software</em> 67 (1): 1–48. <a href="https://doi.org/10.18637/jss.v067.i01">https://doi.org/10.18637/jss.v067.i01</a>.</p>
+<div id="ref-lynch2007introduction">
+<p>Lynch, Scott Michael. 2007. <em>Introduction to Applied Bayesian Statistics and Estimation for Social Scientists</em>. New York, NY: Springer.</p>
 </div>
-<div id="ref-R-Matrix">
-<p>Bates, Douglas M., Martin Maechler, and Mikael Jagan. 2023. <em>Matrix: Sparse and Dense Matrix Classes and Methods</em>. <a href="https://Matrix.R-forge.R-project.org">https://Matrix.R-forge.R-project.org</a>.</p>
+<div id="ref-NicenboimRoettgeretal">
+<p>Nicenboim, Bruno, Timo B. Roettger, and Shravan Vasishth. 2018. “Using Meta-Analysis for Evidence Synthesis: The case of incomplete neutralization in German.” <em>Journal of Phonetics</em> 70: 39–55. <a href="https://doi.org/https://doi.org/10.1016/j.wocn.2018.06.001">https://doi.org/https://doi.org/10.1016/j.wocn.2018.06.001</a>.</p>
 </div>
-<div id="ref-R-RJ-2021-048">
-<p>Bengtsson, Henrik. 2021. “A Unifying Framework for Parallel and Distributed Processing in R Using Futures.” <em>The R Journal</em> 13 (2): 208–27. <a href="https://doi.org/10.32614/RJ-2021-048">https://doi.org/10.32614/RJ-2021-048</a>.</p>
+<div id="ref-kendall2004">
+<p>O’Hagan, Anthony, and Jonathan J. Forster. 2004. “Kendall’s Advanced Theory of Statistics, Vol. 2B: Bayesian Inference.” Wiley.</p>
 </div>
-<div id="ref-burger">
-<p>Burger, Edward B., and Michael Starbird. 2012. <em>The 5 Elements of Effective Thinking</em>. Princeton University Press.</p>
+<div id="ref-RossProb">
+<p>Ross, Sheldon. 2002. <em>A First Course in Probability</em>. Pearson Education.</p>
 </div>
-<div id="ref-R-brms">
-<p>Bürkner, Paul-Christian. 2024. <em>brms: Bayesian Regression Models Using “Stan”</em>. <a href="https://github.com/paul-buerkner/brms">https://github.com/paul-buerkner/brms</a>.</p>
-</div>
-<div id="ref-carpenter2017stan">
-<p>Carpenter, Bob, Andrew Gelman, Matthew D. Hoffman, Daniel Lee, Ben Goodrich, Michael J. Betancourt, Marcus Brubaker, Jiqiang Guo, Peter Li, and Allen Riddell. 2017. “Stan: A Probabilistic Programming Language.” <em>Journal of Statistical Software</em> 76 (1).</p>
-</div>
-<div id="ref-R-webshot">
-<p>Chang, Winston. 2018. <em>webshot: Take Screenshots of Web Pages</em>. <a href="https://CRAN.R-project.org/package=webshot">https://CRAN.R-project.org/package=webshot</a>.</p>
-</div>
-<div id="ref-R-miniUI">
-<p>Cheng, Joe. 2018. <em>miniUI: Shiny Ui Widgets for Small Screens</em>. <a href="https://CRAN.R-project.org/package=miniUI">https://CRAN.R-project.org/package=miniUI</a>.</p>
-</div>
-<div id="ref-R-SIN">
-<p>Drton, Mathias. 2013. <em>SIN: A SINful Approach to Selection of Gaussian Graphical Markov Models</em>. <a href="https://CRAN.R-project.org/package=SIN">https://CRAN.R-project.org/package=SIN</a>.</p>
-</div>
-<div id="ref-R-Rcpp">
-<p>Eddelbuettel, Dirk, Romain Francois, J. J. Allaire, Kevin Ushey, Qiang Kou, Nathan Russell, Inaki Ucar, Douglas M. Bates, and John Chambers. 2024. <em>Rcpp: Seamless R and C++ Integration</em>. <a href="https://www.rcpp.org">https://www.rcpp.org</a>.</p>
-</div>
-<div id="ref-R-bibtex">
-<p>Francois, Romain. 2017. <em>Bibtex: Bibtex Parser</em>. <a href="https://CRAN.R-project.org/package=bibtex">https://CRAN.R-project.org/package=bibtex</a>.</p>
-</div>
-<div id="ref-R-cmdstanr">
-<p>Gabry, Jonah, Rok Češnovar, Andrew Johnson, and Steve Bronder. 2024. <em>cmdstanr: R Interface to “CmdStan”</em>. <a href="https://mc-stan.org/cmdstanr/">https://mc-stan.org/cmdstanr/</a>.</p>
-</div>
-<div id="ref-R-bayesplot">
-<p>Gabry, Jonah, and Tristan Mahr. 2024. <em>bayesplot: Plotting for Bayesian Models</em>. <a href="https://mc-stan.org/bayesplot/">https://mc-stan.org/bayesplot/</a>.</p>
-</div>
-<div id="ref-Gelman14">
-<p>Gelman, Andrew, John B. Carlin, Hal S. Stern, David B. Dunson, Aki Vehtari, and Donald B. Rubin. 2014. <em>Bayesian Data Analysis</em>. Third Edition. Boca Raton, FL: Chapman; Hall/CRC Press.</p>
-</div>
-<div id="ref-gill2006essential">
-<p>Gill, Jeff. 2006. <em>Essential Mathematics for Political and Social Research</em>. Cambridge University Press Cambridge.</p>
-</div>
-<div id="ref-R-gdtools">
-<p>Gohel, David, Hadley Wickham, Lionel Henry, and Jeroen Ooms. 2019. <em>gdtools: Utilities for Graphical Rendering</em>. <a href="https://CRAN.R-project.org/package=gdtools">https://CRAN.R-project.org/package=gdtools</a>.</p>
-</div>
-<div id="ref-R-StanHeaders">
-<p>Goodrich, Ben, Andrew Gelman, Bob Carpenter, Matthew D. Hoffman, Daniel Lee, Michael J. Betancourt, Marcus Brubaker, et al. 2024. <em>StanHeaders: C++ Header Files for Stan</em>. <a href="https://mc-stan.org/">https://mc-stan.org/</a>.</p>
-</div>
-<div id="ref-R-bridgesampling">
-<p>Gronau, Quentin F., Henrik Singmann, and Eric-Jan Wagenmakers. 2017. “Bridgesampling: An R Package for Estimating Normalizing Constants.” <em>arXiv Preprint arXiv:1710.08162</em>. <a href="http://arxiv.org/abs/1710.08162">http://arxiv.org/abs/1710.08162</a>.</p> 2020. “bridgesampling: An R Package for Estimating Normalizing Constants.” <em>Journal of Statistical Software</em> 92 (10): 1–29. <a href="https://doi.org/10.18637/jss.v092.i10">https://doi.org/10.18637/jss.v092.i10</a>.</p>
-</div>
-<div id="ref-R-rstan">
-<p>Guo, Jiqiang, Jonah Gabry, Ben Goodrich, Andrew Johnson, Sebastian Weber, and Hamada S. Badr. 2024. <em>rstan: R Interface to Stan</em>. <a href="https://mc-stan.org/rstan/">https://mc-stan.org/rstan/</a>.</p>
-</div>
-<div id="ref-R-remotes">
-<p>Hester, Jim, Gábor Csárdi, Hadley Wickham, Winston Chang, Martin Morgan, and Dan Tenenbaum. 2021. <em>Remotes: R Package Installation from Remote Repositories, Including ’Github’</em>. <a href="https://CRAN.R-project.org/package=remotes">https://CRAN.R-project.org/package=remotes</a>.</p>
-</div>
-<div id="ref-R-tictoc">
-<p>Izrailev, Sergei. 2024. <em>Tictoc: Functions for Timing R Scripts, as Well as Implementations of "Stack" and "Stacklist" Structures</em>. <a href="https://github.com/jabiru/tictoc">https://github.com/jabiru/tictoc</a>.</p>
-</div>
-<div id="ref-kerns2014introduction">
-<p>Kerns, G. J. 2014. <em>Introduction to Probability and Statistics Using R</em>. Second Edition.</p>
-</div>
-<div id="ref-R-SBC">
-<p>Kim, Shinyoung, Hyunji Moon, Martin Modrák, and Teemu Säilynoja. 2024. <em>SBC: Simulation Based Calibration for Rstan/Cmdstanr Models</em>. <a href="https://hyunjimoon.github.io/SBC/">https://hyunjimoon.github.io/SBC/</a>.</p>
-</div>
-<div id="ref-danlevy">
-<p>Levy, Dan. 2021. <em>Maxims for Thinking Analytically: The Wisdom of Legendary Harvard Professor Richard Zeckhauser</em>. Dan Levy.</p>
-</div>
-<div id="ref-R-rethinking">
-<p>McElreath, Richard. 2021. <em>Rethinking: Statistical Rethinking Book Package</em>.</p>
-</div>
-<div id="ref-R-RefManageR">
-<p>McLean, Mathew William. 2017. “RefManageR: Import and Manage Bibtex and Biblatex References in R.” <em>The Journal of Open Source Software</em>. <a href="https://doi.org/10.21105/joss.00338">https://doi.org/10.21105/joss.00338</a>.</p>
-</div>
-<div id="ref-R-tibble">
-<p>Müller, Kirill, and Hadley Wickham. 2020. <em>Tibble: Simple Data Frames</em>. <a href="https://CRAN.R-project.org/package=tibble">https://CRAN.R-project.org/package=tibble</a>.</p>
-</div>
-<div id="ref-R-bcogsci">
-<p>Nicenboim, Bruno, Daniel J. Schad, and Shravan Vasishth. 2024. <em>bcogsci: Data and Models for the Book “An Introduction to Bayesian Data Analysis for Cognitive Science”</em>.</p>
-</div>
-<div id="ref-R-SHELF">
-<p>Oakley, Jeremy E. 2024. <em>SHELF: Tools to Support the Sheffield Elicitation Framework</em>. <a href="https://github.com/OakleyJ/SHELF">https://github.com/OakleyJ/SHELF</a>.</p>
-</div>
-<div id="ref-R-pdftools">
-<p>Ooms, Jeroen. 2023. <em>pdftools: Text Extraction, Rendering and Converting of Pdf Documents</em>. <a href="https://docs.ropensci.org/pdftools/">https://docs.ropensci.org/pdftools/</a>.</p>
-</div>
-<div id="ref-R-hypr_b">
-<p>Rabe, Maximilian M., Shravan Vasishth, Sven Hohenstein, Reinhold Kliegl, and Daniel J. Schad. 2020a. “hypr: An R Package for Hypothesis-Driven Contrast Coding.” <em>Journal of Open Source Software</em> 5 (48): 2134.</p> 2020b. “Hypr: An R Package for Hypothesis-Driven Contrast Coding.” <em>The Journal of Open Source Software</em>. <a href="https://doi.org/10.21105/joss.02134">https://doi.org/10.21105/joss.02134</a>.</p>
-</div>
-<div id="ref-R-base">
-<p>R Core Team. 2023. <em>R: A Language and Environment for Statistical Computing</em>. Vienna, Austria: R Foundation for Statistical Computing. <a href="https://www.R-project.org/">https://www.R-project.org/</a>.</p>
-</div>
-<div id="ref-R-MASS">
-<p>Ripley, Brian D. 2023. <em>MASS: Support Functions and Datasets for Venables and Ripley’s MASS</em>. <a href="http://www.stats.ox.ac.uk/pub/MASS4/">http://www.stats.ox.ac.uk/pub/MASS4/</a>.</p>
-</div>
-<div id="ref-R-hypr_a">
-<p>Schad, Daniel J., Shravan Vasishth, Sven Hohenstein, and Reinhold Kliegl. 2019. “How to Capitalize on a Priori Contrasts in Linear (Mixed) Models: A Tutorial.” <em>Journal of Memory and Language</em> 110. <a href="https://doi.org/10.1016/j.jml.2019.104038">https://doi.org/10.1016/j.jml.2019.104038</a>.</p>
-</div>
-<div id="ref-R-texPreview">
-<p>Sidi, Jonathan, and Daniel Polhamus. 2020. <em>TexPreview: Compile and Preview Snippets of “Latex”</em>. <a href="https://CRAN.R-project.org/package=texPreview">https://CRAN.R-project.org/package=texPreview</a>.</p>
-</div>
-<div id="ref-R-afex">
-<p>Singmann, Henrik, Ben Bolker, Jake Westfall, Frederik Aust, and Mattan S. Ben-Shachar. 2020. <em>Afex: Analysis of Factorial Experiments</em>. <a href="https://CRAN.R-project.org/package=afex">https://CRAN.R-project.org/package=afex</a>.</p>
-</div>
-<div id="ref-R-rootSolve">
-<p>Soetaert, Karline, and Peter M. J. Herman. 2009. <em>A Practical Guide to Ecological Modelling. Using R as a Simulation Platform</em>. Springer.</p>
-</div>
-<div id="ref-R-barsurf">
-<p>Spurdle, Abby. 2020. <em>Barsurf: Heatmap-Related Plots and Smooth Multiband Color Interpolation</em>. <a href="https://CRAN.R-project.org/package=barsurf">https://CRAN.R-project.org/package=barsurf</a>.</p>
-</div>
-<div id="ref-R-bivariate">
-<p>Spurdle, Abby. 2021. <em>Bivariate: Bivariate Probability Distributions</em>. <a href="https://sites.google.com/site/spurdlea/r">https://sites.google.com/site/spurdlea/r</a>.</p>
-</div>
-<div id="ref-R-intoo">
-<p>Spurdle, Abby, and Emil Bode. 2020. <em>Intoo: Minimal Language-Like Extensions</em>. <a href="https://CRAN.R-project.org/package=intoo">https://CRAN.R-project.org/package=intoo</a>.</p>
-</div>
-<div id="ref-R-htmlwidgets">
-<p>Vaidyanathan, Ramnath, Yihui Xie, J. J. Allaire, Joe Cheng, and Kenton Russell. 2023. <em>htmlwidgets: HTML Widgets for R</em>. <a href="https://github.com/ramnathv/htmlwidgets">https://github.com/ramnathv/htmlwidgets</a>.</p>
-</div>
-<div id="ref-VasishthEtAlFreq2021">
-<p>Vasishth, Shravan, Daniel J. Schad, Audrey Bürki, and Reinhold Kliegl. 2021. “Linear Mixed Models for Linguistics and Psychology: A Comprehensive Introduction.” <a href="https://vasishth.github.io/Freq_CogSci/">https://vasishth.github.io/Freq_CogSci/</a>.</p>
-</div>
-<div id="ref-R-loo_a">
-<p>Vehtari, Aki, Andrew Gelman, and Jonah Gabry. 2017a. “Practical Bayesian Model Evaluation Using Leave-One-Out Cross-Validation and Waic.” <em>Statistics and Computing</em> 27 (5): 1413–32. <a href="https://doi.org/10.1007/s11222-016-9696-4">https://doi.org/10.1007/s11222-016-9696-4</a>.</p>
-</div>
-<div id="ref-R-forcats">
-<p>Wickham, Hadley. 2019a. <em>forcats: Tools for Working with Categorical Variables (Factors)</em>. <a href="https://CRAN.R-project.org/package=forcats">https://CRAN.R-project.org/package=forcats</a>.</p>
-</div>
-<div id="ref-R-stringr">
-<p>Wickham, Hadley. 2019b. <em>stringr: Simple, Consistent Wrappers for Common String Operations</em>. <a href="https://CRAN.R-project.org/package=stringr">https://CRAN.R-project.org/package=stringr</a>.</p>
-</div>
-<div id="ref-R-tidyverse">
-<p>Wickham, Hadley, Mara Averick, Jennifer Bryan, Winston Chang, Lucy D’Agostino McGowan, Romain François, Garrett Grolemund, et al. 2019. “Welcome to the tidyverse.” <em>Journal of Open Source Software</em> 4 (43): 1686. <a href="https://doi.org/10.21105/joss.01686">https://doi.org/10.21105/joss.01686</a>.</p>
-</div>
-<div id="ref-R-ggplot2">
-<p>Wickham, Hadley, Winston Chang, Lionel Henry, Thomas Lin Pedersen, Kohske Takahashi, Claus O. Wilke, Kara Woo, Hiroaki Yutani, and Teun van den Brand. 2024. <em>ggplot2: Create Elegant Data Visualisations Using the Grammar of Graphics</em>. <a href="https://ggplot2.tidyverse.org">https://ggplot2.tidyverse.org</a>.</p>
-</div>
-<div id="ref-R-dplyr">
-<p>Wickham, Hadley, Romain François, Lionel Henry, Kirill Müller, and Davis Vaughan. 2023. <em>dplyr: A Grammar of Data Manipulation</em>. <a href="https://dplyr.tidyverse.org">https://dplyr.tidyverse.org</a>.</p>
-</div>
-<div id="ref-R-purrr">
-<p>Wickham, Hadley, and Lionel Henry. 2023. <em>purrr: Functional Programming Tools</em>. <a href="https://purrr.tidyverse.org/">https://purrr.tidyverse.org/</a>.</p>
-</div>
-<div id="ref-R-readr">
-<p>Wickham, Hadley, Jim Hester, and Romain Francois. 2018. <em>readr: Read Rectangular Text Data</em>. <a href="https://CRAN.R-project.org/package=readr">https://CRAN.R-project.org/package=readr</a>.</p>
-</div>
-<div id="ref-R-tidyr">
-<p>Wickham, Hadley, Davis Vaughan, and Maximilian Girlich. 2024. <em>Tidyr: Tidy Messy Data</em>. <a href="https://tidyr.tidyverse.org">https://tidyr.tidyverse.org</a>.</p>
-</div>
-<div id="ref-R-cowplot">
-<p>Wilke, Claus O. 2024. <em>cowplot: Streamlined Plot Theme and Plot Annotations for ’Ggplot2’</em>. <a href="https://wilkelab.org/cowplot/">https://wilkelab.org/cowplot/</a>.</p>
-</div>
-<div id="ref-R-extraDistr">
-<p>Wolodzko, Tymoteusz. 2023. <em>extraDistr: Additional Univariate and Multivariate Distributions</em>. <a href="https://github.com/twolodzko/extraDistr">https://github.com/twolodzko/extraDistr</a>.</p>
-</div>
-<div id="ref-R-servr">
-<p>Xie, Yihui. 2019. <em>servr: A Simple Http Server to Serve Static Files or Dynamic Documents</em>. <a href="https://CRAN.R-project.org/package=servr">https://CRAN.R-project.org/package=servr</a>.</p>
-</div>
-<div id="ref-R-bookdown">
-<p>Xie, Yihui. 2024a. <em>bookdown: Authoring Books and Technical Documents with R Markdown</em>. <a href="https://github.com/rstudio/bookdown">https://github.com/rstudio/bookdown</a>.</p>
-</div>
-<div id="ref-R-knitr">
-<p>Xie, Yihui. 2024b. <em>knitr: A General-Purpose Package for Dynamic Report Generation in R</em>. <a href="https://yihui.org/knitr/">https://yihui.org/knitr/</a>.</p>
-</div>
-<div id="ref-R-DT">
-<p>Xie, Yihui, Joe Cheng, and Xianying Tan. 2019. <em>DT: A Wrapper of the Javascript Library ’Datatables’</em>. <a href="https://CRAN.R-project.org/package=DT">https://CRAN.R-project.org/package=DT</a>.</p>
-</div>
-<div id="ref-R-loo_b">
-<p>Yao, Yuling, Aki Vehtari, Daniel P. Simpson, and Andrew Gelman. 2017. “Using Stacking to Average Bayesian Predictive Distributions.” <em>Bayesian Analysis</em>. <a href="https://doi.org/10.1214/17-BA1091">https://doi.org/10.1214/17-BA1091</a>.</p>
-</div>
-<div id="ref-R-kableExtra">
-<p>Zhu, Hao. 2024. <em>KableExtra: Construct Complex Table with ’Kable’ and Pipe Syntax</em>. <a href="http://haozhu233.github.io/kableExtra/">http://haozhu233.github.io/kableExtra/</a>.</p>
+<div id="ref-VasishthEngelmann2022">
+<p>Vasishth, Shravan, and Felix Engelmann. 2022. <em>Sentence Comprehension as a Cognitive Process: A Computational Approach</em>. Cambridge, UK: Cambridge University Press. <a href="https://books.google.de/books?id=6KZKzgEACAAJ">https://books.google.de/books?id=6KZKzgEACAAJ</a>.</p>
 </div>
 </div>
             </section>
@@ -1603,8 +1692,8 @@ Shravan Vasishth (Potsdam, Germany)
           </div>
         </div>
       </div>
-
-<a href="about-the-authors.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="ch-intro.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="ch-compbda.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook/js/app.min.js"></script>
