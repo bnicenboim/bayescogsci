@@ -494,8 +494,7 @@ We ask 10 yes/no questions from a subject, and the subject returns 0 correct ans
 Conjugate forms 2
 ```
 
-
-Suppose that we perform $n$ independent trials until we get a success (e.g., a heads in a coin toss). For coin tosses, the possible outcomes could be, H, TH, \dots. The probability of success in each trial is $\theta$. Then, the Geometric random variable, call it $X$, gives us the probability of getting a success in $n$ trials as follows:
+Suppose that we perform $n$ independent trials until we get a success (e.g., a heads in a coin toss). For repeated coin tosses, observing T,T, H would correspond to a score of $n=3$. The probability of success in each trial is $\theta$. Then, the Geometric random variable, call it $X$, gives us the probability of getting a success in $n$ trials as follows:
 
 \begin{equation}
 Prob(X=n)=\theta(1-\theta)^{ n-1}
@@ -504,32 +503,34 @@ Prob(X=n)=\theta(1-\theta)^{ n-1}
 where $n=1,2,\dots$.
 
 Let the prior on $\theta$ be $\mathit{Beta}(a,b)$, a beta distribution with parameters $a$,$b$.
-The posterior distribution is a beta distribution with parameters $a*$ and $b*$. Determine these parameters in terms of $a$, $b$, and $n$.
+The posterior distribution is a beta distribution with parameters $a^*$ and $b^*$. Determine these parameters in terms of $a$, $b$, and $n$.
 
 ```{exercise, BDAexercisesConj3}
 Conjugate forms 3
 ```
 
-The \index{Gamma distribution} Gamma distribution is defined in terms of the parameters $a$, $b$: $\mathit{Gamma}(a,b)$. If there is a random variable $Y$ (where $y\geq 0$) that has a Gamma distribution as a PDF ($Y\sim \mathit{Gamma}(a,b)$), then:
+Suppose that we have $n$ data points, $x_1,\dots,x_n$, drawn independently from an exponential distribution with parameter $\lambda$. The parameter of interest here (what we want to learn about from the data) is $\lambda$. 
 
-\begin{equation}
-\mathit{Gamma}(y | a,b)=\frac{b^a y^{a-1} \exp(-by)}{\Gamma(a)}
-\end{equation}
-
-Suppose that we have $n$ data points,  $x_1,\dots, x_n$, that are drawn from an  exponentially distributed. The \index{Exponential likelihood} exponential likelihood function is:
+The \index{Exponential likelihood} exponential likelihood function is:
 
 \begin{equation}
 p(x_1,\dots,x_n | \lambda)=\lambda^n \exp (-\lambda \sum_{i=1}^n x_i )
 \end{equation}
 
-It turns out that if we assume a $\mathit{Gamma}(a,b)$ prior distribution for $\lambda$ and the above exponential likelihood, the posterior distribution of $\lambda$ is a Gamma distribution. In other words, the $\mathit{Gamma}(a,b)$ prior on the $\lambda$ parameter in the exponential distribution will be written:
+
+Starting with a Gamma prior distribution for $\lambda$ (see below), show that the posterior distribution for $\lambda$ is also a Gamma distribution. Provide formulas giving the posterior parameters $a^*, b^*$ in terms of the prior parameters $a, b$ and the data. Use the following facts about Gamma distributions. 
+
+The \index{Gamma distribution} Gamma distribution is defined in terms of the parameters $a$, $b$: $\mathit{Gamma}(a,b)$. In general, if there is a random variable $Y$ (where $y\geq 0$) that has a Gamma distribution as a PDF ($Y\sim \mathit{Gamma}(a,b)$), then:
+
+\begin{equation}
+\mathit{Gamma}(y | a,b)=\frac{b^a y^{a-1} \exp(-by)}{\Gamma(a)}
+\end{equation}
+
+The $\mathit{Gamma}(a,b)$ prior on the $\lambda$ parameter in the exponential distribution will be written:
 
 \begin{equation}
 \mathit{Gamma}(\lambda | a,b)=\frac{b^a \lambda^{a-1} \exp(-b\lambda)}{\Gamma(a)}
 \end{equation}
-
-
-Find the parameters $a*$ and $b*$ of the posterior distribution.
 
 
 ```{exercise, BDAexercisesConj4}
@@ -541,10 +542,12 @@ Conjugate forms 4
 This is a contrived example. Suppose we are modeling the number of times that a speaker says the word "I" per day. This could be of interest if we are studying, for example, how self-oriented a speaker is.  The number of times $x$ that the word is uttered in over a particular time period (here, one day) can be modeled by a \index{Poisson distribution} Poisson distribution ($x=0,1,2,\dots$):
 
 \begin{equation}
-f(x\mid \theta) = \frac{\exp(-\theta) \theta^x}{x!}
+f(x\mid \theta) = \frac{\exp(-\theta) \theta^x}{x!} \hbox{ for } x=0,1,2,\dots 
 \end{equation}
 
 where the rate $\theta$ is unknown, and the numbers of utterances of the target word on each day are independent given $\theta$.
+
+As an aside: Given $n$ independent observations of a Poisson random variable with rate parameter $\theta$, the maximum-likelihood estimator (MLE) for $\theta$ turns out to be $\hat{\theta} = \frac{\sum{i=1}^n x_i}{n}$. When we are talking about a particular sample of data, the maximum-likelihood estimate is computed using the formula for the estimator,  $\frac{\sum{i=1}^n x_i}{n}$, and is represented as $\bar{x}$.
 
 We are told that the prior mean of $\theta$ is 100 and prior variance for $\theta$  is 225. This information is based on the results of previous studies on the topic. We will use the $\mathit{Gamma}(a,b)$ density (see previous question) as a prior for $\theta$ because this is a conjugate prior to the Poisson distribution.
 
