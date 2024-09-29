@@ -93,7 +93,7 @@ where $n =1, \ldots, N$, and $t$ is the dependent variable (finger tapping times
 The reader may have encountered the model shown in Equation \@ref(eq:rtlik) in the form shown in Equation \@ref(eq:rtlikLM):
 
 \begin{equation}
-t_n = \mu + \varepsilon \hbox{, where } \varepsilon_n \stackrel{iid}{\sim} \mathit{Normal}(0,\sigma) (\#eq:rtlikLM)
+t_n = \mu + \varepsilon_n \hbox{, where } \varepsilon_n \stackrel{iid}{\sim} \mathit{Normal}(0,\sigma) (\#eq:rtlikLM)
 \end{equation}
 
 When the model is written in this way, it should be understood as meaning that each data point $t_n$ has some variability around a mean value $\mu$, and that variability has standard deviation $\sigma$. The term "iid" (independent and identically distributed) implies that the residuals are independently generated (they are not correlated with any of the other residual values). The statement of the model in Equation \@ref(eq:rtlikLM) is exactly the same as saying that the observed data points $t_n$ are iid and are coming from the $Normal(\mu,\sigma)$ distribution.
