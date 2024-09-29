@@ -34,7 +34,7 @@ The terms here have the following meaning. We elaborate on each point with an ex
 * The *Prior*, $p(\boldsymbol{\Theta})$, is the initial probability distribution of the parameter(s), before seeing the data.
 
 
-* The *Marginal Likelihood*, $p(\boldsymbol{y})$, was introduced in chapter \@ref(ch-intro) and standardizes the posterior distribution to ensure that the area under the curve of the distribution sums to 1, that is, it ensures that the posterior is a valid probability distribution.
+* The *Marginal Likelihood*, $p(\boldsymbol{y})$, was introduced in chapter \@ref(ch-intro) and standardizes the posterior distribution to ensure that the \index{Area under the curve} area under the curve of the distribution sums to 1, that is, it ensures that the posterior is a valid probability distribution.
 
 An example will clarify all these terms, as we explain below.
 
@@ -114,7 +114,7 @@ p(\theta|a,b)=  \frac{1}{B(a,b)} \theta^{a - 1} (1-\theta)^{b-1}
 \end{equation}
 
 
-The term $B(a,b)$ expands to $\int_0^1 \theta^{a-1}(1-\theta)^{b-1}\, d\theta$, and is a normalizing constant that ensures that the area under the curve sums to one. In some textbooks, you may see the PDF of the beta distribution with the normalizing constant $\frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}$ (the expression $\Gamma(n)$ is defined as (n-1)!): $$p(\theta|a,b)=  \frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)} \theta^{a - 1} (1-\theta)^{b-1}$$  These two statements for the beta distribution are identical because $B(a,b)$ can be shown to be equal to $\frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}$ [@RossProb].
+The term $B(a,b)$ expands to $\int_0^1 \theta^{a-1}(1-\theta)^{b-1}\, d\theta$, and is a normalizing constant that ensures that the \index{Area under the curve} area under the curve sums to one. In some textbooks, you may see the PDF of the beta distribution with the normalizing constant $\frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}$ (the expression $\Gamma(n)$ is defined as (n-1)!): $$p(\theta|a,b)=  \frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)} \theta^{a - 1} (1-\theta)^{b-1}$$  These two statements for the beta distribution are identical because $B(a,b)$ can be shown to be equal to $\frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}$ [@RossProb].
 
 The beta distribution's parameters $a$ and $b$ can be interpreted as expressing our prior beliefs about the probability of success; $a$ represents the number of "successes", in our case, answers that are "umbrella" and $b$ the number of failures, the answers that are not "umbrella". Figure \@ref(fig:betas2) shows the different beta distribution shapes given different values of $a$ and $b$.
 
@@ -217,7 +217,7 @@ p(\theta|n=100,k=80) \propto   [\theta^{80+3} (1-\theta)^{20+3}] = \theta^{83} (
 (\#eq:betaunpost4)
 \end{equation}
 
-The expression on the right-hand side corresponds to a beta distribution with parameters $a=84$, and $b=24$. This becomes evident if we rewrite the right-hand side such that it represents the core part of a beta PDF (see equation \@ref(eq:betach2)). All that is missing is a normalizing constant  which would make the area under the curve sum to one.
+The expression on the right-hand side corresponds to a beta distribution with parameters $a=84$, and $b=24$. This becomes evident if we rewrite the right-hand side such that it represents the core part of a beta PDF (see equation \@ref(eq:betach2)). All that is missing is a normalizing constant  which would make the \index{Area under the curve} area under the curve sum to one.
 
 \begin{equation}
 \theta^{83} (1-\theta)^{23} = \theta^{84-1} (1-\theta)^{24-1}

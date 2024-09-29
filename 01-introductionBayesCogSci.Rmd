@@ -470,7 +470,7 @@ As in the discrete example, the PDF, CDF, and inverse of the CDF allow us to ask
 pnorm(700, mean = 500, sd = 100) - pnorm(200, mean = 500, sd = 100)
 ```
 
-The probability that the random variable takes any specific point value is zero. This is because the probability in a continuous probability distribution is the area under the curve, and the area at any point on the x-axis is always zero. The implication here is that it is only meaningful to ask about probabilities between two different point values; e.g., the probability that $Y$ lies between $a$ and $b$, or $P(a<Y<b)$. Notice that $P(a<Y<b)$ is the same statement as $P(a\leq Y\leq b)$. Of course, for any particular point value, the PDF itself does not return the value zero; but the value returned by the PDF is not the probability of that particular value occurring. It is the density of that particular value; and if the PDF is seen as a function of the parameters, it is the likelihood of that particular value.
+The probability that the random variable takes any specific point value is zero. This is because the probability in a continuous probability distribution is the \index{Area under the curve} area under the curve, and the area at any point on the x-axis is always zero. The implication here is that it is only meaningful to ask about probabilities between two different point values; e.g., the probability that $Y$ lies between $a$ and $b$, or $P(a<Y<b)$. Notice that $P(a<Y<b)$ is the same statement as $P(a\leq Y\leq b)$. Of course, for any particular point value, the PDF itself does not return the value zero; but the value returned by the PDF is not the probability of that particular value occurring. It is the density of that particular value; and if the PDF is seen as a function of the parameters, it is the likelihood of that particular value.
 
 
 * What is the \index{Quantile} quantile $q$ such that the probability is $p$ of observing that value $q$ or a value more extreme than $q$? For example, we can work out the quantile $q$ such that the probability of observing $q$ or some value less than it is $0.975$, in the $\mathit{Normal}(500,100)$ distribution. Formally, we would write this as $P(Y<a)$.
@@ -523,7 +523,7 @@ dnorm(2, mean = 0, sd = 1)
 
 If the density at a particular point value like $1$ is high compared to some other value ($2$ in the above example) then this point value $1$ has a higher \index{Likelihood} likelihood than $2$ in the standard normal distribution.
 
-The quantity computed for the values $1$ and $2$ are *not* the probability of observing $1$ or $2$ in this distribution. As mentioned earlier, probability in a continuous distribution is defined as the area under the curve, and this area will always be zero at any point value (because there are infinitely many different possible values). If we want to know the probability of obtaining values between an upper and lower bound $b$ and $a$, i.e., $P(a<Y<b)$ where these are two distinct values, we must use the \index{Cumulative distribution function} cumulative distribution function or \index{CDF} CDF: in R, for the normal distribution, this is the `pnorm()` function. For example, the probability of observing a value between $+2$ and $-2$ in a normal distribution with mean $0$ and standard deviation $1$ is:
+The quantity computed for the values $1$ and $2$ are *not* the probability of observing $1$ or $2$ in this distribution. As mentioned earlier, probability in a continuous distribution is defined as the \index{Area under the curve} area under the curve, and this area will always be zero at any point value (because there are infinitely many different possible values). If we want to know the probability of obtaining values between an upper and lower bound $b$ and $a$, i.e., $P(a<Y<b)$ where these are two distinct values, we must use the \index{Cumulative distribution function} cumulative distribution function or \index{CDF} CDF: in R, for the normal distribution, this is the `pnorm()` function. For example, the probability of observing a value between $+2$ and $-2$ in a normal distribution with mean $0$ and standard deviation $1$ is:
 
 ```{r}
 pnorm(2, mean = 0, sd = 1) - pnorm(-2, mean = 0, sd = 1)
@@ -567,7 +567,7 @@ For the standard normal case, in `R`, this factor would require us to use the CD
 pnorm(0, mean = 0, sd = 1, lower.tail = TRUE)
 ```
 
-Later in this book, we will be using such truncated distributions when doing Bayesian modeling, and when we use them, we will want to multiply the truncated distribution by the factor $k$ to ensure that it is still a proper PDF whose area under the curve sums to $1$. Truncated normal distributions will be discussed in more detail in Box \@ref(thm:truncation).
+Later in this book, we will be using such truncated distributions when doing Bayesian modeling, and when we use them, we will want to multiply the truncated distribution by the factor $k$ to ensure that it is still a proper PDF whose \index{Area under the curve} area under the curve sums to $1$. Truncated normal distributions will be discussed in more detail in Box \@ref(thm:truncation).
 
 ## Bivariate and multivariate distributions
 
@@ -1120,7 +1120,7 @@ Compute the lower and upper boundaries such that:
 Practice using the `qnorm()` function--Part 2
 ```
 
-Given a normal distribution with mean 650 and standard deviation 125. There exist two quantiles, the lower quantile q1 and the upper quantile q2, that are equidistant from the mean 650, such that the area under the curve of the normal between q1 and q2  is 80%. Find q1 and q2.
+Given a normal distribution with mean 650 and standard deviation 125. There exist two quantiles, the lower quantile q1 and the upper quantile q2, that are equidistant from the mean 650, such that the \index{Area under the curve} area under the curve of the normal between q1 and q2  is 80%. Find q1 and q2.
 
 
 ```{exercise, Foundationsexercisessamples1}

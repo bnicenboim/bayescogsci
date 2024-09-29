@@ -83,7 +83,7 @@ priors <- c(prior(normal(0, 100), class = Intercept),
             prior(normal(0, 100), class = sd))
 ```
 
-Fit the model as follows. Because of our relatively uninformative priors and the few data points, the models of this chapter require us to tune the `control` parameter, increasing \index{texttt{adapt\_delta}} `adapt_delta` and \index{\texttt{max\_treedepth}} `max_treedepth`.
+Fit the model as follows. Because of our relatively uninformative priors and the few data points, the models of this chapter require us to tune the `control` parameter, increasing \index{\texttt{adapt\_delta}} `adapt_delta` and \index{\texttt{max\_treedepth}} `max_treedepth`.
 
 ```{r fitsbi, message = FALSE, eval = !file.exists("dataR/fit_sbi.RDS")}
 fit_sbi <- brm(effect | resp_se(`SE`, sigma = FALSE) ~

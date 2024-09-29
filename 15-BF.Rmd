@@ -144,7 +144,7 @@ grid.text(label = "e)", x = 0.39, y = 0.47, gp = gpar(fontsize = 20))
 grid.text(label = "f)", x = 0.71, y = 0.47, gp = gpar(fontsize = 20))
 ```
 
-To compute the marginal likelihood, Equation\ \@ref(eq:marginall) shows that we need to multiply the likelihood with the prior. The marginal likelihood is then the area under the curve, that is, the likelihood averaged across all possible values for the model parameter (the probability of success).
+To compute the marginal likelihood, Equation\ \@ref(eq:marginall) shows that we need to multiply the likelihood with the prior. The marginal likelihood is then the \index{Area under the curve} area under the curve, that is, the likelihood averaged across all possible values for the model parameter (the probability of success).
 
 Based on this data, likelihood, and prior we can calculate the marginal likelihood, that is, this \index{Area under the curve} area under the curve, in the following way using `R`:
 
@@ -321,7 +321,7 @@ Next, we will run a hierarchical model which includes group-level (or random) in
 
 One possible way to build a good prior for the parameter $\beta$, which estimates the influence of cloze probability, is as follows (see chapter \@ref(ch-priors) for a more detailed discussion on prior selection). The reasoning below is based on domain knowledge; but there is room for differences of opinion here. In a realistic data analysis situation, we would carry out a sensitivity analysis using a range of priors to determine the extent of influence of the priors.
 
-1. One may want to be agnostic regarding the direction of the effect; that means that we will \index{Center the prior} center the prior of $\beta$ on zero by specifying that the mean of the prior distribution is zero. However, we are still not sure about the variance of the prior on $\beta$.
+1. One may want to be agnostic regarding the direction of the effect; that means that we will center the prior of $\beta$ on zero by specifying that the mean of the prior distribution is zero. However, we are still not sure about the variance of the prior on $\beta$.
 2. One would need to know a bit about the variation on the dependent variable that we are analyzing. After re-analyzing the data from a couple of EEG experiments available from osf.io, we can say that for N400 averages, the standard deviation of the signal is between 8-15 microvolts [@NicenboimPreactivation2019].
 3. Based on published estimates of effects in psycholinguistics, we can conclude that they are generally rather small, often representing between 5%-30% of the standard deviation of the dependent variable.
 4. The effect of noun predictability on the N400 is one of the most reliable and strongest effects in neurolinguistics (together with the P600 that might even be stronger), and the slope $\beta$ represents the average change in voltage when moving from a cloze probability of zero to one--the strongest prediction effect.
@@ -403,7 +403,7 @@ if (!file.exists("dataR/m_N400_h_null.RDS")) {
 ```
 
 
-Now everything is ready to compute the log \index{Marginal likelihood} marginal likelihood, that is, the likelihood of the data given the model, after integrating out the model parameters. In the toy examples shown above, we had used the R-function `integrate()` to perform this integration. This is not possible for the more realistic and more complex models that are considered here because the integrals that have to be solved are too high-dimensional and complex for these simple functions to do the job. Instead, a standard approach to deal with realistic complex models is to use \index{\texttt{Bridge sampling}} bridge sampling [@gronauTutorialBridgeSampling2017; @gronauBridgesamplingPackageEstimating2017]. We perform this integration using the function \index{bridge\_sampler} `bridge_sampler()` for each of the two models:
+Now everything is ready to compute the log \index{Marginal likelihood} marginal likelihood, that is, the likelihood of the data given the model, after integrating out the model parameters. In the toy examples shown above, we had used the R-function `integrate()` to perform this integration. This is not possible for the more realistic and more complex models that are considered here because the integrals that have to be solved are too high-dimensional and complex for these simple functions to do the job. Instead, a standard approach to deal with realistic complex models is to use \index{\texttt{Bridge sampling}} bridge sampling [@gronauTutorialBridgeSampling2017; @gronauBridgesamplingPackageEstimating2017]. We perform this integration using the function \index{\texttt{bridge\_sampler}} `bridge_sampler()` for each of the two models:
 
 ```{r, eval = any(!file.exists("dataR/margLogLik_linear.RDS", "dataR/margLogLik_null.RDS"))}
 margLogLik_linear <- bridge_sampler(fit_N400_h_linear, silent = TRUE)
@@ -517,7 +517,7 @@ This is an instance of a sensitivity analysis. Recall that the model is the like
 
 ### Sensitivity analysis
 
-Here, we perform a \index{Sensitivtiy analysis} sensitivtiy analysis by examining Bayes factors for several models. Each model has the same likelihood but a different prior for $\beta$. For all of the priors we assume a normal distribution with a mean of zero. Assuming a mean of zero asserts that we do not make any assumption a priori about the direction of the effect. The standard deviations of the various priors vary from one another.
+Here, we perform a \index{Sensitivity analysis} sensitivity analysis by examining Bayes factors for several models. Each model has the same likelihood but a different prior for $\beta$. For all of the priors we assume a normal distribution with a mean of zero. Assuming a mean of zero asserts that we do not make any assumption a priori about the direction of the effect. The standard deviations of the various priors vary from one another.
 That is, what differs is the amount of uncertainty about the \index{Effect size} effect size that we allow for in the prior.
 While a small standard deviation indicates that we expect the effect to be not very large, a large standard deviation permits very large effect sizes.
 Although a model with a wide prior (i.e., large standard deviation) also allocates prior probability to small effect sizes, it allocates much less probability to small effect sizes compared to a model with a narrow prior. Thus, if the effect size is in reality small, then a model with a narrow prior (small standard deviation) will have a better chance of detecting the effect.

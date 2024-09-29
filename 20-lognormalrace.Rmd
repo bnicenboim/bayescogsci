@@ -1344,7 +1344,7 @@ Our assumptions include both the likelihood we have chosen and the priors. It's 
 
 ## Posterior predictive check with the quantile probability plots
 
-As in the previous chapter, in a new file, we can write the generated quantities block for \index{Posterior predictive check} posterior predictive checks. The advantage is that we can generate as many observations as needed after estimating the parameters. There is no model block in the following Stan program. The \index{\texttt{gqs}} `gqs()` function needs a Stan model without \index{Transformed parameter} transformed parameters. For this reason, this model  includes `u` in the \index{\texttt{parameters}} `parameters` block rather than in the `transformed parameters`.
+As in the previous chapter, in a new file, we can write the generated quantities block for \index{Posterior predictive check} posterior predictive checks. The advantage is that we can generate as many observations as needed after estimating the parameters. There is no model block in the following Stan program. The \index{\texttt{gqs}} `gqs()` function needs a Stan model without transformed parameters. For this reason, this model  includes `u` in the \index{\texttt{parameters}} `parameters` block rather than in the \index{\texttt{transformed parameters}} `transformed parameters` block.
 The complete Stan code for this model is shown below as `lnrace_h_contb_gen.stan`.
 
 ```{r, echo = FALSE}

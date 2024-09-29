@@ -48,7 +48,7 @@ target += normal_lpdf(recRT | mu, sigma);
 }
 ```
 
-One issue here is that the parameters of the likelihood, `mu` and `sigma` are going to be very far away from the \index{Unit scale} unit scale ($0.002$ and $0.0004$ respectively). Due to the way Stan's sampler is built, parameters that are too small (much smaller than 1) or too large (much larger than 1) can cause convergence problems. A straightforward solution is to fit the normal distribution to parameters in reciprocal of seconds rather than milliseconds; this would make the parameters have values that are $1000$ times larger ($2$ and $0.4$ respectively). We can do this using the \index{transformed parameters} `transformed parameters` block.^[In this specific case, we could also transform the dependent variable first, but as will become clear later, we want to avoid changing our dependent variable.] Although we use `mu` and `sigma` to fit the data, the priors are defined on the parameters `mu_s` and `sigma_s` ($\mu_s$ and $\sigma_s$). 
+One issue here is that the parameters of the likelihood, `mu` and `sigma` are going to be very far away from the \index{Unit scale} unit scale ($0.002$ and $0.0004$ respectively). Due to the way Stan's sampler is built, parameters that are too small (much smaller than 1) or too large (much larger than 1) can cause convergence problems. A straightforward solution is to fit the normal distribution to parameters in reciprocal of seconds rather than milliseconds; this would make the parameters have values that are $1000$ times larger ($2$ and $0.4$ respectively). We can do this using the \index{\texttt{transformed parameters}} `transformed parameters` block.^[In this specific case, we could also transform the dependent variable first, but as will become clear later, we want to avoid changing our dependent variable.] Although we use `mu` and `sigma` to fit the data, the priors are defined on the parameters `mu_s` and `sigma_s` ($\mu_s$ and $\sigma_s$). 
 
 Unless one can rely on previous estimates, finding good priors for $\mu_s$ and $\sigma_s$ is not trivial. To define appropriate priors, we would need to start with relatively arbitrary priors, inspect the prior predictive distributions, adjust the priors, and repeat the inspection of prior predictive distributions until these distributions start to look realistic. In the interest of conserving space, we skip this iterative process here, and assign the following priors:
 
@@ -347,7 +347,7 @@ As a next step, we examine this new distribution visually using a histogram with
 
 (1) Regardless of our model, histograms will deviate from uniformity if the posterior samples are dependent. This can be solved by \index{Thinning} *thinning* the samples of the posterior, that is removing a number of intermediate samples [@talts2018validating recommend between 6 and 10]. 
 
-(2) To reduce the noise in the histogram, we should have \index{Bin} bins of equal size. If $S + 1$  are divisible by a large power of $2$, e.g, $1024$, we will be able to re-bin the histogram easily with bins of equal size. We complete the code shown in step 3 by generating an ensemble of ranks statistics as well.
+(2) To reduce the noise in the histogram, we should have bins of equal size. If $S + 1$  are divisible by a large power of $2$, e.g, $1024$, we will be able to re-bin the histogram easily with bins of equal size. We complete the code shown in step 3 by generating an ensemble of ranks statistics as well.
 
 Here we encapsulate steps 1 to 4 into a function.
 
@@ -569,7 +569,7 @@ Even though simulation-based calibration is a comprehensive approach to test mod
 
 (iii) Finally, it's important to apply simulation-based calibration only after appropriate priors are set. This is important because only the priors determine the parameter space that will be inspected. Weak priors that may be good enough for estimation may nevertheless lead to a parameter space that is unrealistically large since, during the calibration stage, there are no independent data to constrain the space. This means that it is important to conduct prior predictive checks before assessing the correctness of the model with simulation-based calibration.
 
-## Another \index{Custom distribution} custom distribution: The exponential distribution \index{exponential distribution} implemented manually
+## Another \index{Custom distribution} custom distribution: The exponential distribution \index{Exponential distribution} implemented manually
 
 There are cases when one needs a random variable with a distribution that is not included in Stan. Many times one can find the PDF (or a CDF)  derived in a paper, and one needs to implement it manually by writing the log PDF in the Stan language.
 Even though the exponential distribution is included in Stan, we demonstrate how we would  include it step-by-step as if it weren't available. This example extends what is demonstrated in @Stan2023 (section 22.1 of the User's guide).
@@ -866,7 +866,7 @@ In this chapter, we learned how to create a PDF that is not provided by Stan. We
 
 Jacobian adjustments are also relevant for adjusting priors for order constraints, which is especially important for Bayes factors [@Heck2016].
 
-A complete tutorial of \index{Simulation-based calibration} simulation-based calibration using the \index{SBC} `SBC` package was given in the online event \index{Stanconnect} Stanconnect 2021, and it is available in https://www.martinmodrak.cz/post/2021-sbc_tutorial/. The ideas that predate this technique can be found in @Cooketal2006 and were extended in @talts2018validating. The use of ECDF-based visualizations is discussed in @sailynoja2022graphical. The role of simulation-based calibration in the Bayesian workflow is discussed in @schad2020toward. Examples of the use of simulation-based calibration to validate novel models used in cognitive science are @hartmann2020rtmpt and @burkner2020modelling. The extension of this procedure to validate Bayes factors is discussed in @SchadEtAlBF.
+A complete tutorial of \index{Simulation-based calibration} simulation-based calibration using the \index{SBC} `SBC` package was presented in the online event \index{Stanconnect 2021} Stanconnect 2021, and it is available in https://www.martinmodrak.cz/post/2021-sbc_tutorial/. The ideas that predate this technique can be found in @Cooketal2006 and were extended in @talts2018validating. The use of ECDF-based visualizations is discussed in @sailynoja2022graphical. The role of simulation-based calibration in the Bayesian workflow is discussed in @schad2020toward. Examples of the use of simulation-based calibration to validate novel models used in cognitive science are @hartmann2020rtmpt and @burkner2020modelling. The extension of this procedure to validate Bayes factors is discussed in @SchadEtAlBF.
 
 Custom functions in general and custom probability functions are treated in  @Stan2023 (chapter 21 of the User's guide).
 
