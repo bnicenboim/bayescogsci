@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2024-09-20" />
+<meta name="date" content="2024-09-30" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1330,7 +1330,7 @@ FIGURE 7.1: Prior predictive checks. a) In a first step, define a summary statis
 </p>
 </div>
 <p>Selecting quality  summary statistics is more art than science. However, the choice of summary statistics will be important since they offer important indicators of the information that we want the model to take into account. As a result, they ought to be carefully selected and created in accordance with our expectations regarding the actual process of data generation as well as the kinds of structures and effects we expect the data will display. One can use summary statistics to criticize the model as well. For example, one can formalize criticism of an analysis into a summary statistic that one believes will exhibit undesirable behavior.</p>
-<p>Selecting appropriate priors will be especially important when the data does not provide enough information to determine the likelihood (see Figure <a href="ch-workflow.html#fig:FigBayes">7.2</a>, especially g-i). This frequently happens, for instance, in hierarchical models when a “maximal” model is fitted for a small data set that does not constrain the estimation of variance and covariance parameters for all group-level effects.<a href="#fn30" class="footnote-ref" id="fnref30"><sup>30</sup></a></p>
+<p>Selecting appropriate priors will be especially important when the data does not provide enough information to determine the likelihood (see Figure <a href="ch-workflow.html#fig:FigBayes">7.2</a>, especially g-i). This frequently happens, for instance, in hierarchical models when a “maximal” model is fitted for a small data set that does not constrain the estimation of variance and covariance parameters for all group-level effects.<a href="#fn31" class="footnote-ref" id="fnref31"><sup>31</sup></a></p>
 <p>In such cases, a prior in a Bayesian analysis (or a more informative one instead of a relatively uninformative one) should incorporate just enough domain expertise to suppress extreme but not impossible parameter values.
 Since the posterior is now sufficiently constrained, it may now be possible to fit the model. Therefore, by incorporating prior knowledge into Bayesian computation, we can fit and understand models that frequentist tools are unable to reliably estimate.</p>
 <p>Thus, more concentrated prior distributions are a welcome side-effect of adding more domain expertise (into what still constitutes weakly informative priors), which can help with Bayesian computation. This makes it possible to estimate more complex models; in other words, models that would not otherwise be able to be estimated with the tools at hand, can be fitted thanks to the use of prior knowledge. Put another way, by utilizing prior knowledge, the iterative model-building process can help us approach the aspirational model better. Moreover, MCMC algorithms will converge more quickly once additional informative priors are provided.</p>
@@ -1463,8 +1463,8 @@ FIGURE 7.3: Posterior predictive checks. For a particular summary statistic, t(y
 </div>
 <div class="footnotes">
 <hr />
-<ol start="30">
-<li id="fn30"><p>This issue shows up as problems with optimizer convergence in frequentist methods (like the ones used in the <code>lme4</code> package), indicating that the likelihood is too flat and the parameter estimates are not limited by the data.<a href="ch-workflow.html#fnref30" class="footnote-back">↩︎</a></p></li>
+<ol start="31">
+<li id="fn31"><p>This issue shows up as problems with optimizer convergence in frequentist methods (like the ones used in the <code>lme4</code> package), indicating that the likelihood is too flat and the parameter estimates are not limited by the data.<a href="ch-workflow.html#fnref31" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
             </section>

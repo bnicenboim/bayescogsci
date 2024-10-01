@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2024-09-20" />
+<meta name="date" content="2024-09-30" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1360,7 +1360,7 @@ FIGURE 8.1: Means and standard errors of the simulated dependent variable (e.g.,
 <p>The new information is the <span class="math inline">\(95\)</span>% credible interval for the difference between the two groups.</p>
 <div id="treatmentcontrasts" class="section level3 hasAnchor" number="8.1.1">
 <h3><span class="header-section-number">8.1.1</span> Default contrast coding:  Treatment contrasts<a href="ch-contr.html#treatmentcontrasts" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p>How does the function <code>brm()</code> arrive at these particular values for the intercept and slope? That is, why does the intercept assess the mean of condition <span class="math inline">\(F1\)</span> and how do we know the slope measures the difference in means between <span class="math inline">\(F2\)</span>-<span class="math inline">\(F1\)</span>? This result is a consequence of the  default contrast coding of the factor <span class="math inline">\(F\)</span>. R assigns treatment contrasts to factors and orders their levels alphabetically. The alphabetically first factor level (here: <span class="math inline">\(F1\)</span>) is coded in R by default as <span class="math inline">\(0\)</span> and the second level (here: <span class="math inline">\(F2\)</span>) is coded as <span class="math inline">\(1\)</span>.<a href="#fn31" class="footnote-ref" id="fnref31"><sup>31</sup></a> This becomes clear when we inspect the current contrast attribute of the factor using the  <code>contrasts()</code> command:</p>
+<p>How does the function <code>brm()</code> arrive at these particular values for the intercept and slope? That is, why does the intercept assess the mean of condition <span class="math inline">\(F1\)</span> and how do we know the slope measures the difference in means between <span class="math inline">\(F2\)</span>-<span class="math inline">\(F1\)</span>? This result is a consequence of the  default contrast coding of the factor <span class="math inline">\(F\)</span>. R assigns treatment contrasts to factors and orders their levels alphabetically. The alphabetically first factor level (here: <span class="math inline">\(F1\)</span>) is coded in R by default as <span class="math inline">\(0\)</span> and the second level (here: <span class="math inline">\(F2\)</span>) is coded as <span class="math inline">\(1\)</span>.<a href="#fn32" class="footnote-ref" id="fnref32"><sup>32</sup></a> This becomes clear when we inspect the current contrast attribute of the factor using the  <code>contrasts()</code> command:</p>
 <div class="sourceCode" id="cb370"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb370-1"><a href="ch-contr.html#cb370-1" aria-hidden="true"></a><span class="kw">contrasts</span>(df_contrasts1<span class="op">$</span>F)</span></code></pre></div>
 <pre><code>##    F2
 ## F1  0
@@ -1620,7 +1620,7 @@ The weights from all three model parameters that were defined are now combined a
 ## nouns       1/3 -1/3  2/3
 ## verbs       1/3 -1/3 -1/3</code></pre>
 <p>Each set of weights is first entered as a row into the matrix (command <code>rbind()</code>) <span class="citation">(see Schad et al. <a href="#ref-schadHowCapitalizePriori2020" role="doc-biblioref">2020</a>)</span>. We switch rows and columns of the matrix for easier readability using the command <code>t()</code> (this transposes the matrix). The command <code>fractions()</code> from <code>MASS</code> library turns the decimals into fractions to improve readability.</p>
-<p>Now that the condition weights have been written into the hypothesis matrix, the third step of the procedure is implemented: a matrix operation called the <em>generalized matrix inverse</em><a href="#fn32" class="footnote-ref" id="fnref32"><sup>32</sup></a> is used to obtain the contrast matrix that is needed to estimate these comparisons in a linear model.</p>
+<p>Now that the condition weights have been written into the hypothesis matrix, the third step of the procedure is implemented: a matrix operation called the <em>generalized matrix inverse</em><a href="#fn33" class="footnote-ref" id="fnref33"><sup>33</sup></a> is used to obtain the contrast matrix that is needed to estimate these comparisons in a linear model.</p>
 <p>Use the function <code>ginv2()</code> from the <code>bcogsci</code> package for the next step. It is similar to <code>ginv()</code> from <code>MASS</code> but provides nicer formatting of the output.</p>
 <p>Applying the generalized inverse to the hypothesis matrix results in the new matrix <code>XcSum</code>. This is the contrast matrix <span class="math inline">\(X_c\)</span> that estimates exactly those comparisons that were specified earlier:</p>
 <div class="sourceCode" id="cb393"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb393-1"><a href="ch-contr.html#cb393-1" aria-hidden="true"></a>(XcSum &lt;-<span class="st"> </span><span class="kw">ginv2</span>(HcSum))</span></code></pre></div>
@@ -2535,9 +2535,9 @@ difference between the two grammatical conditions? Here, the comparison is betwe
 </div>
 <div class="footnotes">
 <hr />
-<ol start="31">
-<li id="fn31"><p>When using treatment coding, it’s important to be aware that the intercept won’t be centered. As mentioned in Box <a href="ch-reg.html#thm:intercept">4.2</a>, this means the prior one sets for the intercept in <code>brms</code> will actually be for assigned to its centered version. Although this distinction may not have any impact when one uses wide priors, it’s still worth keeping it in mind.<a href="ch-contr.html#fnref31" class="footnote-back">↩︎</a></p></li>
-<li id="fn32"><p>At this point, there is no need to understand in detail what this means. We refer the interested reader to <span class="citation">Schad et al. (<a href="#ref-schadHowCapitalizePriori2020" role="doc-biblioref">2020</a>)</span>. For a quick overview, we recommend a vignette explaining the generalized inverse in the <code>matlib</code> package <span class="citation">(<a href="https://cran.r-project.org/web/packages/matlib/vignettes/ginv.html" class="uri" role="doc-biblioref">https://cran.r-project.org/web/packages/matlib/vignettes/ginv.html</a>; Friendly, Fox, and Chalmers <a href="#ref-friendly_matlib" role="doc-biblioref">2020</a>)</span>.<a href="ch-contr.html#fnref32" class="footnote-back">↩︎</a></p></li>
+<ol start="32">
+<li id="fn32"><p>When using treatment coding, it’s important to be aware that the intercept won’t be centered. As mentioned in Box <a href="ch-reg.html#thm:intercept">4.2</a>, this means the prior one sets for the intercept in <code>brms</code> will actually be for assigned to its centered version. Although this distinction may not have any impact when one uses wide priors, it’s still worth keeping it in mind.<a href="ch-contr.html#fnref32" class="footnote-back">↩︎</a></p></li>
+<li id="fn33"><p>At this point, there is no need to understand in detail what this means. We refer the interested reader to <span class="citation">Schad et al. (<a href="#ref-schadHowCapitalizePriori2020" role="doc-biblioref">2020</a>)</span>. For a quick overview, we recommend a vignette explaining the generalized inverse in the <code>matlib</code> package <span class="citation">(<a href="https://cran.r-project.org/web/packages/matlib/vignettes/ginv.html" class="uri" role="doc-biblioref">https://cran.r-project.org/web/packages/matlib/vignettes/ginv.html</a>; Friendly, Fox, and Chalmers <a href="#ref-friendly_matlib" role="doc-biblioref">2020</a>)</span>.<a href="ch-contr.html#fnref33" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
             </section>

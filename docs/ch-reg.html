@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2024-09-20" />
+<meta name="date" content="2024-09-30" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1317,7 +1317,7 @@ p\_size_n \sim \mathit{Normal}(\alpha + c\_load_n \cdot \beta,\sigma)
 <span id="cb153-2"><a href="ch-reg.html#cb153-2" aria-hidden="true"></a>df_pupil_pilot<span class="op">$</span>p_size <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summary</span>()</span></code></pre></div>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 ##     852     856     862     861     866     868</code></pre>
-<p>With this information we can set a  regularizing prior for <span class="math inline">\(\alpha\)</span>. Center the prior around 1000 to be in the right order of magnitude.<a href="#fn16" class="footnote-ref" id="fnref16"><sup>16</sup></a> Since we don’t know how much pupil sizes are going to vary by load yet, we include a rather wide prior by defining it as a normal distribution and setting its standard deviation as <span class="math inline">\(500\)</span>.</p>
+<p>With this information we can set a  regularizing prior for <span class="math inline">\(\alpha\)</span>. Center the prior around 1000 to be in the right order of magnitude.<a href="#fn17" class="footnote-ref" id="fnref17"><sup>17</sup></a> Since we don’t know how much pupil sizes are going to vary by load yet, we include a rather wide prior by defining it as a normal distribution and setting its standard deviation as <span class="math inline">\(500\)</span>.</p>
 <p><span class="math display">\[\begin{equation}
 \alpha \sim \mathit{Normal}(1000, 500) 
 \end{equation}\]</span></p>
@@ -1555,7 +1555,7 @@ FIGURE 4.2: The posterior distributions of the parameters in the <code>brms</cod
 \end{equation}\]</span></p>
 <p>That means that in the non-centered model, we are actually setting our prior to <span class="math inline">\(\alpha + mean(load) \cdot \beta\)</span>.
 When <span class="math inline">\(\beta\)</span> is very small (or the means of our predictors are very small because they might be “almost” centered), and the prior for <span class="math inline">\(\alpha\)</span> is very wide, we might hardly notice the difference between setting a prior to <span class="math inline">\(\alpha_{centered}\)</span> or to our actual <span class="math inline">\(\alpha\)</span> in a non-centered model (especially if the likelihood dominates anyway). But it is important to pay attention to what the parameters represent that we are setting priors on.</p>
-<p>To sum up, <code>brms</code> automatically centers all predictors for posterior estimation, and the prior of the intercept is applied to the centered version of the model during model fitting. However, when the predictors specified in the formula are not centered, then <code>brms</code> uses the equations shown before to return in the output the posterior of the intercept for the non-centered predictors.<a href="#fn17" class="footnote-ref" id="fnref17"><sup>17</sup></a></p>
+<p>To sum up, <code>brms</code> automatically centers all predictors for posterior estimation, and the prior of the intercept is applied to the centered version of the model during model fitting. However, when the predictors specified in the formula are not centered, then <code>brms</code> uses the equations shown before to return in the output the posterior of the intercept for the non-centered predictors.<a href="#fn18" class="footnote-ref" id="fnref18"><sup>18</sup></a></p>
 <p>In our example analyses with <code>brms</code> in this book, we will always center our predictors.</p>
 
 <div class="figure"><span style="display:block;" id="fig:centered-non-centered"></span>
@@ -1933,7 +1933,7 @@ correct_n \sim \mathit{Bernoulli}(\theta_n)
 <p><span class="math display">\[\begin{equation}
 \eta_n = g(\theta_n) = \log\left(\frac{\theta_n}{1-\theta_n}\right)
 \end{equation}\]</span></p>
-<p>The term $} <span class="math inline">\(\frac{\theta_n}{1-\theta_n}\)</span> is called the  <em>odds</em>.<a href="#fn18" class="footnote-ref" id="fnref18"><sup>18</sup></a> The  logit link function is therefore a  log-odds; it maps probability values ranging from <span class="math inline">\((0,1)\)</span> to real numbers lying between <span class="math inline">\(-\infty\)</span> and <span class="math inline">\(+\infty\)</span>. Figure <a href="ch-reg.html#fig:logisticfun">4.14</a> shows the logit link function, <span class="math inline">\(\eta = g(\theta)\)</span>, and the  inverse logit, <span class="math inline">\(\theta = g^{-1}(\eta)\)</span>, which is called the  <em>logistic function</em>; the relevance of this logistic function will become clear in a moment.</p>
+<p>The term $} <span class="math inline">\(\frac{\theta_n}{1-\theta_n}\)</span> is called the  <em>odds</em>.<a href="#fn19" class="footnote-ref" id="fnref19"><sup>19</sup></a> The  logit link function is therefore a  log-odds; it maps probability values ranging from <span class="math inline">\((0,1)\)</span> to real numbers lying between <span class="math inline">\(-\infty\)</span> and <span class="math inline">\(+\infty\)</span>. Figure <a href="ch-reg.html#fig:logisticfun">4.14</a> shows the logit link function, <span class="math inline">\(\eta = g(\theta)\)</span>, and the  inverse logit, <span class="math inline">\(\theta = g^{-1}(\eta)\)</span>, which is called the  <em>logistic function</em>; the relevance of this logistic function will become clear in a moment.</p>
 <div class="figure"><span style="display:block;" id="fig:logisticfun"></span>
 <img src="bayescogsci_files/figure-html/logisticfun-1.svg" alt="The logit and inverse logit (logistic) function." width="672" />
 <p class="caption">
@@ -2364,10 +2364,10 @@ FIGURE 4.20: The distributions of posterior predicted mean accuracies for tested
 </div>
 <div class="footnotes">
 <hr />
-<ol start="16">
-<li id="fn16"><p>The average pupil size will probably be higher than 800, since this measurement was with no load, but, in any case, the exact number won’t matter, any mean for the prior between 500-1500 would be fine if the standard deviation is large.<a href="ch-reg.html#fnref16" class="footnote-back">↩︎</a></p></li>
-<li id="fn17"><p>These transformations are visible when checking the generated Stan code using <code>make_stancode()</code>.<a href="ch-reg.html#fnref17" class="footnote-back">↩︎</a></p></li>
-<li id="fn18"><p>Odds are defined to be the ratio of the probability of success to the probability of failure. For example, the odds of obtaining a one in a fair six-sided die are <span class="math inline">\(\frac{1/6}{1-1/6}=1/5\)</span>. The odds of obtaining a heads in a fair coin are <span class="math inline">\(1/1\)</span>. Do not confuse this technical term with the day-to-day usage of the word “odds” to mean probability.<a href="ch-reg.html#fnref18" class="footnote-back">↩︎</a></p></li>
+<ol start="17">
+<li id="fn17"><p>The average pupil size will probably be higher than 800, since this measurement was with no load, but, in any case, the exact number won’t matter, any mean for the prior between 500-1500 would be fine if the standard deviation is large.<a href="ch-reg.html#fnref17" class="footnote-back">↩︎</a></p></li>
+<li id="fn18"><p>These transformations are visible when checking the generated Stan code using <code>make_stancode()</code>.<a href="ch-reg.html#fnref18" class="footnote-back">↩︎</a></p></li>
+<li id="fn19"><p>Odds are defined to be the ratio of the probability of success to the probability of failure. For example, the odds of obtaining a one in a fair six-sided die are <span class="math inline">\(\frac{1/6}{1-1/6}=1/5\)</span>. The odds of obtaining a heads in a fair coin are <span class="math inline">\(1/1\)</span>. Do not confuse this technical term with the day-to-day usage of the word “odds” to mean probability.<a href="ch-reg.html#fnref19" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
             </section>

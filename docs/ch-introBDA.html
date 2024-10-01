@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2024-09-20" />
+<meta name="date" content="2024-09-30" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1305,7 +1305,7 @@ p(\boldsymbol{\Theta}|\boldsymbol{y}) = \cfrac{ p(\boldsymbol{y}|\boldsymbol{\Th
 <li><p>The <em>Posterior</em>, <span class="math inline">\(p(\boldsymbol{\Theta}|\boldsymbol{y})\)</span>, is the probability distribution of the parameters conditional on the data.</p></li>
 <li><p>The <em>Likelihood</em>, <span class="math inline">\(p(\boldsymbol{y}|\boldsymbol{\Theta}\)</span>) is as described in chapter <a href="ch-intro.html#ch-intro">1</a>: it is the PMF (discrete case) or the PDF (continuous case) expressed as a function of <span class="math inline">\(\boldsymbol{\Theta}\)</span>.</p></li>
 <li><p>The <em>Prior</em>, <span class="math inline">\(p(\boldsymbol{\Theta})\)</span>, is the initial probability distribution of the parameter(s), before seeing the data.</p></li>
-<li><p>The <em>Marginal Likelihood</em>, <span class="math inline">\(p(\boldsymbol{y})\)</span>, was introduced in chapter <a href="ch-intro.html#ch-intro">1</a> and standardizes the posterior distribution to ensure that the area under the curve of the distribution sums to 1, that is, it ensures that the posterior is a valid probability distribution.</p></li>
+<li><p>The <em>Marginal Likelihood</em>, <span class="math inline">\(p(\boldsymbol{y})\)</span>, was introduced in chapter <a href="ch-intro.html#ch-intro">1</a> and standardizes the posterior distribution to ensure that the  area under the curve of the distribution sums to 1, that is, it ensures that the posterior is a valid probability distribution.</p></li>
 </ul>
 <p>An example will clarify all these terms, as we explain below.</p>
 </div>
@@ -1358,7 +1358,7 @@ p(k=80 | n= 100,  \theta) = \binom{100}{80} \theta^{80} (1-\theta)^{20}
 p(\theta|a,b)=  \frac{1}{B(a,b)} \theta^{a - 1} (1-\theta)^{b-1}
 \tag{2.4}
 \end{equation}\]</span></p>
-<p>The term <span class="math inline">\(B(a,b)\)</span> expands to <span class="math inline">\(\int_0^1 \theta^{a-1}(1-\theta)^{b-1}\, d\theta\)</span>, and is a normalizing constant that ensures that the area under the curve sums to one. In some textbooks, you may see the PDF of the beta distribution with the normalizing constant <span class="math inline">\(\frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}\)</span> (the expression <span class="math inline">\(\Gamma(n)\)</span> is defined as (n-1)!): <span class="math display">\[p(\theta|a,b)=  \frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)} \theta^{a - 1} (1-\theta)^{b-1}\]</span> These two statements for the beta distribution are identical because <span class="math inline">\(B(a,b)\)</span> can be shown to be equal to <span class="math inline">\(\frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}\)</span> <span class="citation">(Ross <a href="#ref-RossProb" role="doc-biblioref">2002</a>)</span>.</p>
+<p>The term <span class="math inline">\(B(a,b)\)</span> expands to <span class="math inline">\(\int_0^1 \theta^{a-1}(1-\theta)^{b-1}\, d\theta\)</span>, and is a normalizing constant that ensures that the  area under the curve sums to one. In some textbooks, you may see the PDF of the beta distribution with the normalizing constant <span class="math inline">\(\frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}\)</span> (the expression <span class="math inline">\(\Gamma(n)\)</span> is defined as (n-1)!): <span class="math display">\[p(\theta|a,b)=  \frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)} \theta^{a - 1} (1-\theta)^{b-1}\]</span> These two statements for the beta distribution are identical because <span class="math inline">\(B(a,b)\)</span> can be shown to be equal to <span class="math inline">\(\frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}\)</span> <span class="citation">(Ross <a href="#ref-RossProb" role="doc-biblioref">2002</a>)</span>.</p>
 <p>The beta distribution’s parameters <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> can be interpreted as expressing our prior beliefs about the probability of success; <span class="math inline">\(a\)</span> represents the number of “successes”, in our case, answers that are “umbrella” and <span class="math inline">\(b\)</span> the number of failures, the answers that are not “umbrella”. Figure <a href="ch-introBDA.html#fig:betas2">2.1</a> shows the different beta distribution shapes given different values of <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>.</p>
 <div class="figure"><span style="display:block;" id="fig:betas2"></span>
 <img src="bayescogsci_files/figure-html/betas2-1.svg" alt="Examples of beta distributions with different parameters." width="672" />
@@ -1416,7 +1416,7 @@ p(\theta|n=100,k=80) \propto   [\theta^{80} (1-\theta)^{20} \times \theta^{3} (1
 p(\theta|n=100,k=80) \propto   [\theta^{80+3} (1-\theta)^{20+3}] = \theta^{83} (1-\theta)^{23}
 \tag{2.9}
 \end{equation}\]</span></p>
-<p>The expression on the right-hand side corresponds to a beta distribution with parameters <span class="math inline">\(a=84\)</span>, and <span class="math inline">\(b=24\)</span>. This becomes evident if we rewrite the right-hand side such that it represents the core part of a beta PDF (see equation <a href="ch-introBDA.html#eq:betach2">(2.4)</a>). All that is missing is a normalizing constant which would make the area under the curve sum to one.</p>
+<p>The expression on the right-hand side corresponds to a beta distribution with parameters <span class="math inline">\(a=84\)</span>, and <span class="math inline">\(b=24\)</span>. This becomes evident if we rewrite the right-hand side such that it represents the core part of a beta PDF (see equation <a href="ch-introBDA.html#eq:betach2">(2.4)</a>). All that is missing is a normalizing constant which would make the  area under the curve sum to one.</p>
 <p><span class="math display">\[\begin{equation}
 \theta^{83} (1-\theta)^{23} = \theta^{84-1} (1-\theta)^{24-1}
 \end{equation}\]</span></p>
@@ -1573,29 +1573,30 @@ Given <span class="math inline">\(k\)</span> successes in n trials coming from a
 <div class="exercise">
 <p><span id="exr:BDAexercisesConj2" class="exercise"><strong>Exercise 2.3  </strong></span>Conjugate forms 2</p>
 </div>
-<p>Suppose that we perform <span class="math inline">\(n\)</span> independent trials until we get a success (e.g., a heads in a coin toss). For coin tosses, the possible outcomes could be, H, TH, . The probability of success in each trial is <span class="math inline">\(\theta\)</span>. Then, the Geometric random variable, call it <span class="math inline">\(X\)</span>, gives us the probability of getting a success in <span class="math inline">\(n\)</span> trials as follows:</p>
+<p>Suppose that we perform <span class="math inline">\(n\)</span> independent trials until we get a success (e.g., a heads in a coin toss). For repeated coin tosses, observing T,T, H would correspond to a score of <span class="math inline">\(n=3\)</span>. The probability of success in each trial is <span class="math inline">\(\theta\)</span>. Then, the Geometric random variable, call it <span class="math inline">\(X\)</span>, gives us the probability of getting a success in <span class="math inline">\(n\)</span> trials as follows:</p>
 <p><span class="math display">\[\begin{equation}
 Prob(X=n)=\theta(1-\theta)^{ n-1}
 \end{equation}\]</span></p>
 <p>where <span class="math inline">\(n=1,2,\dots\)</span>.</p>
 <p>Let the prior on <span class="math inline">\(\theta\)</span> be <span class="math inline">\(\mathit{Beta}(a,b)\)</span>, a beta distribution with parameters <span class="math inline">\(a\)</span>,<span class="math inline">\(b\)</span>.
-The posterior distribution is a beta distribution with parameters <span class="math inline">\(a*\)</span> and <span class="math inline">\(b*\)</span>. Determine these parameters in terms of <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>, and <span class="math inline">\(n\)</span>.</p>
+The posterior distribution is a beta distribution with parameters <span class="math inline">\(a^*\)</span> and <span class="math inline">\(b^*\)</span>. Determine these parameters in terms of <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>, and <span class="math inline">\(n\)</span>.</p>
 <div class="exercise">
 <p><span id="exr:BDAexercisesConj3" class="exercise"><strong>Exercise 2.4  </strong></span>Conjugate forms 3</p>
 </div>
-<p>The  Gamma distribution is defined in terms of the parameters <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>: <span class="math inline">\(\mathit{Gamma}(a,b)\)</span>. If there is a random variable <span class="math inline">\(Y\)</span> (where <span class="math inline">\(y\geq 0\)</span>) that has a Gamma distribution as a PDF (<span class="math inline">\(Y\sim \mathit{Gamma}(a,b)\)</span>), then:</p>
-<p><span class="math display">\[\begin{equation}
-\mathit{Gamma}(y | a,b)=\frac{b^a y^{a-1} \exp(-by)}{\Gamma(a)}
-\end{equation}\]</span></p>
-<p>Suppose that we have <span class="math inline">\(n\)</span> data points, <span class="math inline">\(x_1,\dots, x_n\)</span>, that are drawn from an exponentially distributed. The  exponential likelihood function is:</p>
+<p>Suppose that we have <span class="math inline">\(n\)</span> data points, <span class="math inline">\(x_1,\dots,x_n\)</span>, drawn independently from an exponential distribution with parameter <span class="math inline">\(\lambda\)</span>. The parameter of interest here (what we want to learn about from the data) is <span class="math inline">\(\lambda\)</span>.</p>
+<p>The  exponential likelihood function is:</p>
 <p><span class="math display">\[\begin{equation}
 p(x_1,\dots,x_n | \lambda)=\lambda^n \exp (-\lambda \sum_{i=1}^n x_i )
 \end{equation}\]</span></p>
-<p>It turns out that if we assume a <span class="math inline">\(\mathit{Gamma}(a,b)\)</span> prior distribution for <span class="math inline">\(\lambda\)</span> and the above exponential likelihood, the posterior distribution of <span class="math inline">\(\lambda\)</span> is a Gamma distribution. In other words, the <span class="math inline">\(\mathit{Gamma}(a,b)\)</span> prior on the <span class="math inline">\(\lambda\)</span> parameter in the exponential distribution will be written:</p>
+<p>Starting with a Gamma prior distribution for <span class="math inline">\(\lambda\)</span> (see below), show that the posterior distribution for <span class="math inline">\(\lambda\)</span> is also a Gamma distribution. Provide formulas giving the posterior parameters <span class="math inline">\(a^*, b^*\)</span> in terms of the prior parameters <span class="math inline">\(a, b\)</span> and the data. Use the following facts about Gamma distributions.</p>
+<p>The  Gamma distribution is defined in terms of the parameters <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>: <span class="math inline">\(\mathit{Gamma}(a,b)\)</span>. In general, if there is a random variable <span class="math inline">\(Y\)</span> (where <span class="math inline">\(y\geq 0\)</span>) that has a Gamma distribution as a PDF (<span class="math inline">\(Y\sim \mathit{Gamma}(a,b)\)</span>), then:</p>
+<p><span class="math display">\[\begin{equation}
+\mathit{Gamma}(y | a,b)=\frac{b^a y^{a-1} \exp(-by)}{\Gamma(a)}
+\end{equation}\]</span></p>
+<p>The <span class="math inline">\(\mathit{Gamma}(a,b)\)</span> prior on the <span class="math inline">\(\lambda\)</span> parameter in the exponential distribution will be written:</p>
 <p><span class="math display">\[\begin{equation}
 \mathit{Gamma}(\lambda | a,b)=\frac{b^a \lambda^{a-1} \exp(-b\lambda)}{\Gamma(a)}
 \end{equation}\]</span></p>
-<p>Find the parameters <span class="math inline">\(a*\)</span> and <span class="math inline">\(b*\)</span> of the posterior distribution.</p>
 <div class="exercise">
 <p><span id="exr:BDAexercisesConj4" class="exercise"><strong>Exercise 2.5  </strong></span>Conjugate forms 4</p>
 </div>
@@ -1604,9 +1605,10 @@ p(x_1,\dots,x_n | \lambda)=\lambda^n \exp (-\lambda \sum_{i=1}^n x_i )
 </ul>
 <p>This is a contrived example. Suppose we are modeling the number of times that a speaker says the word “I” per day. This could be of interest if we are studying, for example, how self-oriented a speaker is. The number of times <span class="math inline">\(x\)</span> that the word is uttered in over a particular time period (here, one day) can be modeled by a  Poisson distribution (<span class="math inline">\(x=0,1,2,\dots\)</span>):</p>
 <p><span class="math display">\[\begin{equation}
-f(x\mid \theta) = \frac{\exp(-\theta) \theta^x}{x!}
+f(x\mid \theta) = \frac{\exp(-\theta) \theta^x}{x!} \hbox{ for } x=0,1,2,\dots 
 \end{equation}\]</span></p>
 <p>where the rate <span class="math inline">\(\theta\)</span> is unknown, and the numbers of utterances of the target word on each day are independent given <span class="math inline">\(\theta\)</span>.</p>
+<p>As an aside: Given <span class="math inline">\(n\)</span> independent observations of a Poisson random variable with rate parameter <span class="math inline">\(\theta\)</span>, the maximum-likelihood estimator (MLE) for <span class="math inline">\(\theta\)</span> turns out to be <span class="math inline">\(\hat{\theta} = \frac{\sum{i=1}^n x_i}{n}\)</span>. When we are talking about a particular sample of data, the maximum-likelihood estimate is computed using the formula for the estimator, <span class="math inline">\(\frac{\sum{i=1}^n x_i}{n}\)</span>, and is represented as <span class="math inline">\(\bar{x}\)</span>.</p>
 <p>We are told that the prior mean of <span class="math inline">\(\theta\)</span> is 100 and prior variance for <span class="math inline">\(\theta\)</span> is 225. This information is based on the results of previous studies on the topic. We will use the <span class="math inline">\(\mathit{Gamma}(a,b)\)</span> density (see previous question) as a prior for <span class="math inline">\(\theta\)</span> because this is a conjugate prior to the Poisson distribution.</p>
 <ol style="list-style-type: lower-alpha">
 <li>First, visualize the prior, a Gamma density prior for <span class="math inline">\(\theta\)</span> based on the above information.</li>

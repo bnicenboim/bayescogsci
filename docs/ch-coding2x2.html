@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2024-09-20" />
+<meta name="date" content="2024-09-30" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1968,7 +1968,7 @@ We can also see from the  nested analysis that the difference in slopes between 
 <span id="cb591-3"><a href="ch-coding2x2.html#cb591-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">colMeans</span>()</span></code></pre></div>
 <pre><code>##   A1_B1   A1_B2   A2_B1   A2_B2 
 ## -1.4245  0.0102 -1.3929  1.3787</code></pre>
-<p>This shows that these values are not on the probability scale. Instead, they are on the  (log-odds) scale of the latent linear predictor <span class="math inline">\(\eta\)</span>. For presentation and interpretation of the results, it might be much more informative to look at the condition means in terms of the probabilities of success in each of the four conditions. Given that we have the linear predictions for each condition, this can be easily computed by sending all posterior samples for the linear predictions through the link function. Applying the  logistic function  (<code>plogis()</code> in R) transforms the linear predictors to the  probability scale:<a href="#fn33" class="footnote-ref" id="fnref33"><sup>33</sup></a></p>
+<p>This shows that these values are not on the probability scale. Instead, they are on the  (log-odds) scale of the latent linear predictor <span class="math inline">\(\eta\)</span>. For presentation and interpretation of the results, it might be much more informative to look at the condition means in terms of the probabilities of success in each of the four conditions. Given that we have the linear predictions for each condition, this can be easily computed by sending all posterior samples for the linear predictions through the link function. Applying the  logistic function  (<code>plogis()</code> in R) transforms the linear predictors to the  probability scale:<a href="#fn34" class="footnote-ref" id="fnref34"><sup>34</sup></a></p>
 <div class="sourceCode" id="cb593"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb593-1"><a href="ch-coding2x2.html#cb593-1" aria-hidden="true"></a>df_postSamp_pDV &lt;-<span class="st"> </span>df_postSamp_pDV <span class="op">%&gt;%</span></span>
 <span id="cb593-2"><a href="ch-coding2x2.html#cb593-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">p_A1_B1 =</span> <span class="kw">plogis</span>(A1_B1),</span>
 <span id="cb593-3"><a href="ch-coding2x2.html#cb593-3" aria-hidden="true"></a>         <span class="dt">p_A1_B2 =</span> <span class="kw">plogis</span>(A1_B2),</span>
@@ -2111,8 +2111,8 @@ FIGURE 9.5: Means and 95 percent posterior credible intervals for a simulated da
 </div>
 <div class="footnotes">
 <hr />
-<ol start="33">
-<li id="fn33"><p>The same (with lower precision) can be achieved using <code>1/(1+exp(-.))</code>.<a href="ch-coding2x2.html#fnref33" class="footnote-back">↩︎</a></p></li>
+<ol start="34">
+<li id="fn34"><p>The same (with lower precision) can be achieved using <code>1/(1+exp(-.))</code>.<a href="ch-coding2x2.html#fnref34" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
             </section>

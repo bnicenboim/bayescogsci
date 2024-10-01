@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2024-09-20" />
+<meta name="date" content="2024-09-30" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1507,7 +1507,7 @@ generated quantities{
 <div id="modeling-picture-naming-abilities-in-aphasia-with-mpt-models" class="section level2 hasAnchor" number="18.2">
 <h2><span class="header-section-number">18.2</span> Modeling picture naming abilities in aphasia with MPT models<a href="ch-MPT.html#modeling-picture-naming-abilities-in-aphasia-with-mpt-models" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p> Multinomial processing tree  (MPT) modeling is a method that estimates latent variables that have a psychological interpretation given categorical data <span class="citation">(a review is provided in Batchelder and Riefer <a href="#ref-BatchelderRiefer1999" role="doc-biblioref">1999</a>)</span>. In other words, an MPT model is just one way to model  categorical responses following a multinomial or categorical distribution. MPT models assume that the observed response categories result from a sequences of underlying cognitive events which are represented as a  binary branching tree. Each binary branching is associated with a parameter that represents the probability of going down either branch. Every successive node is assumed to be independent of the preceding node, allowing us to use the  product rule from probability theory to compute the probability of going down a particular path. The leaves of the binary branching tree are the observed response in the data. The goal is to derive posterior distributions of the  latent probability parameters specified for the binary branching in the model.</p>
-<p><span class="citation">Walker, Hickok, and Fridriksson (<a href="#ref-WalkerEtAl2018" role="doc-biblioref">2018</a>)</span> created an MPT model that specifies a set of possible internal errors that lead to the various possible response types during a  picture naming trial for  aphasic patients. Here we’ll explore a simplification of the original model.</p>
+<p><span class="citation">Walker, Hickok, and Fridriksson (<a href="#ref-WalkerEtAl2018" role="doc-biblioref">2018</a>)</span> created an MPT model that specifies a set of possible internal errors that lead to the various possible response types during a  picture naming trial for  persons with aphasia. Here we’ll explore a simplification of the original model.</p>
 <p>The model assumes that when an attempt is made to produce a word, errors in production can arise at the whole word level  (lexical level) or the segmental level  (phonological level).  Semantic errors are assumed to arise from the  lexical substitutions, and  neologism errors from  phonological substitutions.  Real word responses that are phonologically related to the correct target word can arise from substitutions at the lexical or phonological level.</p>
 <p>The task for the subject is to view a picture and name the object represented in the picture. When an attempt is made to retrieve the word from memory, the following possible steps can unfold (this is a simplified version of the original model):</p>
 <ul>
