@@ -22,7 +22,7 @@ Continuing with the concrete example mentioned above, consider an experiment whe
 
 An \index{Event} event is distinguished from an outcome as follows: an event is a subset of the set of outcomes. For example, in a particular experiment with a particular subject, the event corresponding to obtaining one correct answer when 10 questions are asked, is the subset of outcomes $\{ciiiiiiiii,iciiiiiiii,iiciiiiiii,\ldots\}$; in other words, the event corresponding to obtaining one correct answer is a set containing 10 elements. Similarly, the event corresponding to obtaining nine correct answers when 10 questions are asked is the subset of outcomes $\{ccccccccci,ccccccccic,\ldots \}$.
 When we conduct an experiment, if we get a particular outcome like ciiiiiiiii, then we say that the event  $\{ciiiiiiiii,iciiiiiiii,iiciiiiiii,\ldots\}$ occurred.
-To characterize all possible events mathematically, we can define a set $F$ that contains all possible subsets of the sample space. Notice that member of the set $F$ includes each of the possible outcomes as singleton sets (sets with one element): {ciciccicci}, etc. These can be called \index{Elementary events} elementary events.
+To characterize all possible events mathematically, we can define a set $F$ that contains all possible subsets of the sample space. Notice that member of the set $F$ includes each of the possible outcomes as singleton sets (sets with one element): $\{ciciccicci\}$, etc. These can be called \index{Elementary events} elementary events.
 
 The probability axioms are as follows. The axioms define a function P that takes as input an element of the set $F$ and returns a real value subject to the following constraints.
 
