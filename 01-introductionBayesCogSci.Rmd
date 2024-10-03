@@ -24,9 +24,9 @@ An \index{Event} event is distinguished from an outcome as follows: an event is 
 When we conduct an experiment, if we get a particular outcome like $ciiiiiiiii$, then we say that the event  $\{ciiiiiiiii,iciiiiiiii,iiciiiiiii,\ldots\}$ occurred.
 To characterize all possible events mathematically, we can define a set $F$ that contains all possible subsets of the sample space. Notice that member of the set $F$ includes each of the possible outcomes as singleton sets (sets with one element): $\{ciciccicci\}$, etc. These can be called \index{Elementary events} elementary events.
 
-The probability axioms are as follows. The axioms define a function P that takes as input an element of the set $F$ and returns a real value subject to the following constraints.
+The probability axioms are as follows. The axioms define a function $P$ that takes as input an element of the set $F$ and returns a real value subject to the following constraints.
 
-- For every element of $F$, the probability P is a real number greater than or equal to zero.
+- For every element of $F$, the probability $P$ is a real number greater than or equal to zero.
 - The probability that at least one of the elementary events occurs is 1.
 - If $A_1, A_2, A_3,...$ are mutually exclusive events (in other words, thesse events have no elements in common), then the probability of $A_1$, or $A_2$, or $A_3$,... occurring is the sum of the probability of $A_1$ occurring, of $A_2$ occurring, of $A_3$ occurring, ... (this sum could be finite or infinite).   
 
