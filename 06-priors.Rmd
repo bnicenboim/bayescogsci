@@ -794,7 +794,7 @@ force(set_plots())
 
 Meta-analysis has been used widely in clinical research [@cochrane; @sutton2012evidence; @dersimonian1986meta; @normand1999tutorial] but, at least at the time of writing this book, it has been used relatively rarely in  (psycho)linguistics. \index{Random-effects meta-analysis} Random-effects meta-analysis (discussed in a later chapter in detail) is an especially useful tool in cognitive science.
 
-Meta-analysis is not a magic bullet; this is because of publication bias---usually only (supposedly) newsworthy results are published, leading to a skewed picture of the effects. As a consequence, meta-analysis will probably lead to  biased estimates. Nevertheless, they can still tell us something about what we know so far from published studies, if only that the studies are too noisy to be interpretable. Despite this limitation, some prior information is better than no information. As long as one remains aware of the limitations of meta-analysis, one can still use them effectively to study one's research questions.
+Meta-analysis is not a magic bullet; this is because of publication bias---usually only (supposedly) newsworthy results are published, leading to a skewed picture of the effects. As a consequence, meta-analysis will probably always lead to biased estimates. Nevertheless, meta-analytic estimates can still tell us something about what we know so far from published studies, if only that the studies are too noisy to be interpretable. Thus, despite this limitation of meta-analytic estimates, some prior information is better than no information. As long as one remains aware of the limitations of meta-analysis, one can still use them effectively to study one's research questions.
 
 We begin with observed effects  $y_n$ (e.g., estimated difference between two conditions) and their estimated standard errors (SEs); the SEs serve as an indication of the precision of the estimate, with larger SEs implying a low-precision estimate. Once we have collected the observed estimates (e.g., from published studies), we can define an assumed underlying generative process whereby each study $n=1,\dots,N$ has an unknown true mean $\zeta_n$:
 
@@ -822,15 +822,15 @@ kableExtra::kable(df_chineseRCs %>%
   row.names = FALSE, align = c("l","l","r","r"),
   vline = "", #format="latex",
     linesep = "",
-  caption = "The difference between object and subject relative clause reading times (effect), along with their standard errors (SE), from different published reading studies on Chinese relative clauses."
+  caption = "The difference between object and subject relative clause reading times (effect), along with their standard errors (SE), from different published reading studies on Chinese relative clauses. The data from Gibson et al 2013 will be removed in the meta-analysis, as we will use the posterior from the meta-analysis as an informative prior for analyzing the data from that study."
 )
 ```
 
 Suppose that we want to do a new study investigating the difference between object and subject relative clauses, and suppose that in the sensitivity analysis, one of the priors we want is an empirically justifiable informative prior. Of course, the sensitivity analysis will also contain uninformative priors; we have seen examples of such priors in the previous chapters.
 
-We can derive an empirically justified prior by conducting a group-level effects meta-analysis. We postpone discussion of how exactly to fit such a model to chapter \@ref(ch-remame); here, we simply report the posterior distribution of the overall effect $\zeta$ based on the prior data, ignoring the details of model fitting.
+We can derive an empirically justified prior by conducting a group-level effects meta-analysis. We postpone discussion to chapter \@ref(ch-remame) of how exactly to fit such a model; here, we simply report the posterior distribution of the overall effect $\zeta$ based on the prior data, ignoring the details of model fitting.
 
-First, one study [@gibsonwu] is removed below, because the estimates from all the other studies will be used to derive a prior for that study.
+First, the data from one study [@gibsonwu] is removed below, because the estimates from all the other studies will be used to derive a prior for that study.
 
 ```{r chinesemetanalysis, echo=FALSE, message=FALSE, results="hide"}
 ## remove the study being investigated here:
@@ -873,10 +873,10 @@ bayesplot::mcmc_hist(as.data.frame(fit_chinese),
 
 The posterior distribution of $\zeta$ is shown in Figure \@ref(fig:chinesemetanalysisposterior). What we can derive from this posterior distribution of $\zeta$ is a normal approximation that represents what we know so far about Chinese relatives,  based on the available data. The key here is the word "available"; almost certainly there exist studies that were inconclusive and were therefore never published. The published record is always biased because of the nature of the publication game in science (only supposedly newsworthy results get published).
 
-The mean of the posterior is $`r round(zeta_mean)`$ ms, and the width of the 95% credible intervals is $`r round(zeta_upper)`-`r round(zeta_lower)`=`r round(zeta_upper)-round(zeta_lower)`$ ms. Since the 95% credible interval has a width that is approximately four times the standard deviation (assuming a normal distribution), we can work out the standard deviation by dividing the width by four: $`r (est_SE<-(round(zeta_upper)-round(zeta_lower))/4)`$.
+The mean of the posterior is $`r round(zeta_mean)`$ ms, and the width of the 95% credible intervals is $`r round(zeta_upper)`- (`r round(zeta_lower)`)=`r round(zeta_upper)-round(zeta_lower)`$ ms. Since the 95% credible interval has a width that is approximately four times the standard deviation (assuming a normal distribution), we can work out the standard deviation by dividing the width by four: $`r (est_SE<-(round(zeta_upper)-round(zeta_lower))/4)`$.
 Given these estimates, we could use a normal distribution with mean $`r round(zeta_mean)`$ and standard deviation $`r est_SE`$ as an informative prior in a sensitivity analysis.
 
-As an example, we will analyze a data set from @gibsonwu that was not part of the above meta-analysis; for the above meta-analysis, the estimate from the @gibsonwu study that was shown in  Table\ \@ref(tab:chinesemeans) has been  removed. The meta-analysis posterior will then be used as an informative prior. First, load the data and sum-code the predictor:
+As an example, we will analyze the data set from @gibsonwu that was not part of the above meta-analysis; recall that for the above meta-analysis, the estimate from the @gibsonwu study that was shown in  Table\ \@ref(tab:chinesemeans) has been  removed. The meta-analysis posterior will then be used as an informative prior. First, load the data and sum-code the predictor:
 
 ```{r}
 data("df_gibsonwu")
