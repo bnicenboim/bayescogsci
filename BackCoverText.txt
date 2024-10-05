@@ -4,9 +4,9 @@ psycholinguistics, psychology, computer science), with a particular focus on
 modeling data from planned experiments.  The book relies on the probabilistic
 programming language Stan and the front-end R package brms. The main text in the
 book only assumes that the reader is familiar with the statistical programming
-language R, and has basic high school exposure to pre-calculus mathematics; the
-important mathematical constructs needed for the book are introduced in the
-first chapter. The R Markdown source code for the book (including code) is
+language R, and has basic high school exposure to pre-calculus mathematics; some
+of the important mathematical constructs needed for the book are introduced in
+the first chapter. The R Markdown source code that generated the book is
 publicly available at https://bruno.nicenboim.me/bayescogsci/.
 
 Through this book, the reader will be able to develop a practical ability to
@@ -17,14 +17,15 @@ application of Bayes' rule for statistical inference is introduced with several
 simple analytical examples that require no computing software; the main insight
 here is that the posterior distribution of a parameter is a compromise between
 the prior and the likelihood functions. The book then gradually builds up the
-regression framework to hierarchical regression modeling (aka the linear mixed
-model). Along the way, there is detailed discussion about the topic of prior
-selection, and developing a well-defined workflow. Later chapters introduce the
-Stan programming language, and cover advanced topics using practical examples:
-contrast coding, model comparison using Bayes factors and cross-validation,
-hierarchical models and reparameterization, defining custom distributions,
-measurement error models and meta-analysis, multinomial processing trees, finite
-mixture models, and accumulator models.
+regression framework using the brms package in R, ultimately leading to
+hierarchical regression modeling (aka the linear mixed model). Along the way,
+there is detailed discussion about the topic of prior selection, and developing
+a well-defined workflow. Later chapters introduce the Stan programming language,
+and cover advanced topics using practical examples: contrast coding, model
+comparison using Bayes factors and cross-validation, hierarchical models and
+reparameterization, defining custom distributions, measurement error models and
+meta-analysis, multinomial processing trees, finite mixture models, and
+accumulator models.
 
 Bruno Nicenboim is an assistant professor in the department of Cognitive Science
 and Artificial Intelligence at Tilburg University in the Netherlands, working
