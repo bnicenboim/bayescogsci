@@ -540,7 +540,7 @@ In the second line of code above, we are computing the cumulative probability of
 
 ### Truncating a normal distribution
 
-In the above discussion, the support for the normal distribution ranges from minus infinity to plus infinity.  One can define PDFs with a more limited support; an example would be a normal distribution whose PDF $f(x)$ is such that the lower bound is truncated at $0$ to allow only positive values. In such a case, the area under the range minus infinity to zero ($\int_{-\infty}^0 f(x) \, dx$) will be $0$ because the range lies outside the support of the truncated normal distribution. Also,  if one truncates a probability density function like the standard normal ($\mathit{Normal}(0,1)$) at $0$, in order to make the area between zero and plus infinity sum up to $1$, we would have to multiply the truncated distribution f(x) by some factor $k$ such that the following integral sums to $1$:
+In the above discussion, the support for the normal distribution ranges from minus infinity to plus infinity.  One can define PDFs with a more limited support; an example would be a normal distribution whose PDF $f(x)$ is such that the lower bound is truncated at $0$ to allow only positive values. In such a case, the area under the range minus infinity to zero ($\int_{-\infty}^0 f(x) \, dx$) will be $0$ because the range lies outside the support of the truncated normal distribution. Also,  if one truncates the standard normal ($\mathit{Normal}(0,1)$) at $0$, in order to make the area between zero and plus infinity sum up to $1$, we would have to multiply it by $2$, because we just halved the area under the curve. More formally and more generally, we would have to multiply the truncated distribution $f(x)$ by some factor $k$ such that the following integral sums to $1$:
 
 \begin{equation}
 k \int_{0}^{\infty} f(x)\, dx = 1
@@ -554,6 +554,8 @@ pnorm(0, mean = 0, sd = 1, lower.tail = FALSE)
 ## alternatively:
 1 - pnorm(0, mean = 0, sd = 1, lower.tail = TRUE)
 ```
+
+The above calculation implies that $k$ is indeed $2$, as we informally argued ($k = \frac{1}{0.5}=2$).
 
 Also, if we had truncated the distribution at 0 to the right instead of the left (allowing only negative values), we would have to find the factor $k$ in the same way as above, except that we would have to find $k$ such that:
 
