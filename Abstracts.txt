@@ -187,4 +187,12 @@ such a model is also illustrated.
 
 Chapter 20: A simple accumulator model to account for choice response time
 
-This chapter introduces the log-normal race model, a type of sequential sampling model used to account for both response times and accuracy in decision-making tasks. We apply the model to a lexical decision task, using hierarchical modeling to analyze how word frequency affects performance. Posterior predictive checks, including quantile probability plots, are used to evaluate model fit. The chapter also discusses how to extend the model to account for contaminant responses--anticipation which are unrelated to the decision. Finally, we discuss the model's limitations, particularly its inability to capture fast errors, and we suggest ways to address these issues with more complex models.
+This chapter introduces the log-normal race model, a type of sequential sampling
+model used to account for both response times and accuracy in decision-making
+tasks. We apply the model to a lexical decision task, using hierarchical
+modeling to analyze how word frequency affects performance. Posterior predictive
+checks, including quantile probability plots, are used to evaluate model fit.
+The chapter also discusses how to extend the model to account for contaminant
+responses--anticipation which are unrelated to the decision. Finally, we discuss
+the model's limitations, particularly its inability to capture fast errors, and
+we suggest ways to address these issues with more complex models.
