@@ -24,8 +24,8 @@ a well-defined workflow. Later chapters introduce the Stan programming language,
 and cover advanced topics using practical examples: contrast coding, model
 comparison using Bayes factors and cross-validation, hierarchical models and
 reparameterization, defining custom distributions, measurement error models and
-meta-analysis, multinomial processing trees, finite mixture models, and
-accumulator models.
+meta-analysis, and finally, some examples of cognitive models: multinomial processing trees, 
+finite mixture models, and accumulator models.
 
 Bruno Nicenboim is an assistant professor in the department of Cognitive Science
 and Artificial Intelligence at Tilburg University in the Netherlands, working
