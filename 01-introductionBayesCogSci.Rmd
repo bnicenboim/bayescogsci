@@ -739,11 +739,13 @@ y1<-rep("",7)
 conddistrn<-rbind(y0,y1)
 colnames(conddistrn)<-paste("$x=",1:7,"$",sep="")
 rownames(conddistrn)<-c("$p_{X|Y(x|y=0)}$","$p_{X|Y(x|y=1)}$")
+fmt <- ifelse(knitr::is_html_output(), "html", "latex")
 
 kableExtra::kable(conddistrn,
                   digits = 3, booktabs = TRUE,
                   escape = FALSE,
-                  vline = "", # format="latex",
+                  vline = "",
+                  format= fmt,
   caption = "A table for listing conditional distributions of X given Y.")
 ```
 
