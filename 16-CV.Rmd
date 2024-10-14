@@ -625,7 +625,7 @@ loo_compare(loo_int, loo_null)
 As it happened with the cloze probability effect in the previous section, we cannot decide which model has better predictive accuracy according to PSIS-LOO.
 
 
-#### \index{K-fold-CV in Stan} K-fold-CV in Stan
+### \index{K-fold-CV in Stan} K-fold-CV in Stan
 
 To use K-fold-CV (or LOGO-CV) in Stan (as opposed to PSIS-LOO), we need to be careful to store the log-likelihood of the *held-out data*, since  we evaluate our model with only this subset of the data. The following example closely follows the vignette https://cran.r-project.org/web/packages/loo/vignettes/loo2-elpd.html.
 
