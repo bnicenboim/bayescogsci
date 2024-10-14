@@ -483,7 +483,7 @@ The `hypr` package can be used to create contrasts for Bayesian models, where th
 
 ## Other types of contrasts: illustration with a factor of four levels {#sec-4levelFactor}
 
-Here, we introduce repeated difference, Helmert, and polynomial contrasts. For these, it may be instructive to consider an experiment with one between-subject factor with four levels.
+Here, we introduce repeated difference, Helmert, and polynomial contrasts^[If one is trying to set a general prior for differences between means, then the function `bayestestR::contr.equalprior()` can be used, which sets equal marginal priors on all means and differences between them.]. For these, it may be instructive to consider an experiment with one between-subject factor with four levels.
 We load a corresponding data set, which contains simulated data about response times with a four-level between-subject factor.
 The sample sizes for each level and the means and standard errors are shown in Table \@ref(tab:cTab3Means), and the means and standard errors are also shown graphically in Figure \@ref(fig:helmertsimdatFig).
 
