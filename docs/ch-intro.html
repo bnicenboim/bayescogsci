@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2024-09-30" />
+<meta name="date" content="2024-10-14" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1073,7 +1073,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="8.7" data-path="ch-contr.html"><a href="ch-contr.html#further-reading-5"><i class="fa fa-check"></i><b>8.7</b> Further reading</a></li>
 <li class="chapter" data-level="8.8" data-path="ch-contr.html"><a href="ch-contr.html#sec-Contrastsexercises"><i class="fa fa-check"></i><b>8.8</b> Exercises</a></li>
 </ul></li>
-<li class="chapter" data-level="9" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html"><i class="fa fa-check"></i><b>9</b> Contrast coding for designs with two predictor variables</a>
+<li class="chapter" data-level="9" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html"><i class="fa fa-check"></i><b>9</b> Contrast coding with two predictor variables</a>
 <ul>
 <li class="chapter" data-level="9.1" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html#sec-MR-ANOVA"><i class="fa fa-check"></i><b>9.1</b> Contrast coding in a factorial  <span class="math inline">\(2 \times 2\)</span> design</a>
 <ul>
@@ -1198,6 +1198,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="16.6" data-path="ch-cv.html"><a href="ch-cv.html#cross-validation-in-stan"><i class="fa fa-check"></i><b>16.6</b> Cross-validation in Stan</a>
 <ul>
 <li class="chapter" data-level="16.6.1" data-path="ch-cv.html"><a href="ch-cv.html#psis-loo-cv-in-stan"><i class="fa fa-check"></i><b>16.6.1</b>  PSIS-LOO-CV in Stan</a></li>
+<li class="chapter" data-level="16.6.2" data-path="ch-cv.html"><a href="ch-cv.html#k-fold-cv-in-stan"><i class="fa fa-check"></i><b>16.6.2</b>  K-fold-CV in Stan</a></li>
 </ul></li>
 <li class="chapter" data-level="16.7" data-path="ch-cv.html"><a href="ch-cv.html#summary-13"><i class="fa fa-check"></i><b>16.7</b> Summary</a></li>
 <li class="chapter" data-level="16.8" data-path="ch-cv.html"><a href="ch-cv.html#further-reading-13"><i class="fa fa-check"></i><b>16.8</b> Further reading</a></li>
@@ -1290,30 +1291,37 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Informally, we all understand what the term  <em>probability</em> means. We routinely talk about things like the probability of it raining today. However, there are two distinct ways to think about probability. One can think of the probability of an something happening with reference to the  frequency with which it might occur in repeated observations. Such a conception of probability is easy to imagine in cases where something can, at least in principle, occur repeatedly.</p>
 <p>An example would be obtaining a 6 when tossing a die again and again. However, this frequentist view of probability is difficult to justify when talking about one-of-a-kind things, such as earthquakes; here, probability is expressing our uncertainty about the earthquake happening.</p>
 <p>Both the frequency-based and the uncertain-belief perspective have their place in statistical inference, and depending on the situation, we are going to rely on both ways of thinking.</p>
-<p>The probability of something happening is defined to be constrained in the way described below. A concrete example of “something happening” is obtaining nine correct answers when we ask a subject 10 yes-no questions (say, about the meaning of a sentence). The statements below are not formal definitions of the axioms of probability theory; for more details (and more precise formulations), see <span class="citation">Blitzstein and Hwang (<a href="#ref-blitzstein2014introduction" role="doc-biblioref">2014</a>)</span>, <span class="citation">Ross (<a href="#ref-RossProb" role="doc-biblioref">2002</a>)</span>, <span class="citation">Kerns (<a href="#ref-kerns2014introduction" role="doc-biblioref">2014</a>)</span>, <span class="citation">Resnick (<a href="#ref-resnick2019probability" role="doc-biblioref">2019</a>)</span>, or <span class="citation">Kolmogorov (<a href="#ref-kolmogorov2018foundations" role="doc-biblioref">1933</a>)</span> (among many other books).
+<p>The probability of something happening is defined to be constrained in the way described below. A concrete example of “something happening” is obtaining nine correct answers when we ask a subject <span class="math inline">\(10\)</span> yes-no questions (say, about the meaning of a sentence). The statements below are not formal definitions of the axioms of probability theory; for more details (and more precise formulations), see <span class="citation">Blitzstein and Hwang (<a href="#ref-blitzstein2014introduction" role="doc-biblioref">2014</a>)</span>, <span class="citation">Ross (<a href="#ref-RossProb" role="doc-biblioref">2002</a>)</span>, <span class="citation">Kerns (<a href="#ref-kerns2014introduction" role="doc-biblioref">2014</a>)</span>, <span class="citation">Resnick (<a href="#ref-resnick2019probability" role="doc-biblioref">2019</a>)</span>, or <span class="citation">Kolmogorov (<a href="#ref-kolmogorov2018foundations" role="doc-biblioref">1933</a>)</span> (among many other books).
 Keep in mind that different textbooks have slightly different ways of presenting the underlying structure of what constitutes a  probability space (defined below).<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a></p>
-<p>Four terms have to be introduced here before we introduce the probability axioms: an outcome <span class="math inline">\(\omega\)</span>, a sample space <span class="math inline">\(\Omega\)</span>, which is the set of all possible outcomes, an event <span class="math inline">\(E\)</span>, and a set <span class="math inline">\(F\)</span> that contains all possible subsets of the sample space <span class="math inline">\(\Omega\)</span>.</p>
-<p>Continuing with the concrete example mentioned above, consider an experiment where we ask subjects to respond to 10 questions that can either have a correct (c) or incorrect (i) answer. A possible  outcome is the following sequence of correct (represented as c) and incorrect (represented as i) answers: <span class="math inline">\(ciciccicci\)</span>. Another possible outcome is <span class="math inline">\(cciicicici\)</span>. The outcomes <span class="math inline">\(\omega\)</span> are thus all possible sequences of correct and incorrect answers, and the  sample space <span class="math inline">\(\Omega\)</span> is the set of all possible outcomes.</p>
-<p>An  event is distinguished from an outcome as follows: an event is a subset of the set of outcomes. For example, in a particular experiment with a particular subject, the event corresponding to obtaining one correct answer when 10 questions are asked, is the subset of outcomes {ciiiiiiiii,iciiiiiiii,iiciiiiiii,…}; in other words, the event corresponding to obtaining one correct answer is a set containing 10 elements. Similarly, the event corresponding to obtaining nine correct answers when 10 questions are asked is the subset of outcomes {ccccccccci,ccccccccic,…}.
-When we conduct an experiment, if we get a particular outcome like ciiiiiiiii, then we say that the event {ciiiiiiiii,iciiiiiiii,iiciiiiiii,…} occurred.
-To characterize all possible events mathematically, we can define a set <span class="math inline">\(F\)</span> that contains all possible subsets of the sample space. Notice that member of the set <span class="math inline">\(F\)</span> includes each of the possible outcomes as singleton sets (sets with one element): {ciciccicci}, etc. These can be called  elementary events.</p>
-<p>The probability axioms are as follows. The axioms define a function P that takes as input an element of the set <span class="math inline">\(F\)</span> and returns a real value subject to the following constraints.</p>
+<p>In the presentation that follows, we assume basic familiarity with set theory. For the reader unfamiliar with set theory, a quick refresher can be found in section 7.3 of <span class="citation">Gill (<a href="#ref-gill2006essential" role="doc-biblioref">2006</a>)</span>.</p>
+<p>The formal axioms of probability that will be presented below involve three ingredients: a set <span class="math inline">\(\Omega\)</span> known as the  <em>sample space</em>, a collection of subsets of <span class="math inline">\(\Omega\)</span> denoted by <span class="math inline">\(F\)</span> and called the  <em>event space</em>, and a real-valued function named <span class="math inline">\(P\)</span> that assigns a number to each set in the family <span class="math inline">\(F\)</span>. The elements of <span class="math inline">\(\Omega\)</span> are typically denoted <span class="math inline">\(\omega\)</span>; these are called  <em>outcomes</em>. Sets in the family <span class="math inline">\(F\)</span> are often denoted by <span class="math inline">\(E\)</span>, and called  <em>events</em>. The simplest events are the single-element sets of the form <span class="math inline">\(\{\omega\}\)</span> for different choices of <span class="math inline">\(\omega\)</span> in <span class="math inline">\(\Omega\)</span>; these are called the  <em>elementary events</em>.</p>
+<p>When the sample space <span class="math inline">\(\Omega\)</span> is finite, any subset of <span class="math inline">\(\Omega\)</span> can be an event; in this case, the event space <span class="math inline">\(F\)</span> is the collection of all possible subsets of <span class="math inline">\(\Omega\)</span>. In set theory, a set of all the subsets of another set is called a  power set, and the number of subsets of any set with <span class="math inline">\(n\)</span> elements is <span class="math inline">\(2^n\)</span>. For example, for a standard six-sided die, the sample space is the set <span class="math inline">\(\Omega=\{1,2,3,4,5,6\}\)</span> and the event space <span class="math inline">\(F\)</span> will contain <span class="math inline">\(2^6 = 64\)</span> sets: the empty set, six one-element sets, <span class="math inline">\(15\)</span> two-element sets, <span class="math inline">\(20\)</span> three-element sets, …, and one six-element set. Here are three assumptions we will always make about any event space:</p>
 <ul>
-<li>For every element of <span class="math inline">\(F\)</span>, the probability P is a real number greater than or equal to zero.</li>
-<li>The probability that at least one of the elementary events occurs is 1.</li>
-<li>If <span class="math inline">\(A_1, A_2, A_3,...\)</span> are mutually exclusive events (in other words, thesse events have no elements in common), then the probability of <span class="math inline">\(A_1\)</span>, or <span class="math inline">\(A_2\)</span>, or <span class="math inline">\(A_3\)</span>,… occurring is the sum of the probability of <span class="math inline">\(A_1\)</span> occurring, of <span class="math inline">\(A_2\)</span> occurring, of <span class="math inline">\(A_3\)</span> occurring, … (this sum could be finite or infinite).</li>
+<li>Both the empty set and universal set (<span class="math inline">\(\Omega\)</span>) belong to the event space <span class="math inline">\(F\)</span>.</li>
+<li>If <span class="math inline">\(E\)</span> is an event, then so is the complement of <span class="math inline">\(E\)</span>.</li>
+<li>For any list of events <span class="math inline">\(A_1, A_2,...\)</span> (finite or infinite), the phrase “<span class="math inline">\(A_1\)</span> or <span class="math inline">\(A_2\)</span> or …” describes another event.</li>
 </ul>
-<p>A  probability space is defined as <span class="math inline">\((\Omega, F, P)\)</span>.</p>
-<p>In the context of data analysis, we will talk about probability in the following way. Consider some data that we might have collected. This could be discrete 0,1 responses in a question-response accuracy task, or continuous measurements of reading times in milliseconds from an eyetracking study, or multi-category responses like “yes”, “no”, or “don’t know”, or electrical potentials on the microvolts scale. In any such case, we will say that the data are being generated from a  <em>random variable</em>, which we will designate with a capital letter such as <span class="math inline">\(Y\)</span>.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a></p>
-<p>The actually observed outcome (a 0,1 response; reading time, a response like “yes”, “no”, “don’t know”, etc.) will be distinguished from the random variable that generated it by using lower case <span class="math inline">\(y\)</span> for the observed outcome. We can call <span class="math inline">\(y\)</span> an instance of <span class="math inline">\(Y\)</span>; every new observed outcome can be different due to random variability.</p>
+<p>For our purposes here, it suffices to rely on the intuition gained by considering the case where <span class="math inline">\(\Omega\)</span> is a finite set.</p>
+<p>To make the above abstract concepts more concrete, consider again the situation where we conduct an experiment in which we ask subjects to respond to <span class="math inline">\(10\)</span> questions that can either have a correct (<span class="math inline">\(c\)</span>) or incorrect (<span class="math inline">\(i\)</span>) answer. A possible outcome is the following sequence of correct (represented as <span class="math inline">\(c\)</span>) and incorrect (represented as <span class="math inline">\(i\)</span>) answers: <span class="math inline">\(ciciccicci\)</span>. Another possible outcome is <span class="math inline">\(cciicicici\)</span>. The outcomes <span class="math inline">\(\omega\)</span> are thus all possible sequences of correct and incorrect answers, and the sample space <span class="math inline">\(\Omega\)</span> is the set of all possible outcomes. Consider events next; the event corresponding to obtaining one correct answer when <span class="math inline">\(10\)</span> questions are asked, is the subset of outcomes <span class="math inline">\(\{ciiiiiiiii,iciiiiiiii,iiciiiiiii,\ldots\}\)</span>; in other words, the event corresponding to obtaining one correct answer is a set containing <span class="math inline">\(10\)</span> elements. Similarly, the event corresponding to obtaining nine correct answers when <span class="math inline">\(10\)</span> questions are asked is the subset of outcomes <span class="math inline">\(\{ccccccccci,ccccccccic,\ldots \}\)</span>.
+When we conduct an experiment, if we get a particular outcome like <span class="math inline">\(ciiiiiiiii\)</span>, then we say that the event <span class="math inline">\(\{ciiiiiiiii,iciiiiiiii,iiciiiiiii,\ldots\}\)</span> occurred.</p>
+<p>The probability axioms refer to the sample space <span class="math inline">\(\Omega\)</span>, event space <span class="math inline">\(F\)</span>, and probability <span class="math inline">\(P\)</span> as follows:</p>
+<ul>
+<li>For every event <span class="math inline">\(E\)</span> in the event space <span class="math inline">\(F\)</span>, the probability <span class="math inline">\(P(E)\)</span> is a real number between <span class="math inline">\(0\)</span> and <span class="math inline">\(1\)</span>.</li>
+<li>The event <span class="math inline">\(E=\Omega\)</span> belongs to <span class="math inline">\(F\)</span>, and <span class="math inline">\(P(\Omega)=1\)</span>.</li>
+<li>If the events<span class="math inline">\(A_1, A_2, A_3,...\)</span> are mutually exclusive (in other words, if no two of these subsets of <span class="math inline">\(\Omega\)</span> overlap), then the probability of the event “one of <span class="math inline">\(A_1\)</span> or <span class="math inline">\(A_2\)</span> or <span class="math inline">\(A_3\)</span> or …” is given by the sum of the probability of <span class="math inline">\(A_1\)</span> occurring, of <span class="math inline">\(A_2\)</span> occurring, of <span class="math inline">\(A_3\)</span> occurring, … (this sum could be finite or infinite).</li>
+</ul>
+<p>Together, the triplet <span class="math inline">\((\Omega, F, P)\)</span> is called a  probability space.</p>
+<p>In the context of data analysis, we will talk about probability in the following way. Consider some data that we might have collected. This could be discrete <span class="math inline">\(0,1\)</span> responses in a question-response accuracy task, or continuous measurements of reading times in milliseconds from an eyetracking study, or multi-category responses like “yes”, “no”, or “don’t know”, or electrical potentials on the microvolts scale.</p>
+<p>In any such case, we will say that the data are being generated from a  <em>random variable</em>, which we will designate with a capital letter such as <span class="math inline">\(Y\)</span>.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a></p>
+<p>The actually observed outcome (a <span class="math inline">\(0,1\)</span> response; reading time, a response like “yes”, “no”, “don’t know”, etc.) will be distinguished from the random variable that generated it by using lower case <span class="math inline">\(y\)</span> for the observed outcome. We can call <span class="math inline">\(y\)</span> an instance of <span class="math inline">\(Y\)</span>; every new observed outcome can be different due to random variability.</p>
 <p>We can summarize the above informal concepts relating to random variables very compactly if we re-state them in mathematical form. A mathematical statement has the advantage not only of brevity but also of reducing (and hopefully eliminating) ambiguity.</p>
 <p>So, stating the definition of random variables formally <span class="citation">(following Blitzstein and Hwang <a href="#ref-blitzstein2014introduction" role="doc-biblioref">2014</a>)</span>, we define a random variable <span class="math inline">\(Y\)</span> as a function from a sample space <span class="math inline">\(\Omega\)</span> of possible  outcomes <span class="math inline">\(\omega\)</span> (which are also elementary events, members of the set <span class="math inline">\(F\)</span>) to the real number system:<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></p>
 <p><span class="math display">\[\begin{equation}
 Y : \Omega \rightarrow \mathbb{R}
 \end{equation}\]</span></p>
 <p>The random variable associates to each outcome <span class="math inline">\(\omega \in \Omega\)</span> exactly one number <span class="math inline">\(Y(\omega) = y\)</span>. The number <span class="math inline">\(y\)</span> represents all the possible values that the random variable generates; these values are taken to belong to the support of the random variable <span class="math inline">\(Y\)</span>: <span class="math inline">\(y \in S_Y\)</span>.</p>
-<p>For example, in our running example of asking 10 questions and obtaining a correct or incorrect response in each of the 10 trials, <span class="math inline">\(Y(ciiiiiiiii) = 1\)</span>, <span class="math inline">\(Y(cciiiiiiii) = 2\)</span>, etc. We will say that the number of correct responses from a subject is generated from a random variable <span class="math inline">\(Y\)</span>. Because in our running example only discrete responses are possible (the number of correct responses can be <span class="math inline">\(0, 1, 2, \ldots, 10\)</span>), this is an example of a <em>discrete random variable</em>.</p>
-<p>This random variable <span class="math inline">\(Y\)</span> will be assumed to have a parameter <span class="math inline">\(\theta\)</span> that represents the probability of producing a correct response (as discussed below, you will see that the random variable in question is the binomial random variable). Given some observed data that is assumed to come from a particular distribution, typically our goal is to obtain an estimate of the (unknown) value of the parameter associated with that distribution. More generally, if there is more than one parameter involved in the distribution, then our goal is to obtain an estimate of these parameters.</p>
+<p>In our running example of asking <span class="math inline">\(10\)</span> questions and obtaining a correct or incorrect response in each of the <span class="math inline">\(10\)</span> trials, <span class="math inline">\(Y(ciiiiiiiii) = 1\)</span>, <span class="math inline">\(Y(cciiiiiiii) = 2\)</span>, etc. We will say that the number of correct responses from a subject is generated from a random variable <span class="math inline">\(Y\)</span>. Because in our running example only discrete responses are possible (the number of correct responses can be <span class="math inline">\(0, 1, 2, \ldots, 10\)</span>), this is an example of a <em>discrete random variable</em>.</p>
+<p>This particular random variable <span class="math inline">\(Y\)</span> will be assumed to have a parameter <span class="math inline">\(\theta\)</span> that represents the probability of producing a correct response (as discussed below, you will see that the random variable in question is the binomial random variable). Given some observed data that is assumed to come from a particular distribution, typically our goal is to obtain an estimate of the (unknown) value of the parameter associated with that distribution. More generally, if there is more than one parameter involved in the distribution, then our goal is to obtain an estimate of these parameters.</p>
 <p>Now, suppose that in our above example, the random variable <span class="math inline">\(Y\)</span> gives us one correct answer; this can be (somewhat sloppily) be written as <span class="math inline">\(Y=1\)</span>. The outcomes that could produce <span class="math inline">\(1\)</span> are any of this set of ten possible outcomes: <span class="math inline">\(ciiiiiiiii\)</span>, <span class="math inline">\(iciiiiiiii\)</span>, <span class="math inline">\(iiciiiiiii\)</span>, <span class="math inline">\(iiiciiiiii\)</span>,….
 The set <span class="math inline">\(\{ciiiiiiiii,iciiiiiiii,iiciiiiiii,iiiciiiiii,...\}\)</span> is a subset of <span class="math inline">\(F\)</span>, so it is an event.
 The number <span class="math inline">\(y=1\)</span> thus represents this event, and will have a probability of occurring associated with it; this is defined next.</p>
@@ -1401,8 +1409,8 @@ FIGURE 1.2: Probability mass functions of a binomial distribution assuming 10 tr
 \end{equation}\]</span></p>
 <p>Here, <span class="math inline">\(n\)</span> represents the total number of <strong>trials</strong>,
 and corresponds to <code>size</code> in the <code>rbinom</code> function; the confusion that can arise here is that in the <code>rbinom</code> function <code>n</code> is used to represent the number of observations (or the number of experiments). It is important to remember that in the definition of the probability mass function above, <span class="math inline">\(n\)</span> represents the total number of trials in a single observation (or experiment).</p>
-<p>The variable <span class="math inline">\(k\)</span> the number of successes (this could range from 0 to 10), and <span class="math inline">\(\theta\)</span> the probability of success. The term <span class="math inline">\(\binom{n}{k}\)</span>, pronounced n-choose-k, represents the number of ways in which one can obtain <span class="math inline">\(k\)</span> successes in an experiment with <span class="math inline">\(n\)</span> trials. For example, <span class="math inline">\(1\)</span> success out of <span class="math inline">\(10\)</span> can occur in <span class="math inline">\(10\)</span> possible ways: the very first observation could be a <span class="math inline">\(1\)</span>, or the second observation could be a <span class="math inline">\(1\)</span>, etc.
-The term <span class="math inline">\(\binom{n}{k}\)</span> expands to <span class="math inline">\(\frac{n!}{k!(n-k)!}\)</span>. In R, it is computed using the function <code>choose(n,k)</code>, with <span class="math inline">\(n\)</span> and <span class="math inline">\(k\)</span> representing positive integer values.</p>
+<p>The variable <span class="math inline">\(k\)</span> the number of successes (this could range from <span class="math inline">\(0\)</span> to <span class="math inline">\(10\)</span> in our running example), and <span class="math inline">\(\theta\)</span> the probability of success. The term <span class="math inline">\(\binom{n}{k}\)</span>, pronounced n-choose-k, represents the number of ways in which one can obtain <span class="math inline">\(k\)</span> successes in an experiment with <span class="math inline">\(n\)</span> trials. For example, <span class="math inline">\(1\)</span> success out of <span class="math inline">\(10\)</span> can occur in <span class="math inline">\(10\)</span> possible ways: the very first observation could be a <span class="math inline">\(1\)</span>, or the second observation could be a <span class="math inline">\(1\)</span>, etc.
+The term <span class="math inline">\(\binom{n}{k}\)</span> expands to <span class="math inline">\(\frac{n!}{k!(n-k)!}\)</span>. In <code>R</code>, it is computed using the function <code>choose(n,k)</code>, with <span class="math inline">\(n\)</span> and <span class="math inline">\(k\)</span> representing any real number (although of course, the <code>choose()</code> function only makes sense for positive integers).</p>
 <p>When we want to express the fact that the data is assumed to be generated from a binomial random variable, we will write <span class="math inline">\(Y \sim \mathit{Binomial}(n,\theta)\)</span>. If the data is generated from a random variable that has some other probability distribution <span class="math inline">\(f(\theta)\)</span>, we will write <span class="math inline">\(Y\sim f(\theta)\)</span>. In this book, we use <span class="math inline">\(f(\cdot)\)</span> synonymously with <span class="math inline">\(p(\cdot)\)</span> to represent a probability density/mass function.</p>
 <div id="the-mean-and-variance-of-the-binomial-distribution" class="section level3 hasAnchor" number="1.4.1">
 <h3><span class="header-section-number">1.4.1</span> The mean and variance of the binomial distribution<a href="ch-intro.html#the-mean-and-variance-of-the-binomial-distribution" class="anchor-section" aria-label="Anchor link to header"></a></h3>
@@ -1598,7 +1606,7 @@ sd(y) = \sqrt{\frac{\sum_{i=1}^n (y_i-
 </div>
 <div id="truncating-a-normal-distribution" class="section level3 hasAnchor" number="1.5.2">
 <h3><span class="header-section-number">1.5.2</span> Truncating a normal distribution<a href="ch-intro.html#truncating-a-normal-distribution" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p>In the above discussion, the support for the normal distribution ranges from minus infinity to plus infinity. One can define PDFs with a more limited support; an example would be a normal distribution whose PDF <span class="math inline">\(f(x)\)</span> is such that the lower bound is truncated at <span class="math inline">\(0\)</span> to allow only positive values. In such a case, the area under the range minus infinity to zero (<span class="math inline">\(\int_{-\infty}^0 f(x) \, dx\)</span>) will be <span class="math inline">\(0\)</span> because the range lies outside the support of the truncated normal distribution. Also, if one truncates a probability density function like the standard normal (<span class="math inline">\(\mathit{Normal}(0,1)\)</span>) at <span class="math inline">\(0\)</span>, in order to make the area between zero and plus infinity sum up to <span class="math inline">\(1\)</span>, we would have to multiply the truncated distribution f(x) by some factor <span class="math inline">\(k\)</span> such that the following integral sums to <span class="math inline">\(1\)</span>:</p>
+<p>In the above discussion, the support for the normal distribution ranges from minus infinity to plus infinity. One can define PDFs with a more limited support; an example would be a normal distribution whose PDF <span class="math inline">\(f(x)\)</span> is such that the lower bound is truncated at <span class="math inline">\(0\)</span> to allow only positive values. In such a case, the area under the range minus infinity to zero (<span class="math inline">\(\int_{-\infty}^0 f(x) \, dx\)</span>) will be <span class="math inline">\(0\)</span> because the range lies outside the support of the truncated normal distribution. Also, if one truncates the standard normal (<span class="math inline">\(\mathit{Normal}(0,1)\)</span>) at <span class="math inline">\(0\)</span>, in order to make the area between zero and plus infinity sum up to <span class="math inline">\(1\)</span>, we would have to multiply it by <span class="math inline">\(2\)</span>, because we just halved the area under the curve. More formally and more generally, we would have to multiply the truncated distribution <span class="math inline">\(f(x)\)</span> by some factor <span class="math inline">\(k\)</span> such that the following integral sums to <span class="math inline">\(1\)</span>:</p>
 <p><span class="math display" id="eq:factork">\[\begin{equation}
 k \int_{0}^{\infty} f(x)\, dx = 1
 \tag{1.1}
@@ -1609,6 +1617,7 @@ k \int_{0}^{\infty} f(x)\, dx = 1
 <div class="sourceCode" id="cb51"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb51-1"><a href="ch-intro.html#cb51-1" aria-hidden="true"></a><span class="co">## alternatively:</span></span>
 <span id="cb51-2"><a href="ch-intro.html#cb51-2" aria-hidden="true"></a><span class="dv">1</span> <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(<span class="dv">0</span>, <span class="dt">mean =</span> <span class="dv">0</span>, <span class="dt">sd =</span> <span class="dv">1</span>, <span class="dt">lower.tail =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
 <pre><code>## [1] 0.5</code></pre>
+<p>The above calculation implies that <span class="math inline">\(k\)</span> is indeed <span class="math inline">\(2\)</span>, as we informally argued (<span class="math inline">\(k = \frac{1}{0.5}=2\)</span>).</p>
 <p>Also, if we had truncated the distribution at 0 to the right instead of the left (allowing only negative values), we would have to find the factor <span class="math inline">\(k\)</span> in the same way as above, except that we would have to find <span class="math inline">\(k\)</span> such that:</p>
 <p><span class="math display">\[\begin{equation}
 k \int_{-\infty}^{0} f(x)\, dx = 1
@@ -1781,39 +1790,75 @@ p_{X\mid Y} (1\mid 0) =&amp; \frac{p_{X,Y}(1,0)}{p_Y(0)}\\
 \end{equation}\]</span></p>
 <p>This conditional probability value will occupy the cell <span class="math inline">\(X=1\)</span>, <span class="math inline">\(Y=0\)</span> in Table <a href="ch-intro.html#tab:discbivariatetabularconditional">1.3</a> summarizing the conditional probability distribution <span class="math inline">\(p_{X|Y}\)</span>. In this way, one can fill in the entire table, which will then represent the conditional distributions <span class="math inline">\(p_{X|Y=0}\)</span> and <span class="math inline">\(p_{X|Y=1}\)</span>. The reader may want to take a few minutes to complete Table <a href="ch-intro.html#tab:discbivariatetabularconditional">1.3</a>. After the conditional probabilities have been computed, the rows should sum up to <span class="math inline">\(1\)</span>.</p>
 <table>
-<caption><span id="tab:discbivariatetabularconditional">TABLE 1.3: </span>A table for listing conditional distributions of X given Y.</caption>
+<caption>
+<span id="tab:discbivariatetabularconditional">TABLE 1.3: </span>A table for listing conditional distributions of X given Y.
+</caption>
 <thead>
-<tr class="header">
-<th align="left"></th>
-<th align="left"><span class="math inline">\(x=1\)</span></th>
-<th align="left"><span class="math inline">\(x=2\)</span></th>
-<th align="left"><span class="math inline">\(x=3\)</span></th>
-<th align="left"><span class="math inline">\(x=4\)</span></th>
-<th align="left"><span class="math inline">\(x=5\)</span></th>
-<th align="left"><span class="math inline">\(x=6\)</span></th>
-<th align="left"><span class="math inline">\(x=7\)</span></th>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+<span class="math inline">\(x=1\)</span>
+</th>
+<th style="text-align:left;">
+<span class="math inline">\(x=2\)</span>
+</th>
+<th style="text-align:left;">
+<span class="math inline">\(x=3\)</span>
+</th>
+<th style="text-align:left;">
+<span class="math inline">\(x=4\)</span>
+</th>
+<th style="text-align:left;">
+<span class="math inline">\(x=5\)</span>
+</th>
+<th style="text-align:left;">
+<span class="math inline">\(x=6\)</span>
+</th>
+<th style="text-align:left;">
+<span class="math inline">\(x=7\)</span>
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left"><span class="math inline">\(p_{X&amp;#124;Y(x&amp;#124;y=0)}\)</span></td>
-<td align="left"><span class="math inline">\(0.062\)</span></td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left"></td>
+<tr>
+<td style="text-align:left;">
+<span class="math inline">\(p_{X|Y(x|y=0)}\)</span>
+</td>
+<td style="text-align:left;">
+<span class="math inline">\(0.062\)</span>
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
 </tr>
-<tr class="even">
-<td align="left"><span class="math inline">\(p_{X&amp;#124;Y(x&amp;#124;y=1)}\)</span></td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left"></td>
+<tr>
+<td style="text-align:left;">
+<span class="math inline">\(p_{X|Y(x|y=1)}\)</span>
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
 </tr>
 </tbody>
 </table>
@@ -2203,7 +2248,7 @@ Compute the lower and upper boundaries such that:</p>
 <div class="footnotes">
 <hr />
 <ol start="1">
-<li id="fn1"><p>Our presentation is loosely based on lecture notes from the MSc Statistics program in Sheffield, UK.<a href="ch-intro.html#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn1"><p>Thanks go to Philip Loewen for his detailed suggestions on improving the presentation without descending too much into formalism. Any errors that remain are of course due to the authors.<a href="ch-intro.html#fnref1" class="footnote-back">↩︎</a></p></li>
 <li id="fn2"><p>Here, we use <span class="math inline">\(Y\)</span>, but we could have used any letter, such as <span class="math inline">\(X, Z,...\)</span>. Later on, in some situations we will use Greek letters like <span class="math inline">\(\theta, \mu, \sigma\)</span> to represent a random variable.<a href="ch-intro.html#fnref2" class="footnote-back">↩︎</a></p></li>
 <li id="fn3"><p>The actual formal definition of random variable is more complex, and it is based on measure theory. A more rigorous definition can be found in, for example, <span class="citation">Steyer and Nagel (<a href="#ref-steyer2017probability" role="doc-biblioref">2017</a>)</span> and <span class="citation">Resnick (<a href="#ref-resnick2019probability" role="doc-biblioref">2019</a>)</span>.<a href="ch-intro.html#fnref3" class="footnote-back">↩︎</a></p></li>
 <li id="fn4"><p>A notational aside: In frequentist treatments, the PMF would usually be written <span class="math inline">\(p(y;\theta)\)</span>, i.e., with a semi-colon rather than the conditional distribution marked by the vertical bar. The semi-colon is intended to indicate that in the frequentist paradigm, the parameters are fixed point values; by contrast, in the Bayesian paradigm, parameters are random variables. This has the consequence that for the Bayesian, the distribution of <span class="math inline">\(y\)</span>, <span class="math inline">\(p(y)\)</span> is really a conditional distribution, conditional on a random variable, here <span class="math inline">\(\theta\)</span>. For the frequentist, <span class="math inline">\(p(y)\)</span> requires some point value for <span class="math inline">\(\theta\)</span>, but it cannot be a conditional distribution because <span class="math inline">\(\theta\)</span> is not a random variable. We define conditional distributions later in this section.<a href="ch-intro.html#fnref4" class="footnote-back">↩︎</a></p></li>

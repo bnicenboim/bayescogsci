@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2024-09-30" />
+<meta name="date" content="2024-10-14" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1073,7 +1073,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="8.7" data-path="ch-contr.html"><a href="ch-contr.html#further-reading-5"><i class="fa fa-check"></i><b>8.7</b> Further reading</a></li>
 <li class="chapter" data-level="8.8" data-path="ch-contr.html"><a href="ch-contr.html#sec-Contrastsexercises"><i class="fa fa-check"></i><b>8.8</b> Exercises</a></li>
 </ul></li>
-<li class="chapter" data-level="9" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html"><i class="fa fa-check"></i><b>9</b> Contrast coding for designs with two predictor variables</a>
+<li class="chapter" data-level="9" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html"><i class="fa fa-check"></i><b>9</b> Contrast coding with two predictor variables</a>
 <ul>
 <li class="chapter" data-level="9.1" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html#sec-MR-ANOVA"><i class="fa fa-check"></i><b>9.1</b> Contrast coding in a factorial  <span class="math inline">\(2 \times 2\)</span> design</a>
 <ul>
@@ -1198,6 +1198,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="16.6" data-path="ch-cv.html"><a href="ch-cv.html#cross-validation-in-stan"><i class="fa fa-check"></i><b>16.6</b> Cross-validation in Stan</a>
 <ul>
 <li class="chapter" data-level="16.6.1" data-path="ch-cv.html"><a href="ch-cv.html#psis-loo-cv-in-stan"><i class="fa fa-check"></i><b>16.6.1</b>  PSIS-LOO-CV in Stan</a></li>
+<li class="chapter" data-level="16.6.2" data-path="ch-cv.html"><a href="ch-cv.html#k-fold-cv-in-stan"><i class="fa fa-check"></i><b>16.6.2</b>  K-fold-CV in Stan</a></li>
 </ul></li>
 <li class="chapter" data-level="16.7" data-path="ch-cv.html"><a href="ch-cv.html#summary-13"><i class="fa fa-check"></i><b>16.7</b> Summary</a></li>
 <li class="chapter" data-level="16.8" data-path="ch-cv.html"><a href="ch-cv.html#further-reading-13"><i class="fa fa-check"></i><b>16.8</b> Further reading</a></li>
@@ -1705,7 +1706,7 @@ To do so, we use some labels to indicate factor levels. E.g., <code>adjectives</
 </div>
 <div id="sec-4levelFactor" class="section level2 hasAnchor" number="8.3">
 <h2><span class="header-section-number">8.3</span> Other types of contrasts: illustration with a factor of four levels<a href="ch-contr.html#sec-4levelFactor" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>Here, we introduce repeated difference, Helmert, and polynomial contrasts. For these, it may be instructive to consider an experiment with one between-subject factor with four levels.
+<p>Here, we introduce repeated difference, Helmert, and polynomial contrasts.<a href="#fn34" class="footnote-ref" id="fnref34"><sup>34</sup></a> For these, it may be instructive to consider an experiment with one between-subject factor with four levels.
 We load a corresponding data set, which contains simulated data about response times with a four-level between-subject factor.
 The sample sizes for each level and the means and standard errors are shown in Table <a href="ch-contr.html#tab:cTab3Means">8.3</a>, and the means and standard errors are also shown graphically in Figure <a href="ch-contr.html#fig:helmertsimdatFig">8.2</a>.</p>
 <div class="sourceCode" id="cb405"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb405-1"><a href="ch-contr.html#cb405-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_contrasts3&quot;</span>)</span></code></pre></div>
@@ -2538,6 +2539,7 @@ difference between the two grammatical conditions? Here, the comparison is betwe
 <ol start="32">
 <li id="fn32"><p>When using treatment coding, it’s important to be aware that the intercept won’t be centered. As mentioned in Box <a href="ch-reg.html#thm:intercept">4.2</a>, this means the prior one sets for the intercept in <code>brms</code> will actually be for assigned to its centered version. Although this distinction may not have any impact when one uses wide priors, it’s still worth keeping it in mind.<a href="ch-contr.html#fnref32" class="footnote-back">↩︎</a></p></li>
 <li id="fn33"><p>At this point, there is no need to understand in detail what this means. We refer the interested reader to <span class="citation">Schad et al. (<a href="#ref-schadHowCapitalizePriori2020" role="doc-biblioref">2020</a>)</span>. For a quick overview, we recommend a vignette explaining the generalized inverse in the <code>matlib</code> package <span class="citation">(<a href="https://cran.r-project.org/web/packages/matlib/vignettes/ginv.html" class="uri" role="doc-biblioref">https://cran.r-project.org/web/packages/matlib/vignettes/ginv.html</a>; Friendly, Fox, and Chalmers <a href="#ref-friendly_matlib" role="doc-biblioref">2020</a>)</span>.<a href="ch-contr.html#fnref33" class="footnote-back">↩︎</a></p></li>
+<li id="fn34"><p>If one is trying to set a general prior for differences between means, then the function <code>bayestestR::contr.equalprior()</code> can be used, which sets equal marginal priors on all means and differences between them.<a href="ch-contr.html#fnref34" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
             </section>

@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2024-09-30" />
+<meta name="date" content="2024-10-14" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1073,7 +1073,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="8.7" data-path="ch-contr.html"><a href="ch-contr.html#further-reading-5"><i class="fa fa-check"></i><b>8.7</b> Further reading</a></li>
 <li class="chapter" data-level="8.8" data-path="ch-contr.html"><a href="ch-contr.html#sec-Contrastsexercises"><i class="fa fa-check"></i><b>8.8</b> Exercises</a></li>
 </ul></li>
-<li class="chapter" data-level="9" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html"><i class="fa fa-check"></i><b>9</b> Contrast coding for designs with two predictor variables</a>
+<li class="chapter" data-level="9" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html"><i class="fa fa-check"></i><b>9</b> Contrast coding with two predictor variables</a>
 <ul>
 <li class="chapter" data-level="9.1" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html#sec-MR-ANOVA"><i class="fa fa-check"></i><b>9.1</b> Contrast coding in a factorial  <span class="math inline">\(2 \times 2\)</span> design</a>
 <ul>
@@ -1198,6 +1198,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="16.6" data-path="ch-cv.html"><a href="ch-cv.html#cross-validation-in-stan"><i class="fa fa-check"></i><b>16.6</b> Cross-validation in Stan</a>
 <ul>
 <li class="chapter" data-level="16.6.1" data-path="ch-cv.html"><a href="ch-cv.html#psis-loo-cv-in-stan"><i class="fa fa-check"></i><b>16.6.1</b>  PSIS-LOO-CV in Stan</a></li>
+<li class="chapter" data-level="16.6.2" data-path="ch-cv.html"><a href="ch-cv.html#k-fold-cv-in-stan"><i class="fa fa-check"></i><b>16.6.2</b>  K-fold-CV in Stan</a></li>
 </ul></li>
 <li class="chapter" data-level="16.7" data-path="ch-cv.html"><a href="ch-cv.html#summary-13"><i class="fa fa-check"></i><b>16.7</b> Summary</a></li>
 <li class="chapter" data-level="16.8" data-path="ch-cv.html"><a href="ch-cv.html#further-reading-13"><i class="fa fa-check"></i><b>16.8</b> Further reading</a></li>
@@ -1452,7 +1453,7 @@ p(\theta|n=100,k=80) = \frac{1}{B(84,24)} \theta^{84-1} (1-\theta)^{24-1}
 </div>
 <div id="summary-of-the-procedure" class="section level3 hasAnchor" number="2.2.4">
 <h3><span class="header-section-number">2.2.4</span> Summary of the procedure<a href="ch-introBDA.html#summary-of-the-procedure" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p>To summarize, we started with data (<span class="math inline">\(n=100, k=80\)</span>) and a binomial likelihood, multiplied it with the prior <span class="math inline">\(\theta \sim \mathit{Beta}(4,4)\)</span>, and obtained the posterior <span class="math inline">\(p(\theta|n,k) \sim \mathit{Beta}(84,24)\)</span>. The constants were ignored when carrying out the multiplication; we say that we computed the posterior <em>up to proportionality</em>. Finally, we showed how, in this simple example, the posterior can be rescaled to become a probability distribution, by including a proportionality constant.</p>
+<p>To summarize, we started with data (<span class="math inline">\(n=100, k=80\)</span>) and a binomial likelihood, multiplied it with the prior probability density function <span class="math inline">\(\theta \sim \mathit{Beta}(4,4)\)</span>, and obtained the posterior <span class="math inline">\(p(\theta|n,k) \sim \mathit{Beta}(84,24)\)</span>. The constants were ignored when carrying out the multiplication; we say that we computed the posterior <em>up to proportionality</em>. Finally, we showed how, in this simple example, the posterior can be rescaled to become a probability distribution, by including a proportionality constant.</p>
 <p>The above example is a case of a  <em>conjugate</em> analysis: the posterior on the parameter has the same form (belongs to the same family of probability distributions) as the prior. The above combination of likelihood and prior is called the  beta-binomial conjugate case. There are several other such combinations of Likelihoods and Priors that yield a posterior that has a PDF that belongs to the same family as the PDF on the prior; some examples will appear in the exercises.</p>
 <p>Formally, conjugacy is defined as follows: Given the likelihood <span class="math inline">\(p(y| \theta)\)</span>, if the prior <span class="math inline">\(p(\theta)\)</span> results in a posterior <span class="math inline">\(p(\theta|y)\)</span> that has the same form as <span class="math inline">\(p(\theta)\)</span>, then we call <span class="math inline">\(p(\theta)\)</span> a  conjugate prior.</p>
 <p>For the beta-binomial conjugate case, we can derive a very general relationship between the likelihood, prior, and posterior. Given the binomial likelihood up to proportionality (ignoring the constant) <span class="math inline">\(\theta^k (1-\theta)^{n-k}\)</span>, and given the prior, also up to proportionality, <span class="math inline">\(\theta^{a-1} (1-\theta)^{b-1}\)</span>, their product will be:</p>
@@ -1620,9 +1621,9 @@ f(x\mid \theta) = \frac{\exp(-\theta) \theta^x}{x!} \hbox{ for } x=0,1,2,\dots
 <ul>
 <li>Practical application</li>
 </ul>
-<p>Suppose we know that the number of “I” utterances from a particular individual is <span class="math inline">\(115, 97, 79, 131\)</span>. Use the result you derived above to obtain the posterior distribution. In other words, write down the parameters of the Gamma distribution (call them <span class="math inline">\(a*,b*\)</span>) representing the posterior distribution of <span class="math inline">\(\theta\)</span>.</p>
+<p>Suppose we know that the number of “I” utterances from a particular individual is <span class="math inline">\(115, 97, 79, 131\)</span>. Use the result you derived above to obtain the posterior distribution. In other words, write down the parameters of the Gamma distribution (call them <span class="math inline">\(a^*,b^*\)</span>) representing the posterior distribution of <span class="math inline">\(\theta\)</span>.</p>
 <p>Plot the prior and the posterior distributions alongside each other.</p>
-<p>Now suppose you get one new data point: 200. Using the posterior <span class="math inline">\(\mathit{Gamma}(a*,b*)\)</span> as your prior, write down the updated posterior (in terms of the updated parameters of the Gamma distribution) given this new data point. Add the updated posterior to the plot you made above.</p>
+<p>Now suppose you get one new data point: 200. Using the posterior <span class="math inline">\(\mathit{Gamma}(a^*,b^*)\)</span> as your prior, write down the updated posterior (in terms of the updated parameters of the Gamma distribution) given this new data point. Add the updated posterior to the plot you made above.</p>
 <div class="exercise">
 <p><span id="exr:BDAexercisesWeightedMean" class="exercise"><strong>Exercise 2.6  </strong></span>The posterior mean is a weighted mean of the prior mean and the MLE (Poisson-Gamma conjugate case)</p>
 </div>
@@ -1630,18 +1631,17 @@ f(x\mid \theta) = \frac{\exp(-\theta) \theta^x}{x!} \hbox{ for } x=0,1,2,\dots
 <p><span class="math display">\[\begin{equation}
 f(x\mid \theta) = \frac{\exp(-\theta) \theta^x}{x!}
 \end{equation}\]</span></p>
-<p>Suppose that we define a Gamma(a,b) prior for the rate parameter <span class="math inline">\(\theta\)</span>. It is a fact (see exercises above) that the posterior of the <span class="math inline">\(\theta\)</span> parameter is a <span class="math inline">\(Gamma(a*,b*)\)</span> distribution, where <span class="math inline">\(a*\)</span> and <span class="math inline">\(b*\)</span> are the updated parameters given the data: <span class="math inline">\(\theta \sim Gamma(a*,b*)\)</span>.</p>
+<p>Suppose that we define a Gamma(a,b) prior for the rate parameter <span class="math inline">\(\theta\)</span>. It is a fact (see exercises above) that the posterior of the <span class="math inline">\(\theta\)</span> parameter is a <span class="math inline">\(Gamma(a^*,b^*)\)</span> distribution, where <span class="math inline">\(a^*\)</span> and <span class="math inline">\(b^*\)</span> are the updated parameters given the data: <span class="math inline">\(\theta \sim Gamma(a^*,b^*)\)</span>.</p>
 <ul>
-<li>Prove that the posterior mean is a weighted mean of the prior mean and the maximum likelihood estimate (mean) of the Poisson-distributed data, <span class="math inline">\(\bar{x} = \sum_{i=1}^n x/n\)</span>. Hint: the mean of a Gamma distribution is <span class="math inline">\(\frac{a}{b}\)</span>.</li>
+<li>Prove that the posterior mean is a weighted mean of the prior mean and the maximum likelihood estimate (mean) of the Poisson-distributed data, <span class="math inline">\(\bar{x} = \sum_{i=1}^n x/n\)</span>. Hint: the mean of a Gamma distribution is <span class="math inline">\(\frac{a}{b}\)</span>. Specifically, what you have to prove is that:</li>
 </ul>
-<p>Specifically, what you have to prove is that:</p>
 <p><span class="math display" id="eq:weightingpoisga">\[\begin{equation}
-\frac{a*}{b*} = \frac{a}{b} \times \frac{w_1}{w_1 + w_2} + \bar{x} \times \frac{w_2}{w_1 + w_2}
+\frac{a^*}{b^*} = \frac{a}{b} \times \frac{w_1}{w_1 + w_2} + \bar{x} \times \frac{w_2}{w_1 + w_2}
 \tag{2.12}
 \end{equation}\]</span></p>
 <p>where <span class="math inline">\(w_1 = 1\)</span> and <span class="math inline">\(w_2=\frac{n}{b}\)</span>.</p>
 <ul>
-<li><p>Given equation <a href="ch-introBDA.html#eq:weightingpoisga">(2.12)</a>, show that as <span class="math inline">\(n\)</span> increases (as sample size goes up), the maximum likelihood estimate <span class="math inline">\(\bar{x}\)</span> dominates in determining the posterior mean, and when <span class="math inline">\(n\)</span> gets smaller and smaller, the prior mean dominates in determining the posterior mean.</p></li>
+<li><p>Given equation <a href="ch-introBDA.html#eq:weightingpoisga">(2.12)</a>, make an informal argument showing that as <span class="math inline">\(n\)</span> increases (as sample size goes up), the maximum likelihood estimate <span class="math inline">\(\bar{x}\)</span> dominates in determining the posterior mean, and when <span class="math inline">\(n\)</span> gets smaller and smaller, the prior mean dominates in determining the posterior mean.</p></li>
 <li><p>Finally, given that the variance of a Gamma distribution is <span class="math inline">\(\frac{a}{b^2}\)</span>, show that as <span class="math inline">\(n\)</span> increases, the posterior variance will get smaller and smaller (the uncertainty on the posterior will go down).</p></li>
 </ul>
 
