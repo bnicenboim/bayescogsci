@@ -876,7 +876,7 @@ The posterior distribution of $\zeta$ is shown in Figure \@ref(fig:chinesemetana
 The mean of the posterior is $`r round(zeta_mean)`$ ms, and the width of the 95% credible intervals is $`r round(zeta_upper)`- (`r round(zeta_lower)`)=`r round(zeta_upper)-round(zeta_lower)`$ ms. Since the 95% credible interval has a width that is approximately four times the standard deviation (assuming a normal distribution), we can work out the standard deviation by dividing the width by four: $`r (est_SE<-(round(zeta_upper)-round(zeta_lower))/4)`$.
 Given these estimates, we could use a normal distribution with mean $`r round(zeta_mean)`$ and standard deviation $`r est_SE`$ as an informative prior in a sensitivity analysis.
 
-As an example, we will analyze the data set from @gibsonwu that was not part of the above meta-analysis; recall that for the above meta-analysis, the estimate from the @gibsonwu study that was shown in  Table\ \@ref(tab:chinesemeans) has been  removed. The meta-analysis posterior will then be used as an informative prior. First, load the data and sum-code the predictor:
+As an example, we will analyze the data set from @gibsonwu that was not part of the above meta-analysis; recall that, for the above meta-analysis, the estimate from the @gibsonwu study that was shown in  Table\ \@ref(tab:chinesemeans) has been  removed. The meta-analysis posterior will then be used as an informative prior. First, load the data and sum-code the predictor:
 
 ```{r}
 data("df_gibsonwu")

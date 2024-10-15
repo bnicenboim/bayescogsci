@@ -4,18 +4,18 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Chapter 9 Contrast coding for designs with two predictor variables | An Introduction to Bayesian Data Analysis for Cognitive Science</title>
+  <title>Chapter 9 Contrast coding with two predictor variables | An Introduction to Bayesian Data Analysis for Cognitive Science</title>
   <meta name="description" content="An introduction to Bayesian data analysis for Cognitive Science." />
   <meta name="generator" content="bookdown 0.39 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Chapter 9 Contrast coding for designs with two predictor variables | An Introduction to Bayesian Data Analysis for Cognitive Science" />
+  <meta property="og:title" content="Chapter 9 Contrast coding with two predictor variables | An Introduction to Bayesian Data Analysis for Cognitive Science" />
   <meta property="og:type" content="book" />
   <meta property="og:image" content="https://bruno.nicenboim.me/bayescogsci/images/temporarycover.jpg" />
   <meta property="og:description" content="An introduction to Bayesian data analysis for Cognitive Science." />
   <meta name="github-repo" content="https://github.com/bnicenboim/bayescogsci" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Chapter 9 Contrast coding for designs with two predictor variables | An Introduction to Bayesian Data Analysis for Cognitive Science" />
+  <meta name="twitter:title" content="Chapter 9 Contrast coding with two predictor variables | An Introduction to Bayesian Data Analysis for Cognitive Science" />
   
   <meta name="twitter:description" content="An introduction to Bayesian data analysis for Cognitive Science." />
   <meta name="twitter:image" content="https://bruno.nicenboim.me/bayescogsci/images/temporarycover.jpg" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2024-09-30" />
+<meta name="date" content="2024-10-14" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1073,7 +1073,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="8.7" data-path="ch-contr.html"><a href="ch-contr.html#further-reading-5"><i class="fa fa-check"></i><b>8.7</b> Further reading</a></li>
 <li class="chapter" data-level="8.8" data-path="ch-contr.html"><a href="ch-contr.html#sec-Contrastsexercises"><i class="fa fa-check"></i><b>8.8</b> Exercises</a></li>
 </ul></li>
-<li class="chapter" data-level="9" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html"><i class="fa fa-check"></i><b>9</b> Contrast coding for designs with two predictor variables</a>
+<li class="chapter" data-level="9" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html"><i class="fa fa-check"></i><b>9</b> Contrast coding with two predictor variables</a>
 <ul>
 <li class="chapter" data-level="9.1" data-path="ch-coding2x2.html"><a href="ch-coding2x2.html#sec-MR-ANOVA"><i class="fa fa-check"></i><b>9.1</b> Contrast coding in a factorial  <span class="math inline">\(2 \times 2\)</span> design</a>
 <ul>
@@ -1198,6 +1198,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="16.6" data-path="ch-cv.html"><a href="ch-cv.html#cross-validation-in-stan"><i class="fa fa-check"></i><b>16.6</b> Cross-validation in Stan</a>
 <ul>
 <li class="chapter" data-level="16.6.1" data-path="ch-cv.html"><a href="ch-cv.html#psis-loo-cv-in-stan"><i class="fa fa-check"></i><b>16.6.1</b>  PSIS-LOO-CV in Stan</a></li>
+<li class="chapter" data-level="16.6.2" data-path="ch-cv.html"><a href="ch-cv.html#k-fold-cv-in-stan"><i class="fa fa-check"></i><b>16.6.2</b>  K-fold-CV in Stan</a></li>
 </ul></li>
 <li class="chapter" data-level="16.7" data-path="ch-cv.html"><a href="ch-cv.html#summary-13"><i class="fa fa-check"></i><b>16.7</b> Summary</a></li>
 <li class="chapter" data-level="16.8" data-path="ch-cv.html"><a href="ch-cv.html#further-reading-13"><i class="fa fa-check"></i><b>16.8</b> Further reading</a></li>
@@ -1282,7 +1283,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
             <section class="normal" id="section-">
 <div id="ch-coding2x2" class="section level1 hasAnchor" number="9">
-<h1><span class="header-section-number">Chapter 9</span> Contrast coding for designs with two predictor variables<a href="ch-coding2x2.html#ch-coding2x2" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<h1><span class="header-section-number">Chapter 9</span> Contrast coding with two predictor variables<a href="ch-coding2x2.html#ch-coding2x2" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <p>Chapter <a href="ch-contr.html#ch-contr">8</a> provides a basic introduction into contrast coding in situations where there is one predictor variable, i.e., one factor, for which its effect can be estimated using a specified contrast matrix. Here, we will investigate how contrast coding generalizes to situations where there is more than one predictor variable. This could either be a situation where two factors are present or where one factor is paired with a continuous predictor variable, i.e., a covariate. We first discuss contrast coding for the case of two factors (for <span class="math inline">\(2 \times 2\)</span> designs; section <a href="ch-coding2x2.html#sec-MR-ANOVA">9.1</a>) and then go on to investigate situations where one predictor is a factor and the other predictor is a covariate (section <a href="ch-coding2x2.html#sec-contrast-covariate">9.2</a>). Moreover, one problem in the analysis of interactions occurs in situations where the model is not linear, but has some non-linear link function, such as e.g., in logistic models or when assuming a log-normally distributed dependent variable. In these situations, the model makes predictions for each condition (i.e., design cell) at the latent level of the linear model. Sometimes it is important to translate these model predictions to the level of the observations (e.g., to probabilities in a logistic regression model). We will discuss how this can be implemented in section <a href="ch-coding2x2.html#sec-interactions-NLM">9.3</a>. We begin by treating contrast coding in a factorial <span class="math inline">\(2 \times 2\)</span> design.</p>
 <div id="sec-MR-ANOVA" class="section level2 hasAnchor" number="9.1">
 <h2><span class="header-section-number">9.1</span> Contrast coding in a factorial  <span class="math inline">\(2 \times 2\)</span> design<a href="ch-coding2x2.html#sec-MR-ANOVA" class="anchor-section" aria-label="Anchor link to header"></a></h2>
@@ -1968,7 +1969,7 @@ We can also see from the  nested analysis that the difference in slopes between 
 <span id="cb591-3"><a href="ch-coding2x2.html#cb591-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">colMeans</span>()</span></code></pre></div>
 <pre><code>##   A1_B1   A1_B2   A2_B1   A2_B2 
 ## -1.4245  0.0102 -1.3929  1.3787</code></pre>
-<p>This shows that these values are not on the probability scale. Instead, they are on the  (log-odds) scale of the latent linear predictor <span class="math inline">\(\eta\)</span>. For presentation and interpretation of the results, it might be much more informative to look at the condition means in terms of the probabilities of success in each of the four conditions. Given that we have the linear predictions for each condition, this can be easily computed by sending all posterior samples for the linear predictions through the link function. Applying the  logistic function  (<code>plogis()</code> in R) transforms the linear predictors to the  probability scale:<a href="#fn34" class="footnote-ref" id="fnref34"><sup>34</sup></a></p>
+<p>This shows that these values are not on the probability scale. Instead, they are on the  (log-odds) scale of the latent linear predictor <span class="math inline">\(\eta\)</span>. For presentation and interpretation of the results, it might be much more informative to look at the condition means in terms of the probabilities of success in each of the four conditions. Given that we have the linear predictions for each condition, this can be easily computed by sending all posterior samples for the linear predictions through the link function. Applying the  logistic function  (<code>plogis()</code> in R) transforms the linear predictors to the  probability scale:<a href="#fn35" class="footnote-ref" id="fnref35"><sup>35</sup></a></p>
 <div class="sourceCode" id="cb593"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb593-1"><a href="ch-coding2x2.html#cb593-1" aria-hidden="true"></a>df_postSamp_pDV &lt;-<span class="st"> </span>df_postSamp_pDV <span class="op">%&gt;%</span></span>
 <span id="cb593-2"><a href="ch-coding2x2.html#cb593-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">p_A1_B1 =</span> <span class="kw">plogis</span>(A1_B1),</span>
 <span id="cb593-3"><a href="ch-coding2x2.html#cb593-3" aria-hidden="true"></a>         <span class="dt">p_A1_B2 =</span> <span class="kw">plogis</span>(A1_B2),</span>
@@ -2111,8 +2112,8 @@ FIGURE 9.5: Means and 95 percent posterior credible intervals for a simulated da
 </div>
 <div class="footnotes">
 <hr />
-<ol start="34">
-<li id="fn34"><p>The same (with lower precision) can be achieved using <code>1/(1+exp(-.))</code>.<a href="ch-coding2x2.html#fnref34" class="footnote-back">↩︎</a></p></li>
+<ol start="35">
+<li id="fn35"><p>The same (with lower precision) can be achieved using <code>1/(1+exp(-.))</code>.<a href="ch-coding2x2.html#fnref35" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
             </section>

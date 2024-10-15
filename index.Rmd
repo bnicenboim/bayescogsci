@@ -1,6 +1,6 @@
 ---
 title: "An Introduction to Bayesian Data Analysis for Cognitive Science"
-author: "Bruno Nicenboim, Daniel Schad, and Shravan Vasishth"
+author: "Bruno Nicenboim, Daniel J. Schad, and Shravan Vasishth"
 date: "`r Sys.Date()`"
 knit: "bookdown::render_book"
 documentclass: krantz
