@@ -20,10 +20,10 @@
   <meta name="twitter:description" content="An introduction to Bayesian data analysis for Cognitive Science." />
   <meta name="twitter:image" content="https://bruno.nicenboim.me/bayescogsci/images/temporarycover.jpg" />
 
-<meta name="author" content="Bruno Nicenboim, Daniel Schad, and Shravan Vasishth" />
+<meta name="author" content="Bruno Nicenboim, Daniel J. Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2024-10-14" />
+<meta name="date" content="2024-10-18" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1777,7 +1777,7 @@ FIGURE 6.13: The posterior distribution of the difference between object and sub
 <p>The posterior distribution of <span class="math inline">\(\zeta\)</span> is shown in Figure <a href="ch-priors.html#fig:chinesemetanalysisposterior">6.13</a>. What we can derive from this posterior distribution of <span class="math inline">\(\zeta\)</span> is a normal approximation that represents what we know so far about Chinese relatives, based on the available data. The key here is the word “available”; almost certainly there exist studies that were inconclusive and were therefore never published. The published record is always biased because of the nature of the publication game in science (only supposedly newsworthy results get published).</p>
 <p>The mean of the posterior is <span class="math inline">\(26\)</span> ms, and the width of the 95% credible intervals is <span class="math inline">\(75- (-20)=95\)</span> ms. Since the 95% credible interval has a width that is approximately four times the standard deviation (assuming a normal distribution), we can work out the standard deviation by dividing the width by four: <span class="math inline">\(23.75\)</span>.
 Given these estimates, we could use a normal distribution with mean <span class="math inline">\(26\)</span> and standard deviation <span class="math inline">\(23.75\)</span> as an informative prior in a sensitivity analysis.</p>
-<p>As an example, we will analyze the data set from <span class="citation">Gibson and Wu (<a href="#ref-gibsonwu" role="doc-biblioref">2013</a>)</span> that was not part of the above meta-analysis; recall that for the above meta-analysis, the estimate from the <span class="citation">Gibson and Wu (<a href="#ref-gibsonwu" role="doc-biblioref">2013</a>)</span> study that was shown in Table <a href="ch-priors.html#tab:chinesemeans">6.2</a> has been removed. The meta-analysis posterior will then be used as an informative prior. First, load the data and sum-code the predictor:</p>
+<p>As an example, we will analyze the data set from <span class="citation">Gibson and Wu (<a href="#ref-gibsonwu" role="doc-biblioref">2013</a>)</span> that was not part of the above meta-analysis; recall that, for the above meta-analysis, the estimate from the <span class="citation">Gibson and Wu (<a href="#ref-gibsonwu" role="doc-biblioref">2013</a>)</span> study that was shown in Table <a href="ch-priors.html#tab:chinesemeans">6.2</a> has been removed. The meta-analysis posterior will then be used as an informative prior. First, load the data and sum-code the predictor:</p>
 <div class="sourceCode" id="cb352"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb352-1"><a href="ch-priors.html#cb352-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_gibsonwu&quot;</span>)</span>
 <span id="cb352-2"><a href="ch-priors.html#cb352-2" aria-hidden="true"></a>df_gibsonwu &lt;-<span class="st"> </span>df_gibsonwu <span class="op">%&gt;%</span></span>
 <span id="cb352-3"><a href="ch-priors.html#cb352-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">c_cond =</span> <span class="kw">if_else</span>(type <span class="op">==</span><span class="st"> &quot;obj-ext&quot;</span>, <span class="dv">1</span> <span class="op">/</span><span class="st"> </span><span class="dv">2</span>, <span class="dv">-1</span> <span class="op">/</span><span class="st"> </span><span class="dv">2</span>))</span></code></pre></div>
