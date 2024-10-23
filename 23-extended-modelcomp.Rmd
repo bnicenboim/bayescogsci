@@ -31,3 +31,102 @@ LikRat = \frac{P(\boldsymbol{y} ; \boldsymbol{\hat{\Theta}_1}, \mathcal{M}_1)}{P
 \end{equation}
 
 That means that in the likelihood ratio test, each model is tested on its ability to explain the data using this "best" estimate for the model parameter (here, the \index{Maximum likelihood estimate} maximum likelihood estimate $\hat{\theta}$). That is, the likelihood ratio test reduces the full range of possible parameter values to a \index{Point value} point value, leading to overfitting the model to the maximum likelihood estimate \index{MLE} (MLE). If the MLE badly misestimates the true value of the parameter (point value), due to \index{Type M error} Type M error [@gelmancarlin], we could end up with a "significant" effect that is just a consequence of this misestimation [it will not be consistently replicable; see @VasishthMertzenJaegerGelman2018 for an example]. By contrast, the Bayes factor involves range hypotheses, which are implemented via \index{Integral} integrals over the model parameter; that is, it uses marginal likelihoods that are averaged across all possible prior values of the model parameter(s). Thus, if, due to Type M error, the best point estimate (the MLE) for the model parameter(s) is not very representative of the possible values for the model parameter(s), then Bayes factors will be superior to the frequentist likelihood ratio test (see exercise  \@ref(exr:bf-logn)). An additional difference, of course, is that Bayes factors rely on priors for estimating each model's parameter(s), whereas the frequentist likelihood ratio test does not (and cannot) consider priors in the estimation of the best-fitting model parameter(s). As we show in this chapter, this has far-reaching consequences for Bayes factor-based model comparison.
+
+
+## How do we get rid of the integral in the approximation of elpd? {#app-integral}
+
+As an example, imagine that there are $N$ observations in an experiment. Suppose also that the \index{True generative process} true generative process (which is normally always unknown to us) is a \index{Beta distribution} Beta distribution:
+
+\begin{equation}
+p_t(y) = \mathit{ Beta}(y | 1, 3)
+\end{equation}
+
+Set $N$ and observe some simulated data $y$:
+
+```{r}
+N <- 10000
+y_data <- rbeta(N, 1, 3)
+head(y_data)
+```
+
+Let's say that we fit the Bayesian model $\mathcal{M}_{1}$, and somehow, after getting the posterior distribution, we are able to derive the analytical form of its posterior predictive distribution for the model:
+
+\begin{equation}
+p(y_{pred} | y, \mathcal{M}_1) = \mathit{Beta}(y_{pred} | 2, 2)
+\end{equation}
+
+This distribution will tell us how likely different future observations will be, and it also entails that our future observations will be bounded by $0$ and $1$. (Any observation outside this range will have a probability density of zero).
+
+Imagine that we could know the true distribution of the data, $p_t$, which is conveniently close to our posterior predictive distribution. This means that Equation \@ref(eq:elpd), repeated below, is simple enough, and we know all its terms:
+
+\begin{equation}
+elpd = u(\mathcal{M}_1) = \int_{y_{pred}} p_t(y_{pred}) \log p(y_{pred} \mid y, \mathcal{M}_1)\, dy_{pred}
+\end{equation}
+
+We can compute this quantity in R. Notice that we don't introduce the data at any point. However, the data had to be used when `p`, the posterior predictive distribution, was derived; we skipped that step here.
+
+```{r}
+# True distribution:
+p_t <- function(y) dbeta(y, 1, 3)
+# Predictive distribution:
+p <- function(y) dbeta(y, 2, 2)
+# Integration:
+integrand <- function(y) p_t(y) * log(p(y))
+integrate(f = integrand, lower = 0, upper = 1)$value
+```
+
+Because we will never know `p_t`, this integral can be approximated using the data, `y_data`. It is possible to approximate the integration without any reference to `p_t`; see Equation \@ref(eq:elpdapprox):
+
+```{r}
+1/N * sum(log(p(y_data)))
+```
+
+The main problem with this approach is that we are using `y_data` twice, once to derive `p`, the predictive posterior distribution, and once for the approximation of $elpd$.  We'll see that cross-validation approaches rely on deriving the posterior predictive distribution with part of the data, and estimating the approximation to $elpd$ with unseen data. (Don't worry that we don't know the analytical form of the posterior predictive distribution: we saw that we could generate samples from that distribution based on the distribution we use as the likelihood and our posterior samples.)
+
+
+
+## The cross-validation algorithm {#app-CV-alg}
+
+Here we spell out the Bayesian \index{Cross-validation algorithm} cross-validation algorithm in detail:
+
+1. Split the data pseudo-randomly into $K$ held-out or validation sets $D_k$, (where $k=1,\dots,K$) that are a fraction of the original data, and $K$ training sets, $D_{-k}$.  The length of the held-out data vector $D_k$ is approximately $1/K$-th the size of the full data set. It is common to  use $K=10$ for K-fold-CV. For LOO-CV, K should be set to the number of observations.
+
+2. Fit $K$ models using each of the $K$ training sets, and obtain posterior distributions $p_{-k} (\Theta) = p(\Theta\mid D_{-k})$, where $\Theta$ is the vector of model parameters.
+
+3. Each posterior distribution $p(\Theta\mid D_{-k})$ is used to compute the predictive accuracy for each held-out data-point $y_n$ in the vector $D_{k}$:
+
+  \begin{equation}
+    \widehat{elpd}_n = \log p(y_n \mid D_{-k}) \text{ with } y_n \in D_k
+  \end{equation}
+
+   Given that the posterior distribution $p(\Theta\mid D_{-k})$ is summarized by $S$ samples, the log predictive density for each data point $y_n$ in a data vector $D_k$ can be approximated as follows:
+
+  \begin{equation}
+    \widehat{elpd}_n = \log \left(\frac{1}{S} \sum_{s=1}^S p(y_n\mid \Theta^{k,s})\right)
+    (\#eq:pwkfold)
+  \end{equation}
+
+   where $\Theta^{k,s}$ corresponds to the sample $s$ of the posterior of the model fit to the training set $D_-k$.
+
+5. We obtain the $elpd_{kfold}$ (or $elpd_{loo}$) for all the held-out data points by summing up the $\widehat{elpd}_n$:
+
+  \begin{equation}
+    elpd_{kfold} = \sum_{n=1}^N \widehat{elpd}_n
+    (\#eq:totalkfold)
+  \end{equation}
+
+The \index{Standard deviation of the sampling distribution} standard deviation of the sampling distribution (the \index{Standard error} standard error) can be computed by multiplying the standard deviation (or square root of variance) of the $N$ components  by $\sqrt{N}$. Letting $\widehat{ELPD}$ be the vector $\widehat{elpd}_1,\dots,\widehat{elpd}_N$, the standard error is computed as follows:
+
+\begin{equation}
+se(\widehat{elpd}) = \sqrt{N \mathit{Var}(\widehat{ELPD})}
+(\#eq:sekfold)
+\end{equation}
+
+  The difference between the $elpd_{kfold}$ of two competing models, $\mathcal{M}_1$ and $\mathcal{M}_2$ , is a measure of \index{Relative predictive performance} relative predictive performance. The  standard error of their difference can be computed using the formula discussed in @vehtariPracticalBayesianModel2017:
+
+\begin{equation}
+se(\widehat{elpd}_{\mathcal{M}1} - \widehat{elpd}_{\mathcal{M}2}) = \sqrt{N \mathit{Var}(\widehat{ELPD_{\mathcal{M}1}} - \widehat{ELPD_{\mathcal{M}2}})}
+(\#eq:sekfolddiff)
+\end{equation}
+
+
