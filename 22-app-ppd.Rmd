@@ -1,0 +1,528 @@
+# (APPENDIX) Online resources {-}
+# Appendix
+
+## A more efficient function for generating prior predictive distribution {#app-efficientpriorpd}
+
+
+A more efficient function can be created in the following way using the \index{\texttt{map\_2dfr}} `map2_dfr()` function from the \index{\texttt{purrr package}} `purrr` package. This function yields an approximately 10-fold increase in speed. Although the distributions should be the same with both functions, the specific numbers in the tables won't be, due to the randomness in the process of sampling.
+
+The `purrr` function \index{\texttt{map2\_dfr}} `map2_dfr()` (which works similarly to the base R function `lapply()` and `Map()`) essentially runs a for-loop, and builds a data frame with the output. It iterates over the values of two vectors (or lists) simultaneously, here, `mu_samples` and `sigma_samples`  and, in each iteration, it applies a function to each value of the two vectors, here, `mu` and `sigma`. The output of each function is a data frame (or tibble in this case) with `N_obs` observations which is bound in a larger data frame at the end of the loop. Each of these data frames bound together represents an iteration in the simulation, and we identify the iterations by setting `.id = "iter"`.
+
+Although this method for generating prior predictive distributions is a bit involved, it has an advantage in comparison to the more straightforward use of `predict()` (or `posterior_predict()`, which can also generate prior predictions) together with setting `sample_prior = "only"` in the `brms` model (as we will do in section \@ref(sec-lognormal)). Our method of generating prior predictive distributions does not depend on Stan's sampler, which means that no matter the number of iterations in our simulation or how uninformative our priors, there will never be any convergence problems. 
+
+```{r, echo = FALSE}
+set.seed(123)
+```
+```{r, efficient-ppd}
+library(purrr)
+# Define the function:
+normal_predictive_distribution <- function(mu_samples,
+                                           sigma_samples,
+                                           N_obs) {
+  map2_dfr(mu_samples, sigma_samples, function(mu, sigma) {
+    tibble(trialn = seq_len(N_obs),
+           t_pred = rnorm(N_obs, mu, sigma))
+  }, .id = "iter") %>%
+    # .id is always a string and
+    # needs to be converted to a number
+    mutate(iter = as.numeric(iter))
+}
+# Test the timing:
+tic()
+prior_pred <-
+  normal_predictive_distribution(mu_samples = mu_samples,
+                                 sigma_samples = sigma_samples,
+                                 N_obs = N_obs)
+toc()
+```
+
+
+
+##  Truncated distributions {#app-truncation}
+
+Any distribution can be truncated. For a continuous distribution, the truncated version of the original distribution will have non-zero probability density values for a continuous subset of the original coverage. To make this more concrete, in our previous example, the normal distribution has coverage for values between minus infinity to plus infinity, and our truncated version $\mathit{Normal}_+$ has coverage between zero and plus infinity: all negative values have a density of zero. Let's see how we can generalize this to be able to understand any truncation of any continuous distribution. (For the discrete case, we can simply replace the integral with a sum, and replace PDF with PMF).
+
+From the axiomatic definitions of probability, we know that the  area below a PDF, $f(x)$, must be equal to one  (section \@ref(introprob)). More formally, this means that the integral of $f$ evaluated as $f(-\infty <X < \infty)$ should be equal to one:
+
+\begin{equation}
+\int_{-\infty}^{\infty} f(x) dx = 1
+\end{equation}
+
+But if the distribution is truncated, $f$ is going to be evaluated in some subset of its possible values, $f(a <X < b)$; in the specific case of $\mathit{Normal}_+$, for example,  $a = 0$, and $b=\infty$. In the general case, this means that the integral of the PDF evaluated for $a <X < b$ will be lower than one, unless $a=-\infty$ and $b=+\infty$.
+
+\begin{equation}
+\int_{a}^{b} f(x) dx < 1
+\end{equation}
+
+We want to ensure that we build a new PDF for the truncated distribution so that even though it has less coverage than the non-truncated version, it still integrates to one. To achieve this, we divide the "unnormalized" PDF by the total area of $f(a <X < b)$ (recall the discussion surrounding Equation \@ref(eq:factork)):
+
+\begin{equation}
+f_{[a,b]}(x) = \frac{f(x)}{\int_{a}^{b} f(x) dx}
+\end{equation}
+
+The denominator of the previous equation is the difference between the CDF evaluated at $X = b$ and the CDF evaluated at $X =a$; this can be written as  $F(b) - F(a)$:
+
+\begin{equation}
+f_{[a,b]}(x) = \frac{f(x)}{F(b) - F(a)}
+(\#eq:truncPDF)
+\end{equation}
+
+For the specific case where $f(x)$ is $Normal(x | 0, \sigma)$ and we want the PDF of $Normal_+(x | 0, \sigma)$, the bounds will be $a= 0$ and $b =\infty$.
+
+\begin{equation}
+Normal_+(x |0, \sigma) = \frac{Normal(x | 0, \sigma)}{1/2}
+\end{equation}
+
+Because $F(X= b =\infty) = 1$ and $F(X = a = 0) = 1/2$.
+
+You can verify this in R (this is valid for any value of `sd`).
+
+```{r}
+dnorm(1, mean = 0) * 2 == dtnorm(1, mean = 0, a = 0)
+```
+
+Unless the truncation of the normal distribution is symmetrical,  the mean $\mu$ of the truncated normal does not coincide with the mean of the parent (untruncated) normal distribution; call this mean of the \index{Parent distribution} parent distribution $\hat{\mu}$. For any type of truncation, the standard deviation of the truncated distribution $\sigma$ does not coincide with the standard deviation of the parent distribution; call this latter standard deviation $\hat\sigma$. Confusingly enough, the family of truncated functions `*tnorm()` keeps the names of the arguments of the family of functions `*norm()`: `mean` and `sd`. So, when defining a truncated normal distribution like `dtnorm(mean = 300, sd = 100, a = 0, b = Inf)`, the `mean` and `sd` refer to the mean $\hat{\mu}$ and standard deviation $\hat\sigma$ of the untruncated parent distribution. 
+
+Sometimes one needs to model observed data as coming from a truncated normal distribution. An example would be a vector of observed standard deviations; perhaps one wants to use these estimates to work out a truncated normal prior. In order to derive such an empirically motivated prior, we have to work out what mean and standard deviation we need to use in a truncated normal distribution.  We could compute the mean and standard deviation from the observed vector of standard deviations, and then use the procedure shown below to work out the mean and standard deviation that we would need to put into the truncated normal distribution.  This approach is used in chapter \@ref(ch-priors), section \@ref(sec-varcomppriors) for working out a prior based on standard deviation estimates from existing data.
+
+The mean and standard deviation of the parent distribution of a truncated normal ($\hat\mu$ and $\hat\sigma$) with boundaries $a$ and $b$, given the mean $\mu$ and standard deviation $\sigma$ of the truncated normal, are computed as follows [@johnson]. $\phi(X)$ is the PDF of the standard normal (i.e., $\mathit{Normal}(\mu=0, \sigma=1)$) evaluated at $X$, and $\Phi(X)$ is the CDF of the standard normal evaluated at $X$.
+
+First, define two terms $\alpha$ and $\beta$ for convenience:
+
+\begin{align}
+\alpha =(a-\hat\mu )/\hat\sigma && \beta =(b-\hat\mu )/\hat\sigma
+\end{align}
+
+Then, the mean $\mu$ of the truncated distribution can be computed as follows based on the parameters of the parent distribution:
+
+\begin{equation}
+\mu  = \hat\mu - \hat\sigma {\frac {\phi (\beta )-\phi (\alpha )}{\Phi (\beta )-\Phi (\alpha )}} 
+(\#eq:meantrunc)
+\end{equation}
+
+The variance $\sigma^2$ of the truncated distribution is:
+
+\begin{equation}
+\sigma^2 = \hat\sigma^2 \times \left( 1 -  \frac{\beta \phi (\alpha )-\alpha \phi (\beta )}{\Phi (\beta )-\Phi (\alpha )}  - 
+\left(\frac {\phi (\alpha )-\phi (\beta )}{\Phi (\beta )-\Phi (\alpha )}\right)^2
+\right)
+(\#eq:vartrunc)
+\end{equation}
+
+Equations \@ref(eq:meantrunc) and \@ref(eq:vartrunc) have two variables, so if one is  given the values for the truncated distribution $\mu$ and $\sigma$, one can solve (using algebra) for the mean and standard deviation of the untruncated distribution, $\hat\mu$ and $\hat\sigma$.
+
+For example, suppose that $a=0$ and $b=500$, and that the mean and standard deviation of the untruncated parent distribution is $\hat\mu=300$ and $\hat\sigma=200$. We can simulate such a situation and estimate the mean and standard deviation of the truncated distribution: 
+
+```{r}
+x <- rtnorm(10000000, mean = 300, sd = 200, a = 0, b = 500)
+## the mean and sd of the truncated distributions
+## using simulation:
+mean(x)
+sd(x)
+```
+
+These simulated values are identical to the values computed using equations \@ref(eq:meantrunc) and \@ref(eq:vartrunc):
+
+```{r}
+a <- 0
+b <- 500
+bar_x <- 300
+bar_sigma <- 200
+alpha <- (a - bar_x) / bar_sigma
+beta <- (b - bar_x) / bar_sigma
+term1 <- ((dnorm(beta) - dnorm(alpha)) /
+            (pnorm(beta) - pnorm(alpha)))
+term2 <- ((beta * dnorm(beta) - alpha * dnorm(alpha)) /
+            (pnorm(beta) - pnorm(alpha)))
+## the mean and sd of the truncated distribution
+## computed analytically:
+(mu <- bar_x - bar_sigma * term1)
+(sigma <- sqrt(bar_sigma^2 * (1 - term2 - term1^2)))
+```
+
+The equations for the mean and variance of the truncated distribution ($\mu$ and $\sigma$) can also be used to work out the mean and variance of the parent untruncated distribution ($\hat\mu$ and $\hat\sigma$), if one has estimates for $\mu$ and $\sigma$ (from data). 
+
+Suppose that we have observed data with mean $\mu = `r round(mu)`$ and $\sigma=`r round(sigma)`$. We want to assume that the data are coming from a truncated normal which has lower bound $`r a`$ and upper bound $`r b`$. What are the mean and standard deviation of the parent distribution, $\hat\mu$ and $\hat\sigma$?
+
+To answer this question, first rewrite the equations as follows:
+
+\begin{equation}
+\mu  - \hat\mu + \hat\sigma {\frac {\phi (\beta )-\phi (\alpha )}{\Phi (\beta )-\Phi (\alpha )}} = 0
+(\#eq:meantruncrewritten)
+\end{equation}
+
+
+\begin{equation}
+\sigma^2 - \hat\sigma^2 \times \left( 1 -  \frac{\beta \phi (\alpha )-\alpha \phi (\beta )}{\Phi (\beta )-\Phi (\alpha )}  - 
+\left(\frac {\phi (\alpha )-\phi (\beta )}{\Phi (\beta )-\Phi (\alpha )}\right)^2
+\right) = 0
+(\#eq:vartruncrewritten)
+\end{equation}
+
+Next, solve for $\hat\mu$ and $\hat\sigma$ given the observed mean and the standard deviation of the truncated distribution, and that one knows the boundaries ($a$, and $b$).
+
+Define the \index{System of equations} system of equations according to the specifications of \index{\texttt{multiroot()}} `multiroot()` from the package \index{\texttt{rootSolve}} `rootSolve`: `x` for the unknowns ($\hat\mu$ and $\hat\sigma$), and `parms` for the known parameters: $a$, $b$, and the mean and standard deviation of the truncated normal.
+
+```{r}
+eq_system <- function(x, parms) {
+  mu_hat <- x[1]
+  sigma_hat <- x[2]
+  alpha <- (parms["a"] - mu_hat) / sigma_hat
+  beta <- (parms["b"] - mu_hat) / sigma_hat
+  c(F1 = parms["mu"] - mu_hat + sigma_hat *
+      (dnorm(beta) - dnorm(alpha)) / (pnorm(beta) - pnorm(alpha)),
+    F2 = parms["sigma"] - sigma_hat *
+      sqrt((1 - ((beta) * dnorm(beta) - (alpha) * dnorm(alpha)) /
+            (pnorm(beta) - pnorm(alpha)) - ((dnorm(beta) - dnorm(alpha)) /
+             (pnorm(beta) - pnorm(alpha)))^2)))}
+```
+
+Solving the two equations using `multiroot()` from the package `rootSolve` gives us the mean and standard deviation $\hat\mu$ and $\hat\sigma$ of the parent normal distribution. (Notice that `x` is a required parameter of the previous function so that it works with `multiroot()`, however, outside of the function the variable `x` is a vector containing the samples of the truncated normal distribution generated with `rtnorm()`). 
+
+```{r}
+soln <- multiroot(f = eq_system,
+                  start = c(1, 1),
+                  parms = c(a = 0,
+                            b = 500,
+                            mu = mean(x),
+                            sigma = sd(x)))
+soln$root
+```
+
+The function `compute_meansd_parent()` encapsulates the previous procedure and it is provided in the `bcogsci` package.
+
+
+##  Intercepts in `brms` {#app-intercept}
+
+When we set up a prior for the intercept in `brms`, we actually set a prior for an intercept assuming that all the predictors are centered. This means that when predictors are not centered (and only then), there is a mismatch between the interpretation of the intercept as returned in the output of `brms` and the interpretation of the intercept with respect to its prior specification. In this case, only the intercept in the output corresponds to the formula in the `brms` call, that is, the intercept in the output corresponds to the non-centered model. However, as we show below, when the intercept is much larger than the effects that we are considering in the formula (what we generally call $\beta$), this discrepancy hardly matters.
+
+The reason for this mismatch when our predictors are uncentered is that `brms` increases \index{Sampling efficiency} sampling efficiency by automatically centering all the predictors internally (that is the population-level design matrix $X$ is internally centered around its column means when `brms` fits a model). This did not matter in our previous examples because we centered our predictor (or we had no predictor), but it might matter if we want to have uncentered predictors. In the design we are discussing, a non-centered predictor of load will mean that the intercept, $\alpha$, has a straightforward interpretation: the $\alpha$ is the mean pupil size when there is no attention load. This is in contrast with the centered version presented before, where the intercept $\alpha$ represents the pupil size for the average load of `2.44` (`c_load` is equal to 0).  The difference between the non-centered model (below) and the centered version presented before is depicted in Figure \@ref(fig:centered-non-centered).
+
+Suppose that we are quite sure that the prior values for the no load condition (i.e., load is non-centered) fall between $400$ and $1200$ ms. In that case, the following prior could be set for  $\alpha$: $\mathit{Normal}(800,200)$. In this case, the model becomes:
+
+
+```{r fitpupil2, message = FALSE, results = "hide"}
+prior_nc <-
+  c(prior(normal(800, 200), class = b, coef = Intercept),
+    prior(normal(0, 1000), class = sigma),
+    prior(normal(0, 100), class = b, coef = load))
+
+fit_pupil_non_centered <- brm(p_size ~ 0 + Intercept + load,
+                              data = df_pupil,
+                              family = gaussian(),
+                              prior = prior_nc)
+```
+
+When the predictor is non-centered as shown above, the regular centered intercept is removed by adding `0` to the formula, and by replacing the intercept with the "actual" intercept we want to set priors on with `Intercept`. The word `Intercept` is a reserved word; we cannot name any predictor with this name. This new parameter is also of class `b`, so its prior needs to be defined accordingly. Once we use `0 + Intercept + ..`, the intercept is not calculated with predictors that are automatically centered any more. 
+
+The output below shows that, as expected, although the posterior for the intercept has changed noticeably, the posterior for the effect of load remains virtually unchanged.
+
+```{r, eval = TRUE}
+posterior_summary(fit_pupil_non_centered,
+                  variable = c("b_Intercept", "b_load"))
+```
+
+
+Notice the following potential pitfall. A model like the one below will fit a non-centered load predictor, but will assign a prior of $\mathit{Normal}(800,200)$ to the intercept of a model that assumes a centered predictor, $\alpha_{centered}$, and not the current intercept, $\alpha$.
+
+```{r, eval = FALSE}
+prior_nc <-
+  c(prior(normal(800, 200), class = Intercept),
+    prior(normal(0, 1000), class = sigma),
+    prior(normal(0, 100), class = b, coef = load))
+fit_pupil_wrong <- brm(p_size ~ 1 + load,
+                       data = df_pupil,
+                       family = gaussian(),
+                       prior = prior_nc)
+```
+
+What does it mean to set a prior to $\alpha_{centered}$ in a model that doesn't include $\alpha_{centered}$?
+
+The fitted (expected) values of the non-centered model and the centered one are identical, that is,  the values of the response distribution without the residual error are identical for both models:
+
+\begin{equation}
+\alpha + load_n \cdot \beta = \alpha_{centered} + (load_n - mean(load)) \cdot \beta 
+(\#eq:fitted)
+\end{equation}
+
+The left side of Equation \@ref(eq:fitted) refers to the expected values based on our current non-centered model, and the right side refers to the expected values based on the centered model. We can re-arrange terms to understand what the effect is of a prior on $\alpha_{centered}$ in our model that doesn't include $\alpha_{centered}$.
+
+\begin{equation}
+\begin{aligned}
+\alpha + load_n \cdot \beta &= \alpha_{centered} + load_n\cdot \beta - mean(load) \cdot \beta\\
+\alpha  &= \alpha_{centered}  - mean(load) \cdot \beta\\
+\alpha + mean(load) \cdot \beta  &= \alpha_{centered}  
+\end{aligned}
+\end{equation}
+
+That means that in the non-centered model, we are actually setting our prior to $\alpha + mean(load) \cdot \beta$.
+When $\beta$ is very small (or the means of our predictors are very small because they might be "almost" centered), and the prior for $\alpha$ is very wide, we might hardly notice the difference between setting a prior to $\alpha_{centered}$ or to our actual $\alpha$ in a non-centered model (especially if the likelihood dominates anyway). But it is important to pay attention to what the parameters represent that we are setting priors on.
+
+To sum up, `brms` automatically centers all predictors for posterior estimation, and the prior of the intercept is applied to the centered version of the model during model fitting. However, when the predictors specified in the formula are not centered, then `brms` uses the equations shown before to return in the output the posterior of the intercept for the non-centered predictors.^[These transformations are visible when checking the generated Stan code using `make_stancode()`.]
+
+
+In our example analyses with `brms` in this book, we will always center our predictors. 
+
+(ref:centered-non-centered) Regression lines for the non-centered and centered linear regressions. The intercept ($\alpha$) represented by a circle is positioned differently depending on the centering, whereas the slope ($\beta$) represented by a vertical dashed line has the same magnitude in both models. 
+
+```{r centered-non-centered, echo = FALSE, fig.cap ="(ref:centered-non-centered)"}
+intercept_nc <- posterior_summary(fit_pupil_non_centered, variable = "b_Intercept")[, "Estimate"]
+slope_nc <- posterior_summary(fit_pupil_non_centered, variable = "b_load")[, "Estimate"]
+p_nc <- plot(conditional_effects(fit_pupil_non_centered), points = TRUE, plot = FALSE)[[1]] +
+  annotate("point", x = 0, y = intercept_nc, shape = 1, size = 7) +
+  annotate("segment", x = 0, y = intercept_nc, xend = 1, yend = intercept_nc, linetype = "dotted") +
+  annotate("segment", x = 1, y = intercept_nc, xend = 1, yend = intercept_nc + slope_nc, linetype = "dashed", arrow = arrow(length = unit(.2, "cm"))) +
+  ggtitle("Non-centered predictors")
+
+intercept_c <- posterior_summary(fit_pupil, variable = "b_Intercept")[, "Estimate"]
+slope_c <- posterior_summary(fit_pupil, variable = "b_c_load")[, "Estimate"]
+p_c <- plot(conditional_effects(fit_pupil), points = TRUE, plot = FALSE)[[1]] +
+  annotate("point", x = 0, y = intercept_c, shape = 1, size = 7) +
+  annotate("segment", x = 0, y = intercept_c, xend = 1, yend = intercept_c, linetype = "dotted") +
+  annotate("segment", x = 1, y = intercept_c, xend = 1, yend = intercept_c + slope_c, linetype = "dashed", arrow = arrow(length = unit(.2, "cm"))) +
+  ggtitle("Centered predictors")
+gridExtra::grid.arrange(p_nc, p_c, nrow = 1)
+```
+
+
+
+
+
+## Understanding the log-normal likelihood {#app-lognormal}
+
+It is important to understand what we are assuming with our log-normal likelihood. Formally, if a random variable $Z$ is normally distributed with mean $\mu$ and variance $\sigma^2$, then the transformed random variable $Y = \exp(Z)$ is log-normally distributed and has density:
+
+\begin{equation}
+\mathit{LogNormal}(y|\mu,\sigma)=f(z)= \frac{1}{\sqrt{2\pi \sigma^2}y} \exp \left(-\frac{(\log(y)-\mu)^2}{2\sigma^2} \right)
+\end{equation}
+
+
+As explained in section \@ref(sec-lnfirst), the model from Equation \@ref(eq:rtloglik) is equivalent to the following:
+
+\begin{equation}
+\log(t_n) \sim \mathit{Normal}(\alpha + c\_trial_n \cdot \beta,\sigma)\\
+(\#eq:aX)
+\end{equation}
+
+The family of normal distributions is closed under linear transformations: that is, if $X$ is normally distributed with mean $\mu$ and standard deviation $\sigma$, then (for any real numbers $a$ and $b$), $a X + b$ is also normally distributed, with mean $a \mu +b$ (and standard deviation $\sqrt{a^2\sigma^2}=|a|\sigma$).
+
+This means that, assuming $Z \sim \mathit{Normal}(\alpha, \sigma)$, Equation \@ref(eq:aX) can be re-written as follows:
+
+
+
+\begin{equation}
+\log(rt_n) = Z + c\_trial_n \cdot \beta
+(\#eq:rtlogliknoncen)
+\end{equation}
+
+Exponentiate both sides, and use the property of exponents that  $\exp(x+y)$ is equal to $\exp(x) \cdot \exp(y)$; set $Y =\exp(Z)$.
+
+\begin{equation}
+\begin{aligned}
+rt_n &= \exp \big(Z  + c\_trial_n \cdot \beta\big) \\
+rt_n &= \exp(Z )   \cdot \exp\big(c\_trial_n \cdot \beta\big) \\
+rt_n &= Y \cdot \exp\big(c\_trial_n \cdot \beta\big) 
+\end{aligned}
+\end{equation}
+
+The last equation has two terms being multiplied, the first one, $Y$, is telling us that we are assuming that finger tapping times are log-normally distributed with a median of $\exp(\alpha)$, the second term, $\exp(c\_trial_n \cdot \beta)$ is telling us that the effect of trial number is multiplicative and grows or decays exponentially with the trial number.  This has two important consequences:
+
+1. Different values of the intercept, $\alpha$, given the same  $\beta$, will affect the difference in finger tapping or response times for two adjacent trials (compare this with what happens with an additive model, such as when a normal likelihood is used); see Figure \@ref(fig:logexp). This is because, unlike in the additive case, the intercept doesn't cancel out:
+   
+   * Additive case:
+   
+     \begin{equation}
+     \begin{aligned}
+     & (\alpha + trial_n \cdot \beta) - (\alpha + trial_{n-1} \cdot \beta) = \\
+     &=\alpha -\alpha + ( trial_n - trial_{n-1} ) \cdot \beta\\
+     &= ( trial_n - trial_{n-1} ) \cdot \beta
+     \end{aligned}
+     \end{equation}
+
+   * Multiplicative case:
+   
+       \begin{equation}
+     \begin{aligned}
+        &\exp(\alpha) \cdot \exp(trial_n \cdot \beta) -\exp(\alpha) \cdot \exp(trial_{n-1} \cdot \beta) =\\ 
+        &= \exp(\alpha) \big(\exp(trial_n  \cdot \beta)  - \exp(trial_{n-1}\cdot \beta) \big)\\
+        &\neq \big(\exp(trial_n)  - \exp(trial_{n-1})  \big) \cdot \exp(\beta) 
+     \end{aligned}
+        \end{equation}
+
+2. As the trial number increases, the same value of $\beta$ will have a very different impact on the original scale of the dependent variable: Any (fixed) negative value for $\beta$ will lead to \index{Exponential decay} exponential decay and any (fixed) positive  value will lead to \index{Exponential growth} exponential growth; see Figure \@ref(fig:expgd).
+
+
+(ref:logexp) The fitted values of the  difference in response time between two adjacent trials, when $\beta=0.01$ and $\alpha$ lies between 0.1 and 15. The graph shows how changes in the intercept lead to changes in the difference in response times between trials, even if $\beta$ is fixed.
+
+```{r logexp, fig.cap="(ref:logexp)", echo = FALSE, fig.height = 2}
+df_a <- tibble(
+  Intercept = seq(.1, 15, .01),
+  beta = .01,
+  ms = exp(Intercept + beta) - exp(Intercept)
+)
+ggplot(df_a, aes(x = Intercept, y = ms)) +
+  geom_line() +
+  scale_y_continuous("Difference in response times between adjacent trials \n") +
+  scale_x_continuous("Intercept value") +
+  ylab("(A)")
+```
+
+
+
+(ref:expgd) The fitted values of the dependent variable (response times in ms) as a function of trial number, when (A) $\beta = -0.01$, exponential decay, and when (B) $\beta =0.01$, exponential growth.
+
+```{r expgd, fig.cap="(ref:expgd)", echo = FALSE}
+N <- 300
+df_dg <- tibble(
+  n = rep(seq(1, N, 5), 2),
+  Intercept = 6,
+  beta = rep(c(-.01, .01), length(n) / 2),
+  ms = exp(Intercept + n * beta),
+  type = rep(c("(A) Exponential decay", "(B) Exponential growth"), length(n) / 2)
+)
+
+
+ggplot(df_dg, aes(x = n, y = ms)) +
+  geom_point() +
+  scale_x_continuous("Trial number") +
+  scale_y_continuous("Response times  in milliseconds \n") +
+  facet_grid(type ~ ., scales = "free")
+```
+
+
+
+Does exponential growth or decay make sense in this particular example? We need to consider that if they do make sense, they will be an approximation valid for a specific range of values, at some point we will expect a ceiling or a floor effect: response times cannot truly be 0 milliseconds, or take several minutes. However, in our specific model, exponential growth or decay *by trial* is probably a bad approximation: We will predict that our subject will take extremely long (if $\beta >0$) or extremely short (if $\beta <0$) time in pressing the space bar in a relatively low number of trials.  This doesn't mean that the likelihood is wrong by itself, but it does mean that at least we need to put a cap on the growth or decay of our experimental manipulation. We can do this if the exponential growth or decay is a function of, for example, log-transformed  trial numbers:
+
+\begin{equation}
+t_n \sim \mathit{LogNormal}(\alpha + c\_\log\_trial_n \cdot \beta,\sigma)\\
+\end{equation}
+
+(ref:expgd2) Fitted value of the dependent variable (times in ms) as function of the natural logarithm of the trial number, when (A) $\beta=-0.01$, exponential decay, and when (B)  $\beta =.01$, exponential growth.
+
+
+
+```{r expgd2, fig.cap="(ref:expgd2)", echo = FALSE, fig.pos = "H",out.extra ='' }
+N <- 300
+df_dg <- tibble(
+  n = rep(seq(1, N, 5), 2),
+  Intercept = 6,
+  beta = rep(c(-.01, .01), length(n) / 2),
+  ms = exp(Intercept + log(n) * beta),
+  type = rep(c("(A) Exponential decay", "(B) Exponential growth"), length(n) / 2)
+)
+
+ggplot(df_dg, aes(x = n, y = ms)) +
+  geom_point() +
+  scale_x_continuous("Trial number") +
+  scale_y_continuous("Response times  in milliseconds \n") +
+  facet_grid(type ~ ., scales = "free")
+```
+
+### Log-normal distributions everywhere
+
+The normal distribution is most often assumed to describe the random variation that occurs in the data from many scientific disciplines. However, most measurements actually show skewed distributions.  @limpertLognormalDistributionsSciences2001 discuss the log-normal distribution in scientific disciplines and how  diverse type of data, from lengths of latent periods of infectious diseases to distribution of mineral resources in the Earth's crust, including even body height--the quintessential example of a normal distribution--closely fit the log-normal distribution. 
+
+@limpertLognormalDistributionsSciences2001 point out that because a random variable that results from multiplying many independent variables has an approximate log-normal distribution,  the most basic indicator of the importance of the log-normal distribution may be very general: Chemistry and physics are fundamental in life, and the prevailing operation in the laws of these disciplines is multiplication rather than addition. 
+
+Furthermore, at many physiological and anatomical levels in the brain, the distribution of numerous parameters is in fact strongly skewed with a heavy tail, suggesting that skewed (typically log-normal) distributions are fundamental to structural and functional brain organization. This might be explained given that the majority of interactions in highly interconnected systems, especially in biological systems, are multiplicative and synergistic rather than additive [@buzsakiLogdynamicBrainHow2014].
+
+Does the log-normal distribution make sense for \index{Response time} response times?
+It has been long noticed that the log-normal distribution often provides a good fit to response times
+distributions [@breeDistributionProblemsolvingTimes1975; @ulrichEffectsTruncationReaction1994]. 
+One advantage of assuming log-normally distributed response times (but, in fact, this is true for many skewed distributions) is that it entails that the standard deviation of the response time distribution will increase with the mean, as has been observed in empirical distributions of response times [@wagenmakersRelationMeanVariance2005]. Interestingly, it turns out that log-normal response times are also easily generated by certain process models. @ulrichInformationProcessingModels1993 show, for example, that models in which response times are determined by a series of processes cascading activation from an input level to an output level (usually passing through a number of intervening processing levels along the way) can generate log-normally distributed response times.
+
+
+
+
+## Prior predictive checks in R {#app-priorR}
+
+The following function is an edited version of the earlier  `normal_predictive_distribution` from the Box \@ref(thm:efficientpriorpd) in section \@ref(sec-priorpred); it has been edited to make it compatible with logistic regression and dependent on set size.
+
+As we did before, our custom function uses the `purrr` function `map2_dfr()`, which runs an efficient for-loop, iterating over two vectors (here `alpha_samples` and `beta_samples`), and builds a data frame with the output. 
+
+```{r}
+logistic_model_pred <- function(alpha_samples,
+                                beta_samples,
+                                set_size,
+                                N_obs) {
+  map2_dfr(alpha_samples, beta_samples,
+           function(alpha, beta) {
+             tibble(set_size = set_size,
+                    # center size:
+                    c_set_size = set_size - mean(set_size),
+                    # change the likelihood:
+                    # Notice the use of a link function
+                    # for alpha and beta
+                    theta = plogis(alpha + c_set_size * beta),
+                    correct_pred = rbern(N_obs, prob = theta))
+           },
+           .id = "iter") %>%
+    # .id is always a string and needs
+    # to be converted to a number
+    mutate(iter = as.numeric(iter))
+}
+```
+
+Let's assume 800 observations with 200 observation for each set size:
+```{r}
+N_obs <- 800
+set_size <- rep(c(2, 4, 6, 8), 200)
+```
+
+Now, iterate over plausible standard deviations of $\beta$  with the `purrr` function `map_dfr()`,  which iterates over one vector (here `sds_beta`), and also builds a data frame with the output. 
+
+
+```{r}
+alpha_samples <- rnorm(1000, 0, 1.5)
+sds_beta <- c(1, 0.5, 0.1, 0.01, 0.001)
+prior_pred <- map_dfr(sds_beta, function(sd) {
+  beta_samples <- rnorm(1000, 0, sd)
+  logistic_model_pred(alpha_samples = alpha_samples,
+                      beta_samples = beta_samples,
+                      set_size = set_size,
+                      N_obs = N_obs) %>%
+    mutate(prior_beta_sd = sd)
+})
+```
+
+Calculate the accuracy  for each one of the priors we want to examine, for each iteration, and for each set size.
+
+```{r, message = FALSE}
+mean_accuracy <-
+  prior_pred %>%
+  group_by(prior_beta_sd, iter, set_size) %>%
+  summarize(accuracy = mean(correct_pred)) %>%
+  mutate(prior = paste0("Normal(0, ", prior_beta_sd, ")"))
+```
+
+Plot the accuracy in Figure \@ref(fig:priors4beta) as follows.
+
+```{r priors4betacode}
+mean_accuracy %>%
+  ggplot(aes(accuracy)) +
+  geom_histogram() +
+  facet_grid(set_size ~ prior) +
+  scale_x_continuous(breaks = c(0, .5, 1))
+```
+
+It's sometimes more useful to look at the predicted differences in accuracy between set sizes. We calculate them as follows, and plot them in  Figure \@ref(fig:priors4beta2). 
+
+```{r}
+diff_accuracy <- mean_accuracy %>%
+  arrange(set_size) %>%
+  group_by(iter, prior_beta_sd) %>%
+  mutate(diff_accuracy = accuracy - lag(accuracy)) %>%
+  mutate(diffsize = paste(set_size, "-", lag(set_size))) %>%
+  filter(set_size > 2)
+```
+
+ 
+```{r priors4beta2code}
+diff_accuracy %>%
+  ggplot(aes(diff_accuracy)) +
+  geom_histogram() +
+  facet_grid(diffsize ~ prior) +
+  scale_x_continuous(breaks = c(-.5, 0, .5))
+```
+
+
