@@ -1,0 +1,360 @@
+# Advanced models with Stan - Extended
+
+
+## What does `target` do? {#app-target}
+
+We can exemplify how \index{\texttt{target}} `target` works with one hypothetical iteration of the sampler.
+
+```{r stannormaldoit, ref.label="stannormal", echo=FALSE, message = FALSE, results= "hide"}
+```
+
+```{r, echo = FALSE}
+## extract(fit_score)$lp__[1]
+mu <- extract(fit_score)$mu
+sigma <- extract(fit_score)$sigma
+addmu <- dnorm(x = mu[1], mean = 0, sd = 20, log = TRUE)
+addsigma <- dlnorm(x = sigma[1], mean = 3, sd = 1, log = TRUE)
+addY <- sum(dnorm(Y, mu[1], sigma[1], log = TRUE))
+curr <- addmu + log(sigma[1])
+h <- addY + log(sigma[1]) + addmu + addsigma
+```
+
+In every \index{Iteration} iteration where the sampler explores the posterior space, `mu` and `sigma` acquire different values (this is where the Stan algorithm stops the movement of the particle in the Hamiltonian space). Say that in an iteration, `mu = `r mu[1]` ` and `sigma = `r sigma[1]` `. Then the following happens in the \index{Model block} model block:
+
+1. At the beginning of the iteration, `target` is zero.
+2. The transformations that the sampler *automatically* does are taken into account. In our case, although `sigma` is constrained to be positive in our model,  inside Stan's sampler it is transformed to an \index{Unconstrained space} unconstrained space amenable to \index{Hamiltonian Monte Carlo} Hamiltonian Monte Carlo. That is, Stan samples from an auxiliary parameter that ranges from minus infinity to infinity, which is equivalent to `log(sigma)`. This auxiliary parameter is then exponentiated, when it is incorporated into our model. Because of the mismatch between the constrained parameter space that we defined and the unconstrained space that it is converted to by Stan, an adjustment to the unnormalized posterior is required and added *automatically*. The reasons for this requirement are somewhat complex and will be discussed in section \@ref(ch-custom). In this particular case, this \index{Adjustment} adjustment (which is the log absolute value of the \index{Jacobian determinant} Jacobian determinant), is equivalent to adding `log(sigma) = `r log(sigma[1])` ` to `target`.
+3. After `target += normal_lpdf(mu | 0, 20);`  the log of the density of $\mathit{Normal}(0,20)$ is evaluated at a given sample of mu (specifically `r mu[1]`) and this is added to `target`. In R, this would be `dnorm(x = `r mu[1] `, mean = 0, sd = 20, log = TRUE)`, which is equal to ` `r addmu` `. Thus, `target` should be ` `r addmu` + `r log(sigma[1])` = `r curr` `.
+4. After `target += lognormal_lpdf(sigma | 3, 1)`, we add the log of the density of $\mathit{LogNormal}(3,  1)$ evaluated at ` `r sigma[1]` ` to the previous value of the target. In R, this would be `dlnorm(x = `r sigma[1]` , mean = 3, sd = 1, log = TRUE)`, which is equal to ` `r addsigma` `. Thus, `target` should be updated to ` `r curr` + `r addsigma` = `r curr + addsigma` `.
+5. After each iteration of the for-loop in the model block, we add to the target the log density of $\mathit{Normal}( `r mu[1]`, `r sigma[1]`)$ evaluated at each of the values of Y. In R, this would be to add  `sum(dnorm(Y, `r mu[1]`, `r sigma[1]`, log = TRUE)) ` (which is equal to ` `r addY` `) to the current value of `target` ` `r curr + addsigma` + `r addY` = `r h` `.
+
+This means that for the coordinates [mu = `r mu[1]`, sigma = `r sigma[1]`], the height of the \index{Unnormalized posterior} unnormalized posterior would be the value `exp(target) =` $\exp( `r h` ) = `r exp(h)`$. Incidentally, the value of `target` is returned as `lp__` (log probability) in an object storing a fit model with Stan.
+
+It is possible to expose the value of `target`, by printing \index{\texttt{target}} `target()` inside a Stan model. The value of `target` after each iteration is named \index{\texttt{lp\_\_}} `lp__` in the Stan object. This can be useful for troubleshooting a problematic model.
+
+## Explicitly incrementing the log probability function \index{\texttt{target}} (`target`) vs. using the sampling or distribution `~` notation. {#app-tilde}
+
+In this book, we specify priors and likelihoods by explicitly incrementing the log-probability function using the following syntax:
+
+```
+target +=  pdf_name_lpdf(parameter | ...)
+```
+
+
+However, Stan also allows for specifying priors and likelihood with the so-called \index{Sampling notation} sampling or distribution statement notation with the following code.
+
+```
+parameter ~ pdf_name(..)
+```
+
+Confusingly enough a sampling statement does not perform any actual sampling, and it is meant to be a notational convenience.
+
+The following two lines of code lead to the same behavior in Stan with respect to parameter estimation. There is, nonetheless, an important difference between them.
+
+```
+x ~ normal(mu, sigma);
+target += normal_lpdf(x | mu, sigma);
+```
+
+The important difference is that the sampling notation (the notation with the $\sim$) will \index{Normalizing constant} *drop normalizing constants*. Consider the following formula that corresponds to the log-transformed PDF of a normal distribution:
+
+
+\begin{equation}
+-log(\sigma) - \frac{log(2 \pi)}{2} - \frac{(x-\mu)^2}{2 \sigma^2}
+\end{equation}
+
+
+
+If one uses the sampling notation, Stan will ignore the terms that don't contain parameters, such as $- \frac{log(2 \pi)}{2}$. Depending on whether the variable $x$, the location $\mu$, and the scale $\sigma$ are data or parameters, Stan  will ignore different terms. For example, consider the case of a linear regression. The data $y$ (taking the role of $x$ in the previous equation) is assumed to be normally distributed with a location ($\mu$) and scale ($\sigma$) to be estimated. In this case, only  $-\frac{log(2 \pi)}{2}$ can be dropped, because both $-log(\sigma)$ and $- \frac{(y-\mu)^2}{2 \sigma^2}$ contain parameters. Another example where different terms would be dropped is the case of assigning a normal prior distribution to a parameter $\theta$. Here, the location and scale ($\mu$ and $\sigma$) are data and $\theta$ takes the role of $x$ in the previous equation and acts as a parameter. This means that $-log(\sigma)$ is  a constant term that can be ignored, but not $- \frac{(\theta-\mu)^2}{2 \sigma^2}$ because it contains the parameter $\theta$.  Dropping \index{Constant term} constant terms does not affect parameter estimation because it only affects the unnormalized likelihood in the same way in all the parameter space. To make this more concrete, the whole plot in Figure \@ref(fig:up) will move up or down by some constant amount, and this won't affect the Hamiltonian dynamics that determine how we sample from the posterior.
+
+The advantage of the sampling notation is that it can be faster (when many terms are ignored), but the disadvantage is that (i) it is not compatible with the calculation of \index{Bayes factor} Bayes factor with \index{Bridge sampling} bridge sampling (see section \@ref(sec-stanBF) in chapter \@ref(ch-bf)), or the calculation of the log-likelihood for \index{Cross-validation} cross-validation (see chapter \@ref(ch-cv)), (ii) it misleads us into thinking that Stan is actually sampling the left term in the sampling statement, e.g., drawing $y$ from a normal distribution in the previous example, when in fact at each step the log-probability (`target`) is incremented based on the parameter values determined by Hamiltonian dynamics (as explained before), and (iii) it makes it less straightforward to transition to more complex models where the sampling notation cannot be used (as in, for example, mixture models in chapter \@ref(ch-mixture)).
+
+
+If one is not going to use Bayes factor with bridge sampling or cross-validation, the same speed advantage of the sampling notation can also be achieved by incrementing the log-probability with  \index{Log-unnormalized probability density} log-unnormalized probability density or mass functions (functions ending with \index{\texttt{\_lupdf}} `_lupdf` or \index{\texttt{\_lupmf}} `_lupmf`). The previous example would be translated into the following:
+
+
+```
+target += normal_lupdf(y | mu, sigma);
+```
+
+
+
+## An alternative R interface to Stan: `cmdstanr` {#app-cmdstanr}
+
+At the time of writing this, there are two major nuisances with `rstan`, (i) the R code interfaces directly with C++ creating installation problems in many systems, (ii) `rstan` releases lag behind Stan language releases considerably preventing the user from taking advantage of the latest features of Stan. The package `cmdstanr` (https://mc-stan.org/cmdstanr/) is a lightweight interface to Stan for R that solves these problems.
+The downside (at the moment of writing this) is that, being lightweight, some functionality of `rstan` is lost, such as looking up functions with \index{\texttt{lookup}} `lookup()`,  exposing functions with \index{\texttt{expose\_stan\_function}} `expose_stan_function()`, as well as using the fitted model with the \index{\texttt{bridgesampling}} `bridgesampling` package to generate Bayes factors. Furthermore, the package `cmdstanr` is currently under development and the \index{Application programming interface} application programming interface \index{API} (API) might still change. However, the user interested in an easy (and painless) installation and the latest features of Stan might find it useful.
+
+Once `cmdstanr` is installed, we can use it as follows:
+
+First create a new `CmdStanModel` object from a file containing a Stan program using \index{\texttt{cmdstan\_model}} `cmdstan_model()`
+
+```{r}
+normal <- system.file("stan_models",
+                      "normal.stan",
+                      package = "bcogsci")
+normal_mod <- cmdstan_model(normal)
+```
+
+The object `normal_mod` is an \index{R6 reference object} R6 reference object (https://r6.r-lib.org/). This class of object behaves similarly to objects in object oriented programming languages, such as python. Methods are accessed using  `$` (rather than `.` as in python).
+
+To sample, use the `$sample()` method. The data argument accepts a list (as we used in `stan()` from `rstan`). However, many of the arguments of  `$sample` have different names than the ones used in `stan()` from the  `rstan` package:
+
+```{r, message = FALSE, results = "hide"}
+lst_score_data <- list(y = Y, N = length(Y))
+fit_normal_cmd <- normal_mod$sample(data = lst_score_data,
+                                    seed = 123,
+                                    chains = 4,
+                                    parallel_chains = 4,
+                                    iter_warmup = 1000,
+                                    iter_sampling = 1000)
+```
+
+To show the posterior summary, access the method \index{\texttt{\$summary()}} `$summary()` of the object `fit_normal_cmd`.
+
+```{r, eval = FALSE}
+fit_normal_cmd$summary()
+```
+
+Access the samples of `fit_normal_cmd` using \index{\texttt{\$draws()}} `$draws()`.
+
+```{r, eval = FALSE}
+fit_normal_cmd$draws(variables = "mu")
+```
+
+The vignette of https://mc-stan.org/cmdstanr/ shows more use cases, and how the samples can be transformed into other formats (data frame, matrix, etc.) together with the package `posterior` (https://mc-stan.org/cmdstanr/).
+
+
+
+## Matrix, vector, or \index{\texttt{array}} array in Stan? {#app-stancontainers}
+
+Stan contains three basic \index{Linear algebra type} linear algebra types, `vector`, \index{\texttt{row\_vector}} `row_vector`, and `matrix`. But Stan also allows for building arrays of any dimension from any type of element (integer,  real, etc.). This means that there are several ways to define one-dimensional N-sized containers of real numbers,
+
+```
+array[N] real a;
+vector[N] a;
+row_vector[N] a;
+```
+
+as well as, two-dimensional N1$\times$N2-sized containers of real numbers:
+
+```
+array[N1, N2] real m;
+matrix[N1, N2] m;
+array[N1] vector[N2] b;
+array[N1] row_vector[N2] b;
+```
+
+These distinctions affect either what we can do with these variables, or the speed of our model, and sometimes are interchangeable. Matrix algebra is only defined for (row) vectors and matrices, that is we cannot multiply arrays. The following line requires all the one-dimensional containers (`p_size` and `c_load`) to be defined as vectors of the same size (or all as row vectors):
+
+```
+p_size = alpha + c_load * beta;
+```
+
+Many "vectorized" operations are also valid for arrays, that is, `normal_lpdf`, accepts (row) vectors (as we did in our code) or arrays as in the next example. There is of course no point in converting a vector to an array as follows, but this shows that Stan allows both type of one-dimensional \index{Container} containers.
+
+```
+array[N] real mu = to_array_1d(alpha + c_load * beta);
+target += normal_lpdf(p_size | mu, sigma);
+```
+
+
+By contrast, the outcome of "vectorized" \index{Pseudorandom number generator} pseudorandom number generator (`_rng`) functions can only be stored in an array. The following example shows the only way to vectorize this type of function:
+
+```
+array[N] real p_size_pred = normal_rng(alpha + c_load * beta,
+                                       sigma);
+```
+
+Alternatively, one can always use a \index{For-loop} for-loop, and it won't matter if `p_size_pred` is an array or a vector:
+
+```
+vector[N] p_size_pred;
+for(n in 1:N)
+    p_size_pred[n] = normal_rng(alpha + c_load[n] * beta, sigma);
+```
+
+
+
+See also Stan's user's guide section on matrices, vector, and arrays [@Stan2023, Chapter 18 of the User's guide].
+
+
+
+## A simple non-centered parameterization {#app-noncenterparam}
+
+The sampler can explore the parameter space more easily if its step size is appropriate for all the parameters. This is achieved when there are no strong  dependencies between parameters. We want to assume the following.
+
+\begin{equation}
+\mathbf{u}_{2} \sim \mathit{Normal}(0, \tau_{u_2})
+\end{equation}
+
+where $\mathbf{u}_{2}$ is the column vector of $u_{i,2}$'s. The index $i$ refers to the subject id.
+
+We can transform a vector $v$ into $z$-scores as follows.
+
+\begin{equation}
+\mathbf{z}_{v} =\frac{\mathbf{v} - mean(\mathbf{v})}{SD(\mathbf{v})}
+\end{equation}
+
+Transforming the parameter $u_2$ into $z$-scores amounts to centering it, so we can call this a \index{Centered parameterization} centered parameterization.
+
+\begin{equation}
+\mathbf{z}_{u_2} =\frac{\mathbf{u}_{2} - 0}{\tau_{u_2}}
+\end{equation}
+
+where 
+\begin{equation}
+\mathbf{z}_{u_2} \sim \mathit{Normal}(0, 1)
+\end{equation}
+
+Now $\mathbf{z}_{u_2}$ is easier to sample because it doesn't depend on other parameters (in particular, it is no longer conditional on $\tau$) and its scale is $1$. Once we have sampled this centered parameter, we can derive the actual parameter we care about by carrying out the inverse operation, which is called a \index{Non-centered parameterization} non-centered parameterization:
+
+\begin{equation}
+\mathbf{u}_{2} = \mathbf{z}_{u_2} \cdot \tau_{u_2}
+\end{equation}
+
+A question that might be raised here is whether using a non-centered parameterization is always a good idea.  @betancourt2013hamiltonian point out that the extremeness of the dependency depends on the amount of data, and the efficacy of the parameterization depends on the strength of the data (on how informative the data is). When there is enough data, this parameterization is unnecessary and it may be more efficient to use the centered parameterization. However, cases where there is enough data to render this parameterization useless might also be cases where the partial pooling of the hierarchical models may not be needed in the first place. Although data from conventional lab experiments in psychology, psycholinguistics, and related areas seem to benefit from the non-centered parameterization, the jury is still out for larger data sets with thousands of subjects from crowdsourcing websites.
+
+
+
+## Cholesky factorization {#app-cholesky}
+
+First, some definitions that we will need below. A matrix is square if the number of rows and columns is identical. A \index{Square matrix} square matrix $A$ is symmetric if $A^T = A$, i.e., if transposing the matrix gives the matrix back. Suppose that $A$ is a known matrix with real numbers. If $\boldsymbol{x}$ is a vector of variables with length $p$ (a $p\times 1$ matrix), then $x^T A x$ is called a \index{Quadratic form} quadratic form in $x$ ($x^T A x$  will be a scalar, $1\times 1$). If $x^TAx>0$ for all $x$, then $A$ is a \index{Positive definite matrix} positive definite matrix. If  $x^TAx\geq 0$ for all $x\neq0$, then $A$ is positive semi-definite.
+
+We encountered correlation matrices first in section \@ref(sec-generatebivariatedata). A correlation matrix is always symmetric, has ones along the diagonal, and real values ranging between $-1$ and $1$ on the off-diagonals. Given a \index{Correlation matrix} correlation matrix $\mathbf{R_u}$, we can decompose it into a \index{Lower triangular matrix} lower triangular matrix $\mathbf{L_u}$ such that $\mathbf{L_u}\mathbf{L_u}^T=\mathbf{R_u}$. The matrix $\mathbf{L_u}$ is called the \index{Cholesky factor} Cholesky factor of $\mathbf{R_u}$. Intuitively, you can think of $\mathbf{L_u}$ as the matrix equivalent of the square root of $\mathbf{R_u}$. More details on the Cholesky factorization can be found in @Gentle.
+
+\begin{equation}
+\mathbf{L_u}  =
+{\begin{pmatrix} 
+L_{11} & 0 \\ 
+L_{21}  & L_{22}
+\end{pmatrix}}
+\end{equation}
+
+
+For a model without a correlation between adjustments for the intercept and slope, we assumed that adjustments $u_{1}$ and $u_{2}$ were generated by two independent normal distributions. But now we want to allow the possibility that the adjustments can have a non-zero correlation. We can use the Cholesky factorization to generate \index{Correlated random variables} correlated random variables in the following way.
+
+1.  Generate uncorrelated vectors, $z_{u_1}$ and $z_{u_2}$, for each vector of
+    adjustments $u_1$ and $u_2$, as sampled from $\mathit{Normal}(0,1)$:
+
+  $$z_{u_1} \sim \mathit{Normal}(0,1)$$
+  $$z_{u_2} \sim \mathit{Normal}(0,1)$$
+
+2. By multiplying the Cholesky factor with the $z$'s, generate a matrix that contains two row vectors of correlated variables (with standard deviation $1$).
+
+
+  $$
+  \mathbf{L_u}\cdot \mathbf{z_u}  =
+  {\begin{pmatrix} 
+  L_{11} & 0 \\ 
+  L_{21}  & L_{22}
+  \end{pmatrix}}
+  {\begin{pmatrix}
+  z_{u_{1,subj=1}} & z_{u_{1,subj=2}} & ... & z_{u_{1,subj=N_{subj}}} \\
+  z_{u_{2,subj=1}} & z_{u_{2,subj=2}} & ... & z_{u_{2,subj=N_{subj}}}
+  \end{pmatrix}}
+  $$
+
+
+  $$
+  =
+  {\begin{pmatrix}
+  L_{11} \cdot z_{u_{1,1}} + 0 \cdot z_{u_{2,1}} &   ... & L_{11} \cdot z_{u_{1,N_{subj}}} + 0 \cdot z_{u_{2,1}}  \\
+  L_{21} \cdot z_{u_{1,1}} + L_{22} \cdot z_{u_{2,1}} & ... & L_{11} \cdot z_{u_{1,N_{subj}}} + L_{22} \cdot z_{u_{2,N_{subj}}}
+  \end{pmatrix}}
+  $$
+
+   A very informal explanation of why this works is that we are making the
+variable that corresponds to the slope to be a function of a scaled version of
+the intercept.
+
+3. The last step is to scale the previous matrix to the desired standard deviation. We define the diagonalized matrix \index{$diag\_matrix$} $diag\_matrix(\tau_u)$ as before:
+
+  $$
+  {\begin{pmatrix} 
+  \tau_{u_1} & 0 \\ 
+  0  & \tau_{u_2}
+  \end{pmatrix}}
+  $$
+
+   Then pre-multiply it by the correlated variables with standard deviation 1 from before:
+
+  $$\mathbf{u} = diag\_matrix(\tau_u) \cdot \mathbf{L_u}\cdot \mathbf{z_u} = $$
+
+  $$ 
+  {\begin{pmatrix} 
+  \tau_{u_1} & 0 \\ 
+  0  & \tau_{u_2}
+  \end{pmatrix}}
+  {\begin{pmatrix}
+  L_{11} \cdot z_{u_{1,1}}  & ...  \\
+  L_{21} \cdot z_{u_{1,1}} + L_{22} \cdot z_{u_{2,1}} & ... 
+  \end{pmatrix}}
+  $$
+
+  $$ 
+  {\begin{pmatrix}
+  \tau_{u_1} \cdot L_{11} \cdot z_{u_{1,1}}  & \tau_{u_1} \cdot L_{11} \cdot  z_{u_{1,2}} & ...  \\
+  \tau_{u_2} \cdot (L_{21} \cdot z_{u_{1,1}} + L_{22} \cdot z_{u_{2,1}}) & \tau_{u_2} \cdot (L_{21} \cdot  z_{u_{1,2}} + L_{22} \cdot z_{u_{2,2}}) & ... 
+  \end{pmatrix}}
+  $$
+
+ It might be helpful to see how one would implement this in R:
+
+
+   Let's assume a correlation of $0.8$.
+
+```{r}
+rho_u <- 0.8
+# Correlation matrix
+(R_u <- matrix(c(1, rho_u, rho_u, 1), ncol = 2))
+
+# Cholesky factor:
+# (Transpose it so that it looks the same as in Stan)
+(L_u <- t(chol(R_u)))
+# Verify that we recover R_u,
+# Recall that %*% indicates matrix multiplication
+L_u %*% t(L_u)
+```
+
+1. Generate uncorrelated z from a standard normal distribution assuming only 10 subjects.
+
+```{r, R.options = list(width = 60)}
+N_subj <- 10
+(z_u1 <- rnorm(N_subj, 0, 1))
+(z_u2 <- rnorm(N_subj, 0, 1))
+```
+
+2. Create matrix of correlated parameters.
+  
+First, create a matrix with the uncorrelated parameters:   
+   
+```{r, R.options = list(width = 60)}
+# matrix z_u
+(z_u <- matrix(c(z_u1, z_u2), ncol = N_subj, byrow = TRUE))
+```
+
+Then, generate correlated parameters by pre-multiplying the $\mathbf{z}_u$ matrix with $\mathbf{L}_u$.
+
+```{r}
+L_u %*% z_u
+```
+3. Use the following diagonal matrix to scale the z_u.
+
+```{r, R.options = list(width = 60)}
+tau_u1 <- 0.2
+tau_u2 <- 0.01
+(diag_matrix_tau <- diag(c(tau_u1,  tau_u2)))
+```
+
+4. Finally, generate the adjustments for each subject u:
+
+```{r, R.options = list(width = 60)}
+(u <- diag_matrix_tau %*% L_u %*% z_u)
+
+# The rows are correlated, approximately 0.8
+cor(u[1, ], u[2, ])
+
+# The variance components can be recovered as well:
+sd(u[1, ])
+sd(u[2, ])
+```
+
