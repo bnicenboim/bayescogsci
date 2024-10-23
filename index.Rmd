@@ -4,6 +4,7 @@ author: "Bruno Nicenboim, Daniel J. Schad, and Shravan Vasishth"
 date: "`r Sys.Date()`"
 knit: "bookdown::render_book"
 documentclass: krantz
+classoption: krantz2
 bibliography: ["BayesCogSci.bib", "packages.bib"]
 biblio-style: apalike
 link-citations: yes

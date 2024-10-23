@@ -10,3 +10,6 @@ language:
   ui:
     edit: "Edit"
     chapter_name: "Chapter "
+rmd_files:
+  html: ["index.Rmd","00-author.Rmd", "01-introductionBayesCogSci.Rmd", "02-introBDA.Rmd", "03-compbayes.Rmd", "04-regressions.Rmd", "05-hierarchical.Rmd", "06-priors.Rmd", "07-workflow_abbrev.Rmd", "08-coding.Rmd", "09-coding2x2.Rmd", "10-introstan.Rmd", "11-complexstan.Rmd", "12-customlik.Rmd", "13-REMA-ME.Rmd", "14-comparison.Rmd", "15-BF.Rmd", "16-CV.Rmd", "17-compmod.Rmd", "18-MPT.Rmd", "19-mixtures.Rmd", "20-lognormalrace.Rmd", "21-closing.Rmd", "22-app-ppd.Rmd", "99-references.Rmd"]
+  latex: ["index.Rmd","00-author.Rmd", "01-introductionBayesCogSci.Rmd", "02-introBDA.Rmd", "03-compbayes.Rmd", "04-regressions.Rmd", "05-hierarchical.Rmd", "06-priors.Rmd", "07-workflow_abbrev.Rmd", "08-coding.Rmd", "09-coding2x2.Rmd", "10-introstan.Rmd", "11-complexstan.Rmd", "12-customlik.Rmd", "13-REMA-ME.Rmd", "14-comparison.Rmd", "15-BF.Rmd", "16-CV.Rmd", "17-compmod.Rmd", "18-MPT.Rmd", "19-mixtures.Rmd", "20-lognormalrace.Rmd", "21-closing.Rmd", "99-references.Rmd"]

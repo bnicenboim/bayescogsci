@@ -363,47 +363,11 @@ toc()
 prior_pred
 ```
 
-\Begin{extra}
-<div class="extra">
-
-```{theorem, efficientpriorpd}
-**A more efficient function for generating prior predictive distribution**
-```
-
-A more efficient function can be created in the following way using the \index{\texttt{map\_2dfr}} `map2_dfr()` function from the \index{\texttt{purrr package}} `purrr` package. This function yields an approximately 10-fold increase in speed. Although the distributions should be the same with both functions, the specific numbers in the tables won't be, due to the randomness in the process of sampling.
-
-The `purrr` function \index{\texttt{map2\_dfr}} `map2_dfr()` (which works similarly to the base R function `lapply()` and `Map()`) essentially runs a for-loop, and builds a data frame with the output. It iterates over the values of two vectors (or lists) simultaneously, here, `mu_samples` and `sigma_samples`  and, in each iteration, it applies a function to each value of the two vectors, here, `mu` and `sigma`. The output of each function is a data frame (or tibble in this case) with `N_obs` observations which is bound in a larger data frame at the end of the loop. Each of these data frames bound together represents an iteration in the simulation, and we identify the iterations by setting `.id = "iter"`.
-
-Although this method for generating prior predictive distributions is a bit involved, it has an advantage in comparison to the more straightforward use of `predict()` (or `posterior_predict()`, which can also generate prior predictions) together with setting `sample_prior = "only"` in the `brms` model (as we will do in section \@ref(sec-lognormal)). Our method of generating prior predictive distributions does not depend on Stan's sampler, which means that no matter the number of iterations in our simulation or how uninformative our priors, there will never be any convergence problems. 
-
 ```{r, echo = FALSE}
 set.seed(123)
+#runs the efficient ppd from the appendix
+<<efficient-ppd>>
 ```
-```{r}
-library(purrr)
-# Define the function:
-normal_predictive_distribution <- function(mu_samples,
-                                           sigma_samples,
-                                           N_obs) {
-  map2_dfr(mu_samples, sigma_samples, function(mu, sigma) {
-    tibble(trialn = seq_len(N_obs),
-           t_pred = rnorm(N_obs, mu, sigma))
-  }, .id = "iter") %>%
-    # .id is always a string and
-    # needs to be converted to a number
-    mutate(iter = as.numeric(iter))
-}
-# Test the timing:
-tic()
-prior_pred <-
-  normal_predictive_distribution(mu_samples = mu_samples,
-                                 sigma_samples = sigma_samples,
-                                 N_obs = N_obs)
-toc()
-```
-\End{extra}
-</div>
-
 
 Figure \@ref(fig:priorpred-simple) shows the first 18 samples of the prior predictive distribution (i.e., 18 independently generated prior predicted data sets) with the code below.
 
