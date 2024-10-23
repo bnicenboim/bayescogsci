@@ -1,0 +1,84 @@
+# Evidence synthesis and measurements with error - Extended
+## What happens if we set `sigma = TRUE`? {#app-sigmatrue}
+
+If we set `sigma = TRUE`, we won't be able to get estimates for $\zeta_{n}$, since they are handled implicitly. The model presented formally in Equation \@ref(eq:ma0) is equivalent to the following one in Equation \@ref(eq:ma2).  A critical difference is that $\zeta_n$ does not appear any more.
+
+\begin{equation}
+\begin{aligned}
+\text{effect}_n \sim &\mathit{Normal}(\zeta, \sqrt{\tau^2 + SE_n^2} )\\
+\zeta \sim &\mathit{Normal}(0,100)\\
+ \tau \sim &\mathit{Normal}_+(0,100)
+\end{aligned}
+(\#eq:ma2)
+\end{equation}
+
+This works because of the following property of normally distributed random variables:
+
+If $X$ and $Y$ are two independent random variables, and
+
+\begin{equation}
+\begin{aligned}
+X &\sim \mathit{Normal}(\mu_X, \sigma_X)\\
+Y &\sim \mathit{Normal}(\mu_Y, \sigma_Y)
+\end{aligned}
+(\#eq:xy)
+\end{equation}
+
+then, $Z$, the sum of these two random variables is:
+
+\begin{equation}
+Z = X + Y
+(\#eq:Zsum0)
+\end{equation}
+
+The distribution of $Z$ has the following form:
+
+\begin{equation}
+Z \sim\mathit{Normal}\left(\mu_X + \mu_Y, \sqrt{\sigma_X^2 + \sigma_Y^2}\right)
+(\#eq:Zsum)
+\end{equation}
+
+In our case, let
+
+\begin{equation}
+\begin{aligned}
+U_{n} &\sim \mathit{Normal}(0 , SE_n)\\
+\zeta_n &\sim \mathit{Normal}(\zeta, \tau)
+\end{aligned}
+(\#eq:uzeta)
+\end{equation}
+
+Analogous to Equations \@ref(eq:Zsum0) and \@ref(eq:Zsum), effect$_n$ can be expressed as a sum of two independent random variables:
+
+\begin{equation}
+\text{effect}_n =  U_n + \zeta_n
+\end{equation}
+
+The distribution of effect$_n$ will be
+
+\begin{equation}
+\text{effect}_n \sim\mathit{Normal}\left(\zeta, \sqrt{SE^2 + \tau^2}\right) (\#eq:ma2-again)
+\end{equation}
+
+We can fit this in `brms` as follows. In this model specification, one should not include the + `(1 | study_id)`, and the prior for $\tau$ should now be specified for \index{\texttt{sigma}} `sigma`.
+
+```{r sbisigma ,message = FALSE}
+priors2 <- c(prior(normal(0, 100), class = Intercept),
+             prior(normal(0, 100), class = sigma))
+fit_sbi_sigma <- brm(effect | resp_se(`SE`, sigma = TRUE) ~ 1,
+                     data = df_sbi,
+                     prior = priors2,
+                     control = list(adapt_delta = .99,
+                                    max_treedepth = 10))
+```
+
+There are slight differences with `fit_sbi` due to the different parameterization and the sampling process, but the results are very similar:
+
+```{r, eval = TRUE}
+posterior_summary(fit_sbi_sigma,
+                  variable = c("b_Intercept", "sigma"))
+```
+
+If we are not interested in the underlying effects in each study, this parameterization of the meta-analysis can be faster and more robust (i.e., it has less potential convergence issues). A major drawback is that we can no longer display a forest plot as we do in Figure \@ref(fig:forest).
+
+
