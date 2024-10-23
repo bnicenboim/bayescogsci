@@ -520,46 +520,7 @@ ggplot(df_rank_bad, aes(x = rank)) +
 
 In the previous sections, we have used only rank histograms. Even though histograms are a very intuitive means of visualization to assess model correctness,  they might not be sensitive enough for small deviations [@talts2018validating]. Other visualizations might be better suited. Another limitation of histograms is that they are sensitive to the number of bins [@sailynoja2022graphical]. One could bin the histograms multiple times, but this approach is difficult to interpret when there are many parameters, and can be vulnerable to multiple testing biases [@talts2018validating]. One alternative to rank histograms is visualizations based on the  \index{Empirical cumulative density function of the ranks} empirical cumulative density function of the ranks. This is briefly presented in Box \@ref(thm:sbc).
  
-\newpage
 
-\Begin{extra}
-<div class="extra">
-
-```{theorem, sbc}
-**Different rank visualizations and the `SBC` package.**
-```
-
-Implementing the simulation-based calibration algorithm "by hand" introduces a new source of potential errors. Fortunately, the R package  \index{SBC} `SBC` [@R-SBC] provides tools to validate a Stan model (or any sampling algorithm) by allowing us to run simulation-based calibrations easily.
-The package is in active development at the moment^[Even though the package is already fully functional, function names and arguments might change by the time this book is published.] and can be installed with the following command.
-
-```{r,eval = FALSE}
-remotes::install_github("hyunjimoon/SBC")
-```
-
-One of the main advantages of this package is that it provides several ways to visualize the results of the simulation-based calibration procedure; see https://hyunjimoon.github.io/SBC/. Figure \@ref(fig:sbchist) shows rank histograms produced by `SBC` of a correct model and several different incorrect models. An alternative to rank histograms is to use an \index{Empirical cumulative distribution function} empirical cumulative distribution function (ECDF)-based method, as proposed by @sailynoja2022graphical. The idea behind this method is that if the ranks produced by the simulation-based calibration algorithm are uniform the ECDF of the ranks should be close to the CDF of a uniform distribution. Figure \@ref(fig:sbcecdf) shows the difference between the ECDF of the ranks and the CDF of a uniform distribution together with 95% confidence bands (this is the default in the `SBC` package) for a correct model and different incorrect ones.
-
-```{r, echo = FALSE}
-set.seed(123)
-library(SBC)
-res <- SBC_example_results("visualizations", n_sims = 200)
-```
-
-(ref:sbchist) Rank histograms produced by the R package `SBC` showing the outcome one would expect for a correct model and for several different incorrect ones together with 95% confidence bands (these are the default bands in the package).
-
-```{r sbchist, fig.cap="(ref:sbchist)", echo = FALSE, fig.pos = "H", out.extra = '', fig.height = 2.8}
-plot_rank_hist(res)
-```
-
-
-(ref:sbcecdf) Difference between the perfectly uniform CDF and empirical cumulative distribution function  (ECDF) of the ranks produced by the `SBC` R package together with 95% confidence bands. The figure shows the outcome one would expect for a correct model and for several different incorrect ones.
-
-
-```{r sbcecdf, fig.cap="(ref:sbcecdf)", echo = FALSE, fig.pos = "H", out.extra = '', fig.height = 2.8}
-plot_ecdf_diff(res) + theme(legend.position = "bottom")
-```
-
-\End{extra}
-</div>
 
 Even though simulation-based calibration is a comprehensive approach to test model correctness, it has several drawbacks, regardless of the means of visualization:
 
