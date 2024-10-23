@@ -1,8 +1,3 @@
----
-output: html_document
-editor_options: 
-  chunk_output_type: console
----
 # Bayes factors  {#ch-bf}
 
 This chapter is based on a longer manuscript available on arXiv: @SchadEtAlBF; our terminology used here is based on the conventions used in that paper. A published version of the arXiv article appears in Schad, D. J., Nicenboim, B., Bürkner, P. C., Betancourt, M., and Vasishth, S. (2022). Workflow techniques for the robust use of Bayes factors. Psychological Methods. In this chapter, whenever we refer to the published version of the arXiv paper, we mean this article.
@@ -218,24 +213,6 @@ BF_{12} = \frac{P(\boldsymbol{y} \mid \mathcal{M}_1)}{P(\boldsymbol{y} \mid \mat
 \end{equation}
 
 $BF_{12}$ indicates the extent to which the data are more likely under $\mathcal{M}_1$ over $\mathcal{M}_2$, or in other words, the relative evidence that we have for $\mathcal{M}_1$ over $\mathcal{M}_2$. Values larger than one indicate evidence in favor of $\mathcal{M}_1$, smaller than one indicate evidence in favor of $\mathcal{M}_2$, and values close to one indicate that the evidence is inconclusive. This model comparison does not depend on a specific parameter value. Instead, all possible prior parameter values are taken into account simultaneously. This is in contrast with the likelihood ratio test, as it is explained in Box \@ref(thm:likR).
-
-\Begin{extra}
-<div class="extra">
-
-```{theorem, likR}
-**The likelihood ratio vs the Bayes factor.**
-```
-
-
-The \index{Likelihood ratio test} likelihood ratio test is a very similar, but \index{Frequentist approach} frequentist, approach to model comparison and hypothesis testing, which also compares the likelihood for the data given two different models. We show this here to highlight the similarities and differences between frequentist and Bayesian hypothesis testing. In contrast to the Bayes factor, the likelihood ratio test depends on the "best" (i.e., the maximum likelihood) estimate for the model parameter(s), that is, the model parameter $\theta$ occurs on the right side of the semi-colon in the equation for each likelihood. (An aside: we do not use a \index{Conditional statement} conditional statement, i.e., the vertical bar, when talking about likelihood in the frequentist context; instead, we use a semi-colon. This is because the statement $f(y\mid \theta)$ is a conditional statement, implying that $\theta$ has a probability density function associated with it; in the frequentist framework, parameters cannot have a pdf associated with them, they are assumed to have fixed, point values.)
-
-\begin{equation}
-LikRat = \frac{P(\boldsymbol{y} ; \boldsymbol{\hat{\Theta}_1}, \mathcal{M}_1)}{P(\boldsymbol{y} ; \boldsymbol{\hat{\Theta}_2}, \mathcal{M}_2)}
-\end{equation}
-
-That means that in the likelihood ratio test, each model is tested on its ability to explain the data using this "best" estimate for the model parameter (here, the \index{Maximum likelihood estimate} maximum likelihood estimate $\hat{\theta}$). That is, the likelihood ratio test reduces the full range of possible parameter values to a \index{Point value} point value, leading to overfitting the model to the maximum likelihood estimate \index{MLE} (MLE). If the MLE badly misestimates the true value of the parameter (point value), due to \index{Type M error} Type M error [@gelmancarlin], we could end up with a "significant" effect that is just a consequence of this misestimation [it will not be consistently replicable; see @VasishthMertzenJaegerGelman2018 for an example]. By contrast, the Bayes factor involves range hypotheses, which are implemented via \index{Integral} integrals over the model parameter; that is, it uses marginal likelihoods that are averaged across all possible prior values of the model parameter(s). Thus, if, due to Type M error, the best point estimate (the MLE) for the model parameter(s) is not very representative of the possible values for the model parameter(s), then Bayes factors will be superior to the frequentist likelihood ratio test (see exercise  \@ref(exr:bf-logn)). An additional difference, of course, is that Bayes factors rely on priors for estimating each model's parameter(s), whereas the frequentist likelihood ratio test does not (and cannot) consider priors in the estimation of the best-fitting model parameter(s). As we show in this chapter, this has far-reaching consequences for Bayes factor-based model comparison.
-\End{extra}
-</div>
 
 
 
