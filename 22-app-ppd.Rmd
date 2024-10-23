@@ -526,3 +526,264 @@ diff_accuracy %>%
 ```
 
 
+
+## Finitely exchangeable random variables {#app-exch}
+
+Formally, we say that the random variables $Y_1,\dots,Y_N$ are finitely exchangeable if, for any set of particular outcomes of an experiment $y_1,\dots,y_N$, the probability $p(y_1,\dots,y_N)$ that we assign to these outcomes is unaffected by permuting the labels given to the variables. In other words, for any permutation $\pi(n)$, where $n=1,\dots,N$ ($\pi$ is a function that takes as input the positive integer $n$ and returns another positive integer; e.g., the function takes a subject indexed as 1, and returns index 3), we can reasonably assume that $p(y_1,\dots,y_N)=p(y_{\pi(1)},\dots,y_{\pi(N)})$. A simple example is a coin tossed twice. Suppose the first coin toss is $Y_1=1$, a heads, and the second coin toss is $Y_2=0$, a tails. If we are willing to assume that the probability of getting one heads is unaffected by whether it appears in the first or the second toss, i.e., $p(Y_1=1,Y_2=0)=p(Y_1=0,Y_2=1)$, then we assume that the indices are exchangeable.
+
+Some important connections and differences between exchangeability and the frequentist concept of \index{Independent and identically distributed} independent and identically distributed (iid):
+
+- **If the data are \index{Exchangeable} exchangeable, they are not necessarily iid**. For example, suppose you have a box with one black ball and two red balls in it. Your task is to repeatedly draw (without replacement) a ball at random. Suppose that in your first draw, you draw one ball and get the black ball. The probability of getting a black ball in the next two draws is now $0$. However, if in your first draw you had retrieved a red ball, then there is a non-zero probability of drawing a black ball in the next two draws. The outcome in the first draw affects the probability of subsequent draws--they are not independent. But the sequence of random variables is exchangeable. To see this, consider the following: If a red ball is drawn, count it as a $0$, and if a black ball is drawn, then count it as $1$. Then, the three possible outcomes and the probabilities are
+
+   - $1,0,0$; $P(X_1=1,X_2=0,X_3=0) = \frac{1}{3} \times 1 \times 1=\frac{1}{3}$
+   - $0,1,0$  $P(X_1=0,X_2=1,X_3=0) = \frac{2}{3} \times \frac{1}{2} \times 1=\frac{1}{3}$
+   - $0,0,1$  $P(X_1=0,X_2=0,X_3=1) = \frac{2}{3} \times \frac{1}{2} \times 1=\frac{1}{3}$
+
+   The random variables $X_1,X_2,X_3$ can be permuted and the joint probability distribution (technically, the PMF) is the same in each case.
+
+- **If the data are exchangeable, then they are identically distributed**. For example, in the box containing one black ball and two red balls, suppose we count the draw of a black ball as a $1$, and the draw of a red ball as a $0$. Then the probability $P(X_1=1)=\frac{1}{3}$ and $P(X_1=0)=\frac{2}{3}$; this is also true for $X_2$ and $X_3$. That is, these random variables are identically distributed.
+
+- **If the data are iid in the standard frequentist sense, then they are exchangeable**. For example, suppose you have $i=1,\dots,n$ instances of a random variable $X$ whose PDF is $f(x)$. Suppose also that $X_i$ are iid. The joint PDF (this can be discrete or continuous, i.e., a PMF or PDF) is
+
+   \begin{equation}
+   f_{X_1,\dots,X_n}(x_1,\dots,x_n) = f(x_1) \cdot \dots \cdot f(x_n)
+   \end{equation}
+
+   Because the terms on the right-hand side can be permuted, the labels can be permuted on any of the    $x_i$. This means that $X_1,\dots,X_n$ are exchangeable.
+
+
+
+## Some important (and sometimes confusing) points: {#app-hierarchical}
+
+* Why does $u$ have a mean of $0$?
+
+   Because we want $u$ to capture only differences between subjects, we could achieve the same by assuming the following relationship between the likelihood and the intercept and slope:
+
+   \begin{equation}
+   \begin{aligned}
+   signal_n &\sim \mathit{Normal}(\alpha_{subj[n]} + \beta_{subj[n]} \cdot c\_cloze_n, \sigma)  \\
+   \alpha_i &\sim \mathit{Normal}(\alpha,\tau_{u_1})\\
+   \beta_i &\sim \mathit{Normal}(\beta,\tau_{u_2})\\
+   \end{aligned}
+   \end{equation}
+
+   In fact, this is another common way to write the model.
+
+* Why do the adjustments $u$ have a normal distribution?
+
+The adjustments $u$ are conventionally assumed to come from a normal distribution. One motivation for choosing a normal distribution here is that if we don't know anything about the distribution besides its mean and variance, the normal distribution is the most conservative assumption [see chapter 9 of @mcelreath2015statistical].
+
+
+## The Matrix Formulation of Hierarchical Models (the Laird-Ware form) {#app-matrixHierachicalModel}
+
+We have been writing linear models as follows; where $n$ refers to the row id in the data frame.
+
+\begin{equation}
+y_n \sim \mathit{Normal}(\alpha + \beta\cdot x_n)
+\end{equation}
+
+This simple linear model can be re-written as follows:
+
+\begin{equation}
+y_n = \alpha + \beta\cdot x_n + \varepsilon_n
+\end{equation}
+
+where $\varepsilon_n \sim \mathit{Normal}(0, \sigma)$.
+
+The model does not change if $\alpha$ is multiplied by $1$:
+
+\begin{equation}
+y_n = \alpha\cdot 1 + \beta\cdot x_n + \varepsilon_n
+\end{equation}
+
+The above is actually $n$ linear equations, and can be written compactly in matrix form:
+
+\begin{equation}
+{\begin{pmatrix}
+    y_1\\
+    y_2\\
+    \vdots \\
+    y_n\\
+   \end{pmatrix}}
+ =
+ {\begin{pmatrix}
+    1 & x_1\\
+    1 & x_2\\
+    \vdots & \vdots \\
+    1 & x_n\\
+   \end{pmatrix}}
+{\begin{pmatrix}
+    \alpha\\
+    \beta \\
+   \end{pmatrix}}
++
+ {\begin{pmatrix}
+    \varepsilon_1 \\
+    \varepsilon_2 \\
+    \vdots \\
+     \varepsilon_n \\
+   \end{pmatrix}}
+\end{equation}
+
+Consider this matrix in the above equation:
+
+\begin{equation}
+{\begin{pmatrix}
+    1 & x_1\\
+    1 & x_2\\
+    \vdots & \vdots \\
+    1 & x_n\\
+   \end{pmatrix}}
+\end{equation}
+
+This matrix is called the model matrix or the design matrix; we will encounter it again in the contrast coding chapters, where it plays a crucial role. If we write the dependent variable $y$ as a $n\times 1$ vector, the above matrix as the matrix $X$ (which has dimensions $n \times 2$), the intercept and slope parameters as a $2\times 1$ matrix $\zeta$, and the residual errors as an $n\times 1$ matrix, we can write the linear model very compactly:
+
+\begin{equation}
+y =  X \zeta + \varepsilon
+\end{equation}
+
+The above matrix formulation of the linear model extends to the hierarchical model very straightforwardly. For example,
+consider the model $M_{sih}$ that we just saw above. This model has the following likelihood:
+
+ \begin{multline}
+  signal_n \sim \mathit{Normal}(\alpha + u_{subj[n],1} + w_{item[n],1} \\
+  + c\_cloze_n \cdot  (\beta + u_{subj[n],2}+ w_{item[n],2}), \sigma)
+  \end{multline}
+
+The terms in the location parameter in the normal likelihood can be re-written in matrix form, just like the linear model above. To see this, consider the fact that the location term
+
+\begin{equation}
+\alpha + u_{subj[n],1} + w_{item[n],1} + c\_cloze_n \cdot  (\beta + u_{subj[n],2}+ w_{item[n],2})
+\end{equation}
+
+can be re-written as
+
+\begin{multline}
+\alpha\cdot 1 + u_{subj[n],1}\cdot 1 + w_{item[n],1}\cdot 1 +\\
+\beta \cdot c\_cloze_n + u_{subj[n],2}\cdot c\_cloze_n+ w_{item[n],2}\cdot c\_cloze_n
+\end{multline}
+
+The above equation can in turn be written in matrix form as follows. The symbol $\odot$ is the Hadamard product: this is cell-wise multiplication rather than matrix multiplication.^[This means that if we have two matrices $A_{i,j}$ and $B_{i,j}$, the Hadamard product produces a matrix $C_{i,j}$ that is the result of multiplying each cell $A_{i,j}$ with $B_{i,j}$, for all row and column ids $i,j$ respectively.]
+
+\begin{equation}
+\begin{aligned}
+&
+{\begin{pmatrix}
+    1 & c\_cloze_1\\
+    1 & c\_cloze_2\\
+    \vdots & \vdots \\
+    1 & c\_cloze_n\\
+   \end{pmatrix}}
+{\begin{pmatrix}
+    \alpha\\
+    \beta \\
+   \end{pmatrix}}
++ \\
+& {\begin{pmatrix}
+    1 & c\_cloze_1\\
+    1 & c\_cloze_2\\
+    \vdots & \vdots \\
+    1 & c\_cloze_n\\
+   \end{pmatrix}}
+   \odot
+   {\begin{pmatrix}
+    u_{subj[1],1}  &  u_{subj[1],2} \\
+    u_{subj[2],1} & u_{subj[2],2} \\
+     \vdots & \vdots\\
+     u_{subj[n],1} & u_{subj[n],2}\\
+   \end{pmatrix}}
+   +\\
+& {\begin{pmatrix}
+    1 & c\_cloze_1\\
+    1 & c\_cloze_2\\
+    \vdots & \vdots \\
+    1 & c\_cloze_n\\
+   \end{pmatrix}}
+   \odot
+   {\begin{pmatrix}
+    w_{item[1],1} & w_{item[1],2}\\
+    w_{item[2],1} & w_{item[2],2} \\
+    \vdots & \vdots \\
+    w_{item[n],1}  & w_{item[n],2} \\
+   \end{pmatrix}}
+ \end{aligned}
+\end{equation}
+
+In this hierarchical model, there are three model matrices:
+
+- the model matrix associated with the intercept $\alpha$ and the slope $\beta$; below, we call this the matrix $X$.
+- the model matrix associated with the by-subject varying intercepts and slopes; call this the matrix $Z_u$.
+- the model matrix associated with the by-item varying intercepts and slopes; call this the matrix $Z_w$.
+
+The model can now be written very compactly in matrix form by writing these three matrices as follows:
+
+\begin{equation}
+\begin{aligned}
+X = & {\begin{pmatrix}
+    1 & c\_cloze_1\\
+    1 & c\_cloze_2\\
+    \vdots & \vdots \\
+    1 & c\_cloze_n\\
+   \end{pmatrix}}\\
+   Z_u = &
+   {\begin{pmatrix}
+    1 & c\_cloze_1\\
+    1 & c\_cloze_2\\
+    \vdots & \vdots \\
+    1 & c\_cloze_n\\
+   \end{pmatrix}} \\
+   Z_w = &
+   {\begin{pmatrix}
+    1 & c\_cloze_1\\
+    1 & c\_cloze_2\\
+    \vdots & \vdots \\
+    1 & c\_cloze_n\\
+   \end{pmatrix}} \\
+\end{aligned}
+\end{equation}
+
+The location part of the model $M_{sih}$ can now be written very compactly:
+
+\begin{equation}
+X \zeta
++
+Z_u \odot z_u
++
+Z_w \odot z_w
+\end{equation}
+
+Here, $\zeta$ is a $2\times 1$ matrix containing the intercept $\alpha$ and the slope $\beta$, and $z_u$ and $z_w$ are the intercept and slope adjustments by subject and by item:
+
+\begin{equation}
+\begin{aligned}
+z_u = &
+ {\begin{pmatrix}
+    u_{subj[1],1}  &  u_{subj[1],2} \\
+    u_{subj[2],1} & u_{subj[2],2} \\
+     \vdots & \vdots\\
+     u_{subj[n],1} & u_{subj[n],2}\\
+   \end{pmatrix}}\\
+ z_w = &
+    {\begin{pmatrix}
+    w_{item[1],1} & w_{item[1],2}\\
+    w_{item[2],1} & w_{item[2],2} \\
+    \vdots & \vdots \\
+    w_{item[n],1}  & w_{item[n],2} \\
+   \end{pmatrix}}\\
+\end{aligned}
+\end{equation}
+
+ In summary, the hierarchical model has a very general matrix formulation [cf.\ @laird1982random]:
+
+ \begin{equation}
+ signal = X \zeta
++
+Z_u \odot z_u
++
+Z_w \odot z_w +
+\varepsilon
+ \end{equation}
+
+ The practical relevance of this matrix formulation is that we can define hierarchical models very compactly and efficiently in Stan by expressing the model in terms of the model matrices [@SorensenVasishthTutorial]. As an aside, notice that in the above example, $X=Z_u=Z_w$; but in principle one could have different model matrices for the fixed vs. random effects.
+
+
