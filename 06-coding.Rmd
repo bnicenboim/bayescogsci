@@ -615,45 +615,6 @@ fixef(fit_Hel)
 When we fit the Bayesian model using our custom Helmert contrast, we can see that the estimates reflect the comparisons outlined above. The first estimate `Fb1` has a value of roughly $10$, reflecting the difference between conditions $F1$ and $F2$. The second estimate `Fb2` has a value of $5$, which reflects the difference between condition $F3$ ($10$) and the average of the first two conditions ($(10+20)/2=15$). The estimate `Fb3` reflects the difference between $F4$ ($40$) minus the average of the first three, which is $(10+20+10)/3=13.3$, and is thus $40-13.3=26.7$.
 
 
-\Begin{extra}
-<div class="extra">
-
-```{theorem, cTreatGM}
-**\index{Treatment contrasts} Treatment contrast with \index{Intercept} intercept as the \index{Grand mean} grand mean.**
-```
-
-Above, we have introduced the treatment contrast, where each contrast compares one condition to a baseline condition. We have discussed that the intercept in the treatment contrast estimates the condition mean for the \index{Baseline condition} baseline condition. There are some applications where this behavior may seem sub-optimal. This can be the case in experimental designs with multiple factors, where we may want to use \index{Centered contrasts} centered contrasts (this is discussed below). Moreover, the contrast coding of the population-level (or fixed) effects also defines what the group-level (or random) effects assess. If the intercept assesses the grand mean--rather than the baseline condition--in hierarchical models, then the group-level intercepts reflect the grand mean variance, rather than the variance in the baseline condition.
-
-It is possible to design a treatment contrast where the intercept reflects the grand mean (assuming a balanced design; otherwise it's the unweighted grand mean). We implement this using the `hypr` package. The trick is to add the intercept explicitly as a comparison of the average of all four condition means:
-
-```{r}
-HcTrGM <- hypr(b0 = ~ (F1 + F2 + F3 + F4) / 4,
-               b1 = F2 ~ F1,
-               b2 = F3 ~ F1,
-               b3 = F4 ~ F1,
-               levels = c("F1", "F2", "F3", "F4"))
-HcTrGM
-```
-
-The hypothesis matrix now explicitly codes the intercept as the first column, where all hypothesis weights are equal and sum up to one. This is coding the intercept. The other hypothesis weights are as expected for the treatment contrast. The contrast matrix now looks very different compared to the standard treatment contrast. Next, we fit a model with this adapted treatment contrast. The function \index{\texttt{contr.hypothesis}} `contr.hypothesis` automatically removes the intercept that is encoded in `HcTrGM`, since this is automatically added by `brms`.
-
-```{r, echo=TRUE, message = FALSE, results = "hide"}
-contrasts(df_contrasts3$F) <- contr.hypothesis(HcTrGM)
-fit_TrGM <- brm(DV ~ F,
-                data = df_contrasts3,
-                family = gaussian(),
-                prior = c(prior(normal(20, 50), class = Intercept),
-                          prior(normal(0, 50), class = sigma),
-                          prior(normal(0, 50), class = b)))
-```
-```{r, echo=TRUE}
-fixef(fit_TrGM)
-```
-
-The results show that the coefficients reflect comparisons of each condition $F2$, F3, and F4 to the baseline condition $F1$. The intercept now captures the grand mean across all four conditions of $20$.
-
-\End{extra}
-</div>
 
 ### Contrasts in linear regression analysis: The design or \index{Model matrix} model matrix
 
