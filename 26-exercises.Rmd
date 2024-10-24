@@ -699,7 +699,7 @@ Number of possible comparisons in a single model.
 - How many comparisons can one code in a model where there are two factors, one with three levels and one with two levels?
 - How about a model for a $2 \times 2 \times 3$ design?
 
-# Contrast coding with two predictor variables {#sec-Contrasts2x2exercises}
+## Contrast coding with two predictor variables {#sec-Contrasts2x2exercises}
 
 ```{exercise, ContrastsPersianANOVA}
 ANOVA coding for a four-condition design.
