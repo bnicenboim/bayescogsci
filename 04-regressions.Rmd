@@ -146,9 +146,6 @@ short_summary(fit_pupil)
 
 In the next section, we discuss how one can communicate the relevant information from the model.
 
-\Begin{extra}
-<div class="extra">
-
 
 ###  How to communicate the results?
 
