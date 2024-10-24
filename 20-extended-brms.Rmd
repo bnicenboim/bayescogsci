@@ -266,7 +266,8 @@ In our example analyses with `brms` in this book, we will always center our pred
 (ref:centered-non-centered) Regression lines for the non-centered and centered linear regressions. The intercept ($\alpha$) represented by a circle is positioned differently depending on the centering, whereas the slope ($\beta$) represented by a vertical dashed line has the same magnitude in both models. 
 
 ```{r centered-non-centered, echo = FALSE, fig.cap ="(ref:centered-non-centered)"}
-<<fitpupil>> # to get the pupil data fitted with brms
+ # to get the pupil data fitted with brms
+<<fitpupil>>
 intercept_nc <- posterior_summary(fit_pupil_non_centered, variable = "b_Intercept")[, "Estimate"]
 slope_nc <- posterior_summary(fit_pupil_non_centered, variable = "b_load")[, "Estimate"]
 p_nc <- plot(conditional_effects(fit_pupil_non_centered), points = TRUE, plot = FALSE)[[1]] +

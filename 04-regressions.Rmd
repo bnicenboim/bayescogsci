@@ -200,7 +200,7 @@ In Figure \@ref(fig:postpredmean), we look instead  at the  distribution of a su
 
 (ref:postpredmean) Distribution of posterior predicted means in gray and observed pupil size means in black lines by load.
 
-```{r postpredmean, fig.cap ="(ref:postpredmean)", message= FALSE, fig.height = 2, fig.show = "hold", fig.align='center', fig.pos = "H", out.extra = ''}
+```{r postpredmean, fig.cap ="(ref:postpredmean)", message= FALSE, fig.height = 2, fig.show = "hold", fig.align='center'}
 for (l in 0:4) {
   df_sub_pupil <- filter(df_pupil, load == l)
   p <- pp_check(fit_pupil,
