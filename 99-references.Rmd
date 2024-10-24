@@ -2,6 +2,9 @@
 
 # References {-}
 
+\footnotesize
+<!-- \setlength{\parskip}{5pt} -->
+
 ```{r include = FALSE,cache=FALSE}
 papaja::r_refs(file = "packages.bib")
 ## knitr::write_bib(c(

@@ -57,9 +57,6 @@ The $lpd$ is an overestimate of *elpd* for actual future data, because the param
 
 However, we can obtain a more conservative estimate  of the predictive performance of a model using cross-validation [@GeisserEddy1979]. This is explained next. [As an aside, we mention here that there are also other alternatives to cross-validation; these are presented in @VehtariOjanen2012].
 
-\Begin{extra}
-<div class="extra">
-
 
 ## K-fold and leave-one-out cross-validation
 
@@ -629,49 +626,3 @@ In this chapter, we learned how to use K-fold cross-validation and leave-one-out
 A technical discussion about cross-validation methods can be found in Chapter 7 of @Gelman14.
 For a discussion about the advantages and disadvantages of (leave-one-out) cross-validation, see @gronauLimitationsBayesianLeaveOneOut2018, @vehtariLimitationsLimitationsBayesian2019 and @gronauRejoinderMoreLimitations. A LOO glossary from the `loo` package can be found in (https://mc-stan.org/loo/reference/loo-glossary.html).  Cross-validation is still an active area of research, there are multiple websites and blog posts on this topic: Aki Vehtari, the creator of the `loo` package has a comprehensive FAQ about cross-validation in  https://avehtari.github.io/modelselection/CV-FAQ.html; on Andrew Gelman's blog, Vehtari also discusses the situations where  cross-validation can be applied:  https://statmodeling.stat.columbia.edu/2018/08/03/loo-cross-validation-approaches-valid/.
 
-## Exercises
-
-```{exercise, logcv}
-Predictive accuracy of the linear and the logarithm effect of cloze probability.
-```
-
-Is there a difference in predictive accuracy between the model that incorporates a linear effect of cloze probability and one that incorporates log-transformed cloze probabilities?
-
-
-
-
-
-
-```{exercise, stroopcv}
-Log-normal model
-```
-
-Use PSIS-LOO to compare a model of Stroop as the one in \@ref(exr:stroop) with a model that assumes no population-level effect
-
-(a) in `brms`.
-(b) in Stan.
-
-```{exercise, logrec}
-Log-normal vs  rec-normal model in Stan
-```
-
-In section \@ref(sec-change), we proposed a reciprocal truncated normal distribution (rec-normal) to response times data, as an alternative to the log-normal distribution. The log-likelihood (of $\mu$ and $\sigma$) of an individual observation, $\mathit{RT}_{n}$, for the rec-normal distribution would be the following one.
-
-\begin{equation}
-\log \mathcal{L} = \log(\mathit{Normal}(1/\mathit{RT}_n | \mu, \sigma)) - 2 \cdot \log(\mathit{RT}_n)
-\end{equation}
-
-As explained in \@ref(sec-change), we obtain the log-likelihood based on all the $N$ observations by summing the log-likelihood of individual observations.
-
-\begin{equation}
-\log \mathcal{L} = \sum_n^N \log(\mathit{Normal}(1/\mathit{RT}_n | \mu, \sigma))  - \sum_n^N 2 \cdot \log(\mathit{RT}_n)
-\end{equation}
-
-Since these two models assume right-skewed data with only positive values, the question that we are interested in here is if we can really distinguish between them. Investigate this in the following way:
-
-(a) Generate data (N = 100 and N = 1000) with a rec-normal distribution (e.g., `rt = 1 / rtnorm(N, mu, sigma, a = 0)`).
-(b) Generate data (N = 100 and N = 1000) with a log-normal distribution
-
-Fit a rec-normal and a log-normal model using Stan to each of the four data sets, and use PSIS-LOO to compare the models.
-
-What do you conclude?

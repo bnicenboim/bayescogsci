@@ -513,9 +513,6 @@ The problem (which can also be discovered in a pairs plot) is the same one that 
 The solution to this problem is the reparameterization of this model. The reparameterization for this type of model  requires us to use \index{Cholesky factorization} Cholesky factorization [@fieller]. The mathematics and the intuition behind this parameterization are explained in Box \@ref(thm:cholesky).
 
 
-\Begin{extra}
-<div class="extra">
-
 
 The reparameterization of the model, which allows for a correlation between adjustments for the intercepts and slopes, in `hierarchical_corr2.stan` is shown below. 
 The code implements the following new types and functions:
@@ -736,82 +733,4 @@ We also learned about some important and powerful tools for making the Stan mode
 
 An additional example of reparameterization (kindly suggested by Martin Modrák) involves reparameterizing a varying intercept/effects model in terms of total variance and its distribution across individual components. This approach has both theoretical advantages, such as making it easier to elicit priors on total variance and its split, and practical benefits, such as allowing us to work with data sets where only a small number of subjects have repeated measurements, which might otherwise pose computational challenges. This concept is explored in more depth in @hem2022. Additionally, a short gist provided by Martin Modrák demonstrates how this reparameterization resolves divergences and increases the effective sample size in a model adapted from this chapter. At the time of writing, Modrák's gist is available at  https://gist.github.com/martinmodrak/61a68f22ed954ae68abc76faeef860b6.
 
-## Exercises
 
-
-
-
-
-
-```{exercise, stroop}
-A log-normal model in Stan.
-```
-
- Refit the Stroop example from section \@ref(sec-stroop) in Stan (`df_stroop`).
-
-
-Assume the following likelihood and priors:
-
-\begin{equation}
-  rt_n \sim \mathit{LogNormal}(\alpha + u_{subj[n],1}  + c\_cond_n \cdot  (\beta + u_{subj[n],2}), \sigma)
-\end{equation}
- 
- \begin{equation}
- \begin{aligned}
-   \alpha & \sim \mathit{Normal}(6, 1.5) \\
-   \beta  & \sim \mathit{Normal}(0, .1) \\
-    \sigma  &\sim \mathit{Normal}_+(0, 1)
- \end{aligned}
- \end{equation}
-
-\begin{equation}
-\begin{aligned}
-\tau_{u_1} &\sim \mathit{Normal}_+(0,1)\\
-\tau_{u_2} &\sim \mathit{Normal}_+(0,1)\\
-\begin{bmatrix}
-1 & \rho_u \\
-\rho_u & 1
-\end{bmatrix} &\sim \mathit{LKJcorr}(2) 
-\end{aligned}
-\end{equation}
-
-
-
-
-
-```{exercise, hierarchical-logn-stan}
-A by-subjects and by-items hierarchical model with a log-normal likelihood.
-```
-
-Revisit the question "Are subject relatives easier to process than object relatives?" Fit the model from the exercise \@ref(exr:hierarchical-logn) using Stan.
-
-```{exercise, strooplogis}
-A hierarchical logistic regression with Stan.
-```
-
-Revisit the question "Is there a Stroop effect in accuracy?" Fit the model the exercise \@ref(exr:strooplogis-brms) using Stan.
-
-
-```{exercise, distr-stan}
-A distributional regression model of the effect of cloze probability on the N400.
-```
-
-In section \@ref(sec-distrmodel), we saw how to fit a distributional regression model. We might want to extend this approach to Stan. Fit the EEG data to a hierarchical model with by-subject and by-items varying intercept and slopes, and in addition assume that the residual standard deviation (the scale of the normal likelihood) can vary by subject.
-
-\begin{equation}
-\begin{aligned}
-  signal_n &\sim \mathit{Normal}(\alpha + u_{subj[n],1} + w_{item[n],1} + \\
-  & c\_cloze_n \cdot  (\beta + u_{subj[n],2}+ w_{item[n],2}), \sigma_n)\\
-  \sigma_n &= \exp(\alpha_{\sigma} + u_{\sigma_{subj[n]}})
-\end{aligned}
-\end{equation}
- 
-\begin{equation}
-\begin{aligned}
-  \alpha_\alpha &\sim \mathit{Normal}(0,log(50))\\
-  u_\sigma &\sim \mathit{Normal}(0, \tau_{u_\sigma}) \\
-  \tau_{u_\sigma} &\sim \mathit{Normal}_+(0, 5)
-\end{aligned}
-\end{equation}
-
-To fit this model, take into account that `sigma` is now a vector, and it is a transformed parameter which depends on two parameters: `alpha_sigma` and the vector with `N_subj` elements `u_sigma`. In addition, `u_sigma` depends on the hyperparameter `tau_u_sigma` ($\tau_{u_\sigma}$). (Using the non-centered parameterization for `u_sigma` speeds up the model fit considerably).

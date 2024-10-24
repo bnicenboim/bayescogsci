@@ -1117,18 +1117,3 @@ Working out appropriate priors for one's research problem is essentially a Fermi
 For interesting (and amusing) examples of Fermi solutions to questions, see https://what-if.xkcd.com/84/. Two important books, @mahajan2010street and @mahajan2014art, unpack the art of approximation in mathematics and other disciplines; the approach presented in these books is closely related to the art of Fermi-style approximation. @danlevy is an important book that develops the analytical skill needed to figure out what your "tacit knowledge" about a particular problem is. @tetlock explains how experts deploy existing knowledge to derive probabilistic predictions (predictions that come with a certain amount of uncertainty) about real-world problems---this skill is closely related to prior (self-)elicitation. An excellent presentation of prior elicitation is in @ohagan2006uncertain. Useful discussions about priors are provided in @lunn2012bugs; @spiegelhalter2004bayesian; @gelmanPriorCanOften2017; and @simpsonPenalisingModelComponent2017.  The Stan website also includes some guidelines: Prior distributions for `rstanarm` models in https://mc-stan.org/rstanarm/articles/priors.html; and prior choice recommendations in https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations.
 @brownedraper and @gelman06 discuss prior specifications in hierarchical models.
 
-
-## Exercises {#sec-priorsexercises}
-
-```{exercise, PriorsRCs}
-Develop a plausible informative prior for the difference between object and subject relative clause reading times
-```
-
-Do a literature search on reading studies involving subject-modifying relative clause processing, and use the estimates from these published studies to work out a plausible informative prior for reading time differences at the relative clause verb. Some examples of relevant studies are @gibson2005reading, experiment 1 of @grodner, and @fedorenko2006nature; there are many others. (Note: This is an open-ended exercise with no correct answer.)
-
-```{exercise, Priorslocalcoherence}
-Extracting an informative prior from a published paper for a future study
-```
-
-In their experiment 1, @taboretal04 present a self-paced reading study with a repeated measures $2\times 2$ design. The details of the experiment are not important here, but a key estimate of interest in their reported results is the interaction of the two factors. The reported interaction estimate is $73$ ms, with a by-subjects repeated measures ANOVA F-score of $6.32$. Given this information, work out the standard error (SE) of the estimate of the $73$ ms. Using the estimated interaction effect and the estimated SE, derive an informative prior for a planned study that attempts to directly replicate experiment 1 in @taboretal04. (Hint: The F-score here is the square of the corresponding observed t-value, and we know that the t-value in a one-sample t-test is computed using the formula $t=\frac{\bar{x}-0}{SE}$, where $\bar{x}$ is the estimate of the effect of interest, here, the interaction effect.) 
-

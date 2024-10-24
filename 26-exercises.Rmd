@@ -1,0 +1,1577 @@
+# Exercises
+
+## Introduction  {#sec-Foundationsexercises}
+
+
+```{exercise, FoundationsexercisespnormPart1}
+Practice using the `pnorm()` function--Part 1
+```
+
+Given a normal distribution with mean 500 and standard deviation 100, use the `pnorm()` function to calculate the probability of obtaining values between 200 and 800 from this distribution.
+
+```{exercise, FoundationsexercisespnormPart2}
+Practice using the `pnorm()` function--Part 2
+```
+
+
+```{r echo=FALSE}
+mu <- round(rnorm(1, mean = 51, sd = 2), digits = 0)
+sigma <- round(runif(1, min = 2, max = 4), digits = 0)
+
+q <- round(runif(1, min = 40, max = 50))
+q1 <- round(runif(1, min = 51, max = 60))
+
+
+p1 <- round(pnorm(q, mean = mu, sd = sigma), digits = 3)
+p2 <- round(1 - pnorm(q, mean = mu, sd = sigma), digits = 3)
+p3 <- round(1 - pnorm(q1, mean = mu, sd = sigma), digits = 3)
+```
+
+Calculate the following probabilities.
+Given a normal distribution with mean 800 and standard deviation 150, what is the probability of obtaining:
+
+- a score of 700 or less
+- a score of 900 or more
+- a score of 800 or more
+
+```{exercise, FoundationsexercisespnormPart3}
+Practice using the `pnorm()` function--Part 3
+```
+
+
+Given a normal distribution with mean 600 and standard deviation 200, what is the probability of obtaining:
+
+- a score of 550 or less.
+- a score between 300 and 800.
+- a score of 900 or more.
+
+```{exercise, FoundationsexercisesqnormPart1}
+Practice using the `qnorm()` function--Part 1
+```
+
+
+Consider a normal distribution with mean 1 and standard deviation 1.
+Compute the lower and upper boundaries such that:
+
+- the area (the probability) to the left of the lower boundary is 0.10.
+- the area (the probability) to the left of the upper boundary is 0.90.
+
+```{exercise, FoundationsexercisesqnormPart2}
+Practice using the `qnorm()` function--Part 2
+```
+
+Given a normal distribution with mean 650 and standard deviation 125. There exist two quantiles, the lower quantile q1 and the upper quantile q2, that are equidistant from the mean 650, such that the \index{Area under the curve} area under the curve of the normal between q1 and q2  is 80%. Find q1 and q2.
+
+
+```{exercise, Foundationsexercisessamples1}
+Practice getting summaries from samples--Part 1
+```
+
+Given data that is generated as follows:
+
+```{r}
+data_gen1 <- rnorm(1000, mean = 300, sd = 200)
+```
+
+Calculate the mean, variance, and the lower quantile q1 and the upper quantile q2, that are equidistant and such that the range of probability between them is 80%.
+
+
+```{exercise, Foundationsexercisessamples2}
+Practice getting summaries from samples--Part 2.
+```
+
+This time we generate the data with a truncated normal distribution from the package `extraDistr`. The details of this distribution will be discussed later in section \@ref(sec-pupil) and in the Box \@ref(thm:truncation), but for now we can treat it as an unknown generative process:
+
+```{r}
+data_gen1 <- rtnorm(1000, mean = 300, sd = 200, a = 0)
+```
+
+Using the sample data, calculate the mean, variance, and the lower quantile q1 and the upper quantile q2, such that the probability of observing values between these two quantiles is 80%.
+
+```{exercise, Foundationsexercisesvcov1}
+Practice with a variance-covariance matrix for a bivariate distribution.
+```
+
+Suppose that you have a bivariate distribution where one of the two random variables comes from a normal distribution with mean $\mu_X=600$ and standard deviation $\sigma_X=100$, and the other from a normal distribution with mean $\mu_Y=400$ and standard deviation $\sigma_Y=50$. The correlation $\rho_{XY}$ between the two random variables is $0.4$. Write down the variance-covariance matrix of this bivariate distribution as a matrix (with numerical values, not mathematical symbols), and then use it to generate $100$ pairs of simulated data points. Plot the simulated data such that the relationship between the random variables $X$ and $Y$ is clear. Generate two sets of new data ($100$ pairs of data points each) with correlation $-0.4$ and $0$, and plot these alongside the plot for the data with correlation $0.4$.
+
+
+## Introduction to Bayesian data analysis {#sec-BDAexercises}
+
+
+```{exercise, BDAexercisesDerivingBayes}
+Deriving Bayes' rule
+```
+
+
+Let $A$ and $B$ be two observable events. $P(A)$ is the probability that $A$ occurs, and $P(B)$ is the probability that $B$ occurs. $P(A|B)$ is the conditional probability that $A$ occurs given that $B$ has happened. $P(A,B)$ is the joint probability of $A$ and $B$ both occurring.
+
+You are given the definition of conditional probability:
+
+\begin{equation}
+P(A|B)= \frac{P(A,B)}{P(B)} \hbox{ where } P(B)>0
+\end{equation}
+
+Using the above definition, and using the fact that $P(A,B)=P(B,A)$ (i.e., the probability of $A$ and $B$ both occurring is the same as the probability of $B$ and $A$ both occurring),
+derive an expression for $P(B|A)$. Show the steps clearly in the derivation.
+
+
+
+```{exercise, BDAexercisesConj1}
+Conjugate forms 1
+```
+
+- Computing the general form of a PDF for a posterior
+
+Suppose you are given data $k$ consisting of the number of successes, coming from a $\mathit{Binomial}(n,\theta)$ distribution.
+Given $k$ successes in n trials coming from a binomial distribution, we define a $\mathit{Beta}(a,b)$ prior on the parameter $\theta$.
+
+Write down the Beta distribution that represents the posterior, in terms of $a,b, n,$ and $k$.
+
+- Practical application
+
+We ask 10 yes/no questions from a subject, and the subject returns 0 correct answers. We assume a binomial likelihood function for these data. Also assume a $\mathit{Beta}(1,1)$ prior on the parameter $\theta$, which represents the probability of success. Use the result you derived above to write down the posterior distribution of the $\theta$ parameter.
+
+```{exercise, BDAexercisesConj2}
+Conjugate forms 2
+```
+
+Suppose that we perform $n$ independent trials until we get a success (e.g., a heads in a coin toss). For repeated coin tosses, observing T,T, H would correspond to a score of $n=3$. The probability of success in each trial is $\theta$. Then, the Geometric random variable, call it $X$, gives us the probability of getting a success in $n$ trials as follows:
+
+\begin{equation}
+Prob(X=n)=\theta(1-\theta)^{ n-1}
+\end{equation}
+
+where $n=1,2,\dots$.
+
+Let the prior on $\theta$ be $\mathit{Beta}(a,b)$, a beta distribution with parameters $a$,$b$.
+The posterior distribution is a beta distribution with parameters $a^*$ and $b^*$. Determine these parameters in terms of $a$, $b$, and $n$.
+
+```{exercise, BDAexercisesConj3}
+Conjugate forms 3
+```
+
+Suppose that we have $n$ data points, $x_1,\dots,x_n$, drawn independently from an exponential distribution with parameter $\lambda$. The parameter of interest here (what we want to learn about from the data) is $\lambda$. 
+
+The \index{Exponential likelihood} exponential likelihood function is:
+
+\begin{equation}
+p(x_1,\dots,x_n | \lambda)=\lambda^n \exp (-\lambda \sum_{i=1}^n x_i )
+\end{equation}
+
+
+Starting with a Gamma prior distribution for $\lambda$ (see below), show that the posterior distribution for $\lambda$ is also a Gamma distribution. Provide formulas giving the posterior parameters $a^*, b^*$ in terms of the prior parameters $a, b$ and the data. Use the following facts about Gamma distributions. 
+
+The \index{Gamma distribution} Gamma distribution is defined in terms of the parameters $a$, $b$: $\mathit{Gamma}(a,b)$. In general, if there is a random variable $Y$ (where $y\geq 0$) that has a Gamma distribution as a PDF ($Y\sim \mathit{Gamma}(a,b)$), then:
+
+\begin{equation}
+\mathit{Gamma}(y | a,b)=\frac{b^a y^{a-1} \exp(-by)}{\Gamma(a)}
+\end{equation}
+
+The $\mathit{Gamma}(a,b)$ prior on the $\lambda$ parameter in the exponential distribution will be written:
+
+\begin{equation}
+\mathit{Gamma}(\lambda | a,b)=\frac{b^a \lambda^{a-1} \exp(-b\lambda)}{\Gamma(a)}
+\end{equation}
+
+
+```{exercise, BDAexercisesConj4}
+Conjugate forms 4
+```
+
+- Computing the posterior
+
+This is a contrived example. Suppose we are modeling the number of times that a speaker says the word "I" per day. This could be of interest if we are studying, for example, how self-oriented a speaker is.  The number of times $x$ that the word is uttered in over a particular time period (here, one day) can be modeled by a \index{Poisson distribution} Poisson distribution ($x=0,1,2,\dots$):
+
+\begin{equation}
+f(x\mid \theta) = \frac{\exp(-\theta) \theta^x}{x!} \hbox{ for } x=0,1,2,\dots 
+\end{equation}
+
+where the rate $\theta$ is unknown, and the numbers of utterances of the target word on each day are independent given $\theta$.
+
+As an aside: Given $n$ independent observations of a Poisson random variable with rate parameter $\theta$, the maximum-likelihood estimator (MLE) for $\theta$ turns out to be $\hat{\theta} = \frac{\sum{i=1}^n x_i}{n}$. When we are talking about a particular sample of data, the maximum-likelihood estimate is computed using the formula for the estimator,  $\frac{\sum{i=1}^n x_i}{n}$, and is represented as $\bar{x}$.
+
+We are told that the prior mean of $\theta$ is 100 and prior variance for $\theta$  is 225. This information is based on the results of previous studies on the topic. We will use the $\mathit{Gamma}(a,b)$ density (see previous question) as a prior for $\theta$ because this is a conjugate prior to the Poisson distribution.
+
+a) First, visualize the prior, a Gamma density prior for $\theta$ based on the above information.
+
+[Hint: we know that for a Gamma density with parameters $a$, $b$, the mean is  $\frac{a}{b}$ and the variance is $\frac{a}{b^2}$. Since we are given values for the mean and variance, we can solve for a,b, which gives us the Gamma density.]
+
+
+```{r, echo=FALSE,eval=FALSE,fig.cap="\\label{fig1}The Gamma prior for the parameter theta."}
+x <- 0:200
+plot(x, dgamma(x, 10000 / 225, 100 / 225),
+  type = "l", lty = 1,
+  main = "Gamma prior", ylab = "density",
+  cex.lab = 2, cex.main = 2, cex.axis = 2
+)
+```
+
+b) Next, derive the posterior distribution of the parameter $\theta$ up to proportionality, and write down the posterior distribution in terms of the parameters of a Gamma distribution.
+
+
+
+-  Practical application
+
+Suppose we know that the number of "I" utterances from a particular individual is $115, 97, 79, 131$. Use the result you derived above to obtain the posterior distribution. In other words, write down the parameters of the Gamma distribution (call them $a^*,b^*$) representing the posterior distribution of $\theta$.
+
+
+Plot the prior and the posterior distributions alongside each other.
+
+Now suppose you get one new data point: 200. Using the posterior $\mathit{Gamma}(a^*,b^*)$ as your prior, write down the updated posterior (in terms of the updated parameters of the Gamma distribution) given this new data point. Add the updated posterior to the plot you made above.
+
+
+```{exercise, BDAexercisesWeightedMean}
+The posterior mean is a weighted mean of the prior mean and the MLE (Poisson-Gamma conjugate case)
+```
+
+The number of times an event happens per unit time can be modeled using a Poisson distribution, whose PMF is:
+
+\begin{equation}
+f(x\mid \theta) = \frac{\exp(-\theta) \theta^x}{x!}
+\end{equation}
+
+Suppose that we define a Gamma(a,b) prior for the rate parameter $\theta$. It is a fact (see exercises above) that the posterior of the $\theta$ parameter is a $Gamma(a^*,b^*)$ distribution, where $a^*$ and $b^*$ are the updated parameters given the data: $\theta \sim Gamma(a^*,b^*)$.
+
+- Prove that the posterior mean is a weighted mean of the prior mean and the maximum likelihood estimate (mean) of the Poisson-distributed data, $\bar{x} = \sum_{i=1}^n x/n$. Hint: the mean of a Gamma distribution is $\frac{a}{b}$. Specifically, what you have to prove is that:
+
+\begin{equation}
+\frac{a^*}{b^*} = \frac{a}{b} \times \frac{w_1}{w_1 + w_2} + \bar{x} \times \frac{w_2}{w_1 + w_2}
+(\#eq:weightingpoisga)
+\end{equation}
+
+where  $w_1 = 1$ and $w_2=\frac{n}{b}$.
+
+- Given equation \@ref(eq:weightingpoisga), make an informal argument showing that as $n$ increases (as sample size goes up), the maximum likelihood estimate $\bar{x}$ dominates in determining the posterior mean, and when $n$ gets smaller and smaller, the prior mean dominates in determining the posterior mean.
+
+- Finally, given that the variance of a Gamma distribution is $\frac{a}{b^2}$, show that as $n$ increases, the posterior variance will get smaller and smaller (the uncertainty on the posterior will go down).
+
+
+
+## Computational Bayesian data analysis {#ex:compbda}
+
+```{exercise, simulatedlinearmod}
+Check for parameter recovery in a linear model using simulated data.
+```
+
+Generate some simulated independent and identically distributed data with $n=100$ data points as follows:
+
+```{r}
+y <- rnorm(100, mean = 500, sd = 50)
+```
+
+Next, fit a simple linear model with a normal likelihood:
+
+\begin{equation}
+y_n  \sim \mathit{Normal}(\mu,\sigma) (\#eq:simrtlikLM)
+\end{equation}
+
+
+Specify the following priors:
+
+\begin{equation}
+\begin{aligned}
+\mu &\sim \mathit{Uniform}(0, 60000) \\
+\sigma &\sim \mathit{Uniform}(0, 2000)
+\end{aligned}
+(\#eq:simrtpriors)
+\end{equation}
+
+Generate posterior predictive distributions of the parameters and check that the true values of the parameters $\mu=500, \sigma=50$ are recovered by the model. What this means is that you should check whether these true values lie within the range of the posterior distributions of the two parameters. This is a good sanity check for finding out whether a model can in principle recover the true parameter values correctly.
+
+```{exercise, linearmod}
+A simple linear model.
+```
+
+\vspace{-.5cm}
+
+a. Fit the model `fit_press` with just a few iterations, say 50 iterations (set warmup to the default of 25, and use four chains). Does the model converge?
+
+b. Using normal distributions, choose priors that better represent **your** assumptions/beliefs about finger tapping times.  To think about a reasonable set of priors for $\mu$ and $\sigma$, you should come up with your own subjective assessment about what you think a reasonable range of values can be for $\mu$ and how much variability might happen. There is no correct answer here, we'll discuss priors in depth in chapter \@ref(ch-priors). Fit this model to the data. Do the posterior distributions change?
+
+```{exercise, compbda-biasedpost}
+Revisiting the button-pressing example with different priors.
+```
+
+\vspace{-.5cm}
+a. Can you come up with very informative priors that influence the posterior in a noticeable way (use normal distributions for priors, not uniform priors)? Again, there are no correct answers here; you may have to try several different priors before you can noticeably influence the posterior.
+b. Generate and plot prior predictive distributions based on this prior and plot them.
+
+c. Generate posterior predictive distributions based on this prior and plot them.
+
+```{exercise, ppd}
+Posterior predictive checks with a log-normal model.
+```
+
+
+\vspace{-.5cm}
+
+
+a.  For the log-normal model `fit_press_ln`, change the prior of $\sigma$ so that it is a log-normal distribution with location ($\mu$) of $-2$ and scale ($\sigma$) of $0.5$. What does such a prior imply about your belief regarding button-pressing times in milliseconds? Is it a good prior? Generate and plot prior predictive distributions. Do the new estimates change compared to earlier models when you fit the model?
+b.  For the log-normal model, what is the mean (rather than median) time that takes to press the space bar, what is the standard deviation of the finger tapping times in milliseconds?
+
+```{exercise, skew}
+A skew normal distribution.
+```
+
+Would it make sense to use a "skew normal distribution" instead of the log-normal? The skew normal distribution has three parameters:  location $\xi$ (this is the lower-case version of the Greek letter $\Xi$, pronounced "chi", with the "ch" pronounced like the "ch" in "Bach"), scale $\omega$ (omega), and shape $\alpha$. The distribution is right skewed if $\alpha >0$,  is left skewed if $\alpha <0$, and is identical to the regular normal distribution if $\alpha =0$. For fitting this in `brms`, one needs to change `family` and set it to `skew_normal()`, and add a prior of `class = alpha` (location remains `class = Intercept` and scale, `class = sigma`).
+
+  a.  Fit this model with a prior that assigns approximately 95% of the prior probability of `alpha` to be between 0 and 10.
+  b. Generate posterior predictive distributions and compare the posterior  distribution of summary statistics of the skew normal with the normal and log-normal.
+  
+  
+## Bayesian regression models {#sec-LMexercises}
+
+```{exercise, powerposing}
+A simple linear regression: Power posing and testosterone.
+```
+
+Load the following data set:
+
+```{r}
+data("df_powerpose")
+head(df_powerpose)
+```
+
+The data set, which was originally published in @carney2010power but released in modified form by @FossePowerPose, shows the testosterone levels of 39 different individuals, before and after treatment, where treatment refers to each individual being assigned to a high power pose or a low power pose. In the original paper by @carney2010power, the unit given for testosterone measurement (estimated from saliva samples) was picograms per milliliter (pg/ml). One picogram per milliliter is 0.001 nanogram per milliliter (ng/ml). 
+
+The research hypothesis is that on average, assigning a subject a high power pose vs. a low power pose will lead to higher testosterone levels after treatment. Assuming that you know nothing about typical ranges of testosterone using salivary measurement, you can use the default priors in `brms` for the target parameter(s). 
+
+
+Investigate this claim using a linear model and the default priors of `brms`. You'll need to estimate the effect of a new variable that encodes the change in testosterone. 
+
+```{exercise, pupils}
+Another linear regression model: Revisiting attentional load effect on pupil size.
+```
+
+Here, we revisit the analysis shown in the chapter, on how attentional load affects pupil size. 
+
+a. Our priors for this experiment were quite arbitrary. How do the prior predictive distributions look like? Do they make sense? 
+b. Is our posterior distribution sensitive to the priors that we selected? Perform a sensitivity analysis to find out whether the posterior is affected by our choice of prior for the $\sigma$.
+c. Our data set includes also a column that indicates the trial number. Could it be that trial has also an effect on the pupil size? As in `lm()`, we indicate another main effect with a `+` sign. How would you communicate the new results? 
+
+```{exercise, lognormalm}
+Log-normal model: Revisiting the effect of trial on finger tapping times.
+```
+
+We continue considering the effect of trial on finger tapping times. 
+
+a.  Estimate the slowdown in milliseconds between the last two times the subject pressed the space bar in the experiment. 
+b. How would you change your model (keeping the log-normal likelihood) so that it includes centered log-transformed trial numbers or square-root-transformed trial numbers (instead of centered trial numbers)? Does the effect in milliseconds change? 
+
+
+
+
+```{exercise, reg-logistic}
+Logistic regression: Revisiting the effect of set size on free recall.
+```
+
+Our data set includes also a column coded as `tested` that indicates the position of the queued word. (In Figure \@ref(fig:oberauer)  `tested` would be 3). Could it be that position also has an effect on recall accuracy? How would you incorporate this in the model? (We indicate another main effect with a `+` sign).  
+
+```{exercise, red}
+Red is the sexiest color. 
+```
+
+Load the following data set:
+
+```{r}
+data("df_red")
+head(df_red)
+```
+
+The data set is from a study [@beall2013women] that contains information about the color of the clothing worn (red, pink, or red or pink) when the subject (female) is at risk of becoming pregnant (is ovulating, self-reported). The broader issue being investigated is whether women wear red more often when they are ovulating (in order to attract a mate). Using logistic regressions, fit three different models to investigate whether being ovulating increases the probability of wearing (a) red, (b) pink, or (c) either pink or red. Use priors that are reasonable (in your opinion).
+
+## Bayesian hierarchical models {#sec-HLMexercises}
+
+```{exercise, hierarchical-normal}
+A hierarchical model (normal likelihood) of cognitive load on pupil size.
+```
+
+As in section \@ref(sec-pupil), we focus on the effect of cognitive load on pupil size, but this time we look at all the subjects of @wahnPupilSizesScale2016:
+
+```{r}
+data("df_pupil_complete")
+df_pupil_complete
+```
+
+You should be able to now fit a "maximal" model (correlated varying intercept and slopes for subjects) assuming a normal likelihood. Base your priors in the priors discussed in section \@ref(sec-pupil).
+
+(a) Examine the effect of load on pupil size, and the average pupil size. What do you conclude?
+(b) Do a sensitivity analysis for the prior on the intercept ($\alpha$). What is the estimate of the effect ($\beta$) under different priors?
+(c) Is the effect of load consistent across subjects? Investigate this visually.
+
+```{exercise, hierarchical-logn}
+Are subject relatives easier to process than object relatives (log-normal likelihood)?
+```
+
+ We begin with a classic question from the psycholinguistics literature: Are subject relatives easier to process than object relatives? The data come from Experiment 1 in a paper by @grodner.
+
+ *Scientific question*: Is there a subject relative advantage in reading?
+
+@grodner investigate an old claim in psycholinguistics that \index{Object relative clause} object relative clause (ORC) sentences are more difficult to process than \index{Subject relative clause} subject relative clause (SRC) sentences. One explanation for this predicted difference is that the distance between the relative clause verb (*sent* in the example below) and the head noun phrase of the relative clause (*reporter* in the example below) is longer in ORC vs. SRC. Examples are shown below. The relative clause is shown in square brackets.
+
+ (1a) The *reporter* [who the photographer *sent* to the editor] was hoping for a good story. (ORC)
+
+ (1b) The *reporter* [who *sent* the photographer to the editor] was hoping for a good story. (SRC)
+
+ The underlying explanation has to do with memory processes: Shorter linguistic dependencies are easier to process due to either reduced interference or decay, or both. For implemented computational models that spell this point out, see @lewisvasishth:cogsci05 and @EngelmannJaegerVasishth2019.
+
+ In the Grodner and Gibson data, the dependent measure is \index{Reading time} reading time at the relative clause verb, (e.g., *sent*) of different sentences with either ORC or SRC. The dependent variable is in milliseconds and was measured in a self-paced reading task. \index{Self-paced reading} Self-paced reading is a task where subjects read a sentence or a short text word-by-word or phrase-by-phrase, pressing a button to get each word or phrase displayed; the preceding word disappears every time the button is pressed. In \@ref(sec-simpleexamplepriors), we provide a more detailed explanation of this experimental method.
+
+ For this experiment, we are expecting longer reading times at the relative clause verbs of ORC sentences in comparison to the relative clause verb of SRC sentences.
+
+```{r open_grodneretal, message = FALSE}
+data("df_gg05_rc")
+df_gg05_rc
+```
+You should use a sum coding for the predictors. Here, object relative clauses (`"objgaps"`) are coded $+1/2$, subject relative clauses
+$-1/2$.
+
+```{r}
+df_gg05_rc <- df_gg05_rc %>%
+  mutate(c_cond = if_else(condition == "objgap", 1/2, -1/2))
+```
+
+You should be able to now fit a "maximal" model (correlated varying intercept and slopes for subjects and for items) assuming a log-normal likelihood.
+
+(a) Examine the effect of relative clause attachment site (the predictor `c_cond`) on reading times `RT` ($\beta$).
+(b) Estimate the median difference between relative clause attachment sites in milliseconds, and report the mean and 95% CI.
+(c) Do a sensitivity analysis. What is the estimate of the effect ($\beta$) under different priors? What is the difference in milliseconds between conditions under different priors?
+
+
+```{exercise, HLMExerciseMandarinRC}
+Relative clause processing in Mandarin Chinese
+```
+
+Load the following two data sets:
+
+```{r}
+data("df_gibsonwu")
+data("df_gibsonwu2")
+```
+
+The data are taken from two experiments that investigate (inter alia) the effect of relative clause type on reading time in Chinese. The data are from @gibsonwu and @VasishthetalPLoSOne2013 respectively. The second data set is a direct replication attempt of the @gibsonwu experiment.
+
+Chinese relative clauses are interesting theoretically because they are prenominal: the relative clause appears before the head noun. For example, the English relative clauses shown above would appear in the following order in Mandarin. The square brackets mark the relative clause, and REL refers to the Chinese equivalent of the English relative pronoun *who*.
+
+ (2a) [The photographer *sent* to the editor] REL the *reporter* was hoping for a good story. (ORC)
+
+ (2b) [*sent* the photographer to the editor] REL the *reporter* who was hoping for a good story. (SRC)
+
+As discussed in @gibsonwu, the consequence of Chinese relative clauses being prenominal is that the distance between the verb in relative clause and the head noun is larger in subject relatives than object relatives. @hsiao03 were the first to suggest that the larger distance in subject relatives leads to longer reading time at the head noun. Under this view, the prediction is that subject relatives are harder to process than object relatives. If this is true, this is interesting and surprising because in most other languages that have been studied, subject relatives are easier to process than object relatives; so Chinese will be a very unusual exception cross-linguistically.
+
+The data provided are for the critical region (the head noun; here, *reporter*). The experiment method is self-paced reading, so we have reading times in milliseconds. The second data set is a direct replication attempt of the first data set, which is from @gibsonwu.
+
+The research hypothesis is whether the difference in reading times between object and subject relative clauses is negative. For the first data set (`df_gibsonwu`), investigate this question by fitting two "maximal" hierarchical models (correlated varying intercept and slopes for subjects and items). The dependent variable in both models is the raw reading time in milliseconds. The first model should use the normal likelihood in the model; the second model should use the log-normal likelihood. In both models, use $\pm 0.5$ sum coding to model the effect of relative clause type. You will need to decide on appropriate priors for the various parameters.
+
+(a) Plot the posterior predictive distributions from the two models. What is the difference in the posterior predictive distributions of the two models; and why is there a difference?
+(b) Examine the posterior distributions of the effect estimates (in milliseconds) in the two models. Why are these different?
+(c) Given the posterior predictive distributions you plotted above, why is the log-normal likelihood model better for carrying out inference and hypothesis testing?
+
+Next, work out a normal approximation of the log-normal model's posterior distribution for the relative clause effect that you obtained from the above data analysis. Then use that normal approximation as an informative prior for the slope parameter when fitting a hierarchical model to the second data set. This is an example of incrementally building up knowledge by successively using a previous study's posterior as a prior for the next study; this is essentially equivalent to pooling both data sets (check that pooling the data and using a Normal(0,1) prior for the effect of interest, with a log-normal likelihood, gives you approximately the same posterior as the informative-prior model fit above).
+
+
+```{exercise, HLMExerciseEnglishAgrmt}
+\index{Agreement attraction} Agreement attraction in comprehension
+```
+
+Load the following data:
+
+```{r}
+data("df_dillonE1")
+dillonE1 <- df_dillonE1
+head(dillonE1)
+```
+
+The data are taken from an experiment that investigate (inter alia) the effect of number similarity between a noun and the auxiliary verb in sentences like the following. There are two levels to a factor called Int(erference): low and high.
+
+(3a) low: The key to the cabinet *are* on the table
+(3b) high: The key to the *cabinets* *are* on the table
+
+Here, in (3b), the auxiliary verb *are* is predicted to be read faster than in (3a), because the plural marking on the noun *cabinets* leads the reader to think that the sentence is grammatical. (Both sentences are ungrammatical.) This phenomenon, where the high condition is read faster than the low condition, is called **agreement attraction**.
+
+The data provided are for the critical region (the auxiliary verb *are*). The experiment method is eye-tracking; we have total reading times in milliseconds.
+
+The research  question is whether the difference in reading times between high and low conditions is negative.
+
+- First, using a log-normal likelihood, fit a hierarchical model with correlated varying intercept and slopes for subjects and items. You will need to decide on the priors for the model.
+-  By simply looking at the posterior distribution of the slope parameter $\beta$, what would you conclude about the theoretical claim relating to agreement attraction?
+
+```{exercise, ab}
+\index{Attentional blink} Attentional blink (Bernoulli likelihood)
+```
+
+The attentional blink [AB; first described by @raymond1992temporary; though it has been noticed before e.g., @Broadbent1987] refers to a temporary reduction in the accuracy of detecting a *probe* (e.g., a letter "X") presented closely after a *target* that has been detected (e.g., a white letter). We will focus on the experimental condition of Experiment 2 of @raymond1992temporary. Subjects are presented with letters in \index{Rapid serial visual presentation} rapid serial visual presentation (RSVP) at the center of the screen at a constant rate and are required to identify the only white letter (target) in the stream of black letters, and then to report whether the letter X (probe) occurred in the subsequent letter stream. The AB is defined as having occurred when the target is reported correctly but the report of the probe  is inaccurate at a short *lag* or *target-probe*  interval.
+
+The data set `df_ab` is a subset of the data of this paradigm from a replication conducted by @grassi_two_2021. In this subset, the probe was always present and the target was correctly identified. We want to find out  how  the lag affects the accuracy of the identification of the probe.
+
+```{r}
+data("df_ab")
+df_ab
+```
+
+Fit a logistic regression assuming a linear relationship between `lag` and accuracy (`probe_correct`). Assume a hierarchical structure with correlated varying intercept and slopes for subjects. You will need to decide on the priors for this model.
+
+(a) How is the accuracy of the probe identification affected by the lag? Estimate this in log-odds and percentages.
+(b) Is the linear relationship justified? Use posterior predictive checks to verify this.
+(c) Can you think about a better relationship between lag and accuracy? Fit a new model and use posterior predictive checks to verify if the fit improved.
+
+
+
+```{exercise, strooplogis-brms}
+Is there a Stroop effect in accuracy?
+```
+
+Instead of the response times of the correct answers, we want to find out whether accuracy also changes by condition in the Stroop task. Fit the Stroop data with a hierarchical logistic regression (i.e., a Bernoulli likelihood with a logit link). Use the complete data set, `df_stroop_complete` which also includes incorrect answers, and subset it selecting the first 50 subjects.
+
+(a) Fit the model.
+(b) Report the Stroop effect in log-odds and accuracy.
+
+```{exercise, stroop-dist}
+\index{Distributional regression} Distributional regression for the Stroop effect.
+```
+
+We will relax some of the assumptions of the model of Stroop presented in section \@ref(sec-stroop).  We will no longer assume that all subjects share the same variance component, and, in addition, we'll investigate whether the experimental manipulation affects the scale of the response times. A reasonable hypothesis could be that the incongruent condition is noisier than the congruent one.
+
+Assume the following likelihood, and fit the model with sensible priors (recall that our initial prior for $\beta$ wasn't reasonable). (Priors for all the `sigma` parameters require us to set `dpar = sigma`).
+
+
+\begin{equation}
+\begin{aligned}
+  rt_n &\sim \mathit{LogNormal}(\alpha + u_{subj[n],1}  + c\_cond_n \cdot  (\beta + u_{subj[n],2}), \sigma_n)\\
+  \sigma_n &= \exp(\sigma_\alpha + \sigma_{u_{subj[n],1}} + c\_cond \cdot (\sigma_\beta + \sigma_{u_{subj[n],2}}) )
+\end{aligned}
+\end{equation}
+
+In this likelihood $\sigma_n$ has both population- and group-level parameters:  $\sigma_\alpha$ and $\sigma_\beta$ are the intercept and slope of the population level effects repectively, and $\sigma_{u_{subj[n],1}}$ and $\sigma_{u_{subj[n],2}}$  are the intercept and slope of the group-level effects.
+
+
+(a) Is our hypothesis reasonable in light of the results?
+(b) Why is the intercept for the scale negative?
+(c) What's the posterior estimate of the scale for congruent and incongruent conditions?
+
+```{r, eval = FALSE, echo = FALSE}
+fit_stroop_d <- brm(bf(RT ~ c_cond + (c_cond | subj),
+                     sigma ~ c_cond + (c_cond | subj)),
+  family = lognormal(),
+  prior =
+    c(
+      prior(normal(6, 1.5), class = Intercept),
+      prior(normal(0, .1), class = b),
+      prior(normal(0, 1), class = sd),
+      prior(lkj(2), class = cor),
+      prior(normal(-1, 1), class = Intercept, dpar = sigma),
+      prior(normal(0, 1),
+           class = b,
+           dpar = sigma),
+      prior(normal(0, 1),
+           class = sd, group = subj,
+           dpar = sigma)
+    ),
+  iter = 4000,
+  data = df_stroop %>% filter(subj < 30)
+)
+
+
+```
+
+
+```{exercise, HLMExerciseGramCE}
+The \index{Grammaticality illusion} grammaticality illusion
+```
+
+Load the following two data sets:
+
+```{r}
+data("df_english")
+english <- df_english
+data("df_dutch")
+dutch <- df_dutch
+```
+
+In an offline accuracy rating study on English double center-embedding constructions, @gibsonthomas99 found that grammatical constructions (e.g., example 4a below) were no less acceptable than ungrammatical constructions (e.g., example 4b) where a middle verb phrase (e.g., *was cleaning every week*) was missing.
+
+(4a) The apartment that the maid who the service had sent over was cleaning every week was well decorated.
+
+(4b) *The apartment that the maid who the service had sent over --- was well decorated
+
+Based on these results from English, @gibsonthomas99 proposed that working-memory overload leads the comprehender to forget the prediction of the upcoming verb phrase (VP), which reduces working-memory load. This came to be known as the \index{VP-forgetting hypothesis} *VP-forgetting hypothesis*. The prediction is that in the word immediately following  the final verb, the grammatical condition (which is coded as +1 in the data frames) should be harder to read than the ungrammatical condition (which is coded as -1).
+
+The design shown above is set up to test this hypothesis using self-paced reading for English [@VSLK08], and for Dutch [@FrankEtAl2015]. The data provided are for the critical region (the noun phrase, labeled NP1, following the final verb); this is the region for which the theory predicts differences between the two conditions.  We have reading times in log milliseconds.
+
+(a) First, fit a linear model with a full hierarchical structure by subjects and by items for the English data. Because we have log milliseconds data, we can simply use the normal likelihood (not the log-normal). What scale will be the parameters be in, milliseconds or log milliseconds?
+(b) Second, using the posterior for the effect of interest from the English data, derive a prior distribution for the effect in the Dutch data. Then fit two linear mixed models: (i) one model with relatively uninformative priors for $\beta$ (for example, $Normal(0,1)$), and (ii) one model with the prior for $\beta$ you derived from the English data. Do the posterior distributions of the Dutch data's effect show any important differences given the two priors? If yes, why; if not, why not?
+(c) Finally, just by looking at the English and Dutch posteriors, what can we say about the VP-forgetting hypothesis? Are the posteriors of the effect from these two languages consistent with the hypothesis?
+
+
+## Contrast coding {#sec-Contrastsexercises}
+
+```{exercise, ContrastsPersian}
+Contrast coding for a four-condition design
+```
+
+
+
+Load the following data. These data are from Experiment 1 in a set of reading studies on Persian [@SafaviEtAlFrontiers2016]. This is a self-paced reading study on particle-verb constructions, with a $2\times 2$ design: distance (short, long) and predictability (predictable, unpredictable). The data are from a critical region in the sentence. All the data from the @SafaviEtAlFrontiers2016 paper are available from https://github.com/vasishth/SafaviEtAl2016.
+
+```{r}
+library(bcogsci)
+data("df_persianE1")
+dat1 <- df_persianE1
+head(dat1)
+```
+
+The four conditions are:
+
+- Distance=short and Predictability=unpredictable
+- Distance=short and Predictability=predictable
+- Distance=long and Predictability=unpredictable
+- Distance=long and Predictability=predictable
+
+The researcher wants to do the following sets of comparisons between condition means:
+
+Compare the condition labeled Distance=short and Predictability=unpredictable with each of the following conditions:
+
+- Distance=short and Predictability=predictable
+- Distance=long and Predictability=unpredictable
+- Distance=long and Predictability=predictable
+
+Questions:
+
+- Which contrast coding is needed for such a comparison?
+- First, define the relevant contrast coding. Hint: You can do it by creating a condition column labeled a,b,c,d and then use a built-in contrast coding function.
+- Then, use the `hypr` library function to confirm that your contrast coding actually does the comparison you need.
+- Fit a simple linear model with the above contrast coding and display the slopes, which constitute the relevant comparisons.
+- Now, compute each of the four conditions' means and check that the slopes from the linear model correspond to the relevant differences between means that you obtained from the data.
+
+
+```{exercise, ContrastsNPIHelmert}
+\index{Helmert coding} Helmert coding for a six-condition design.
+```
+
+This data-set is from a psycholinguistics study, and although we explain the theoretical background below, one does not need to deeply understand the research questions to be able to define the contrasts.
+
+Load the following data:
+
+```{r}
+library(bcogsci)
+data("df_polarity")
+head(df_polarity)
+```
+
+The data come from an eyetracking study in German reported in @VBLD07. The experiment is a reading study involving six conditions. The sentences are in English, but the original design was involved German sentences. In German, the word *durchaus* (certainly) is a positive polarity item: in the constructions used in this experiment, *durchaus* cannot have a c-commanding element that is a negative polarity item licensor. By contrast, the German negative polarity item  *jemals* (ever) is a negative polarity item: in the constructions used in this experiment, *jemals* must have a c-commanding element that is a negative polarity item licensor. 
+
+Here are the conditions:
+
+- Negative polarity items
+  (a) Grammatical: No man who had a beard was ever thrifty.
+  (b) Ungrammatical (Intrusive NPI licensor): A man who had no beard was ever thrifty.
+  (c) Ungrammatical: A man who had a beard was ever thrifty.
+- Positive polarity items
+  (d) Ungrammatical: No man who had a beard was certainly thrifty.
+  (e) Grammatical (Intrusive NPI licensor): A man who had no beard was certainly thrifty.
+  (f) Grammatical: A man who had a beard was certainly thrifty.
+
+We will focus only on re-reading time in this data set. Subset the data so that we only have re-reading times in the data frame:
+
+```{r}
+dat2 <- subset(df_polarity, times == "RRT")
+head(dat2)
+```
+
+The comparisons we are interested in are as follows:
+
+- What is the difference in reading time between negative polarity items and positive polarity items? In other words, we want to compare the mean of conditions (a), (b), (c) with the mean of (d), (e), (f).
+- Within negative polarity items, what is the difference between grammatical and ungrammatical conditions? In other words, we want to compare condition (a) with the average of (b) and (c).
+- Within negative polarity items, what is the difference between the two ungrammatical conditions? Here, we want to compare conditions (b) and (c).
+- Within positive polarity items, what is the difference between grammatical and ungrammatical conditions? Here, we want to compare condition (d) with the average of (e) and (f).
+- Within positive polarity items, what is the
+difference between the two grammatical conditions? Here, the comparison is between (e) and (f).
+
+Use the `hypr` package to specify the comparisons specified above, and then extract the contrast matrix. Finally, specify the contrasts to the condition column in the data frame. Fit a linear model using this contrast specification, and then check that the estimates from the model match the mean differences between the conditions being compared.
+
+
+
+```{exercise, ContrastsNcomparisons}
+Number of possible comparisons in a single model.
+```
+
+- How many comparisons can one make in a single model when there is a single factor with four levels? Why can we not code four comparisons in a single model?
+- How many comparisons can one code in a model where there are two factors, one with three levels and one with two levels?
+- How about a model for a $2 \times 2 \times 3$ design?
+
+# Contrast coding with two predictor variables {#sec-Contrasts2x2exercises}
+
+```{exercise, ContrastsPersianANOVA}
+ANOVA coding for a four-condition design.
+```
+
+
+Load the following data. These data are from Experiment 1 in a set of reading studies on Persian [@SafaviEtAlFrontiers2016]; we encountered these data in the preceding chapter's exercises.
+
+```{r}
+library(bcogsci)
+data("df_persianE1")
+dat1 <- df_persianE1
+head(dat1)
+```
+
+The four conditions are:
+
+- Distance=short and Predictability=unpredictable
+- Distance=short and Predictability=predictable
+- Distance=long and Predictability=unpredictable
+- Distance=long and Predictability=predictable
+
+For the data given above, define an ANOVA-style contrast coding, and compute main effects and interactions. Check with `hypr` what the estimated comparisons are with an ANOVA coding.
+
+
+```{exercise, Contrasts2x2x2Dillon2013}
+ANOVA and nested comparisons in a $2\times 2\times 2$ design
+```
+
+Load the following data set. This is a $2\times 2\times 2$ design from @JaegerMertzenVanDykeVasishth2019, with the factors Grammaticality (grammatical vs. ungrammatical), Dependency (Agreement vs.\ Reflexives), and Interference (Interference vs.\ no interference). The experiment is a replication attempt of Experiment 1 reported in @Dillon-EtAl-2013.
+
+```{r}
+library(bcogsci)
+data("df_dillonrep")
+```
+
+- The grammatical conditions are a,b,e,f. The rest of the conditions are ungrammatical.
+- The agreement conditions are a,b,c,d. The other conditions are reflexives.
+- The interference conditions are a,d,e,h, and the others are the no-interference conditions.
+
+The dependent measure of interest is TFT (total fixation time, in milliseconds).
+
+Using a linear model, do a main effects and interactions ANOVA contrast coding, and obtain an estimate of the main effects of Grammaticality, Dependency, and Interference, and all interactions. You may find it easier to code the contrasts coding the main effects as +1, -1, using `ifelse()` in R to code vectors corresponding to each main effect. This will make the specification of the interactions easy.
+
+The researchers had a further research hypothesis: in ungrammatical sentences only, agreement would show an interference effect but reflexives would not. In grammatical sentences, both agreement and reflexives are expected to show interference effects. This kind of research question can be answered with nested contrast coding.
+
+To carry out the relevant nested contrasts, define contrasts that estimate the effects of
+
+- grammaticality
+- dependency type
+- the interaction between grammaticality and dependency type
+- reflexives interference within grammatical conditions
+- agreement interference within grammatical conditions
+- reflexives interference within ungrammatical conditions
+- agreement interference within ungrammatical conditions
+
+Do the estimates match expectations? Check this by computing the condition means and checking that the estimates from the models match the relevant differences between conditions or clusters of conditions.
+
+
+## Introduction to the probabilistic programming language Stan 
+
+
+```{exercise, first}
+A very simple model.
+```
+
+In this exercise we revisit the model from \@ref(sec-simplenormal). Assume the  following:
+
+1. There is a true underlying time, $\mu$, that the subject needs to press the space bar.
+2. There is some noise in this process.
+3. The noise is normally distributed (this assumption is questionable given that response times are generally  skewed; we fix this assumption later).
+
+That is the likelihood for each observation $n$ will be:
+
+\begin{equation}
+\begin{aligned}
+t_n \sim \mathit{Normal}(\mu, \sigma)
+\end{aligned}
+\end{equation}
+
+a. Decide on appropriate priors and fit this model in Stan. Data can be found in `df_spacebar`.
+b. Change the likelihood to a log-normal distribution and change the priors. Fit the model in Stan.
+
+
+```{exercise, badstan}
+Incorrect Stan model.
+```
+
+We want to fit both response times and accuracy with the same model. We simulate the data as follows:
+
+```{r }
+N <- 500
+df_sim <- tibble(rt = rlnorm(N, mean = 6, sd = .5),
+                 correct = rbern(N, prob = .85))
+```
+
+We build the following model:
+
+```{r incorrectstan, echo = FALSE}
+incorrect <- system.file("stan_models", "incorrect.stan", package = "bcogsci")
+```
+
+
+```{stan output.var = "incorrect_stan", code = readLines(incorrect),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
+Why does this model not work?
+
+```{r, error = TRUE}
+ls_sim <- list(rt = df_sim$rt,
+               correct = df_sim$correct)
+incorrect <- system.file("stan_models",
+                         "incorrect.stan",
+                         package = "bcogsci")
+fit_sim <- stan(incorrect, data = ls_sim)
+```
+
+Try to make it run. (Hint: There are several problems.)
+
+```{exercise, skewstan}
+Using Stan documentation.
+```
+
+Edit the simple example with Stan from section \@ref(sec-firststan), and replace the normal distribution with a skew normal distribution. (Don't forget to add a prior to the new parameter, and check   the Stan documentation or a statistics textbook for more information about the distribution).
+
+Fit the following data:
+
+```{r yscoresagain3, eval = FALSE}
+Y <- rnorm(1000, mean = 3, sd = 10)
+```
+
+Does the estimate of the new parameter make sense?
+
+
+
+
+
+
+```{exercise, linkfunction}
+The probit link function as an alternative to the logit function.
+```
+
+The probit link function is the inverse of the CDF of the standard normal distribution ($Normal(0,1)$). Since the CDF of the standard normal is usually written using the Greek letter $\Phi$ (Phi),  the probit function is written as its inverse, $\Phi^{-1}$. Refit the model presented in \@ref(sec-logisticstan) changing the logit link function for the probit link (that is transforming the regression to a constrained space using `Phi()` in Stan).
+
+You will probably see the following as the model runs; this is because the probit link is less numerically stable (i.e., under- and overflows) than the logit link in Stan. Don't worry, it is good enough for this exercise.
+
+```
+   Rejecting initial value:
+   Log probability evaluates to log(0), i.e. negative infinity.
+   Stan can't start sampling from this initial value.
+```
+
+
+a. Do the results of the coefficients $\alpha$ and $\beta$ change?
+b. Do the results in probability space change?
+
+
+```{exercise, logisticstan}
+Examining the position of the queued word on recall.
+```
+
+Refit the model presented in section \@ref(sec-logisticstan) and examine whether set size, trial effects, the  position of the queued word (`tested` in the data set), and their interaction affect free recall. (Tip: You can do this exercise without changing the Stan code.).
+
+How does the accuracy change from position one to position two?
+
+
+```{exercise, fallacy}
+The conjunction fallacy.
+```
+
+@Paolaccietal examined whether the results of some classic experiments differ between a university pool population and subjects recruited from Mechanical Turk. We'll examine whether the results of the  conjunction fallacy experiment [or Linda problem:  @TverskyKahneman1983] are replicated for both groups.
+
+```{r,  message = FALSE}
+data("df_fallacy")
+df_fallacy
+```
+
+The conjunction fallacy shows that people often fail to regard a combination of events as less probable than a single event in the combination [@TverskyKahneman1983]:
+
+*Linda is 31 years old, single, outspoken, and very bright. She majored in philosophy. As a student, she was deeply concerned with issues of discrimination and social justice, and also participated in anti-nuclear demonstrations.*
+
+*Which is more probable?*
+
+a. *Linda is a bank teller.*
+b. *Linda is a bank teller and is active in the feminist movement.*
+
+The majority of those asked chose option b even though it's less probable ($\Pr(a \land b)\leq \Pr(b)$. The data set is named `df_fallacy` and it indicates with `0`  option "a" and with `1` option `b`.
+Fit a logistic regression in Stan and report:
+
+a. The estimated overall probability of answering (b) ignoring the group.
+b. The estimated overall probability of answering (b) for each group.
+
+
+
+## Hierarchical models and reparameterization
+
+
+
+
+
+
+```{exercise, stroop}
+A log-normal model in Stan.
+```
+
+ Refit the Stroop example from section \@ref(sec-stroop) in Stan (`df_stroop`).
+
+
+Assume the following likelihood and priors:
+
+\begin{equation}
+  rt_n \sim \mathit{LogNormal}(\alpha + u_{subj[n],1}  + c\_cond_n \cdot  (\beta + u_{subj[n],2}), \sigma)
+\end{equation}
+ 
+ \begin{equation}
+ \begin{aligned}
+   \alpha & \sim \mathit{Normal}(6, 1.5) \\
+   \beta  & \sim \mathit{Normal}(0, .1) \\
+    \sigma  &\sim \mathit{Normal}_+(0, 1)
+ \end{aligned}
+ \end{equation}
+
+\begin{equation}
+\begin{aligned}
+\tau_{u_1} &\sim \mathit{Normal}_+(0,1)\\
+\tau_{u_2} &\sim \mathit{Normal}_+(0,1)\\
+\begin{bmatrix}
+1 & \rho_u \\
+\rho_u & 1
+\end{bmatrix} &\sim \mathit{LKJcorr}(2) 
+\end{aligned}
+\end{equation}
+
+
+
+
+
+```{exercise, hierarchical-logn-stan}
+A by-subjects and by-items hierarchical model with a log-normal likelihood.
+```
+
+Revisit the question "Are subject relatives easier to process than object relatives?" Fit the model from the exercise \@ref(exr:hierarchical-logn) using Stan.
+
+```{exercise, strooplogis}
+A hierarchical logistic regression with Stan.
+```
+
+Revisit the question "Is there a Stroop effect in accuracy?" Fit the model the exercise \@ref(exr:strooplogis-brms) using Stan.
+
+
+```{exercise, distr-stan}
+A distributional regression model of the effect of cloze probability on the N400.
+```
+
+In section \@ref(sec-distrmodel), we saw how to fit a distributional regression model. We might want to extend this approach to Stan. Fit the EEG data to a hierarchical model with by-subject and by-items varying intercept and slopes, and in addition assume that the residual standard deviation (the scale of the normal likelihood) can vary by subject.
+
+\begin{equation}
+\begin{aligned}
+  signal_n &\sim \mathit{Normal}(\alpha + u_{subj[n],1} + w_{item[n],1} + \\
+  & c\_cloze_n \cdot  (\beta + u_{subj[n],2}+ w_{item[n],2}), \sigma_n)\\
+  \sigma_n &= \exp(\alpha_{\sigma} + u_{\sigma_{subj[n]}})
+\end{aligned}
+\end{equation}
+ 
+\begin{equation}
+\begin{aligned}
+  \alpha_\alpha &\sim \mathit{Normal}(0,log(50))\\
+  u_\sigma &\sim \mathit{Normal}(0, \tau_{u_\sigma}) \\
+  \tau_{u_\sigma} &\sim \mathit{Normal}_+(0, 5)
+\end{aligned}
+\end{equation}
+
+To fit this model, take into account that `sigma` is now a vector, and it is a transformed parameter which depends on two parameters: `alpha_sigma` and the vector with `N_subj` elements `u_sigma`. In addition, `u_sigma` depends on the hyperparameter `tau_u_sigma` ($\tau_{u_\sigma}$). (Using the non-centered parameterization for `u_sigma` speeds up the model fit considerably).
+
+
+## Custom distributions in Stan {#sec-customexercises}
+
+```{exercise, shiftedlogn}
+Fitting a \index{Shifted log-normal distribution} shifted log-normal distribution.
+```
+
+A random variable $Y$ has a shifted log-normal distribution with shift $\psi$, location $\mu$, and scale $\sigma$, if $Z = Y-\psi$ and $Z \sim \mathit{LogNormal}(\mu,\sigma)$. 
+
+1. Implement a `shifted_lognormal_ldpf` function in Stan with three parameters, `mu`, `sigma`, and `psi`. Tip: One can use the regular log-normal distribution and apply a change of variable. In this case the adjustment of the Jacobian would be 
+$|\frac{d}{dY} Y - \psi|=1$, which in log-space is conveniently zero. 
+
+2. Verify the correctness of the model by recovering the true values of (your choice) of the parameters of the model and by using simulation-based calibration.  In order to use simulation-based calibration, you will need to decide on sensible priors; assume that $\psi \sim \mathit{Normal}_+(100,50)$, and choose priors for $\mu$ and $\sigma$ so that the prior predictive distributions are adequate for response times.
+
+
+```{exercise, wald}
+Fitting a Wald distribution.
+```
+The \index{Wald distribution} Wald distribution (or inverse Gaussian distribution) and its variants have been proposed as another useful distribution for \index{Response time} response times [see for example @heathcote2004fitting].
+
+The probability density function of the Wald distribution is the following.
+
+\begin{equation}
+f(x;\mu ,\lambda )={\sqrt {\frac {\lambda }{2\pi x^{3}}}}\exp {\biggl (}-{\frac {\lambda (x-\mu )^{2}}{2\mu ^{2}x}}{\biggr )}
+\end{equation}
+    
+
+1. Implement this distribution in Stan as `wald_lpdf`. In order to do this, you will need to derive the logarithm of the PDF presented above. You can adapt the code of the following R function.
+
+
+```{r}
+dwald <- function(x, lambda, mu, log = FALSE) {
+  log_density <- 0.5 * log(lambda / (2 * pi())) -
+    1.5 * log(x) -
+    0.5 * lambda * ((x - mu) / (mu * sqrt(x)))^2
+  if (log == FALSE) {
+    exp(log_density)
+  } else {
+    log_density
+  }
+}
+```
+
+2. Verify the correctness of the model by recovering the true values of (your choice) of the parameters of the model and by using simulation-based calibration.  As with the previous exercise, you will need to decide on sensible priors by deriving prior predictive distributions that are adequate for response times.
+
+
+## Meta-analysis and  measurement error models {#sec-REMAMEexercises}
+
+```{exercise, REMAMEExtracting}
+Extracting estimates from published papers
+```
+
+Researchers often do not release the data that lie behind the published paper. This creates the problem that one has to figure out the estimated effect size and standard error from published statistics. This exercise gives some practice on how to do this by considering some typical cases that are encountered in repeated measures designs.
+
+(a) Suppose that in a repeated measures reading study, the observed t-value from a paired t-test is 2.3 with degrees of freedom 23. Suppose also that the estimated standard deviation is 150 ms. What is the estimated standard error and the estimated effect size?
+(a) Suppose that in a repeated measures reading study, the observed $t$-value from a paired $t$-test is is 2.3 with degrees of freedom 23. Suppose also that the estimated standard deviation is 150 ms. What is the estimated standard error and the estimated effect size?
+
+(b) A repeated measures reading study reports an F-score from an analysis of variance as $F(1,34)=6.1$, with an effect size of 25 ms. What is the estimated standard error?
+
+```{exercise, REMAMEBuerki}
+A meta-analysis of picture-word interference data
+```
+
+Load the following data set:
+
+```{r}
+data("df_buerki")
+head(df_buerki)
+df_buerki <- subset(df_buerki, se > 0.60)
+```
+
+The data are from @BuerkiEtAl2020. We have a summary of the effect estimates (d) and standard errors (se) of the estimates from 162 published experiments on a phenomenon called *semantic picture-word interference*.  We removed an implausibly low SE in the code above, but the results don't change regardless of whether we keep them or not, because  we  have data from a lot of studies.
+
+In this experimental paradigm, subjects are asked to name a picture while ignoring a distractor word (which is either related or  unrelated to the picture). The word can be printed on the picture itself, or presented auditorily. The dependent measure is the response latency, or time interval between the presentation of the picture and the onset of the vocal response. Theory says that distractors that come from  the same semantic category as  the picture to be named lead to a slower response then when the distractor comes from a different semantic category.
+
+Carry out a random effects  meta-analysis using `brms` and display  the posterior distribution of the effect, along with the posterior   of the  between  study standard deviation.
+
+Choose $\mathit{Normal}(0,100)$ priors for the  intercept and between study sd parameters. You  can also try vague priors (sensitivity analysis). Examples would be:
+
+- $\mathit{Normal}(0,200)$
+- $\mathit{Normal}(0,400)$
+
+```{exercise, REMAMELiEnglish}
+Measurement error model for English VOT data
+```
+
+
+Load the following data:
+
+```{r}
+data("df_VOTenglish")
+head(df_VOTenglish)
+```
+
+You are given mean voice onset time (VOT) data (with SEs) in milliseconds for English, along with mean vowel durations (with SEs) in milliseconds. Fit a measurement-error model investigating the effect of mean vowel duration on mean VOT duration. First plot the relationship between the two variables; does it look like there is an association between the two?
+
+Then use `brms` with measurement error included in both the dependent and independent variables. Do a sensitivity analysis to check the influence of the priors on the posteriors of the relevant parameters.
+
+
+
+## Bayes factors  
+
+
+```{exercise, bysubjects}
+Is there evidence for differences in the effect of cloze probability among the subjects?
+```
+
+\vspace{-.5cm}
+ Use Bayes factor to compare the log cloze probability model that we examined in section \@ref(sec-BFnonnested) with a similar model but that incorporates the strong assumption of no difference between subjects for the effect of cloze ($\tau_{u_2}=0$).
+
+
+
+```{exercise, bf-logn}
+Is there evidence for the claim that English subject relative clauses are easier to process than object relative clauses?
+```
+
+Consider again the reading time data coming from Experiment 1 of @grodner presented in exercise \@ref(exr:hierarchical-logn):
+
+```{r open_grodneretal_again, message = FALSE}
+data("df_gg05_rc")
+df_gg05_rc
+```
+
+As in exercise \@ref(exr:hierarchical-logn), you should use a sum coding for the predictors. Here, object relative clauses (`"objgaps"`) are coded $+1/2$, and subject relative clauses as $-1/2$.
+
+```{r}
+df_gg05_rc <- df_gg05_rc %>%
+  mutate(c_cond = if_else(condition == "objgap", 1/2, -1/2))
+```
+
+
+Using the Bayes factors function shown in this chapter, quantify the evidence against the null model (no population-level reading time difference between SRC and ORC) relative to the following alternative models:
+
+a. $\beta \sim \mathit{Normal}(0, 1)$
+b. $\beta \sim \mathit{Normal}(0, 0.1)$
+c. $\beta \sim \mathit{Normal}(0, 0.01)$
+d. $\beta \sim \mathit{Normal}_+(0, 1)$
+e. $\beta \sim \mathit{Normal}_+(0, 0.1)$
+f. $\beta \sim \mathit{Normal}_+(0, 0.01)$
+
+(A $\mathit{Normal}_+(.)$ prior can be set in `brms` by defining a lower boundary as $0$, with the argument `lb = 0`.)
+
+What are the Bayes factors in favor of the alternative models a-f, compared to the null model?
+
+Now carry out a standard frequentist likelihood ratio test using the `anova()` function that is used with the `lmer()` function. The commands
+for doing this comparison would be:
+
+```{r eval=FALSE}
+m_full <- lmer(log(RT) ~ c_cond +
+                 (c_cond || subj) + (c_cond || item),
+               df_gg05_rc)
+m_null <- lmer(log(RT) ~ 1 + (c_cond||subj) + (c_cond || item),
+               df_gg05_rc)
+anova(m_null, m_full)
+```
+
+How do the conclusions from the Bayes factor analyses compare with the conclusion we obtain from the frequentist model comparison?
+
+```{exercise, bf-logistic}
+In the Grodner and Gibson 2005 data, in question-response accuracies, is there evidence for the claim that sentences with subject relative clauses are easier to comprehend?
+```
+
+\vspace{-.5cm}
+Consider the question response accuracy of the data of Experiment 1 of @grodner.
+
+a. Compare a model that assumes that RC type affects question accuracy on the population level and with the effect varying by-subjects and by-items with *a null model* that assumes that there is no population-level effect present.
+b. Compare a model that assumes that RC type affects question accuracy on the population level and with the effect varying by-subjects and by-items with *another null model* that assumes that there is no population-level or group-level effect present, that is no by-subject or by-item effects. What's the meaning of the results of the Bayes factor analysis?
+
+Assume that for the effect of RC on question accuracy, $\beta \sim \mathit{Normal}(0, 0.1)$ is a reasonable prior, and that for all the variance components, the same prior, $\tau \sim \mathit{Normal}_{+}(0, 1)$, is a reasonable prior.
+
+```{exercise, lognstan}
+Bayes factor and bounded parameters using Stan.
+```
+
+
+Re-fit the data of a single subject pressing a button repeatedly from \@ref(sec-trial) from `data("df_spacebar")`, coding the model in Stan.
+
+Start by assuming the following likelihood and priors:
+
+\begin{equation}
+rt_n \sim \mathit{LogNormal}(\alpha + c\_trial_n \cdot \beta,\sigma)
+\end{equation}
+
+\begin{equation}
+\begin{aligned}
+\alpha &\sim \mathit{Normal}(6, 1.5) \\
+\beta &\sim \mathit{Normal}_+(0, 0.1)\\
+\sigma &\sim \mathit{Normal}_+(0, 1)
+\end{aligned}
+\end{equation}
+
+Use the Bayes factor to answer the following questions:
+
+a. Is there evidence for any effect of trial number in comparison with no effect?
+b. Is there evidence for a positive effect of trial number (as the subject reads further, they slowdown) in comparison with no effect?
+c. Is there evidence for a negative effect of trial number (as the subject reads further, they speedup) in comparison with no effect?
+d. Is there evidence for a positive effect of trial number in comparison with a negative effect?
+
+(Expect very large Bayes factors in this exercise.)
+
+
+
+## Cross-validation
+
+
+```{exercise, logcv}
+Predictive accuracy of the linear and the logarithm effect of cloze probability.
+```
+
+Is there a difference in predictive accuracy between the model that incorporates a linear effect of cloze probability and one that incorporates log-transformed cloze probabilities?
+
+
+
+
+
+
+```{exercise, stroopcv}
+Log-normal model
+```
+
+Use PSIS-LOO to compare a model of Stroop as the one in \@ref(exr:stroop) with a model that assumes no population-level effect
+
+(a) in `brms`.
+(b) in Stan.
+
+```{exercise, logrec}
+Log-normal vs  rec-normal model in Stan
+```
+
+In section \@ref(sec-change), we proposed a reciprocal truncated normal distribution (rec-normal) to response times data, as an alternative to the log-normal distribution. The log-likelihood (of $\mu$ and $\sigma$) of an individual observation, $\mathit{RT}_{n}$, for the rec-normal distribution would be the following one.
+
+\begin{equation}
+\log \mathcal{L} = \log(\mathit{Normal}(1/\mathit{RT}_n | \mu, \sigma)) - 2 \cdot \log(\mathit{RT}_n)
+\end{equation}
+
+As explained in \@ref(sec-change), we obtain the log-likelihood based on all the $N$ observations by summing the log-likelihood of individual observations.
+
+\begin{equation}
+\log \mathcal{L} = \sum_n^N \log(\mathit{Normal}(1/\mathit{RT}_n | \mu, \sigma))  - \sum_n^N 2 \cdot \log(\mathit{RT}_n)
+\end{equation}
+
+Since these two models assume right-skewed data with only positive values, the question that we are interested in here is if we can really distinguish between them. Investigate this in the following way:
+
+(a) Generate data (N = 100 and N = 1000) with a rec-normal distribution (e.g., `rt = 1 / rtnorm(N, mu, sigma, a = 0)`).
+(b) Generate data (N = 100 and N = 1000) with a log-normal distribution
+
+Fit a rec-normal and a log-normal model using Stan to each of the four data sets, and use PSIS-LOO to compare the models.
+
+What do you conclude?
+
+
+
+## Multinomial processing trees 
+
+
+```{exercise, mult}
+Modeling multiple categorical responses.
+```
+
+a. Re-fit the model presented in section \@ref(sec-cat), adding the assumption that you have more information about the probability of giving a correct response in the task. Assume that you know that subjects' answers have around 60% accuracy. Encode this information in the priors with two different degrees of certainty. (Hint: 1. As with the Beta distribution, you can increase the  pseudo-counts to increase the amount of information and reduce the "width" of the distribution; compare $Beta(9,1)$ with $Beta(900,100)$. 2. You'll need to use a column vector for the Dirichlet concentration parameters. `[.., .., ]` is a `row_vector` that can be transposed and converted into a column vector by adding the transposition symbol `'` after the right bracket.)
+b. What is the difference between the multinomial and categorical parameterizations?
+c. What can we learn about impaired picture naming from the models in sections \@ref(sec-mult) and \@ref(sec-cat)?
+
+```{exercise, mpt-mnm}
+An alternative MPT to model the picture recognition task.
+```
+
+Build *any* alternative tree with four parameters $w$, $x$, $y$, $z$ to fit the data generated in \@ref(sec-mpt-data). Compare the posterior distribution of the auxiliary vector `theta` (that goes in the `multinomial_lpmf()`) with the one derived in section \@ref(sec-mpt-data).
+
+```{exercise, edit-mpt-cat}
+A simple MPT model that incorporates phonological complexity in the picture recognition task.
+```
+
+Edit the Stan code `mpt_cat.stan` from `bcogsci` presented in section \@ref(sec-MPT-reg) to incorporate the fact that `f` is now a transformed parameter that depends on the trial information and two new parameters, $\alpha_f$ and $\beta_f$. The rest of the latent parameters do not need to vary by trial.
+
+\begin{equation}
+\begin{aligned}
+f'_j &=\alpha_f + complexity_j\cdot \beta_f\\
+f_j &= logit^{-1}(f'_j)
+\end{aligned}
+\end{equation}
+
+The inverse logit or logistic function is called `inv_logit()` in Stan. Fit the model to the data of \@ref(sec-MPT-reg) and report the posterior distributions of the latent parameters.
+
+
+
+```{exercise, mpt}
+A more hierarchical MPT.
+```
+
+Modify the hierarchical MPT presented in section \@ref(sec-MPT-h) so that all the parameters are affected by individual differences. Simulate data and fit it. How well can you recover the parameters? You should use the non-centered parameterization for the by-subject adjustments. (Hint: Convergence will be reached much faster if you don't assume that the adjustment parameters are correlated as in \@ref(sec-uncorrstan), but you could also assume a correlation between all (or some of) the adjustments by using the Cholesky factorization discussed in section \@ref(sec-corrstan).)
+
+
+
+
+
+```{exercise, mpt-adv}
+**Advanced**: Multinomial processing trees.
+```
+
+The data set `df_source_monitoring` in `bcogsci` contains data from the package `psychotools` coming from a source-monitoring experiment [@batchelder1990multinomial] performed by @wickelmaier2018using.
+
+In this type of experiment, subjects study items from (at least) two different sources, A and B. After the presentation of the study items, subjects are required to classify each item as coming from source A, B, or as new: N (that is, a distractor). In their version of the experiment, Wickelmaier and Zeileis used two different A-B pairs: Half of the subjects had to read items either quietly (source A = think) or aloud (source B = say). The other half had to write items down (source A = write) or read them aloud (source B = say).
+
+- `experiment`: write-say or think-say
+- `age`: Age of the respondent in years.
+- `gender`: Gender of the respondent.
+- `subj`: Subject id.
+- `source`: Item source, a, b or n (new)
+- `a`, `b`, `N`: Number of responses for each type of stimuli
+
+
+Fit a multinomial processing tree following Figures \@ref(fig:smtikz) and \@ref(fig:smtikz2) to investigate whether experiment type, age and/or gender affects the different processes assumed in the model.
+As in @batchelder1990multinomial, assume that $a = g$ (for identifiability) and that discriminability is equal for both sources ($d_1 = d_2$).
+
+
+(ref:sm-tikz) Multinomial processing tree  for the source A items from the source monitoring paradigm (Batchelder and Riefer, 1990). $D_1$ stands for the detectability of source A, $d_1$ stands for the source discriminabilities for source A items, $b$ stands for the bias for responding "old" to a nondetected item, $a$  stands for guessing that a detected but nondiscriminated item belongs to source A, and $g$ stands for guessing that the item is a source A item.
+
+```{r smtikz,engine='tikz',fig.ext= if (knitr::is_html_output()) "svg" else "pdf", echo = FALSE, fig.cap = "(ref:sm-tikz)" }
+\small
+\usetikzlibrary{shapes,arrows,shadows,positioning}
+\begin{tikzpicture}[
+        sibling distance=11em,
+        level distance = 4em,
+        every node/.style = {}]
+\node {Source A items}
+child { node [xshift=-5em]{$D_1$}
+  child { node {$d_1$}
+    child { node {Response $A$}}
+  }
+  child { node {$1 - d_1$}
+    child { node {$a$}
+      child { node {Response $A$}}
+    }
+    child { node [xshift=-5em]{$1 - a$}
+      child { node {Response $B$}}
+    }
+  }
+}
+child { node [xshift=5em] {$1-D_1$}
+  child { node {$b$}
+    child { node [xshift=5em]{$g$}
+      child { node {Response $A$}}
+    }
+    child { node {$1 - g$}
+      child { node {Response $B$}}
+    }
+  }
+  child { node [xshift=-.5em]{$1 - b$}
+    child { node [xshift=-.5em] {Response $N$}}
+  }
+};
+
+\end{tikzpicture}
+```
+
+
+(ref:sm-tikz2) Multinomial processing tree  for the source B items from source monitoring paradigm (Batchelder and Riefer, 1990). $D_2$ stand for the detectability of source B  items,  $d_2$ stands for the source discriminabilities for source B, $b$ stands for the bias for responding "old" to a nondetected item, $a$  stands for guessing that a detected but nondiscriminated item belongs to Source A, and $g$ stands for guessing that the item is a source A item.
+
+```{r smtikz2,engine='tikz',fig.ext= if (knitr::is_html_output()) "svg" else "pdf", echo = FALSE, fig.cap = "(ref:sm-tikz2)" }
+\begin{tikzpicture}[
+        sibling distance=11em,
+        level distance = 4em,
+        every node/.style = {}]
+\node {Source B items}
+child { node [xshift=-5em]{$D_2$}
+  child { node {$d_2$}
+    child { node {Response $B$}}
+  }
+  child { node {$1 - d_2$}
+    child { node {$a$}
+      child { node {Response $A$}}
+    }
+    child { node [xshift=-5em]{$1 - a$}
+      child { node {Response $B$}}
+    }
+  }
+}
+child { node [xshift=5em] {$1-D_2$}
+  child { node {$b$}
+    child { node [xshift=5em]{$g$}
+      child { node {Response $A$}}
+    }
+    child { node {$1 - g$}
+      child { node {Response $B$}}
+    }
+  }
+  child { node [xshift=-.5em]{$1 - b$}
+    child { node [xshift=-.5em]{Response $N$}}
+  }
+} ;
+\end{tikzpicture}
+```
+
+
+(ref:sm-tikz3)  Multinomial processing tree  for the new items in the source monitoring paradigm (Batchelder and Riefer, 1990). $b$ stands for the bias for responding "old" to a nondetected item, $a$  stands for guessing that a detected but nondiscriminated item belongs to source A, and $g$ stands for guessing that the item is a source A item.
+
+```{r sm-tikz3,engine='tikz',fig.ext= if (knitr::is_html_output()) "svg" else "pdf", echo = FALSE, fig.cap = "(ref:sm-tikz3)" }
+\begin{tikzpicture}[
+        sibling distance=11em,
+        level distance = 4em,
+        every node/.style = {}]
+\node {New items}
+child { node {$b$}
+  child { node [xshift=5em]{$g$}
+    child { node {Response $A$}}
+  }
+  child { node {$1 - g$}
+    child { node {Response $B$}}
+  }
+}
+child { node {$1 - b$}
+  child { node {Response $N$}}
+}
+;
+
+\end{tikzpicture}
+
+```
+
+Notice the following:
+
+- The data are aggregated at the level of source, so you should use `multinomial_lpmf` for every row of the data set rather than `categorical_lpmf()`.
+- In contrast to the previous example, `source` determines three different trees, this means that the parameter `theta` has to be defined in relationship to the item source.
+- All the predictors are between subject, this means that only a by-intercept adjustment (for every latent process) is possible.
+
+If you want some basis to start with, you can have a look at the incomplete code in `source.stan`, by typing the following in R:
+
+```{r, eval = FALSE}
+cat(readLines(system.file("stan_models",
+                     "source.stan",
+                     package = "bcogsci")),
+    sep = "\n")
+```
+
+## Mixture models {#ch-mixture}
+
+
+
+
+
+
+
+
+```{exercise, pcorrect}
+Changes in the true point values.
+```
+
+Change the true point value of `p_correct` to $0.5$ and $0.1$, and generate data for the non-hierarchical model. Can you recover the value of this parameter without changing the model `mixture_rtacc2.stan`? Perform posterior predictive checks.
+
+
+
+
+```{exercise, mixhier}
+RTs in schizophrenic patients and control.
+```
+
+Response times for schizophrenic patients in a simple visual tracking experiment show more variability than for non-schizophrenic controls; see Figure \@ref(fig:schiz). It has been argued that at least some of this extra variability arises from an attentional lapse that delays some responses. We'll use the data examined in @belin1990 (`df_schizophrenia` in the `bcogsci` package) analysis to investigate some potential models:
+
+- $M_1$. Both schizophrenic and controls show attentional lapses, but the lapses are more common in schizophrenics. Other than that there is no difference in the latent response times and the lapses of attention.
+- $M_2$. Only schizophrenic patients show attentional lapses. Other than that there is no difference in the latent response times.
+- $M_3$. There are no (meaningful number of) lapses of attention in either group.
+
+1. Fit the three models.
+2. Carry out posterior predictive checks for each model; can they account for the data?
+3. Carry out model comparison (with Bayes factor and cross-validation).
+
+(ref:schiz) The distribution of response times for control and schizophrenic patients in `df_schizophrenia`.
+
+```{r schiz, fig.cap = "(ref:schiz)", fold = TRUE, message = FALSE}
+ggplot(df_schizophrenia, aes(rt)) +
+  geom_histogram() +
+  facet_grid(rows = vars(factor(patient, labels = c("control", "schizophrenic"))))
+```
+
+```{exercise, mixbias}
+**Advanced:** Guessing bias in the model.
+```
+
+In the original model, it was assumed that subjects might have a bias (a preference) to one of the two answers when they were in the guessing mode. To fit this model we need to change the dependent variable and add more information; now we not only care if the participant answered correctly or not, but also which answer they gave (left or right).
+
+- Implement a unique bias for all the subjects. Fit the new model to (a subset of) the data.
+- Implement a hierarchical bias, that is there is a common bias, but every subject has its adjustment.  Fit the new model to (a subset of) the data.
+
+
+
+## A simple accumulator model to account for choice response time 
+```{exercise, recovery}
+Can we recover the true point values of the parameters of a model when dealing with a contaminant distribution?
+```
+
+In Section \@ref(sec-contaminant), we fit a hierarchical model that assumed a contaminant distribution (`lnrace_h_cont.stan`) without first verifying that we can recover the true point values of its parameters if we simulate data. An important first step would be to work with a non-hierarchical version of this model.
+
+1. Generate data of one subject as in section \@ref(sec-genaccum), but assume a contaminant distribution as in section \@ref(sec-contaminant).
+2. Fit a non-hierarchical version of `lnrace_h_cont.stan` without restricting the parameter `theta_c` to be smaller than `0.1`.
+3. Plot the posterior distributions of the model and verify that you can recover the true values of the parameters.
+
+
+```{exercise, lnracescale}
+Can the log-normal race model account for fast errors?
+```
+
+Subject 13 shows fast errors for incorrect responses. This can be seen in the left side of the quantile probability plot in Figure \@ref(fig:qpp13).
+
+1. Fit a log-normal race model (with equal scales for the two accumulator) that accounts for contaminant responses.
+2. Fit a variation of this model, where whether the lexicality of the string matches or not the accumulator affects its scale.
+3. Visualize the fit of each model with quantile probability plots.
+4. Use cross-validation to compare the models.
+
+Notice that the models should be fit to only one subject and they should not have a hierarchical structure.
+
+
+(ref:qpp13) Quantile probability plot showing   0.1, 0.3, 0.5, 0.7, and 0.9 response times quantiles plotted against  proportion of incorrect responses (left) and proportion of correct responses (right) for only words of different frequency for subject number 13.
+
+```{r qpp13, fig.cap ="(ref:qpp13)", echo = FALSE, warning = FALSE}
+df_blp_13 <- df_blp %>%
+  filter(subj == 13)%>%
+  mutate(lfreq = log(freq + 0.01),
+         c_lex = ifelse(lex == "word", 0.5, -0.5))%>%
+  mutate(choice = ifelse((lex == "word" &
+                            acc == 1) |
+                           (lex == "non-word" &
+                              acc == 0), "word", "non-word"),
+         nchoice = ifelse(choice == "word", 1, 2))
+
+
+df_blp_freq_q <- df_blp_13 %>%
+  # Subset only words
+  filter(lex == "word") %>%
+  # Create 5 word frequencies group
+  mutate(freq_group =
+           cut(lfreq,
+               quantile(lfreq, c(0,.2,.4, .6, .8, 1)),
+               include.lowest = TRUE,
+               labels =
+                 c("0-.2", ".2-.4", ".4-.6", ".6-.8", ".8-1"))
+         ) %>%
+  # Group by condition  and subject
+  group_by(freq_group, subj) %>%
+  # Apply the quantile probability function
+  qpf()
+
+ggplot(df_blp_freq_q, aes(x = p, y = rt_q)) +
+  geom_point(shape = 4) +
+  geom_line(aes(group = interaction(q, response))) +
+  ylab("log-transformed RT quantiles (ms) ") +
+  xlab("Response proportion") +
+  facet_wrap(~subj)
+
+```
+
+
+
+```{exercise, lnldt}
+Accounting for response time and choice in the lexical decision task using the log-normal race model.
+```
+
+
+In Chapter \@ref(ch-mixture), we modeled the data of the global motion detection task from @DutilhEtAl2011 (`df_dots`) using a mixture model. Now, we'll investigate what happens if we fit a log-normal race model to the same data. As a reminder, in this type of task, subjects see a number of random dots on the screen from which a proportion of them move in a single direction (left or right) and the rest move in random directions. The  goal of the task is to estimate the overall direction of the movement. In this data set, there are two difficulty levels (`diff`) and two types of instructions (`emphasis`) that focus on accuracy or speed. (More information about the data set can be found by loading the `bcogsci` package and typing `?df_dots` in the R console). For the sake of speed, we'll fit only one subject from this data set.
+
+1. Before modeling the data, show the relationship between response times and accuracy with a quantile probability plot that shows quantiles and accuracy of easy and hard difficulty conditions.
+
+2. Fit a non-hierarchical log-normal race model to account for how both choice and response time are affected by task difficulty and emphasis. Assume no contaminant distribution of responses.
+
+Note that the direction of the dots is indicated with `stim`, when `stim` and `resp` match, both are `L`, left, or both are `R`, right, the accuracy, `acc`, is 1. For modeling this task with a log-normal race model, the difficulty of the task should be coded in a way that reflects that the stimuli will be harder to detect for the relevant accumulator. One way to do it is the following:
+
+```{r}
+df_dots_subset <- df_dots %>%
+  filter(subj == 1)
+
+df_dots_subset <- df_dots_subset %>%
+  mutate(c_diff = case_when(stim == "L" & diff == "easy" ~ .5,
+                            stim == "L" & diff == "hard" ~ -.5,
+                            stim == "R" & diff == "easy" ~ -.5,
+                            stim == "R" & diff == "hard" ~ .5,
+                            ))
+```
+
+
+3. Expand the previous model including a contaminant distribution of responses.
+
+4. Visualize the fit of the two previous models by doing posterior predictive checks using quantile probability plots.
+
+5. Use cross-validation to compare the models.
+
+
+
+## The Art and Science of \index{Prior Elicitation} Prior Elicitation {#sec-priorsexercises}
+
+```{exercise, PriorsRCs}
+Develop a plausible informative prior for the difference between object and subject relative clause reading times
+```
+
+Do a literature search on reading studies involving subject-modifying relative clause processing, and use the estimates from these published studies to work out a plausible informative prior for reading time differences at the relative clause verb. Some examples of relevant studies are @gibson2005reading, experiment 1 of @grodner, and @fedorenko2006nature; there are many others. (Note: This is an open-ended exercise with no correct answer.)
+
+```{exercise, Priorslocalcoherence}
+Extracting an informative prior from a published paper for a future study
+```
+
+In their experiment 1, @taboretal04 present a self-paced reading study with a repeated measures $2\times 2$ design. The details of the experiment are not important here, but a key estimate of interest in their reported results is the interaction of the two factors. The reported interaction estimate is $73$ ms, with a by-subjects repeated measures ANOVA F-score of $6.32$. Given this information, work out the standard error (SE) of the estimate of the $73$ ms. Using the estimated interaction effect and the estimated SE, derive an informative prior for a planned study that attempts to directly replicate experiment 1 in @taboretal04. (Hint: The F-score here is the square of the corresponding observed t-value, and we know that the t-value in a one-sample t-test is computed using the formula $t=\frac{\bar{x}-0}{SE}$, where $\bar{x}$ is the estimate of the effect of interest, here, the interaction effect.) 
+
