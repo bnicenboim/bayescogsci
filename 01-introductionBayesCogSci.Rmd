@@ -44,7 +44,7 @@ In the context of data analysis, we will talk about probability in the following
 
 In any such case, we will say that the data are being generated from a \index{Random variable} *random variable*, which we will designate with a capital letter such as $Y$.^[Here, we use $Y$, but we could have used any letter, such as $X, Z,...$. Later on, in some situations we will use Greek letters like $\theta, \mu, \sigma$ to represent a random variable.]
 
-The actually observed outcome (a $0,1$ response; reading time, a response like "yes", "no", "don't know", etc.) will be distinguished from the random variable that generated it by using lower case $y$ for the observed outcome. We can call $y$ an instance of $Y$; every new observed outcome can be different due to random variability.
+The actually observed outcome (a $0,1$ response; reading time, a response like "yes", "no", "don't know", etc.), which is also an elementary event, will be distinguished from the random variable that generated it by using lower case $y$ for the observed outcome. We can call $y$ an instance of $Y$; every new observed outcome can be different due to random variability.
 
 We can summarize the above informal concepts relating to random variables very compactly if we re-state them in mathematical form. A mathematical statement has the advantage not only of brevity but also of reducing (and hopefully eliminating) ambiguity.
 
@@ -54,13 +54,13 @@ So, stating the definition of random variables formally [following @blitzstein20
 Y : \Omega \rightarrow \mathbb{R}
 \end{equation}
 
-The random variable associates to each outcome $\omega \in \Omega$ exactly one number $Y(\omega) = y$. The number $y$ represents all the possible values that the random variable generates; these values are taken to belong to the support of the random variable $Y$: $y \in S_Y$. 
+The random variable associates to each outcome $\omega \in \Omega$ exactly one number $Y(\omega) = y$. The number $y$ is a variable that represents all the possible values that the random variable generates; these values are taken to belong to the support of the random variable $Y$: $y \in S_Y$. 
 
 In our running example of asking $10$ questions and obtaining a correct or incorrect response in each of the $10$ trials, $Y(ciiiiiiiii) = 1$, $Y(cciiiiiiii) = 2$, etc. We will say that the number of correct responses from a subject is generated from a random variable $Y$. Because in our running example only discrete responses are possible (the number of correct responses can be $0, 1, 2, \ldots, 10$), this is an example of a *discrete random variable*.
 
-This particular random variable $Y$ will be assumed to have a parameter $\theta$ that represents the probability of producing a correct response (as discussed below, you will see that the random variable in question is the binomial random variable). Given some observed data that is assumed to come from a particular distribution, typically our goal is to obtain an estimate of the (unknown) value of the parameter associated with that distribution. More generally, if there is more than one parameter involved in the distribution, then our goal is to obtain an estimate of these parameters.
+This particular random variable $Y$ will be assumed to have a parameter $\theta$ that represents the probability of producing a particular number of correct responses (as discussed below, you will see that the random variable in question is the binomial random variable). Given some observed data that is assumed to come from a particular distribution, typically our goal is to obtain an estimate of the (unknown) value of the parameter associated with that distribution. More generally, if there is more than one parameter involved in the distribution, then our goal is to obtain an estimate of these parameters.
 
-Now, suppose that in our above example, the random variable $Y$ gives us one correct answer; this can be (somewhat sloppily) be written as $Y=1$. The  outcomes that could produce $1$ are any of this set of ten possible outcomes: $ciiiiiiiii$, $iciiiiiiii$, $iiciiiiiii$, $iiiciiiiii$,....
+Now, suppose that in our above example, the random variable $Y$ gives us exactly one correct answer; this can be (somewhat sloppily) be written as $Y=1$. The  outcomes that could produce $1$ are any of this set of ten possible outcomes: $ciiiiiiiii$, $iciiiiiiii$, $iiciiiiiii$, $iiiciiiiii$,....
 The set $\{ciiiiiiiii,iciiiiiiii,iiciiiiiii,iiiciiiiii,...\}$ is an element of $F$, so it is an event.
 The number $y=1$ thus represents this event, and will have a probability of occurring associated with it; this is defined next.
 
@@ -117,7 +117,7 @@ The above statement is \index{Bayes' rule} Bayes' rule, and is the basis for all
 
 ## The \index{Law of total probability} law of total probability
 
-Related to the above discussion of conditional probability is the law of total probability. Suppose that we have $A_1,\dots,A_n$ distinct outcomes that are pairwise disjoint which together make up the entire sample space $S$; see Figure \@ref(fig:lotp). Then, $P(B)$, the probability of $B$ happening, will be the sum of the probabilities $P(B\cap A_i)$, i.e., the sum of the joint probabilities of $B$ and each $A$ occurring (the symbol $\cap$ is the "and" operator used in set theory.)
+Related to the above discussion of conditional probability is the law of total probability. Suppose that we have $A_1,\dots,A_n$ distinct outcomes that are pairwise disjoint which together make up the entire sample space $S$; see Figure \@ref(fig:lotp). Then, $P(B)$, the probability of $B$ happening, will be the sum of the probabilities $P(B\cap A_i)$, i.e., the sum of the joint probabilities of $B$ and each $A$ occurring (the symbol $\cap$ is the "and" operator used in set theory). The use of $\cap$ to represent joint probability is just an alternative notation to the one we used earlier ($P(B,A_i)$); you may see both notational variants in textbooks.
 
 Formally:
 
