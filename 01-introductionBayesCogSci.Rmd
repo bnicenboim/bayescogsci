@@ -16,7 +16,7 @@ Both the frequency-based and the uncertain-belief perspective have their place i
 The probability of something happening is defined to be constrained in the way described below.  A concrete example of "something happening" is obtaining nine correct answers when we ask a subject $10$ yes-no questions (say, about the meaning of a sentence). The statements below are not formal definitions of the axioms of probability theory; for more details (and more precise formulations), see @blitzstein2014introduction, @RossProb, @kerns2014introduction, @resnick2019probability, or @kolmogorov2018foundations (among many other books). 
 Keep in mind that different textbooks have slightly different ways of presenting the underlying structure of what constitutes a \index{Probability space} probability space (defined below).^[Thanks go to Philip Loewen for his detailed suggestions on improving the presentation without descending too much into formalism. Any errors that remain are of course due to the authors.]
 
-In the presentation that follows, we assume basic familiarity with set theory. For the reader unfamiliar with set theory, a quick refresher can be found in section 7.3 of @gill2006essential.
+In the presentation that follows, we assume basic familiarity with set theory. For the reader unfamiliar with this topic, a quick and accessible refresher can be found in section 7.3 of @gill2006essential.
 
 The formal axioms of probability that will be presented below involve three ingredients: a set $\Omega$ known as the \index{Sample space} *sample space*, a collection of subsets of $\Omega$ denoted by $F$ and called the \index{Event space} *event space*, and a real-valued function named $P$ that assigns a number to each set in the family $F$. The elements of $\Omega$ are typically denoted $\omega$; these are called \index{Outcomes} *outcomes*. Sets in the family $F$ are often denoted by $E$, and called \index{Events} *events*. The simplest events are the single-element sets of the form $\{\omega\}$ for different choices of $\omega$ in $\Omega$; these are called the \index{Elementary events} *elementary events*.
 
@@ -89,7 +89,7 @@ P(A|B)= \frac{P(A,B)}{P(B)} \hbox{ where } P(B)>0
 \end{equation}
 
 The conditional probability of A given B is thus defined to be the joint probability of A and B, divided by the probability of B.
-We can rearrange the above equation so that we can talk about the \index{Joint probability} joint probability of both events $A$ and $B$ happening. This joint probability can be computed by first taking $P(B)$, the probability that event $B$ (it has been raining) happens, and multipling this by the probability that $A$ happens conditional on $B$, i.e., the probability that the streets are wet given it has been raining. This multiplication will give us $P(A,B)$, the joint probability of $A$ and $B$, i.e., that it has been raining and that the streets are wet. We will write the above description as: $P(A,B)=P(A|B)P(B)$.
+We can rearrange the above equation so that we can talk about the \index{Joint probability} joint probability of both events $A$ and $B$ happening. This joint probability can be computed by first taking $P(B)$, the probability that event $B$ (it has been raining) happens, and multiplying this by the probability that $A$ happens conditional on $B$, i.e., the probability that the streets are wet given it has been raining. This multiplication will give us $P(A,B)$, the joint probability of $A$ and $B$, i.e., that it has been raining and that the streets are wet. We will write the above description as: $P(A,B)=P(A|B)P(B)$.
 
 
 Now, since the probability $A$ and $B$ happening is the same as the probability of $B$ and $A$ happening, i.e., since $P(B,A)=P(A,B)$, we can equate the expansions of these two terms:
@@ -117,7 +117,7 @@ The above statement is \index{Bayes' rule} Bayes' rule, and is the basis for all
 
 ## The \index{Law of total probability} law of total probability
 
-Related to the above discussion of conditional probability is the law of total probability. Suppose that we have $A_1,\dots,A_n$ distinct outcomes that are pairwise disjoint which together make up the entire sample space $S$; see Figure \@ref(fig:lotp). Then, $P(B)$, the probability of $B$ happening, will be the sum of the probabilities $P(B\cap A_i)$, i.e., the sum of the joint probabilities of $B$ and each $A$ occurring (the symbol $\cap$ is the "and" operator used in set theory). The use of $\cap$ to represent joint probability is just an alternative notation to the one we used earlier ($P(B,A_i)$); you may see both notational variants in textbooks.
+Related to the above discussion of conditional probability is the law of total probability. Suppose that we have $A_1,\dots,A_n$ distinct events that are pairwise disjoint which together make up the entire sample space $\Omega$; see Figure \@ref(fig:lotp). Then, $P(B)$, the probability of $B$ happening, will be the sum of the probabilities $P(B\cap A_i)$, i.e., the sum of the joint probabilities of $B$ and each $A$ occurring (the symbol $\cap$ is the "and" operator used in set theory). The use of $\cap$ to represent joint probability is just an alternative notation to the one we used earlier ($P(B,A_i)$); you may see both notational variants in textbooks.
 
 Formally:
 
