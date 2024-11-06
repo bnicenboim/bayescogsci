@@ -259,7 +259,7 @@ For example, suppose that we have $n=10$ trials, and observe $k=7$ successes. Th
 
 If we now plot the likelihood function for all possible values of $\theta$ ranging from $0$ to $1$, we get the plot shown in Figure \@ref(fig:binomlik-lawlargenos)(a).
 
-```{r, binomlik-lawlargenos,echo=FALSE,fig.cap="(a) The likelihood function for 7 successes out of 10. (b) The plot shows the estimate of the mean proportion of successes sampled from a binomial distribution with true probability of success 0.7, with increasing sample sizes. As the sample size increases, the estimate converges to  the true value of 0.7.", fig.show="hold", out.width="50%", fig.height = 3.5}
+```{r, binomlik-lawlargenos,echo=FALSE,fig.cap="(a) The likelihood function for 7 successes out of 10. (b) The plot shows the estimate of the mean proportion of successes sampled from a binomial distribution with true probability of success 0.7, with increasing sample sizes. As the sample size increases, the estimate converges to  the true value of 0.7.", fig.show="hold", out.width="45%", fig.width = 3, fig.height =2.5 }
 #(a)
 ggplot(tibble(prob = c(0, 1)), aes(prob)) +
   stat_function(fun = dbinom,
