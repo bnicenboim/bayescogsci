@@ -219,7 +219,7 @@ Stan requires the data to be in a list object in R. Below, we fit the model with
 
 
 
-```{r stannormal, message=FALSE, eval = FALSE}
+```{r stannormal, message=FALSE, results = "hide"}
 Y <- rnorm(n = 100, mean = 3, sd = 10)
 lst_score_data <- list(y = Y, N = length(Y))
 # Fit the model with the default values of number of

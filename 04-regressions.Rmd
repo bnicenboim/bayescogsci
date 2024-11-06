@@ -651,15 +651,68 @@ Figure \@ref(fig:priors4beta) shows that, as expected, the priors are centered o
 (ref:priors4beta) The prior predictive distributions of mean accuracy of the model defined in section \@ref(sec-logistic), for different set sizes and different priors for $\beta$.
 
 ```{r priors4beta, fig.cap="(ref:priors4beta)", message = FALSE, echo = FALSE, eval = TRUE}
-<<priors4betacode>>
-```
+#priors4betacode from supplement:
+logistic_model_pred <- function(alpha_samples,
+                                beta_samples,
+                                set_size,
+                                N_obs) {
+  map2_dfr(alpha_samples, beta_samples,
+           function(alpha, beta) {
+             tibble(set_size = set_size,
+                    # center size:
+                    c_set_size = set_size - mean(set_size),
+                    # change the likelihood:
+                    # Notice the use of a link function
+                    # for alpha and beta
+                    theta = plogis(alpha + c_set_size * beta),
+                    correct_pred = rbern(N_obs, prob = theta))
+           },
+           .id = "iter") %>%
+    # .id is always a string and needs
+    # to be converted to a number
+    mutate(iter = as.numeric(iter))
+}
 
+set.seed(123)
+N_obs <- 800
+set_size <- rep(c(2, 4, 6, 8), 200)
+alpha_samples <- rnorm(1000, 0, 1.5)
+sds_beta <- c(1, 0.5, 0.1, 0.01, 0.001)
+prior_pred <- map_dfr(sds_beta, function(sd) {
+  beta_samples <- rnorm(1000, 0, sd)
+  logistic_model_pred(alpha_samples = alpha_samples,
+                      beta_samples = beta_samples,
+                      set_size = set_size,
+                      N_obs = N_obs) %>%
+    mutate(prior_beta_sd = sd)
+})
+mean_accuracy <-
+  prior_pred %>%
+  group_by(prior_beta_sd, iter, set_size) %>%
+  summarize(accuracy = mean(correct_pred)) %>%
+  mutate(prior = paste0("Normal(0, ", prior_beta_sd, ")"))
+mean_accuracy %>%
+  ggplot(aes(accuracy)) +
+  geom_histogram() +
+  facet_grid(set_size ~ prior) +
+  scale_x_continuous(breaks = c(0, .5, 1))
+```
 
 
 (ref:priors4beta2) The prior predictive distributions of differences in mean accuracy between set sizes of the model defined in section \@ref(sec-logistic) for different priors for $\beta$.
 
 ```{r priors4beta2,fig.cap="(ref:priors4beta2)", message = FALSE, echo = FALSE, eval = TRUE}
-<<priors4beta2code>>
+diff_accuracy <- mean_accuracy %>%
+  arrange(set_size) %>%
+  group_by(iter, prior_beta_sd) %>%
+  mutate(diff_accuracy = accuracy - lag(accuracy)) %>%
+  mutate(diffsize = paste(set_size, "-", lag(set_size))) %>%
+  filter(set_size > 2)
+diff_accuracy %>%
+  ggplot(aes(diff_accuracy)) +
+  geom_histogram() +
+  facet_grid(diffsize ~ prior) +
+  scale_x_continuous(breaks = c(-.5, 0, .5))
 ```
 
 If we are not sure whether the increase of set size could produce something between a null effect and a  relatively large effect, we can choose the prior with a standard deviation of $0.1$. Under this reasoning, we settle on the following priors: 
