@@ -598,7 +598,7 @@ data("df_discreteagrmt")
 Figure \@ref(fig:bivardiscrete) shows the \index{Joint probability mass function} *joint probability mass function* of two random variables X and Y. The random variable $X$ consists of $7$ possible values (this is the $1-7$ Likert response scale), and the random variable $Y$ is question-response accuracy, with $0$ representing an incorrect response, and $1$ representing a correct response. One can also display Figure \@ref(fig:bivardiscrete) as a table; see Table \@ref(tab:discbivariatetabular).
 
 
-```{r bivardiscrete,message=FALSE,warning=FALSE,fig.cap="Example of a discrete bivariate distribution. In these data, in every trial, two pieces of information were collected: Likert responses and yes-no question responses. The random variable X represents Likert scale responses on a scale of 1-7. and the random variable Y represents 0, 1 (incorrect, correct) responses to comprehension questions.", echo = FALSE}
+```{r bivardiscrete,message=FALSE,warning=FALSE,fig.cap="Example of a discrete bivariate distribution. In these data, in every trial, two pieces of information were collected: Likert responses and yes-no question responses. The random variable X represents Likert scale responses on a scale of 1-7. and the random variable Y represents 0, 1 (incorrect, correct) responses to comprehension questions.", echo = FALSE, fig.height = 2.5}
 rating0 <- df_discreteagrmt %>% filter(accuracy == 0) %>%
   count(rating) %>%
   pull(n)
@@ -692,7 +692,7 @@ kableExtra::kable(probs_f,
 
 To compute the marginal distribution of $X$, one is summing over all the $Y$'s; and to compute the marginal distribution of $Y$, one sums over all the $X$'s. We say that we are *marginalizing out* the random variable that we are summing over. One can also visualize the two marginal distributions using barplots (Figure \@ref(fig:marginalbarplot)).
 
-```{r marginalbarplot,echo=FALSE,fig.cap="The marginal distributions of the random variables X and Y, presented as barplots."}
+```{r marginalbarplot,echo=FALSE,fig.cap="The marginal distributions of the random variables X and Y, presented as barplots.", fig.height = 3.2}
 op <- par(mfrow = c(1, 2), pty = "s")
 barplot(PX, main = "P(X)")
 barplot(PY, main = "P(Y)")
