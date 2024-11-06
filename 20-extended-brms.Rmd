@@ -1,6 +1,14 @@
 # (APPENDIX) Online materials {-}
 # Regression models with `brms` - Extended
 
+
+```{r load-04, echo = FALSE, message = FALSE, results ="hide", warning = FALSE}
+knitr::purl("03-compbayes.Rmd")
+knitr::purl("04-regressions.Rmd")
+source("03-compbayes.R")
+source("04-regressions.R")
+```
+
 ## A more efficient function for generating prior predictive distribution {#app-efficientpriorpd}
 
 
@@ -473,6 +481,9 @@ set_size <- rep(c(2, 4, 6, 8), 200)
 
 Now, iterate over plausible standard deviations of $\beta$  with the `purrr` function `map_dfr()`,  which iterates over one vector (here `sds_beta`), and also builds a data frame with the output. 
 
+```{r echo = FALSE}
+set.seed(123)
+```
 
 ```{r}
 alpha_samples <- rnorm(1000, 0, 1.5)

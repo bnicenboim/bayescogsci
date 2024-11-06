@@ -1,5 +1,9 @@
 # Advanced models with Stan - Extended
 
+```{r load-08, echo = FALSE, message = FALSE, results ="hide", warning = FALSE}
+knitr::purl("08-introstan.Rmd")
+source("08-introstan.R")
+```
 
 ## What does `target` do? {#app-target}
 
@@ -8,8 +12,7 @@ We can exemplify how \index{\texttt{target}} `target` works with one hypothetica
 ```{r stannormaldoit, ref.label="stannormal", echo=FALSE, message = FALSE, results= "hide"}
 ```
 
-```{r, echo = FALSE}
-## extract(fit_score)$lp__[1]
+```{r targetsetup, echo = FALSE}
 mu <- extract(fit_score)$mu
 sigma <- extract(fit_score)$sigma
 addmu <- dnorm(x = mu[1], mean = 0, sd = 20, log = TRUE)
@@ -316,8 +319,8 @@ L_u %*% t(L_u)
 ```
 
 1. Generate uncorrelated z from a standard normal distribution assuming only 10 subjects.
-
-```{r, R.options = list(width = 60)}
+<!-- , R.options = list(width = 60) -->
+```{r zu1zu2}
 N_subj <- 10
 (z_u1 <- rnorm(N_subj, 0, 1))
 (z_u2 <- rnorm(N_subj, 0, 1))
@@ -326,13 +329,13 @@ N_subj <- 10
 2. Create matrix of correlated parameters.
   
 First, create a matrix with the uncorrelated parameters:   
-   
-```{r, R.options = list(width = 60)}
+   <!-- , R.options = list(width = 60 -->
+```{r matrixzu}
 # matrix z_u
 (z_u <- matrix(c(z_u1, z_u2), ncol = N_subj, byrow = TRUE))
 ```
 
-Then, generate correlated parameters by pre-multiplying the $\mathbf{z}_u$ matrix with $\mathbf{L}_u$.
+Then, generate correlated parameters by pre-multiplying the $\mathbf{z}_u$ matrix with $\mathbf{L}_u$. 
 
 ```{r}
 L_u %*% z_u
