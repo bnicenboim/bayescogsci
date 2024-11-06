@@ -1,4 +1,4 @@
-# (APPENDIX) Online resources {-}
+# (APPENDIX) Online materials {-}
 # Regression models with `brms` - Extended
 
 ## A more efficient function for generating prior predictive distribution {#app-efficientpriorpd}
