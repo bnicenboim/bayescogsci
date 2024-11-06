@@ -289,7 +289,7 @@ We established in the example above that the posterior is a beta distribution wi
 
 (ref:postbeta-viz) The (scaled) likelihood, prior, and posterior in the beta-binomial conjugate example. The likelihood is scaled to integrate to 1 to make it easier to compare to the prior and posterior distributions.
 
-```{r postbeta-viz,echo=FALSE,fig.cap = "(ref:postbeta-viz)"}
+```{r postbeta-viz,echo=FALSE,fig.cap = "(ref:postbeta-viz)", fig.height = 2.2}
 ## Likelihood
 k <- 80
 n <- 100
