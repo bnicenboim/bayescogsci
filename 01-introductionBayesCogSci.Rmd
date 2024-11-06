@@ -259,7 +259,7 @@ For example, suppose that we have $n=10$ trials, and observe $k=7$ successes. Th
 
 If we now plot the likelihood function for all possible values of $\theta$ ranging from $0$ to $1$, we get the plot shown in Figure \@ref(fig:binomlik-lawlargenos)(a).
 
-```{r, binomlik-lawlargenos,echo=FALSE,fig.cap="(a) The likelihood function for 7 successes out of 10. (b) The plot shows the estimate of the mean proportion of successes sampled from a binomial distribution with true probability of success 0.7, with increasing sample sizes. As the sample size increases, the estimate converges to  the true value of 0.7.", fig.show="hold", out.width="45%", fig.width = 3, fig.height =2.5 }
+```{r, binomlik-lawlargenos,echo=FALSE,fig.cap="(a) The likelihood function for 7 successes out of 10. (b) The plot shows the estimate of the mean proportion of successes sampled from a binomial distribution with true probability of success 0.7, with increasing sample sizes. As the sample size increases, the estimate converges to  the true value of 0.7.", fig.show="hold", out.width="45%", fig.width = 3.7, fig.height =3.2 }
 #(a)
 ggplot(tibble(prob = c(0, 1)), aes(prob)) +
   stat_function(fun = dbinom,
@@ -268,7 +268,7 @@ ggplot(tibble(prob = c(0, 1)), aes(prob)) +
   ylab("Likelihood") +
   geom_vline(xintercept = .7, linetype = "dashed") +
   annotate("text", x = .55, y =.05, label = "Max. value at: \n 0.7")+
-  ggtitle("(a) Likelihood function")
+  ggtitle("(a) Likelihood function\n")
 #(b)
 n <- c(seq(10, 100, by = 1),
        seq(100, 1000, by = 10),
@@ -287,7 +287,7 @@ ggplot(mle, aes(x = n, y = mean_store)) +
   scale_x_log10() + ylim(0, 1) +
   xlab("sample size n (log scale)") + ylab("estimate") +
   geom_hline(yintercept = 0.7) +
-  ggtitle("(b) The MLE  as a function of sample size")
+  ggtitle("(b) The MLE as a function\nof sample size")
 ```
 
 What is important about this plot is that it shows that, given the data, the maximum point is at the point $0.7$, which corresponds to the estimated mean using the formula shown above: $k/n = 7/10$. Thus, the maximum likelihood estimate \index{MLE} (MLE) gives us the most likely value that the parameter $\theta$ has, given the data. In the binomial, the proportion of successes $k/n$ can be shown to be the maximum likelihood estimate of the parameter $\theta$ [e.g., see p. 339-340 of @millermiller].
@@ -363,34 +363,22 @@ The cumulative distribution function  \index{Cumulative distribution function} o
 F_Y(a) = P(Y\leq a)
 \end{equation}
 
-The CDF can be plotted by computing the cumulative probabilities for any value $k$ or less than $k$, where $k$ ranges from $0$ to $10$ in our running example. The CDF is shown in Figure \@ref(fig:binomcdf).
+The CDF can be plotted by computing the cumulative probabilities for any value $k$ or less than $k$, where $k$ ranges from $0$ to $10$ in our running example. The CDF is shown in Figure \@ref(fig:binomcdf)(a).
 
+(ref:binomcdf) (a) Cumulative distribution function (CDF) of a binomial distribution with 10 trials and a 50% probability of success. (b) Inverse CDF for the same binomial distribution.
 
-```{r, binomcdf,echo=FALSE,fig.cap="The cumulative distribution function for a binomial distribution assuming 10 observations, with 50% probability of success." }
+```{r, binomcdf,echo=FALSE,fig.cap="(ref:binomcdf)", fig.show="hold", out.width="49%", fig.width = 3.9, fig.height =3.2 }
+# a
+
 ggplot(tibble(q = c(0, 10)), aes(q)) +
   stat_function(fun = pbinom, geom = "col",
                 args = list(size = 10, prob = 0.5), n = 11) +
   xlab("Possible outcomes k") +
   ylab("Probab. of k or less successes") +
-  ggtitle("Cumulative distribution function") +
+  ggtitle("(a) Cumulative distribution function (CDF)") +
   scale_x_continuous(breaks = 0:10)
-```
 
-#### Compute the inverse of the cumulative distribution function (the quantile function)
-
-We can also find out the value of the variable $k$ (the quantile) such that the probability of obtaining $k$ or less than $k$ successes is some specific probability value $p$. If we switch the x and y axes of Figure \@ref(fig:binomcdf), we obtain another very useful function, the inverse of the CDF.
-
-The \index{Inverse of the CDF} inverse of the CDF (known as the \index{Quantile function} quantile function in R because it returns the quantile, the value $k$) is available in `R` as the function `qbinom()`. The usage is as follows: to find out what the value $k$ of the outcome is such that the probability of obtaining $k$ or less successes is $0.37$, type:
-
-```{r qbinomexample,echo=TRUE}
-qbinom(p = 0.37, size = 10, prob = 0.5)
-```
-
-One can visualize the inverse CDF of the binomial as in Figure \@ref(fig:inverseCDFbinomial).
-
-(ref:inverseCDFbinomial) The inverse CDF for the binomial with 10 trials (size=10) and probability of $0.5$.
-
-```{r inverseCDFbinomial,echo=FALSE,fig.cap="(ref:inverseCDFbinomial)"}
+#b
 probs <- seq(0, 1, by = 0.01)
 invcdf<-data.frame(probs = probs,
                    q= qbinom(probs,
@@ -401,9 +389,22 @@ ggplot(invcdf, aes(x = probs, y = q)) +
   geom_line() +
   xlim(0,1)+
   xlab("probability")+ylab("quantile")+
-  ggtitle("Inverse CDF,  binomial(size=10,prob=0.5)")+
+  ggtitle("(b) Inverse CDF")+
   scale_y_continuous(breaks = seq(0, 10, by = 1))
+
 ```
+
+#### Compute the inverse of the cumulative distribution function (the quantile function)
+
+We can also find out the value of the variable $k$ (the quantile) such that the probability of obtaining $k$ or less than $k$ successes is some specific probability value $p$. If we switch the x and y axes of Figure \@ref(fig:binomcdf)(a), we obtain another very useful function, the inverse of the CDF.
+
+The \index{Inverse of the CDF} inverse of the CDF (known as the \index{Quantile function} quantile function in R because it returns the quantile, the value $k$) is available in `R` as the function `qbinom()`. The usage is as follows: to find out what the value $k$ of the outcome is such that the probability of obtaining $k$ or less successes is $0.37$, type:
+
+```{r qbinomexample,echo=TRUE}
+qbinom(p = 0.37, size = 10, prob = 0.5)
+```
+
+One can visualize the inverse CDF of the binomial as in Figure \@ref(fig:binomcdf)(b).
 
 #### Generate simulated data from a $\mathit{Binomial}(n,\theta)$ distribution
 
