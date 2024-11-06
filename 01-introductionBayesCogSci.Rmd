@@ -598,8 +598,7 @@ data("df_discreteagrmt")
 Figure \@ref(fig:bivardiscrete) shows the \index{Joint probability mass function} *joint probability mass function* of two random variables X and Y. The random variable $X$ consists of $7$ possible values (this is the $1-7$ Likert response scale), and the random variable $Y$ is question-response accuracy, with $0$ representing an incorrect response, and $1$ representing a correct response. One can also display Figure \@ref(fig:bivardiscrete) as a table; see Table \@ref(tab:discbivariatetabular).
 
 
-```{r bivardiscrete,message="FALSE",warning=FALSE,results="asis",fig.cap="Example of a discrete bivariate distribution. In these data, in every trial, two pieces of information were collected: Likert responses and yes-no question responses. The random variable X represents Likert scale responses on a scale of 1-7. and the random variable Y represents 0, 1 (incorrect, correct) responses to comprehension questions.", echo = FALSE}
-
+```{r bivardiscrete,message=FALSE,warning=FALSE,fig.cap="Example of a discrete bivariate distribution. In these data, in every trial, two pieces of information were collected: Likert responses and yes-no question responses. The random variable X represents Likert scale responses on a scale of 1-7. and the random variable Y represents 0, 1 (incorrect, correct) responses to comprehension questions.", echo = FALSE}
 rating0 <- df_discreteagrmt %>% filter(accuracy == 0) %>%
   count(rating) %>%
   pull(n)
