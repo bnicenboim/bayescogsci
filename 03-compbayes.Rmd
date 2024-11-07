@@ -49,7 +49,7 @@ Thanks to \index{Probabilistic programming language} probabilistic programming l
 
 (ref:betapost) Histogram of the samples of $\theta$ from the posterior distribution generated via sampling. The black line shows the density plot of the analytically derived posterior.
 
-```{r betapost, fig.cap="(ref:betapost)",echo = FALSE}
+```{r betapost, fig.cap="(ref:betapost)",echo = FALSE, fig.height = 2.5}
 ggplot(df_fit_cloze, aes(theta)) +
   geom_histogram(binwidth = .01, colour = "gray", alpha = .5, aes(y = after_stat(density))) +
   stat_function(fun = dbeta, color = "black", args = list(
@@ -124,7 +124,7 @@ df_spacebar
 
 It is always a good idea to plot the data before doing anything else; see Figure \@ref(fig:m1visualize). As we suspected, the data look a bit skewed, but we ignore this for the moment.
 
-```{r m1visualize, fig.cap="Visualizing the button-press data.", fold = TRUE}
+```{r m1visualize, fig.cap="Visualizing the button-press data.", fold = TRUE, fig.height = 2.5}
 ggplot(df_spacebar, aes(t)) +
   geom_density() +
   xlab("Finger tapping times") +
@@ -215,15 +215,15 @@ fit_press_bad <- brm(t ~ 1,
 ```
 
 
-(ref:fwarmup) a. Traceplots of our `brms` model for the button-pressing data. All the chains start from initial values above `200` and are outside of the plot.  b. Traceplots of a model that **did not** converge. We can diagnose the non-convergence by the observing that the chains do not overlap---each chain seems to be sampling from a different distribution.
+(ref:fwarmup) (a) Traceplots of our `brms` model for the button-pressing data. All the chains start from initial values above `200` and are outside of the plot. (b) Traceplots of a model that **did not** converge. We can diagnose the non-convergence by the observing that the chains do not overlap---each chain seems to be sampling from a different distribution.
 
 
 ```{r fwarmup, fig.cap = "(ref:fwarmup)", echo = FALSE, message = FALSE, fig.height = 6}
 cowplot::plot_grid(plot_all(fit_press, ylab = 150) +
                    coord_cartesian(ylim = c(0, 200)) +
-                   ggtitle("a. Model that converged."),
+                   ggtitle("(a) Model that converged."),
                    plot_all(fit_press_bad, ylab = 1000) +
-                   ggtitle("b. Model that did not converge."), nrow = 2, ncol=1)
+                   ggtitle("(b) Model that did not converge."), nrow = 2, ncol=1)
 ```
 
 #### Output of `brms`
@@ -243,7 +243,7 @@ Plot the density and traceplots of each parameter after the warmup with `plot(fi
 
 (ref:densitytrace) Density and \index{Traceplots} traceplots of our `brms` model for the button-pressing data.
 
-```{r densitytrace, fig.cap = "(ref:densitytrace)", echo = FALSE}
+```{r densitytrace, fig.cap = "(ref:densitytrace)", echo = FALSE, fig.height = 2.5}
 plot(fit_press)
 ```
 
@@ -373,7 +373,7 @@ Figure \@ref(fig:priorpred-simple) shows the first 18 samples of the prior predi
 
 (ref:priorpred-simple) Eighteen samples from the prior predictive distribution of the model defined in section \@ref(sec-simplenormal).
 
-```{r priorpred-simple, fig.cap = "(ref:priorpred-simple)", message = FALSE}
+```{r priorpred-simple, fig.cap = "(ref:priorpred-simple)", message = FALSE, fig.height = 5}
 prior_pred %>%
   filter(iter <= 18) %>%
   ggplot(aes(t_pred)) +
@@ -396,7 +396,7 @@ We can also look at the distribution of summary statistics in the prior predicti
 
 (ref:priorpred-stats) The prior predictive distributions of the mean, minimum, and maximum values of the button-pressing model defined in section \@ref(sec-simplenormal).
 
-```{r priorpred-stats,fig.cap="(ref:priorpred-stats)", message = FALSE, echo = FALSE}
+```{r priorpred-stats,fig.cap="(ref:priorpred-stats)", message = FALSE, echo = FALSE, fig.height = 3.5}
 prior_pred %>%
   group_by(iter) %>%
   summarize(min_t = min(t_pred),
@@ -570,7 +570,7 @@ The above examples of using different priors should not be misunderstood to mean
 (ref:postcomp) Comparison of the posterior distributions from the model with "realistically" bounded uniform prior distribution (though still not recommended), `fit_press`, against the model with extremely unrealistically wide priors, `fit_press_unif`, the model with misspecified informative priors, `fit_press_inf`, and the model with principled priors, `fit_press_prin`. All the posteriors virtually overlap except for the posterior of `fit_press_inf`, which is shifted by a few milliseconds.
 
 
-```{r postcomp, fig.cap="(ref:postcomp)", echo = FALSE}
+```{r postcomp, fig.cap="(ref:postcomp)", echo = FALSE, fig.height = 2.5}
 fit_press_all <- bind_rows(as.data.frame(fit_press) %>%
                            select(-lp__, -lprior, -Intercept) %>%
                            pivot_longer(everything(), names_to = "Parameter") %>%
@@ -648,13 +648,13 @@ For this reason, comparing the descriptive adequacy of different models is not e
 In many cases, one can simply use the plot functions from `brms` (that act as wrappers for  \index{\texttt{bayesplot}} `bayesplot` functions). For example, the plotting function \index{\texttt{pp\_check}} `pp_check()`  takes as arguments the model, the number of predicted data sets, and the type of visualization, and it can display different visualizations of posterior predictive checks. In these type of plots, the observed data are plotted as $y$ and predicted data as $y_{rep}$. Below, we use `pp_check()`  to investigate how well the observed distribution of finger tapping times fit our model based on some number ($11$ and $100$) of samples of the posterior predictive distributions (that is, simulated data sets) ; see Figures \@ref(fig:normalppc) and \@ref(fig:normalppc2).
 
 (ref:normalppc) Histograms of eleven samples from the posterior predictive distribution of the model `fit_press` ($y_{rep}$).
-```{r normalppc, fig.cap = "(ref:normalppc)", message = FALSE}
+```{r normalppc, fig.cap = "(ref:normalppc)", message = FALSE, fig.height = 3.5}
 pp_check(fit_press, ndraws = 11, type = "hist")
 ```
 
 (ref:normalppc2) A posterior predictive check that shows the fit of the model `fit_press` in comparison to data sets from the posterior predictive distribution using an overlay of density plots.
 
-```{r normalppc2, fig.cap = "(ref:normalppc2)" , message = FALSE}
+```{r normalppc2, fig.cap = "(ref:normalppc2)" , message = FALSE, fig.height = 2.2}
 pp_check(fit_press, ndraws = 100, type = "dens_overlay")
 ```
 
@@ -680,7 +680,7 @@ We can obtain samples from the log-normal distribution, using the normal distrib
 Then we can just use $exp(z)$ as samples from the $\mathit{LogNormal}(\mu, \sigma)$, since $\exp(z) =\exp(\log(y)) =  y$. The code below produces Figure \@ref(fig:logndemo).
 
 
-```{r logndemo,out.width="48%",fig.cap="Two log-normal distributions with the same parameters generated by either generating samples from a log-normal distribution or exponentiating samples from a normal distribution.", message=FALSE, fig.show = "hold", fig.width=3}
+```{r logndemo,fig.cap="Two log-normal distributions with the same parameters generated by either generating samples from a log-normal distribution or exponentiating samples from a normal distribution.", message=FALSE, fig.show = "hold", out.width="49%", fig.width = 3.9, fig.height =3.2 }
 mu <- 6
 sigma <- 0.5
 N <- 500000
@@ -741,7 +741,7 @@ Next, plot the distribution of some representative statistics; see Figure \@ref(
 
 (ref:priorpredlogunif) The prior predictive distribution of the mean, median, minimum, and maximum value of the log-normal model with priors defined in Equation \@ref(eq:logpriorsunif), that is $\mu \sim \mathit{Uniform}(0, 11)$ and $\sigma \sim \mathit{Uniform}(0, 1)$. The x-axis is log-transformed.
 
-```{r priorpredlogunif,fig.cap="(ref:priorpredlogunif)", message = FALSE, echo = FALSE}
+```{r priorpredlogunif,fig.cap="(ref:priorpredlogunif)", message = FALSE, echo = FALSE, fig.height = 4}
 prior_pred_ln %>%
   group_by(iter) %>%
   summarize(min_t = min(t_pred),
@@ -812,27 +812,13 @@ To avoid the warnings, increase the `adapt_delta` parameter's default value from
 Plot the prior predictive distribution of means with the following code. In a prior predictive distribution, we generally want to ignore the data; this requires setting `prefix = "ppd"` in `pp_check()`.
 
 
-```{r priorpredcheck, eval = FALSE}
-pp_check(fit_prior_press_ln,
-         type = "stat",
-         stat = "mean",
-         prefix = "ppd") +
-  coord_cartesian(xlim = c(0.001, 300000)) +
-  scale_x_continuous("Finger tapping times [ms]",
-                     trans = "log",
-                     breaks = c(0.001, 1, 100, 1000, 10000, 100000),
-                     labels = c("0.001", "1", "100",
-                                "1000", "10000", "100000")) +
-  ggtitle("Prior predictive distribution of means")
-```
-
 
 To plot the distribution of minimum, and maximum values, just replace `mean` with `min`, and `max` respectively.  The distributions of the three statistics are displayed in Figure  \@ref(fig:priorpredlognorm).
 
 (ref:priorpredlognorm) The prior predictive distributions of the mean, maximum, and minimum values of the log-normal model  with priors defined in equation \@ref(eq:logpriorsnorm).  The prior predictive distributions are labeled $y_{pred}$. The x-axis shows values back-transformed from the log-scale.
 
 
-```{r priorpredlognorm, fig.cap="(ref:priorpredlognorm)", message = FALSE, tidy=FALSE, fig.height = 6, fig.show="hold", fold = TRUE}
+```{r priorpredlognorm, fig.cap="(ref:priorpredlognorm)", message = FALSE, tidy=FALSE, fig.height = 6, fig.show="hold", fold = TRUE, fig.height = 4}
 p1 <- pp_check(fit_prior_press_ln,
                type = "stat",
                stat = "mean",
@@ -913,7 +899,7 @@ the observed data set.  See Figure \@ref(fig:logppc); compare this with the earl
 
 (ref:logppc) The posterior predictive distribution of `fit_press_ln`.
 
-```{r logppc, message=FALSE, fig.cap="(ref:logppc)"}
+```{r logppc, message=FALSE, fig.cap="(ref:logppc)", fig.height = 2.2}
 pp_check(fit_press_ln, ndraws = 100)
 ```
 
