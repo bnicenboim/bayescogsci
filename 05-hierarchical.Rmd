@@ -379,7 +379,7 @@ df_eeg %>%
 
 One convenient aspect of using averages of EEG data is that they are roughly normally distributed. This allows us to use the normal likelihood. Figure \@ref(fig:histn400) shows the distribution of the data.
 
-```{r histn400, fig.cap="Histogram of the N400 averages for every trial, overlaid is a density plot of a normal distribution.", message=FALSE, fold = TRUE,fig.height = 2 }
+```{r histn400, fig.cap="Histogram of the N400 averages for every trial, overlaid is a density plot of a normal distribution.", message=FALSE, fold = TRUE,fig.height = 2.2 }
 df_eeg %>% ggplot(aes(n400)) +
   geom_histogram(binwidth = 4,
                  colour = "gray",
@@ -1058,7 +1058,7 @@ We can use posterior predictive checks to verify that our last model can capture
 
 (ref:ppcheckdens) Overlay of densities from the posterior predictive distributions of the model `fit_N400_sih`.
 
-```{r ppcheckdens, fig.cap ="(ref:ppcheckdens)", fig.height = 2}
+```{r ppcheckdens, fig.cap ="(ref:ppcheckdens)", fig.height = 2.2}
 pp_check(fit_N400_sih, ndraws = 50, type = "dens_overlay")
 ```
 
@@ -1314,7 +1314,7 @@ if we overlay the density plots for the prior and posterior distributions of $\b
 
 (ref:priorposteriordiscrepancy) The discrepancy between the prior and the posterior distributions for the slope parameter in the model `fit_stroop`.
 
-```{r priorposteriordiscrepancy,fig.height=11,fig.cap="(ref:priorposteriordiscrepancy)", fig.height = 2}
+```{r priorposteriordiscrepancy,fig.cap="(ref:priorposteriordiscrepancy)", fig.height = 2.2}
 sample_b_post <- as_draws_df(fit_stroop)$b_c_cond
 # We generate samples from the prior as well:
 N <- length(sample_b_post)

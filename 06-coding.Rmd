@@ -15,10 +15,12 @@ For this and the next chapter, although knowledge of the matrix formulation of t
 
 We first consider the simplest case: suppose we want to compare the means of a dependent variable (DV) such as response times between two groups of subjects. A simulated data set is available in the package `bcogsci` as the data set `df_contrasts1`. The simulations assumed longer response times in condition $F1$ ($\mu_1 = 0.8$ sec) than $F2$ ($\mu_2 = 0.4$ sec). The data from the $10$ simulated subjects are aggregated and summary statistics are computed for the two groups.
 
+\Begin{sampepage}
 ```{r, echo=TRUE}
 data("df_contrasts1")
 df_contrasts1
 ```
+\End{samepage}
 
 ```{r, echo=FALSE}
 table1 <- df_contrasts1 %>% group_by(F) %>% # Table for main effect F
@@ -42,7 +44,7 @@ names(table1a) <- c("Factor", "N data", "Est. means", "Std. dev.", "Std. errors"
 
 (ref:cFig1Means) Means and standard errors of the simulated dependent variable (e.g., response times in seconds) in two conditions $F1$ and $F2$.
 
-```{r cFig1Means, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, fig.width=4, fig.height=3.6, fig.cap = "(ref:cFig1Means)"}
+```{r cFig1Means, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, fig.width=4, fig.height=2.2, fig.cap = "(ref:cFig1Means)"}
 #(plot1 <- qplot(x = F, y = M, group = 1, data = table1, geom = c("point", "line")) +
 (plot1 <- ggplot(aes(x = F, y = M, group = 1), data = table1) +
   geom_point() + geom_line() +
@@ -500,7 +502,7 @@ table3a <- as.data.frame(table3)
 names(table3a) <- c("Factor", "N data", "Est. means", "Std. dev.", "Std. errors")
 ```
 
-```{r helmertsimdatFig, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, fig.width=4.7, fig.height=3.4, fig.cap = "The means and error bars (showing standard errors) for a simulated data set with one between-subjects factor with four levels."}
+```{r helmertsimdatFig, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, fig.height=2.2, fig.cap = "The means and error bars (showing standard errors) for a simulated data set with one between-subjects factor with four levels."}
 #(plot2 <- qplot(x = F, y = M, group = 1, data = table3, geom = c("point", "line")) +
 (plot2 <- ggplot(aes(x = F, y = M, group = 1), data = table3) +
   geom_point() + geom_line() +
@@ -692,8 +694,12 @@ fit_mo <- brm(DV ~ 1 + mo(F),
                         prior(normal(0, 50), class = sigma),
                         prior(normal(0, 50), class = b)))
 ```
-```{r}
-summary(fit_mo)
+```{r, eval = FALSE}
+fit_mo
+```
+
+```{r, echo = FALSE}
+short_summary(fit_mo)
 ```
 
 The results show that there is an overall positive population-level effect of the factor $F$ with an estimate (`moF`) of $`r round(fixef(fit_mo)[2,1],2)`$, reflecting an average increase in the dependent variables of  $`r round(fixef(fit_mo)[2,1],2)`$ with each level of $F$. The model summary shows estimates for the simplex parameters, which represent the ratios of the overall increase associated with $F$ that can be attributed to each of the differences between neighboring factor levels. The results show that most of the increase is associated with `moF1[3]`, i.e., with the last difference, reflecting the difference between $F3$ and $F4$, whereas the other two differences (`moF1[1]`, reflecting the difference between $F1$ and $F2$, and `moF1[2]`, reflecting the difference between $F2$ and $F3$) are smaller. Comparing conditional effects between a model using polynomial contrasts and a model assuming monotonic effects makes it clear that the current model "forces" the effects to increase in a monotonic fashion; see Figure \@ref(fig:condmopol). \index{\texttt{conditional\_effects}}
@@ -908,7 +914,7 @@ conditional_effects(fit_Sum, robust = FALSE)[]
 
 The same function allows us to visualize the effects, as shown in Figure \@ref(fig:cFigCond).
 
-```{r cFigCond, fig=TRUE, include=TRUE, echo=TRUE, cache=FALSE, fig.width=4, fig.height=3.6, fig.cap = "Estimated condition means, computed from a `brms` model fitted with a sum contrast."}
+```{r cFigCond, fig=TRUE, include=TRUE, echo=TRUE, cache=FALSE, fig.height=2.2, fig.cap = "Estimated condition means, computed from a `brms` model fitted with a sum contrast."}
 conditional_effects(fit_Sum, robust = FALSE)
 ```
 
