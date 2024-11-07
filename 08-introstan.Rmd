@@ -85,7 +85,7 @@ The shape of the unnormalized posterior density is completely defined and it wil
 
 (ref:up) The unnormalized posterior defined by equation \@ref(eq:up).
 
-```{r up, fig.cap = "(ref:up)" ,echo = FALSE, warning=FALSE}
+```{r up, fig.cap = "(ref:up)" ,echo = FALSE, warning=FALSE, fig.height = 2.2}
 mu <- seq(-40, 40, 1)
 sigma <- seq(0.5, 40, 1)
 
@@ -258,7 +258,7 @@ After transforming the `stanfit` object into a data frame, it's possible to prov
 
 (ref:mcmchist) Histograms of the samples of the posterior distributions of `mu` and `sigma` from the model `fit_score`.
 
-```{r mcmchist, fig.cap = "(ref:mcmchist)", message = FALSE}
+```{r mcmchist, fig.cap = "(ref:mcmchist)", message = FALSE, fig.height = 2.2}
 df_fit_score <- as.data.frame(fit_score)
 mcmc_hist(df_fit_score, pars = c("mu", "sigma"))
 ```
@@ -313,7 +313,7 @@ Print the summary of the posterior distribution of $\theta$ below, and show its 
 
 (ref:posttheta) The posterior distribution of the cloze probability of umbrella (the parameter $\theta$).
 
-```{r posttheta, fig.cap = "(ref:posttheta)"  }
+```{r posttheta, fig.cap = "(ref:posttheta)", fig.height = 2.2 }
 print(fit_cloze, pars = c("theta"))
 df_fit_cloze <- as.data.frame(fit_cloze)
 mcmc_dens(df_fit_cloze, pars = "theta") +
@@ -419,7 +419,7 @@ Plot the posterior distributions (Figure  \@ref(fig:postreg)).
 
 (ref:postreg) Histograms of the posterior samples of `alpha`, `beta`, and `sigma` from the model `fit_pupil`.
 
-```{r postreg, fig.cap = "(ref:postreg)", message = FALSE}
+```{r postreg, fig.cap = "(ref:postreg)", message = FALSE, fig.height = 2.2}
 df_fit_pupil <- as.data.frame(fit_pupil)
 mcmc_hist(fit_pupil, pars = c("alpha", "beta", "sigma"))
 ```
@@ -695,11 +695,9 @@ print(fit_recall, pars = c("alpha", "beta"))
 ```
 
 
-In Figure \@ref(fig:cri), we plot the 95% CrI of the parameters of interest.
+In Figure \@ref(fig:cri)(a), we plot the 95% CrI of the parameters of interest.
 
-(ref:cri) 95% credible intervals of the `beta` parameters of `fit_recall` model.
-
-```{r cri, fig.cap ="(ref:cri)", message = FALSE}
+```{r cri, message = FALSE, fig.keep = "none"}
 df_fit_recall <- as.data.frame(fit_recall)
 mcmc_intervals(df_fit_recall,
                regex_pars = "beta",
@@ -730,9 +728,9 @@ recall_prop <- system.file("stan_models",
 fit_recall <- stan(recall_prop, data = ls_recall)
 ```
 
-The plot in Figure \@ref(fig:vaccdet) now shows how the average accuracy deteriorates when the subject is exposed to a set size larger than the average by one,  a trial further than the middle one, and the interaction of both.
+The plot in Figure \@ref(fig:cri-vaccdet)(b) now shows how the average accuracy deteriorates when the subject is exposed to a set size larger than the average by one,  a trial further than the middle one, and the interaction of both.
 
-```{r vaccdet, fig.cap = "Effect of set size, trial, and their interaction on the average accuracy of recall.", message = FALSE}
+```{r vaccdet, message = FALSE, fig.keep = "none"}
 df_fit_recall <- as.data.frame(fit_recall) %>%
   rename(set_size = `change_acc[1]`,
          trial = `change_acc[2]`,
@@ -745,7 +743,27 @@ mcmc_intervals(df_fit_recall,
   xlab("Change in accuracy")
 ```
 
-The plot in Figure \@ref(fig:vaccdet) shows that our model is estimating that by increasing the set size by one unit, the recall accuracy of the single subject is deteriorates by 2%. In contrast, there is hardly any trial effect or interaction between trial and set size.
+(ref:cri-vaccdet) (a) 95% credible intervals for the `beta` parameters of the `fit_recall` model, representing the log-odds effects of set size, trial, and their interaction. (b) Impact of set size, trial, and their interaction on average recall accuracy.
+
+```{r cri-vaccdet, fig.cap ="(ref:cri-vaccdet)",  message = FALSE, echo = FALSE, fig.width =3, fig.height =3,fig.show='hold', out.width='48%'}
+mcmc_intervals(df_fit_recall,
+               regex_pars = "beta",
+               prob_outer = .95,
+               prob = .8,
+               point_est = "mean") +
+  ggtitle("(a) Parameters of interest in log-odds")
+
+mcmc_intervals(df_fit_recall,
+               pars = c("set_size", "trial", "interaction"),
+               prob_outer = .95,
+               prob = .8,
+               point_est = "mean") +
+  xlab("Change in accuracy") +
+  ggtitle("(b) Effects on the average accuracy")
+
+```
+
+The plot in Figure \@ref(fig:cri-vaccdet)(b) shows that our model is estimating that by increasing the set size by one unit, the recall accuracy of the single subject is deteriorates by 2%. In contrast, there is hardly any trial effect or interaction between trial and set size.
 
 
 ## Summary
