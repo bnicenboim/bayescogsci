@@ -19,7 +19,7 @@ names(table4a) <- c(
 )
 ```
 
-```{r twobytwosimdatFig, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, fig.width=5, fig.height=3, fig.cap = "Means and error bars (showing standard errors) for a simulated data set with a two-by-two  between-subjects factorial design."}
+```{r twobytwosimdatFig, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, fig.height=2.2, fig.cap = "Means and error bars (showing standard errors) for a simulated data set with a two-by-two  between-subjects factorial design."}
 #(plot2 <- qplot(x = A, y = M, group = B, linetype = B, shape = B, data = table4, geom = c("point", "line")) +
 (plot2 <- ggplot(aes(x = A, y = M, group = B, linetype = B, shape = B), data = table4) +
   geom_point() + geom_line() +
@@ -397,7 +397,7 @@ tab5 <- df_contrasts5 %>%
 
 (ref:figRTF) Means and error bars (showing standard errors) for a simulated data set of response times for two different groups of subjects, who have obtained a training in lexical decisions ($F2$) versus have obtained a control training ($F1$).
 
-```{r figRTF, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, fig.width=2.5, fig.height=3, fig.cap = "(ref:figRTF)"}
+```{r figRTF, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, fig.width=2.5, fig.height=2.2, fig.cap = "(ref:figRTF)"}
 (plot_RT <- ggplot(data = tab5, aes(x = F, y = M, ymin = M - SE, ymax = M + SE)) +
   ## geom_bar(stat = "identity") +
   geom_errorbar(width = 0.2) +
@@ -436,7 +436,7 @@ The results from the `brms` model now show that the difference in response times
 
 (ref:figRTFIQ) Response times as a function of individual IQ for two groups with a lexical decision training ($F2$) versus a control training ($F1$). Points indicate individual subjects, and lines with error bands indicate linear regression lines.
 
-```{r figRTFIQ, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, message=FALSE, fig.width=4.5, fig.height=3, fig.cap = "(ref:figRTFIQ)"}
+```{r figRTFIQ, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, message=FALSE, fig.height=2.2, fig.cap = "(ref:figRTFIQ)"}
 (plot_RT_IQ <- ggplot(data = df_contrasts5, aes(x = IQ, y = RT, colour = F, linetype = F)) +
   geom_point() +
   geom_smooth(method = "lm") +
@@ -474,7 +474,7 @@ levels(df_contrasts6$F) <- c("simple", "complex")
 
 This again contains data from response times (RT) in two groups. Let's assume the two groups have performed two different response time tasks, where one simple RT task doesn't rely on much cognitive processing (group "simple"), whereas the other task is more complex and depends on complex cognitive operations (group "complex"). We therefore expect that RTs in the simple task should be independent of IQ, whereas in the complex task, individuals with a high IQ should be faster in responding compared to individuals with low IQ. Thus, our primary hypothesis of interest states that the influence of IQ on RT differs between conditions. This means that we are interested in the difference between slopes. A slope in a linear regression assesses how strongly the dependent variable (here RT) changes with an increase of one unit on the covariate (here IQ), it thus assesses how "steep" the regression line is. Our hypothesis thus states that the \index{Regression line} regression lines differ between groups.
 
-```{r figRTFxIQ, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, message=FALSE, fig.width=4.5, fig.height=3, fig.cap = "Response times as a function of individual IQ for two groups performing a simple versus a complex task. Points indicate individual subjects' responses, and lines with error bands show the fitted linear regression lines."}
+```{r figRTFxIQ, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, message=FALSE, fig.height=2.2, fig.cap = "Response times as a function of individual IQ for two groups performing a simple versus a complex task. Points indicate individual subjects' responses, and lines with error bands show the fitted linear regression lines."}
 (plot_RTxIQ <- ggplot(data = df_contrasts6, aes(x = IQ, y = RT, colour = F, linetype = F)) +
   geom_point() +
   geom_smooth(method = "lm") +
@@ -672,7 +672,7 @@ We plot the two-way \index{Interaction} interaction using `brms` embedding the `
 
 (ref:figpDv) Means and 95 percent posterior credible intervals for a simulated data set of successful task performance in a $2 \times 2$ design.
 
-```{r figpDV, include=TRUE, fig.width=3.5, fig.height=3, fig.cap = "(ref:figpDv)"}
+```{r figpDV, include=TRUE, fig.width=3.5, fig.height=2.2, fig.cap = "(ref:figpDv)"}
 plot(conditional_effects(fit_pDV_AB.sum,
                          effects = "A:B",
                          robust = FALSE),
