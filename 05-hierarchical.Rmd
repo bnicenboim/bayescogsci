@@ -309,7 +309,7 @@ N400_c <- c("Cz", "CP1", "CP2", "P3", "Pz", "P4", "POz")
 
 (ref:N400noun) Typical ERP for the grand average across the N400 spatial window  (central parietal electrodes: `r paste0(N400_c, collapse =", ")`) for high and low \index{Predictability} predictability nouns [specifically from the constraining context of the experiment reported in @NicenboimPreactivation2019]. The x-axis indicates time in seconds and the y-axis indicates voltage in microvolts (unlike many EEG/ERP plots, the negative polarity is plotted downwards).
 
-```{r N400noun, results = "hold",fig.height= 4.5, fig.cap =  "(ref:N400noun)", echo = FALSE, warning = FALSE}
+```{r N400noun, results = "hold",fig.height= 3.5, fig.cap =  "(ref:N400noun)", echo = FALSE, warning = FALSE}
 noun_s <- readRDS("dataR/external/noun_s.RDS") %>%
   mutate(
     constraint = ifelse(cond %in% c(0, 1),
@@ -379,7 +379,7 @@ df_eeg %>%
 
 One convenient aspect of using averages of EEG data is that they are roughly normally distributed. This allows us to use the normal likelihood. Figure \@ref(fig:histn400) shows the distribution of the data.
 
-```{r histn400, fig.cap="Histogram of the N400 averages for every trial, overlaid is a density plot of a normal distribution.", message=FALSE, fold = TRUE}
+```{r histn400, fig.cap="Histogram of the N400 averages for every trial, overlaid is a density plot of a normal distribution.", message=FALSE, fold = TRUE,fig.height = 2 }
 df_eeg %>% ggplot(aes(n400)) +
   geom_histogram(binwidth = 4,
                  colour = "gray",
@@ -485,7 +485,7 @@ short_summary(fit_N400_cp)
 
 (ref:figurefitN400cp) Posterior distributions of the complete pooling model, `fit_N400_cp`.
 
-```{r figurefitN400cp, fig.cap="(ref:figurefitN400cp)"}
+```{r figurefitN400cp, fig.cap="(ref:figurefitN400cp)",fig.height = 3.5}
 plot(fit_N400_cp)
 ```
 
@@ -661,7 +661,7 @@ Because the above command will result in some pages of output, it is easier to u
 
 (ref:plotfitN400v) Posterior distributions of the parameters in the model `fit_N400_v`.
 
-```{r plotfitN400v,fig.cap="(ref:plotfitN400v)"}
+```{r plotfitN400v,fig.cap="(ref:plotfitN400v)", fig.height = 3.5}
 mcmc_dens(fit_N400_v, pars = variables(fit_N400_v)[1:5])
 ```
 
@@ -802,7 +802,7 @@ Figure \@ref(fig:lkjviz) shows a visualization of different parameterizations of
 
 (ref:lkjviz) Visualization of the LKJ correlation distribution prior with four different values of the $\eta$ parameter.
 
-```{r lkjviz,echo=FALSE, fig.cap ="(ref:lkjviz)", message= FALSE,warning=FALSE,results="asis",fig.height=11,cache=TRUE, fig.width =4, fig.height=3,fig.show='hold', out.width='48%'}
+```{r lkjviz,echo=FALSE, fig.cap ="(ref:lkjviz)", message= FALSE,warning=FALSE,results="asis",cache=TRUE, fig.width =3, fig.height =3,fig.show='hold', out.width='48%'}
 ## https://github.com/rmcelreath/rethinking/blob/1def057174071beb212532d545bc2d8c559760a2/R/distributions.r
 # onion method correlation matrix
 dlkjcorr <- function(x, eta = 1, log = FALSE) {
@@ -1058,7 +1058,7 @@ We can use posterior predictive checks to verify that our last model can capture
 
 (ref:ppcheckdens) Overlay of densities from the posterior predictive distributions of the model `fit_N400_sih`.
 
-```{r ppcheckdens, fig.cap ="(ref:ppcheckdens)"}
+```{r ppcheckdens, fig.cap ="(ref:ppcheckdens)", fig.height = 2}
 pp_check(fit_N400_sih, ndraws = 50, type = "dens_overlay")
 ```
 
@@ -1314,7 +1314,7 @@ if we overlay the density plots for the prior and posterior distributions of $\b
 
 (ref:priorposteriordiscrepancy) The discrepancy between the prior and the posterior distributions for the slope parameter in the model `fit_stroop`.
 
-```{r priorposteriordiscrepancy,fig.height=11,fig.cap="(ref:priorposteriordiscrepancy)", fig.height = 5}
+```{r priorposteriordiscrepancy,fig.height=11,fig.cap="(ref:priorposteriordiscrepancy)", fig.height = 2}
 sample_b_post <- as_draws_df(fit_stroop)$b_c_cond
 # We generate samples from the prior as well:
 N <- length(sample_b_post)
