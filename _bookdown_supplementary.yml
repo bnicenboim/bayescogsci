@@ -1,0 +1,12 @@
+book_filename: bayescogsci_supplementary
+output_dir: docs
+delete_merged_file: true
+language:
+  label:
+    fig: "FIGURE "
+    tab: "TABLE "
+    thm: 'Box '
+  ui:
+    edit: "Edit"
+    chapter_name: "Chapter "
+rmd_files: ["index_supplementary.Rmd", "20-extended-brms.Rmd","21-extended-stan.Rmd","22-extended-REMA.Rmd","23-extended-modelcomp.Rmd", "24-priors.Rmd", "25-workflow.Rmd","26-exercises.Rmd", "99-references.Rmd"]
