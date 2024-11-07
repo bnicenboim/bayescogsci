@@ -301,7 +301,7 @@ We see that `tau_u[2]` has a low number of effective samples (`n_eff`).
 The traceplots are displayed in Figure \@ref(fig:traceploteeg2):
 
 (ref:traceploteeg2) Traceplots of `alpha`, `beta`, `tau_u`, and `sigma` from the model `fit_eeg2`.
-```{r traceploteeg2, fig.cap ="(ref:traceploteeg2)"}
+```{r traceploteeg2, fig.cap ="(ref:traceploteeg2)", fig.height = 3.5}
 traceplot(fit_eeg2, pars = c("alpha", "beta", "tau_u", "sigma"))
 ```
 
@@ -330,7 +330,7 @@ In contrast to Figure \@ref(fig:pairsblobs), Figure \@ref(fig:pairsfunnel) shows
 
 (ref:scatterpairs) Pair plots showing a strong dependency (funnel-shaped clouds of samples) between the samples of $\tau_2$ and one of the by-subject adjustments to the intercept ($u_{1,2}$).
 
-```{r scatterpairs, fig.cap = "(ref:scatterpairs)"}
+```{r scatterpairs, fig.cap = "(ref:scatterpairs)", fig.height = 3.5}
 mcmc_pairs(as.array(fit_eeg2),
            pars = c("tau_u[2]", "u[1,2]"),
            transform = list(`tau_u[2]` = "log")) 
@@ -394,7 +394,7 @@ if(!file.exists("dataR/fit_eeg3.RDS")){
 Verify that the model worked as expected by printing its summary and traceplots; see Figure \@ref(fig:traceploteeg3).
 
 (ref:traceploteeg3) Traceplots of `alpha`, `beta`, `tau_u`, and `sigma` from the model `fit_eeg3`.
-```{r traceploteeg3, fig.cap ="(ref:traceploteeg3)"}
+```{r traceploteeg3, fig.cap ="(ref:traceploteeg3)", fig.height = 3.5}
 print(fit_eeg3, pars = c("alpha", "beta", "tau_u", "sigma"))
 traceplot(fit_eeg3, pars = c("alpha", "beta", "tau_u", "sigma"))
 ```
@@ -404,7 +404,7 @@ Although the samples of `tau_u[2]` are still conditioned by the adjustments for 
 
 (ref:pairstauu) Pair plots showing a clear dependency (funnel-shaped clouds of samples) between the samples of $\tau_2$ and some of the by-subject adjustments to the slope.
 
-```{r pairstauu, fig.cap ="(ref:pairstauu)", fold = TRUE}
+```{r pairstauu, fig.cap ="(ref:pairstauu)", fold = TRUE, fig.height = 3.5}
 mcmc_pairs(as.array(fit_eeg3),
            pars = c("tau_u[2]", "u[1,2]"),
            transform = list(`tau_u[2]` = "log"))
@@ -413,7 +413,7 @@ mcmc_pairs(as.array(fit_eeg3),
 
 (ref:pairstauz) Pair plots showing no clear dependency between the samples of $\tau_2$ and some of the by-subject auxiliary parameters (`z_u`) used to build the adjustments to the slope.
 
-```{r pairstauz, fig.cap ="(ref:pairstauz)", fold = TRUE}
+```{r pairstauz, fig.cap ="(ref:pairstauz)", fold = TRUE, fig.height = 3.5}
 mcmc_pairs(as.array(fit_eeg3),
            pars = c("tau_u[2]", "z_u[1,2]"),
            transform = list(`tau_u[2]` = "log"))
@@ -504,7 +504,7 @@ print(fit_eeg_corr, pars = c("alpha", "beta", "tau_u", "sigma"))
 
 (ref:traceploteegcorr) Traceplots of `alpha`, `beta`, `tau_u`, and `sigma` from the model `fit_eeg_corr`.
 
-```{r traceploteegcorr, fig.cap ="(ref:traceploteegcorr)", fold = TRUE}
+```{r traceploteegcorr, fig.cap ="(ref:traceploteegcorr)", fold = TRUE, fig.height = 3.5}
 traceplot(fit_eeg_corr, pars = c("alpha", "beta", "tau_u", "sigma"))
 ```
 
@@ -572,7 +572,7 @@ Let's visualize some of the posteriors with the following code (see Figure \@ref
 
 (ref:posteegcorr2) Histograms of the samples of the posteriors of `beta` and `rho_u` from the model `fit_eeg_corr2`.
 
-```{r posteegcorr2, fig.height=2, message=FALSE, fig.cap ="(ref:posteegcorr2)"}
+```{r posteegcorr2, fig.height=2, message=FALSE, fig.cap ="(ref:posteegcorr2)", fig.height = 2.2}
 mcmc_hist(as.data.frame(fit_eeg_corr2),
           pars = c("beta", "rho_u")) 
 ```
