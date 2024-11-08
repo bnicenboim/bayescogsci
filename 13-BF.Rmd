@@ -61,7 +61,7 @@ Suppose now that we have prior information about the probability parameter $\the
 
 Here, to illustrate the calculation of the Bayes factor, we assume that the parameters of the beta distribution are $a=4$ and $b=2$. As mentioned above, these parameters can be interpreted as representing "success" ($4$ prior observations representing success), and "no success" ($2$ prior observations representing "no success"). The resulting prior distribution is visualized in Figure \@ref(fig:beta24). A $\mathit{Beta}(a=4,b=2)$ prior on $\theta$ amounts to a \index{Regularizing prior} regularizing prior with some, but no clear prior evidence for more than 50% of success.
 
-```{r beta24, fig.cap = "The beta distribution with parameters a = 4 and b = 2.", echo = FALSE}
+```{r beta24, fig.cap = "The beta distribution with parameters a = 4 and b = 2.", echo = FALSE, fig.height =2.2}
 ggplot(tibble(theta = c(0, 1)), aes(theta)) +
   stat_function(fun = dbeta, args = list(
     shape1 = 4,
@@ -158,7 +158,7 @@ Model predictions are \index{Normalized} normalized, that is, the total probabil
 Models that are too flexible (model 3 in Figure \@ref(fig:OccamFactor)) will divide their prior predictive probability density across all of their predictions. Such models can predict many different outcomes. Thus, they likely can also predict the actually observed outcome. However, due to the normalization, they cannot predict it with high probability, because they also predict all kinds of other outcomes. This is true for both models with priors that are too wide or for models with too many parameters. Bayesian model comparison inherently penalizes more complex models, a principle known as *Occam's razor* [@mackay]. This principle favors simpler explanations when multiple viable explanations are possible.
 
 
-```{r OccamFactor, echo=FALSE, fig.height=3, fig.width=5.1825,out.width = "100%", fig.cap="Shown are the schematic marginal likelihoods that each of three models assigns to different possible data sets. The total probability each model assigns to the data is equal to one, i.e., the areas under the curves of all three models are the same. Model 1 (black), the low complexity model, assigns all the probability to a narrow range of possible data, and can predict these possible data sets with high likelihood. Model 3 (light grey) assigns its probability to a large range of different possible outcomes, but predicts each individual observed data set with low likelihood (high complexity model). Model 2 (dark grey) takes an intermediate position (intermediate complexity). The vertical dashed line (dark grey) illustrates where the actual empirically observed data fall. The data most support model 2, since this model predicts the data with highest likelihood. The figure is closely based on Figure 3.13 in Bishop (2006)."}
+```{r OccamFactor, echo=FALSE, fig.height=2.6, fig.width=5.1825,out.width = "100%", fig.cap="Shown are the schematic marginal likelihoods that each of three models assigns to different possible data sets. The total probability each model assigns to the data is equal to one, i.e., the areas under the curves of all three models are the same. Model 1 (black), the low complexity model, assigns all the probability to a narrow range of possible data, and can predict these possible data sets with high likelihood. Model 3 (light grey) assigns its probability to a large range of different possible outcomes, but predicts each individual observed data set with low likelihood (high complexity model). Model 2 (dark grey) takes an intermediate position (intermediate complexity). The vertical dashed line (dark grey) illustrates where the actual empirically observed data fall. The data most support model 2, since this model predicts the data with highest likelihood. The figure is closely based on Figure 3.13 in Bishop (2006)."}
 knitr::include_graphics("cc_figure/OccamFactorBW.png", dpi = 20)
 ```
 
@@ -537,7 +537,7 @@ if (!file.exists("dataR/BFs.RDS")) {
 
 For each model, we run bridge sampling and we compute the Bayes factor of the model against our baseline or null model, which does not contain a population-level effect of cloze probability ($BF_{10}$). Next, we need a way to visualize all the Bayes factors. We plot them in Figure \@ref(fig:BFpriorsX) as a function of the prior width.
 
-```{r BFpriorsX, fig.cap="Prior sensitivity analysis for the Bayes factor.", echo=FALSE}
+```{r BFpriorsX, fig.cap="Prior sensitivity analysis for the Bayes factor.", echo=FALSE, fig.height = 3.5}
 breaks <- c(1 / 100, 1 / 50, 1 / 20, 1 / 10, 1 / 3, 1, 3, 5, 10, 20, 50, 100)
 ggplot(BFs, aes(x = beta_sd, y = BF)) +
   geom_point(size = 2) +
@@ -998,7 +998,7 @@ if (!file.exists("dataR/BFsX.RDS")) {
 }
 ```
 
-```{r BFpriors2, echo=FALSE, message=FALSE, fig.cap="The effect of the number of samples on a prior sensitivity analysis for the Bayes factor. Black lines show 2 runs with 20,000 iterations. Grey lines show 20 runs with default number of iterations (2000).", fig.height=6, fig.width=7, warning=FALSE}
+```{r BFpriors2, echo=FALSE, message=FALSE, fig.cap="The effect of the number of samples on a prior sensitivity analysis for the Bayes factor. Black lines show 2 runs with 20,000 iterations. Grey lines show 20 runs with default number of iterations (2000).", fig.height=3.5, warning=FALSE}
 
 BFs12 <- rbind(
   cbind(BFs, iter = "Many iterations (20000); run 1"),
@@ -1213,7 +1213,7 @@ postModelProbsH1 <- postModelRat / (postModelRat + 1)
 postModelProbsH0 <- 1 / (postModelRat + 1)
 ```
 
-```{r SBC3plot, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, fig.width=6, fig.height=5, fig.cap = "The posterior probabilities for M0 are plotted as a function of prior probabilities for M0. If the approximation of the Bayes factor using bridge sampling is unbiased, then the data should be aligned along the diagonal (see dashed black line). The thick black line is a prediction from a local regression analysis. The points are average posterior probabilities as a function of a priori selected hypotheses for 50 simulation runs each. Error bars represent 95 percent confidence intervals.", message=FALSE}
+```{r SBC3plot, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, fig.height=3.5, fig.cap = "The posterior probabilities for M0 are plotted as a function of prior probabilities for M0. If the approximation of the Bayes factor using bridge sampling is unbiased, then the data should be aligned along the diagonal (see dashed black line). The thick black line is a prediction from a local regression analysis. The points are average posterior probabilities as a function of a priori selected hypotheses for 50 simulation runs each. Error bars represent 95 percent confidence intervals.", message=FALSE}
 prob <- data.frame(
   postH0 = postModelProbsH0 * 100,
   priH0 = priorsHypothesis[, 1] * 100,
