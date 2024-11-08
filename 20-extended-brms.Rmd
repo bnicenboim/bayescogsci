@@ -2,7 +2,7 @@
 # Regression models with `brms` - Extended
 
 
-```{r load-04, echo = FALSE, message = FALSE, results ="hide", warning = FALSE}
+```{r load-04, echo = FALSE, message = FALSE, results ="hide", warning = FALSE, fig.keep = "none"}
 knitr::purl("03-compbayes.Rmd")
 knitr::purl("04-regressions.Rmd")
 source("03-compbayes.R")

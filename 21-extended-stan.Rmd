@@ -1,6 +1,6 @@
 # Advanced models with Stan - Extended
 
-```{r load-08, echo = FALSE, message = FALSE, results ="hide", warning = FALSE}
+```{r load-08, echo = FALSE, message = FALSE, results ="hide", warning = FALSE, fig.keep = "none"}
 knitr::purl("08-introstan.Rmd")
 source("08-introstan.R")
 ```
@@ -342,7 +342,7 @@ L_u %*% z_u
 ```
 3. Use the following diagonal matrix to scale the z_u.
 
-```{r, R.options = list(width = 60)}
+```{r taus, R.options = list(width = 60)}
 tau_u1 <- 0.2
 tau_u2 <- 0.01
 (diag_matrix_tau <- diag(c(tau_u1,  tau_u2)))
@@ -350,7 +350,7 @@ tau_u2 <- 0.01
 
 4. Finally, generate the adjustments for each subject u:
 
-```{r, R.options = list(width = 60)}
+```{r us, R.options = list(width = 60)}
 (u <- diag_matrix_tau %*% L_u %*% z_u)
 
 # The rows are correlated, approximately 0.8
