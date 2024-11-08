@@ -456,7 +456,7 @@ The posterior for the slope is plotted in Figure \@ref(fig:meplotstanplot)(b); t
 
 (ref:meplotstanplot) (a) Posterior distribution of the slope for the effect of centered mean PCU on mean reading speed (50 characters per second) in a model without measurement error (`fit_indiv`). (b) Posterior distribution of the slope for the same dependent variable (mean reading speed) and predictor (centered mean PCU) in a model that accounts for measurement error (`fit_indiv_me`).
 
-```{r meplotstanplot,, fold = TRUE, message = FALSE,fig.cap = "(ref:meplotstanplot)", fig.show = "hold", out.width="49%", fig.width = 3.9, fig.height =3.2 }
+```{r meplotstanplot, fold = TRUE, message = FALSE,fig.cap = "(ref:meplotstanplot)", fig.show = "hold", out.width="49%", fig.width = 3.9, fig.height =3.2 }
 # Plot a
 mcmc_plot(fit_indiv,
           variable = "^b_c",
