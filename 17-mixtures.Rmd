@@ -76,7 +76,7 @@ We might think that if the fast-guess model were true, we would see a \index{Bim
 
 (ref:dfdots) Distribution of response times in the data of the global motion detection task in @Dutilh2019quality.
 
-```{r dfdots, message = FALSE, fig.cap = "(ref:dfdots)", fold = TRUE}
+```{r dfdots, message = FALSE, fig.cap = "(ref:dfdots)", fold = TRUE, fig.height = 2.2}
 ggplot(df_dots, aes(rt)) +
   geom_histogram()
 ```
@@ -234,7 +234,7 @@ We verify that our simulated data is realistic, that is, it's in the same range 
 
 (ref:simmix) Response times in the simulated data (`df_dots_simdata1`) that follows the fast-guess model.
 
-```{r simmix, fig.cap = "(ref:simmix)", message = FALSE}
+```{r simmix, fig.cap = "(ref:simmix)", message = FALSE, fig.height = 2.2}
 ggplot(df_dots_simdata1, aes(rt)) +
   geom_histogram()
 ```
@@ -345,7 +345,7 @@ The traceplots show clearly that the chains aren't mixing; see Figure \@ref(fig:
 
 (ref:traceplotsmix1) Traceplots from the model `mixture_rt.stan` fit to simulated data.
 
-```{r traceplotsmix1, fig.cap = "(ref:traceplotsmix1)"}
+```{r traceplotsmix1, fig.cap = "(ref:traceplotsmix1)", fig.height = 3.5}
 traceplot(fit_mix_rt) +
   scale_x_continuous(breaks = NULL)
 ```
@@ -369,9 +369,9 @@ p_{task} \sim \mathit{Beta}(8, 2)
 
 Plotting this prior confirms where most of the probability mass lies; see Figure \@ref(fig:dbeta).
 
-(ref:dbeta) A density plot for the $Beta(8,2)$ prior on $p_{task}$.
+(ref:dbeta) A density plot for the $\mathit{Beta}(8,2)$ prior on $p_{task}$.
 
-```{r dbeta, fold = TRUE, fig.cap = "(ref:dbeta)"}
+```{r dbeta, fold = TRUE, fig.cap = "(ref:dbeta)", fig.height = 2.2}
 plot(function(x) dbeta(x, 8, 2), ylab = "density" , xlab= "probability")
 ```
 
@@ -410,7 +410,7 @@ Now the summaries and traceplots look fine; see Figure \@ref(fig:traceplotsmix2)
 
 (ref:traceplotsmix2) Traceplots from the model `mixture_rt2.stan` fit to simulated data.
 
-```{r traceplotsmix2, fig.cap = "(ref:traceplotsmix2)"}
+```{r traceplotsmix2, fig.cap = "(ref:traceplotsmix2)", fig.height = 3.5}
 print(fit_mix_rt2)
 traceplot(fit_mix_rt2) +
   scale_x_continuous(breaks = NULL)
@@ -495,7 +495,7 @@ Plot the simulated data in Figure \@ref(fig:simdata3). This time we can see the 
 
 (ref:simdata3) Response times by accuracy accounting for task difficulty in the simulated data (`df_dots_simdata3`) that follows the fast-guess model.
 
-```{r simdata3, message = FALSE, fig.cap="(ref:simdata3)"}
+```{r simdata3, message = FALSE, fig.cap="(ref:simdata3), fig.height = 2.2}
 ggplot(df_dots_simdata3, aes(x = factor(acc), y = rt)) +
   geom_point(position = position_jitter(width = .4, height = 0),
              alpha = 0.5) +
@@ -652,7 +652,7 @@ diff_p_pred <- tibble(diff = p_task_easy - p_task_hard)
 
 (ref:emphasis) The difference in prior predicted probability of being engaged in the task under the two emphasis conditions for the simulated data (`diff_p_pred`) that follows the fast-guess model.
 
-```{r emphasis, fig.cap ="(ref:emphasis)", message = FALSE}
+```{r emphasis, fig.cap ="(ref:emphasis)", message = FALSE, fig.height = 2.2}
 diff_p_pred %>%
   ggplot(aes(diff)) +
   geom_histogram()
@@ -703,7 +703,7 @@ We can generate a plot now where both the difficulty of the task and the instruc
 
 (ref:taskinstr) Response times and accuracy by the difficulty of the task and the instructions type for the simulated data (`df_dots_simdata4`) that follows the fast-guess model.
 
-```{r taskinstr, fig.cap ="(ref:taskinstr)", message = FALSE}
+```{r taskinstr, fig.cap ="(ref:taskinstr)", message = FALSE, fig.height = 3.5}
 ggplot(df_dots_simdata4, aes(x = factor(acc), y = rt)) +
   geom_point(position = position_jitter(width = .4, height = 0),
              alpha = 0.5) +
@@ -761,11 +761,10 @@ if(!file.exists("dataR/fit_mix_rtacc2_priors.RDS")){
 ```
 
 
-We plot prior predictive distributions of response times as follows in Figure \@ref(fig:ppcmix4), by setting `y = rt` using `ppd_dens_overlay()`.
+We plot prior predictive distributions of response times as follows in Figure \@ref(fig:ppdiff-ppcmix4)(a), by setting `y = rt` using `ppd_dens_overlay()`.
 
-(ref:ppcmix4) Prior predictive distributions of response times (using `mixture_rtacc2.stan`) that follows the fast-guess model.
 
-```{r ppcmix4, message = FALSE, fig.cap = "(ref:ppcmix4)"}
+```{r ppcmix4, message = FALSE, fig.keep = "none"}
 rt_pred <- extract(fit_mix_rtacc2_priors)$rt_pred
 ppd_dens_overlay(rt_pred[1:100,]) +
   coord_cartesian(xlim = c(0, 2000))
@@ -773,16 +772,32 @@ ppd_dens_overlay(rt_pred[1:100,]) +
 
 Some of the predictive data sets contain responses that are too large, and some of them have too much probability mass close to zero, but there is nothing clearly wrong in the prior predictive distributions (considering that the model hasn't "seen" the data yet).
 
-If we want to plot the prior predicted distribution of differences in response time conditioning on task difficulty, we need to define a new function. Then we use the `bayesplot` function `ppc_stat()` that takes as an argument of `stat` any summary function; see Figure \@ref(fig:ppdiff).
+If we want to plot the prior predicted distribution of differences in response time conditioning on task difficulty, we need to define a new function. Then we use the `bayesplot` function `ppc_stat()` that takes as an argument of `stat` any summary function; see Figure \@ref(fig:ppdiff-ppcmix4)(a).
 
-(ref:ppdiff) Prior predicted distribution (using `mixture_rtacc2.stan`) of differences in response time, conditioning on task difficulty.
-```{r ppdiff, message = FALSE, fig.cap = "(ref:ppdiff)"}
+
+```{r ppdiff, message = FALSE,  fig.keep ="none"}
 meanrt_diff <- function(rt){
   mean(rt[x == 0.5]) -
     mean(rt[x == -0.5])
 }
 ppd_stat(rt_pred, stat = meanrt_diff)
 ```
+
+
+(ref:ppdiff-ppcmix4) (a) Prior predictive distributions of response times from the fast-guess model (`mixture_rtacc2.stan`). (b) Prior predictive distribution of response time differences, using the same model and prior settings, conditioned on task difficulty.
+
+```{r ppdiff-ppcmix4, message = FALSE, fig.cap = "(ref:ppdiff-ppcmix4)", echo=FALSE, fig.show = "hold", out.width="49%", fig.width = 3.9, fig.height =3.2}
+# a
+rt_pred <- extract(fit_mix_rtacc2_priors)$rt_pred
+ppd_dens_overlay(rt_pred[1:100,]) +
+  coord_cartesian(xlim = c(0, 2000)) +
+  ggtitle("(a) Prior predictive distribution")
+# b
+ppd_stat(rt_pred, stat = meanrt_diff) +
+  ggtitle("(b) Prior predictive distribution of differences in RTs")
+
+```
+
 
 
 
@@ -1148,7 +1163,7 @@ The traceplots in Figure \@ref(fig:traceplotmulti) show that the chains are not 
 
 (ref:traceplotmulti) Traceplots from the hierarchical model (`mixture_h.stan`) fit to (a subset) of the real data. The traceplot shows clearly that the posterior has at least two  modes, though rerunning the model might sometimes reveal three modes.
 
-```{r traceplotmulti, fig.cap = "(ref:traceplotmulti)", message = FALSE }
+```{r traceplotmulti, fig.cap = "(ref:traceplotmulti)", message = FALSE, fig.height = 3.5 }
 traceplot(fit_mix_data) +
   scale_x_continuous(breaks = NULL)
 ```
@@ -1202,7 +1217,7 @@ The traceplots in Figure \@ref(fig:traceplotnomulti) show that this times the ch
 
 (ref:traceplotnomulti) Traceplots from the simplified hierarchical model (`mixture_h2.stan`, assuming that `p_correct = 1`) fit to (a subset) of the real data. The traceplot shows that chains are mixing well.
 
-```{r traceplotnomulti, fold=TRUE, fig.cap = "(ref:traceplotnomulti)", message = FALSE }
+```{r traceplotnomulti, fold=TRUE, fig.cap = "(ref:traceplotnomulti)", message = FALSE , fig.height = 3.5}
 traceplot(fit_mixs_data) +
   scale_x_continuous(breaks = NULL)
 
@@ -1251,11 +1266,9 @@ if(!file.exists("dataR/gen_mix_data.RDS")){
 }
 ```
 
-First, take a look at the general distribution of response times generated by the posterior predictive model and by our real data in Figure \@ref(fig:postpmix).
+First, take a look at the general distribution of response times generated by the posterior predictive model and by our real data in Figure \@ref(fig:postpmix-postpmanip)(a).
 
-(ref:postpmix) The posterior predictive distribution of the hierarchical fast-guess model (using `mixture_h2_gen.stan`) in comparison with the observed response times.
-
-```{r postpmix, message = FALSE, fig.cap = "(ref:postpmix)"}
+```{r postpmix, message = FALSE, fig.keep = "none"}
 rt_pred <- extract(gen_mix_data)$rt_pred
 ppc_dens_overlay(y = ls_dots_data_short$rt, yrep = rt_pred[1:100,]) +
   coord_cartesian(xlim = c(0, 2000))
@@ -1263,11 +1276,9 @@ ppc_dens_overlay(y = ls_dots_data_short$rt, yrep = rt_pred[1:100,]) +
 
 We see that the distribution of the observed response times is narrower than the predictive distribution. We are generating response times that are more spread out than the real data.
 
-Next, examine the effect of the experimental manipulation in Figure \@ref(fig:postpmanip): The posterior predictive check reveals that the model underestimates the observed effect of the experimental manipulation: the observed difference between response times is well outside the bulk of the predictive distribution.
+Next, examine the effect of the experimental manipulation in Figure \@ref(fig:postpmix-postpmanip)(b): The posterior predictive check reveals that the model underestimates the observed effect of the experimental manipulation: the observed difference between response times is well outside the bulk of the predictive distribution.
 
-(ref:postpmanip) Posterior predictive distribution (using `mixture_h2_gen.stan`) of the difference in response time due to the experimental manipulation. The vertical bar shows the observed difference in the data.
-
-```{r postpmanip, message = FALSE, fig.cap = "(ref:postpmanip)"}
+```{r postpmanip, message = FALSE, fig.keep = "none"}
 meanrt_diff <- function(rt){
   mean(rt[ls_dots_data_short$x == 0.5]) -
     mean(rt[ls_dots_data_short$x == -0.5])
@@ -1277,9 +1288,25 @@ ppc_stat(ls_dots_data_short$rt,
          stat = meanrt_diff)
 ```
 
+(ref:postpmix-postpmanip) (a) Posterior predictive distribution of the hierarchical fast-guess model (`mixture_h2_gen.stan`) compared to observed response times. (b) Posterior predictive distribution of the response time difference due to experimental manipulation, using the same model; the vertical bar indicates the observed difference in the data.
+
+``` {r postpmix-postpmanip, fig.cap = "(ref:postpmix-postpmanip)", message = FALSE, echo=FALSE, fig.show = "hold", out.width="49%", fig.width = 3.9, fig.height =3.2
+# a
+ppc_dens_overlay(y = ls_dots_data_short$rt, yrep = rt_pred[1:100,]) +
+  coord_cartesian(xlim = c(0, 2000)) +
+  ggtitle("(a) Posterior predictive distribution")
+
+# b
+ppc_stat(ls_dots_data_short$rt,
+         yrep = rt_pred,
+         stat = meanrt_diff) +
+  ggtitle("(b) Posterior predictive distribution of differences in RTs")
+
+
+```
 Another important posterior predictive check includes comparing the fit of the model using a quantile probability plot, which is presented in the next chapter.
 
-We also look at some instances of the predictive distribution. Figure \@ref(fig:postppdobs) shows a simulated data set in black overlaid onto the real observations in gray. As we noticed in Figure \@ref(fig:postpmix), the model is predicting less variability than what we find in the data, especially when the emphasis is on accuracy.
+We also look at some instances of the predictive distribution. Figure \@ref(fig:postppdobs) shows a simulated data set in black overlaid onto the real observations in gray. As we noticed in Figure \@ref(fig:postpmix-postpmanip)(a), the model is predicting less variability than what we find in the data, especially when the emphasis is on accuracy.
 
 ```{r}
 acc_pred <- extract(gen_mix_data)$acc_pred
@@ -1336,25 +1363,6 @@ It is important to bear in mind that we can only compare models on the same depe
 
 
 To conclude, the fast-guess model shows a relatively decent fit to the data and is able to account for the speed-accuracy trade-off.  The model shows some inaccuracies that could lead to its revision and improvement. To what extent the inaccuracies are acceptable or not depends on  (i) the empirical finding that we want to account for (for example, we can already assume that the model will struggle to fit data sets that show slow errors); and (ii) its comparison with a competing account.
-
-
-
-
-
-
-
-
-
-
-
-```{r ,echo = FALSE}
-## if(!file.exists("dataR/fit_mv_data.RDS")){
-##   saveRDS(fit_mv_data,"dataR/fit_mv_data.RDS")
-## } else {
-##   fit_mv_data <- readRDS("dataR/fit_mv_data.RDS")
-## }
-```
-
 
 
 ## Summary
