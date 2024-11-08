@@ -215,7 +215,7 @@ fit_sbi0 <- stan(ma0,
 
 We see that there are warnings. As discussed in section \@ref(sec-uncorrstan), we can use pairs plots to uncover pathologies in the sampling. Here we see the samples of `zeta` and `tau` are highly correlated:
 
-```{r, warning = FALSE}
+```{r, warning = FALSE, fig.height = 3.5}
 pairs(fit_sbi0, pars = c("zeta", "tau"))
 ```
 
@@ -334,7 +334,7 @@ df_indiv
 
 At first glance, we see a relationship between mean PCU scores and mean reading speed; see Figure \@ref(fig:relmeanVOTvdur). However, this relationship seems to be driven by two extreme data points on the top left corner of the plot.
 
-```{r relmeanVOTvdur, fig.cap = "The relationship between (centered) mean PCU scores and mean reading speed.",  message = FALSE, fold = TRUE}
+```{r relmeanVOTvdur, fig.cap = "The relationship between (centered) mean PCU scores and mean reading speed.",  message = FALSE, fold = TRUE, fig.height = 3.5}
 df_indiv <- df_indiv %>%
   mutate(c_mean_pcu = mean_pcu - mean(mean_pcu))
 ggplot(df_indiv, aes(x = c_mean_pcu, y = mean_rspeed)) +
@@ -368,15 +368,9 @@ short_summary(fit_indiv)
 (Pb <- mean(as_draws_df(fit_indiv)$b_c_mean_pcu < 0))
 ```
 
-Figure \@ref(fig:lmplotstanplot2)(a) shows the posterior distribution of the slope in this model. Most of the probability mass is negative (`r Pb*100`%), suggesting that a better PCU score is associated with slower reading speed rather than faster;  that is, that a larger working memory capacity is associated with less reading fluency. This is not a very intuitive result and it could be the case that is driven by the two extreme data points. Rather than removing these data points, we'll examine what happens when the uncertainty of the measurements is taken into account.
+Figure \@ref(fig:meplotstanplot)(a) shows the posterior distribution of the slope in this model. Most of the probability mass is negative (`r Pb*100`%), suggesting that a better PCU score is associated with slower reading speed rather than faster;  that is, that a larger working memory capacity is associated with less reading fluency. This is not a very intuitive result and it could be the case that is driven by the two extreme data points. Rather than removing these data points, we'll examine what happens when the uncertainty of the measurements is taken into account.
 
 
-```{r lmplotstanplot2, message = FALSE, eval = TRUE, fig.cap = "The posterior distribution of the slope in the linear model, modeling the effect of centered mean PCU on mean reading speed (the unit is 50 characters per second).", fold = TRUE, fig.height = 3}
-mcmc_plot(fit_indiv,
-          variable = "^b_c",
-          regex = TRUE,
-          type = "hist")
-```
 
 Taking this uncertainty of the measurement is important; in many practical research problems, researchers will often take average measurements like these and examine the correlation between them. However, each of those data points is being measured with some error (uncertainty), but this error is being ignored when we take the averaged values. Ignoring this uncertainty leads to over-enthusiastic inferences. A measurement-error model solves this issue by taking uncertainty into account.
 
@@ -458,16 +452,32 @@ short_summary(fit_indiv_me)
 
 
 
-The posterior for the slope is plotted in Figure \@ref(fig:meplotstanplot); this figure shows that the association between PCU scores and reading speed is much weaker once measurement error is taken into account: The posterior is much more uncertain (much more widely distributed) than in the simple linear model we fit above (compare Figure  \@ref(fig:meplotstanplot) with Figure \@ref(fig:lmplotstanplot2)), and the direction of the association is now unclear, with `r round(Pb_me *100)`% of the probability mass below zero, rather than `r round(Pb *100)`%.
+The posterior for the slope is plotted in Figure \@ref(fig:meplotstanplot)(b); this figure shows that the association between PCU scores and reading speed is much weaker once measurement error is taken into account: The posterior is much more uncertain (much more widely distributed) than in the simple linear model we fit above (compare Figure  \@ref(fig:meplotstanplot)(b) with Figure  \@ref(fig:meplotstanplot)(a)), and the direction of the association is now unclear, with `r round(Pb_me *100)`% of the probability mass below zero, rather than `r round(Pb *100)`%.
 
+(ref:meplotstanplot) (a) Posterior distribution of the slope for the effect of centered mean PCU on mean reading speed (50 characters per second) in a model without measurement error (`fit_indiv`). (b) Posterior distribution of the slope for the same dependent variable (mean reading speed) and predictor (centered mean PCU) in a model that accounts for measurement error (`fit_indiv_me`).
 
-```{r meplotstanplot, echo=FALSE,message = FALSE,fig.cap = "The posterior distribution of the slope in the measurement error model, modeling the effect of centered mean PCU on mean reading speed.", fig.height = 3}
-mcmc_plot(fit_indiv_me, variable = "^bsp", regex = TRUE, type = "hist")
+```{r meplotstanplot,, fold = TRUE, message = FALSE,fig.cap = "(ref:meplotstanplot)", fig.show = "hold", out.width="49%", fig.width = 3.9, fig.height =3.2 }
+# Plot a
+mcmc_plot(fit_indiv,
+          variable = "^b_c",
+          regex = TRUE,
+          type = "hist") +
+  ggtitle("(a) Effect without taking account the measurement error") +
+  xlim(c(-0.05, 0.03))
+
+# Plot b
+mcmc_plot(fit_indiv_me, variable = "^bsp", regex = TRUE, type = "hist") +
+  ggtitle("(a) Effect without taking the measurement error") +
+  xlim(c(-0.05, 0.03))
+
 ```
+
+
+
 
 Figure \@ref(fig:seerrors) visualizes the main reason why we have no clear association in the measurement error analysis: the two points at the top left part of the plot that were driving the effect have very large SE for the measurement of reading speed. The code to produce it appears below and overlays several (250) regression lines that correspond to different samples of the posterior distribution with the measurements of reading speed and PCU.
 
-```{r seerrors, fig.cap = "The relationship between centered mean PCU scores and  mean reading speed accounting for measurement error. The error bars represent two standard errors. The regression lines are produced with 250 samples of the intercept and slope from the posterior distribution.",  message = FALSE, warning = FALSE}
+```{r seerrors, fig.cap = "The relationship between centered mean PCU scores and  mean reading speed accounting for measurement error. The error bars represent two standard errors. The regression lines are produced with 250 samples of the intercept and slope from the posterior distribution.",  message = FALSE, warning = FALSE, fig.height = 3.5}
 df_reg <- as_draws_df(fit_indiv_me) %>%
   select(alpha = b_Intercept, beta = bsp_mec_mean_pcuse_pcu) %>%
   slice(1:250)
@@ -481,7 +491,7 @@ ggplot(df_indiv, aes(x = c_mean_pcu, y = mean_rspeed)) +
                 alpha = .5, linetype = "dotted") +
   geom_abline(aes(intercept = alpha, slope = beta),
               data = df_reg,
-              alpha = .05)
+              alpha = .02)
 ```
 
 
