@@ -21,7 +21,7 @@ In a \index{Lexical decision task} lexical decision task, a subject is presented
 
 (ref:LDT-tikz) Two trials in a lexical decision task. For the first trial, `rurble`, the correct answer would be to press the key on a keyboard or a response console that is mapped to the "non-word" response, for the second trial, `monkey`, the correct answer would be to press the key that is mapped to the "word" response.
 
-```{r LDT-tikz,engine='tikz',fig.ext= if (knitr::is_html_output()) "svg" else "pdf", echo = FALSE, fig.cap = "(ref:LDT-tikz)"}
+```{r LDT-tikz,engine='tikz',fig.ext= if (knitr::is_html_output()) "svg" else "pdf", echo = FALSE, fig.cap = "(ref:LDT-tikz)", fig.height = 3.5}
 \usetikzlibrary{positioning}
 \begin{tikzpicture}
   \tikzset{

@@ -144,7 +144,7 @@ It is also possible to check whether the alternative model is making good predic
 
 The following code stores the difference in predictive accuracy of the models in a variable and plots it in Figure \@ref(fig:diffpredacc).
 
-```{r diffpredacc, fig.cap = "The difference in predictive accuracy between a model including the effect of cloze and a null model. A larger (more positive) difference indicates an advantage for the model that includes the effect of cloze."fig.width=2.2 }
+```{r diffpredacc, fig.cap = "The difference in predictive accuracy between a model including the effect of cloze and a null model. A larger (more positive) difference indicates an advantage for the model that includes the effect of cloze.", fig.width=2.2 }
 df_eeg <- mutate(df_eeg,
                  diff_elpd = loo_sih$pointwise[, "elpd_loo"] -
                    loo_sih_null$pointwise[, "elpd_loo"])

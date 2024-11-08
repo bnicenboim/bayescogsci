@@ -495,7 +495,7 @@ Plot the simulated data in Figure \@ref(fig:simdata3). This time we can see the 
 
 (ref:simdata3) Response times by accuracy accounting for task difficulty in the simulated data (`df_dots_simdata3`) that follows the fast-guess model.
 
-```{r simdata3, message = FALSE, fig.cap="(ref:simdata3), fig.height = 2.2}
+```{r simdata3, message = FALSE, fig.cap="(ref:simdata3)", fig.height = 2.2}
 ggplot(df_dots_simdata3, aes(x = factor(acc), y = rt)) +
   geom_point(position = position_jitter(width = .4, height = 0),
              alpha = 0.5) +
