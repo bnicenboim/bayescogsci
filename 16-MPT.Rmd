@@ -176,9 +176,9 @@ print(fit_mn, pars = c("theta"))
 Next, use \index{\texttt{mcmc\_recover\_hist()}} `mcmc_recover_hist()` in the code below to confirm that the posterior distributions of the elements of $\boldsymbol{\theta}$ are close to the true point values that were set up when simulating the data. See Figure \@ref(fig:multin-posterior).
 
 
-(ref:multin-posterior) Posterior distributions and true means of theta for the multinomial model defined in `multinom.stan`.
+(ref:multin-posterior) Posterior distributions and true means of `theta` for the multinomial model defined in `multinom.stan`.
 
-```{r multin-posterior, message = FALSE, tidy = FALSE, fig.cap = "(ref:multin-posterior)"}
+```{r multin-posterior, message = FALSE, tidy = FALSE, fig.cap = "(ref:multin-posterior)", fig.height = 3.5}
 as.data.frame(fit_mn) %>%
   select(starts_with("theta")) %>%
   mcmc_recover_hist(true = unlist(true_theta)) +
@@ -427,7 +427,7 @@ What the model gives us is posterior distributions of each of the parameters `a`
 
 An important sanity check in modeling is checking whether the model can in principle recover the true parameters that generated the data; see Figure \@ref(fig:sMPT-posterior).
 
-```{r sMPT-posterior, message = FALSE, tidy = FALSE, fig.cap = "Posterior distributions and true point values of the parameters of the simple MPT model (`mpt_mnm.stan`)."}
+```{r sMPT-posterior, message = FALSE, tidy = FALSE, fig.cap = "Posterior distributions and true point values of the parameters of the simple MPT model (`mpt_mnm.stan`).", fig.height = 3.5}
 as.data.frame(fit_sMPT) %>%
   select(c("a","t","f","c")) %>%
   mcmc_recover_hist(true = c(a_true, t_true, f_true, c_true)) +
@@ -754,7 +754,7 @@ It is worth highlighting that MPT models (like other cognitive models) should be
 
 Since we generated the data based on known latent parameters, we also plot the posteriors together with the true point values of the parameters in Figure \@ref(fig:mpt-h). This is something that we can only do with simulated data.
 
-```{r mpt-h, message = FALSE, tidy = FALSE, fig.cap = "Posterior of the hierarchical MPT with true point values as vertical lines (model `mpt_h.stan`).", tidy = FALSE}
+```{r mpt-h, message = FALSE, tidy = FALSE, fig.cap = "Posterior of the hierarchical MPT with true point values as vertical lines (model `mpt_h.stan`).", tidy = FALSE, fig.height = 3.5}
 as.data.frame(fit_mpt_h) %>%
   select(tau_u_a, alpha_a, t, alpha_f, beta_f, c) %>%
   mcmc_recover_hist(true = c(tau_u_a,
