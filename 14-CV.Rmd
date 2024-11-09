@@ -374,7 +374,7 @@ loo_compare(loo_stroop_log, loo_stroop_normal)
 
 Here, cross-validation shows a clear advantage for the model with the log-normal likelihood. Figure \@ref(fig:diffpredacclog12)(a) visualizes the pointwise predictive accuracy.
 
-```{r diffpredacclog, eval = FALSE}
+```{r diffpredacclog, fig.keep ="none"}
 df_stroop <- df_stroop %>%
   mutate(diff_elpd = loo_stroop_log$pointwise[, "elpd_loo"] -
            loo_stroop_normal$pointwise[, "elpd_loo"])
@@ -384,7 +384,7 @@ ggplot(df_stroop, aes(x = RT, y = diff_elpd)) +
 
 Figure \@ref(fig:diffpredacclog12)(a) shows that at first glance, the advantage of the log-normal likelihood seems to lie in being able to capture extremely slow observations. Figure \@ref(fig:diffpredacclog12)(b) zooms in to visualize the pointwise predictive accuracy for observations with response times smaller than two seconds.
 
-```{r diffpredacclog2,  eval = FALSE}
+```{r diffpredacclog2, fig.keep ="none"}
 ggplot(df_stroop, aes(x = RT, y = diff_elpd)) +
   geom_point(alpha = .3) +
   xlab("RC (ms)") +
