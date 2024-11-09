@@ -1290,7 +1290,7 @@ ppc_stat(ls_dots_data_short$rt,
 
 (ref:postpmix-postpmanip) (a) Posterior predictive distribution of the hierarchical fast-guess model (`mixture_h2_gen.stan`) compared to observed response times. (b) Posterior predictive distribution of the response time difference due to experimental manipulation, using the same model; the vertical bar indicates the observed difference in the data.
 
-``` {r postpmix-postpmanip, fig.cap = "(ref:postpmix-postpmanip)", message = FALSE, echo=FALSE, fig.show = "hold", out.width="49%", fig.width = 3.9, fig.height =3.2
+```{r postpmix-postpmanip, fig.cap = "(ref:postpmix-postpmanip)", message = FALSE, echo=FALSE, fig.show = "hold", out.width="49%", fig.width = 3.9, fig.height =3.2}
 # a
 ppc_dens_overlay(y = ls_dots_data_short$rt, yrep = rt_pred[1:100,]) +
   coord_cartesian(xlim = c(0, 2000)) +
@@ -1301,8 +1301,6 @@ ppc_stat(ls_dots_data_short$rt,
          yrep = rt_pred,
          stat = meanrt_diff) +
   ggtitle("(b) Posterior predictive distribution of differences in RTs")
-
-
 ```
 Another important posterior predictive check includes comparing the fit of the model using a quantile probability plot, which is presented in the next chapter.
 

@@ -15,7 +15,7 @@ For this and the next chapter, although knowledge of the matrix formulation of t
 
 We first consider the simplest case: suppose we want to compare the means of a dependent variable (DV) such as response times between two groups of subjects. A simulated data set is available in the package `bcogsci` as the data set `df_contrasts1`. The simulations assumed longer response times in condition $F1$ ($\mu_1 = 0.8$ sec) than $F2$ ($\mu_2 = 0.4$ sec). The data from the $10$ simulated subjects are aggregated and summary statistics are computed for the two groups.
 
-\Begin{sampepage}
+\Begin{samepage}
 ```{r, echo=TRUE}
 data("df_contrasts1")
 df_contrasts1
