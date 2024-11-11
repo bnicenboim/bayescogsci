@@ -579,7 +579,7 @@ For the standard normal case, in `R`, this factor would require us to use the CD
 pnorm(0, mean = 0, sd = 1, lower.tail = TRUE)
 ```
 
-Later in this book, we will be using such truncated distributions when doing Bayesian modeling, and when we use them, we will want to multiply the truncated distribution by the factor $k$ to ensure that it is still a proper PDF whose \index{Area under the curve} area under the curve sums to $1$. Truncated normal distributions will be discussed in more detail in Box \@ref(thm:truncation).
+Later in this book, we will be using such truncated distributions when doing Bayesian modeling, and when we use them, we will want to multiply the truncated distribution by the factor $k$ to ensure that it is still a proper PDF whose \index{Area under the curve} area under the curve sums to $1$. Truncated normal distributions will be discussed in more detail in Box \@ref(app-truncation).
 
 ## Bivariate and multivariate distributions
 
