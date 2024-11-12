@@ -9,10 +9,11 @@ source("03-compbayes.R")
 source("04-regressions.R")
 ```
 
-## A more efficient function for generating prior predictive distribution {#app-efficientpriorpd}
+## An efficient function for generating prior predictive distributions in R {#app-efficientpriorpd}
 
+As noted previously, generating prior predictive distributions can be computationally slow if done naively in R with a for-loop; for instance, producing $1000$ samples of the prior predictive distribution for our model from section \@ref(sec-priorpred) results in $361000$ predicted values, which takes a few seconds to compute. Although this approach works, it is not optimal for larger models or datasets. 
 
-A more efficient function can be created in the following way using the \index{\texttt{map\_2dfr}} `map2_dfr()` function from the \index{\texttt{purrr package}} `purrr` package. This function yields an approximately 10-fold increase in speed. Although the distributions should be the same with both functions, the specific numbers in the tables won't be, due to the randomness in the process of sampling.
+To address this, one could use a more efficient function using the `map2_dfr()` function from the `purrr` package, which yields approximately a 10-fold increase in speed.  Although the distributions should be the same with both functions, the specific numbers in the tables won't be, due to the randomness in the process of sampling.
 
 The `purrr` function \index{\texttt{map2\_dfr}} `map2_dfr()` (which works similarly to the base R function `lapply()` and `Map()`) essentially runs a for-loop, and builds a data frame with the output. It iterates over the values of two vectors (or lists) simultaneously, here, `mu_samples` and `sigma_samples`  and, in each iteration, it applies a function to each value of the two vectors, here, `mu` and `sigma`. The output of each function is a data frame (or tibble in this case) with `N_obs` observations which is bound in a larger data frame at the end of the loop. Each of these data frames bound together represents an iteration in the simulation, and we identify the iterations by setting `.id = "iter"`.
 
@@ -446,7 +447,7 @@ One advantage of assuming log-normally distributed response times (but, in fact,
 
 ## Prior predictive checks in R {#app-priorR}
 
-The following function is an edited version of the earlier  `normal_predictive_distribution` from the Box \@ref(thm:efficientpriorpd) in section \@ref(sec-priorpred); it has been edited to make it compatible with logistic regression and dependent on set size.
+The following function is an edited version of the earlier  `normal_predictive_distribution` from the online section \@ref(sec-efficientpriorpd) in section \@ref(sec-priorpred); it has been edited to make it compatible with logistic regression and dependent on set size.
 
 As we did before, our custom function uses the `purrr` function `map2_dfr()`, which runs an efficient for-loop, iterating over two vectors (here `alpha_samples` and `beta_samples`), and builds a data frame with the output. 
 
