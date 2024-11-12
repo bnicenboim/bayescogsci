@@ -100,7 +100,7 @@ qnorm(c(.025, .975), mean = 0, sd = 100)
 That is, we don't expect changes in size that increase or decrease the pupil size more than 200 units for one unit increase in load.
 
 
-The priors we have specified here are relatively \index{Uninformative prior} uninformative; as mentioned earlier, this is because we are considering the situation where we don't have much prior experience with pupil size studies. In other settings, we might have more prior knowledge and experience; in that case, one could use somewhat more principled priors. We will return to this point in the chapter on priors  (chapter \@ref(ch-priors)) and on the Bayesian workflow (chapter \@ref(ch-workflow)).
+The priors we have specified here are relatively \index{Uninformative prior} uninformative; as mentioned earlier, this is because we are considering the situation where we don't have much prior experience with pupil size studies. In other settings, we might have more prior knowledge and experience; in that case, one could use somewhat more principled priors. We will return to this point in the online chapter on priors  (online chapter \@ref(ch-priors)) and Bayesian workflow (online chapter \@ref(ch-workflow)).
 
 
 
@@ -314,7 +314,7 @@ pp_check(fit_prior_press_trial,
   coord_cartesian(ylim = c(0, 50))
 ```
 
-Prior selection might look daunting and can be a lot of work. However,  this work is usually done only the first time we start working with an experimental paradigm; besides, priors can be informed by the estimates from previous experiments (even maximum likelihood estimates from frequentist models can be useful). We will generally use very similar (or identical priors) for analyses dealing with the same type of task. When in doubt, a sensitivity analysis (see section \@ref(sec-sensitivity)) can tell us whether the posterior distribution depends unintentionally strongly on our prior selection. We will return to the issue of prior selection in chapter  \@ref(ch-priors). 
+Prior selection might look daunting and can be a lot of work. However,  this work is usually done only the first time we start working with an experimental paradigm; besides, priors can be informed by the estimates from previous experiments (even maximum likelihood estimates from frequentist models can be useful). We will generally use very similar (or identical priors) for analyses dealing with the same type of task. When in doubt, a sensitivity analysis (see section \@ref(sec-sensitivity)) can tell us whether the posterior distribution depends unintentionally strongly on our prior selection. We discuss prior selection also in the online chapter  \@ref(ch-priors). 
 
 
 ### The \index{brms} `brms` model
