@@ -57,7 +57,7 @@ knitr::include_graphics("cc_figure/globalmotion_lr.PNG", dpi =1000)
 
 Ollman's [-@Ollman1966] fast-guess model assumes that the behavior in this task (and in any other choice task) is governed by two distinct cognitive processes: (i) a \index{Guessing mode} guessing mode, and (ii) a \index{Task-engaged mode} task-engaged mode. In the guessing mode, responses are fast and accuracy is at chance level. In the task-engaged mode, responses are slower and accuracy approaches 100%. This means that intermediate values of response times and accuracy can only be achieved by \index{Mixing responses} mixing responses from the two modes. Further assumptions of this model are that response times depend on the difficulty of the choice, and that the probability of being on one of the two states depend on the speed incentives during the instructions.
 
-To simplify matters, we ignore the possibility that the accuracy of the choice is also affected by the difficulty of the choice. Also, we ignore the possibility that subjects might be biased to one specific response in the guessing mode, but see exercise \@ref(exr:mixbias).
+To simplify matters, we ignore the possibility that the accuracy of the choice is also affected by the difficulty of the choice. Also, we ignore the possibility that subjects might be biased to one specific response in the guessing mode, but see online exercise \@ref(exr:mixbias).
 
 
 
@@ -1357,7 +1357,7 @@ generated quantities {
 }
 ```
 
-It is important to bear in mind that we can only compare models on the same dependent variable(s). That is, we would need to compare this model with another one fit to the same dependent variables and also in the same scale:  accuracy (`0` or `1`) and response time in milliseconds. This means that, for example, we cannot compare our  fast-guess model with an accuracy-only model. It also means that to compare our fast-guess model with a model based on left/right choices (known as stimulus coding, see section \@ref(sec-acccoding)) and response times, we would need to reparameterize one of the two models; see exercise \@ref(exr:lnldt) in chapter \@ref(ch-lognormalrace).
+It is important to bear in mind that we can only compare models on the same dependent variable(s). That is, we would need to compare this model with another one fit to the same dependent variables and also in the same scale:  accuracy (`0` or `1`) and response time in milliseconds. This means that, for example, we cannot compare our  fast-guess model with an accuracy-only model. It also means that to compare our fast-guess model with a model based on left/right choices (known as stimulus coding, see section \@ref(sec-acccoding)) and response times, we would need to reparameterize one of the two models; see online exercise \@ref(exr:lnldt) of chapter \@ref(ch-lognormalrace).
 
 
 To conclude, the fast-guess model shows a relatively decent fit to the data and is able to account for the speed-accuracy trade-off.  The model shows some inaccuracies that could lead to its revision and improvement. To what extent the inaccuracies are acceptable or not depends on  (i) the empirical finding that we want to account for (for example, we can already assume that the model will struggle to fit data sets that show slow errors); and (ii) its comparison with a competing account.

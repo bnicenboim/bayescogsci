@@ -166,7 +166,7 @@ In Figure \@ref(fig:betas2), we can see also the difference in uncertainty in th
 
 Which prior should we choose? In a real data analysis problem, the choice of prior would depend on what prior knowledge we want to bring into the analysis (see online chapter \@ref(ch-priors)). If we don't have much prior information, we could use $a=b=1$; this gives us a uniform prior (i.e., $\mathit{Uniform}(0,1)$). This kind of prior goes by various names, such as \index{Flat, non-informative prior} *flat, non-informative prior*, or \index{Uninformative prior} *uninformative prior*. By contrast, if we have a lot of prior knowledge and/or a strong belief (e.g., based on a particular theory's predictions, or prior data) that $\theta$ has a particular range of plausible values, we can use a different set of $a, b$ values to reflect our belief about the parameter. Generally speaking, the larger our parameters a and b, the narrower the spread of the distribution; i.e., the lower our uncertainty about the mean value of the parameter.
 
-We will discuss prior specification in detail later in the online chapter \@ref(ch-priors). For the  moment, just for illustration, we choose the values $a=4$ and $b=4$ for the beta prior. Then, our prior for $\theta$ is the following beta PDF:
+We will discuss prior specification in detail in online chapter \@ref(ch-priors). For the  moment, just for illustration, we choose the values $a=4$ and $b=4$ for the beta prior. Then, our prior for $\theta$ is the following beta PDF:
 
 \begin{equation}
 p(\theta) = \frac{1}{B(4,4)} \theta^{3} (1-\theta)^{3}

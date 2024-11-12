@@ -138,7 +138,7 @@ It's important to bear in mind that the PSIS-LOO approximation to LOO can only b
 loo_compare(loo_sih, loo_sih_null)
 ```
 
-Although the model that includes cloze probability as a predictor has higher predictive accuracy, the difference is smaller than 4 and it's smaller than two SE. This means that from the perspective of LOO-CV, both models are almost indistinguishable! In fact, the same will happen if the model is compared using logarithmic predictability to the linear or null model; see exercise \@ref(exr:logcv).
+Although the model that includes cloze probability as a predictor has higher predictive accuracy, the difference is smaller than 4 and it's smaller than two SE. This means that from the perspective of LOO-CV, both models are almost indistinguishable! In fact, the same will happen if the model is compared using logarithmic predictability to the linear or null model; see online exercise \@ref(exr:logcv).
 
 It is also possible to check whether the alternative model is making good predictions for some range of values by examining the difference in pointwise predictive accuracy as a function of, for example, cloze probability. In the following plot, we subtract the predictive accuracy of the alternative model from the accuracy of the null model; larger differences can be interpreted as an advantage for the alternative model. However, as far as posterior predictive accuracy goes, both models are quite similar. Figure \@ref(fig:diffpredacc) shows that the difference in predictive accuracy is symmetrical with respect to the zero; as we go further from the mean cloze (which is around $0.5$), the differences in predictions are larger but they span positive and negative values.
 

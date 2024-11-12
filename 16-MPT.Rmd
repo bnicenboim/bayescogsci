@@ -446,7 +446,7 @@ These posteriors tell us the probability of producing each of the possible respo
 This model might be useful for estimating the latent parameters, $a$, $t$, $f$, $c$, but without further constraints it is unfalsifiable.
 
 Recall that for the multinomial likelihood in section \@ref(sec-mult), we had a simplex of size five, which means that we had four free parameters (since the fifth can be deduced based on the others). With five possible answers we can always estimate a vector of probabilities $\boldsymbol{\theta}$ that fits the data, in the same way that with two possible answers (e.g., zeros and ones), we can always estimate a single  probability $\theta$ that fits the data (using a Bernoulli or binomial likelihood).
-The MPT that we present here is just \index{Reparameterization} reparameterizing the vector $\boldsymbol{\theta}$ of the multinomial likelihood (with the same number of free parameters). This means that it will always achieve a perfect fit; see exercise \@ref(exr:mpt-mnm).  This doesn't mean that this MPT model is "useless": Under the assumption that the model is meaningful, one can estimate its latent parameters and this estimation can have theoretical implications. If we want to be able to falsify this model, we'll need to constrain it more, as we suggest below.
+The MPT that we present here is just \index{Reparameterization} reparameterizing the vector $\boldsymbol{\theta}$ of the multinomial likelihood (with the same number of free parameters). This means that it will always achieve a perfect fit; see online exercise \@ref(exr:mpt-mnm).  This doesn't mean that this MPT model is "useless": Under the assumption that the model is meaningful, one can estimate its latent parameters and this estimation can have theoretical implications. If we want to be able to falsify this model, we'll need to constrain it more, as we suggest below.
 
 
 
@@ -540,11 +540,11 @@ This is still not an appropriate model for the generative process that we are as
 ```{stan output.var = "mpt4", code = readLines(mpt_cat),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
 ```
 
-An important aspect of the previous model is that `theta` is declared as \index{\texttt{simplex}} `array[N_obs] simplex[5] theta;`. This means that `theta` is an \index{Array of simplexes} array of simplexes and thus has now two dimensions: each element of the array (of length `N_obs`) is a simplex and sums to one. That's why we iterate over the `N_obs`. However, one limitation of the previous model is that the latent parameters `a`, `t`, `f`, `c` are declared as `real` and they do not vary in each iteration of the loop.  Before moving to the next section, you might want to do exercise \@ref(exr:edit-mpt-cat), where you are asked to edit the previous chunk of code to incorporate the fact that `f` is now a transformed parameter that depends on the trial information and two new parameters.
+An important aspect of the previous model is that `theta` is declared as \index{\texttt{simplex}} `array[N_obs] simplex[5] theta;`. This means that `theta` is an \index{Array of simplexes} array of simplexes and thus has now two dimensions: each element of the array (of length `N_obs`) is a simplex and sums to one. That's why we iterate over the `N_obs`. However, one limitation of the previous model is that the latent parameters `a`, `t`, `f`, `c` are declared as `real` and they do not vary in each iteration of the loop.  Before moving to the next section, you might want to do online exercise \@ref(exr:edit-mpt-cat), where you are asked to edit the previous chunk of code to incorporate the fact that `f` is now a transformed parameter that depends on the trial information and two new parameters.
 
 ### A \index{Hierarchical MPT} hierarchical MPT {#sec-MPT-h}
 
-The previous model doesn't take into account that subjects might vary  (and neither does the  modification to this model that is suggested in exercise \@ref(exr:edit-mpt-cat)). Let's focus on taking into account the differences between subjects.
+The previous model doesn't take into account that subjects might vary  (and neither does the  modification to this model that is suggested in online exercise \@ref(exr:edit-mpt-cat)). Let's focus on taking into account the differences between subjects.
 
 Different subjects might not be equally motivated to do the task. This can be accounted for by adding \index{Hierarchical structure} hierarchical structure to the parameter `a`, the probability of initiating an attempt. Begin by simulating some data that incorporates \index{By-subject variability} by-subject variability.
 
@@ -693,7 +693,7 @@ The corresponding Stan model `mpt_h.stan` will look like this:
 ```{stan output.var = "mpt5", code = readLines(mpt_h),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
 ```
 
-For ease of exposition, we are not using the non-centered parameterization discussed previously in section \@ref(sec-uncorrstan). We could also apply it here; that will speed up and improve the convergence of the model. See Exercise \@ref(exr:mpt).
+For ease of exposition, we are not using the non-centered parameterization discussed previously in section \@ref(sec-uncorrstan). We could also apply it here; that will speed up and improve the convergence of the model. See online exercise \@ref(exr:mpt).
 
 It would be a good idea to plot prior predictive distributions for this model, but we skip this step here. Next, fit the model to the simulated data, by first defining the data as a list:
 

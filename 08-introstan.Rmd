@@ -654,7 +654,7 @@ Another more flexible possibility when we want to indicate a Bernoulli likelihoo
 target += bernoulli_lpmf(correct| inv_logit(alpha + X * beta));
 ```
 
-The function `bernoulli_lpmf` can be useful if one wants to try other link functions; see exercise \@ref(exr:linkfunction).
+The function `bernoulli_lpmf` can be useful if one wants to try other link functions; see online exercise \@ref(exr:linkfunction).
 
 Finally, the most transparent form (but less efficient) would be the following for-loop:
 
