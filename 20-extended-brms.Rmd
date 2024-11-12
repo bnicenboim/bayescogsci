@@ -301,7 +301,7 @@ gridExtra::grid.arrange(p_nc, p_c, nrow = 1)
 
 ## Understanding the log-normal likelihood {#app-lognormal}
 
-It is important to understand what we are assuming with our log-normal likelihood. Formally, if a random variable $Z$ is normally distributed with mean $\mu$ and variance $\sigma^2$, then the transformed random variable $Y = \exp(Z)$ is log-normally distributed and has density:
+It is important to understand what we are assuming with a log-normal likelihood. Formally, if a random variable $Z$ is normally distributed with mean $\mu$ and variance $\sigma^2$, then the transformed random variable $Y = \exp(Z)$ is log-normally distributed and has density:
 
 \begin{equation}
 \mathit{LogNormal}(y|\mu,\sigma)=f(z)= \frac{1}{\sqrt{2\pi \sigma^2}y} \exp \left(-\frac{(\log(y)-\mu)^2}{2\sigma^2} \right)

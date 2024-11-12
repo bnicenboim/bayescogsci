@@ -279,7 +279,7 @@ We'll try to answer these questions by looking at the *prior and posterior predi
 
 
 
-##  \index{Prior predictive distribution} Prior predictive distribution {#sec-priorpred}
+## Prior predictive distribution {#sec-priorpred}
 
 We had defined the following priors for our linear model:
 
@@ -502,7 +502,7 @@ short_summary(fit_press_unif)
 
 Next, consider what happens if very informative priors are used. Assume that mean values very close to $400$ ms are the most likely, and that the standard deviation of the finger tapping times is very close to $100$ ms. Given that this is a model of button-pressing times, such an informative prior seems wrong---$200$ ms seems like a more realistic mean button-pressing time, not $400$ ms. You can check this by doing an experiment yourself and looking at the recorded times; software like Linger (http://tedlab.mit.edu/~dr/Linger/) makes it easy to set up such an experiment.
 
-The $\mathit{Normal}_+$ notation indicates a normal distribution truncated at zero such that only positive values are allowed (Box \@ref(thm:truncation) discusses this type of distribution in detail). Even though the prior for the standard deviation is restricted to be positive, we are not required to add `lb = 0` to the prior, and it is automatically taken into account by `brms`.
+The $\mathit{Normal}_+$ notation indicates a normal distribution truncated at zero such that only positive values are allowed (see online section \@ref(thm-truncation) discusses this type of distribution in detail). Even though the prior for the standard deviation is restricted to be positive, we are not required to add `lb = 0` to the prior, and it is automatically taken into account by `brms`.
 
 \begin{equation}
 \begin{aligned}
@@ -770,7 +770,7 @@ We cannot generate negative values any more, since $\exp($any finite real number
 \end{equation}
 
 
-The prior for $\sigma$ here is a \index{Truncated distribution} truncated distribution, and although its location is zero, this is not its mean. We can calculate its approximate mean from a large number of random samples of the prior distribution using the function \index{\texttt{rtnorm}} `rtnorm()` from the package `extraDistr`. In this function, we have to set the parameter `a = 0` to express the fact that the normal distribution is truncated from the left at 0. (Box \@ref(thm:truncation) discusses this type of
+The prior for $\sigma$ here is a \index{Truncated distribution} truncated distribution, and although its location is zero, this is not its mean. We can calculate its approximate mean from a large number of random samples of the prior distribution using the function \index{\texttt{rtnorm}} `rtnorm()` from the package `extraDistr`. In this function, we have to set the parameter `a = 0` to express the fact that the normal distribution is truncated from the left at 0. (Online section \@ref(sec-truncation) discusses this type of
 distribution in detail):
 
 ```{r}
