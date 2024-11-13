@@ -5,7 +5,7 @@ knitr::purl("08-introstan.Rmd")
 source("08-introstan.R")
 ```
 
-## What does `target` do? {#app-target}
+## What does `target` do in Stan models? {#app-target}
 
 We can exemplify how \index{\texttt{target}} `target` works with one hypothetical iteration of the sampler.
 
@@ -34,7 +34,7 @@ This means that for the coordinates [mu = `r mu[1]`, sigma = `r sigma[1]`], the 
 
 It is possible to expose the value of `target`, by printing \index{\texttt{target}} `target()` inside a Stan model. The value of `target` after each iteration is named \index{\texttt{lp\_\_}} `lp__` in the Stan object. This can be useful for troubleshooting a problematic model.
 
-## Explicitly incrementing the log probability function \index{\texttt{target}} (`target`) vs. using the sampling or distribution `~` notation. {#app-tilde}
+## Explicitly incrementing the log probability function  (`target`) vs. using the sampling or distribution `~` notation {#app-tilde}
 
 In this book, we specify priors and likelihoods by explicitly incrementing the log-probability function using the following syntax:
 
@@ -84,7 +84,7 @@ target += normal_lupdf(y | mu, sigma);
 ## An alternative R interface to Stan: `cmdstanr` {#app-cmdstanr}
 
 At the time of writing this, there are two major nuisances with `rstan`, (i) the R code interfaces directly with C++ creating installation problems in many systems, (ii) `rstan` releases lag behind Stan language releases considerably preventing the user from taking advantage of the latest features of Stan. The package `cmdstanr` (https://mc-stan.org/cmdstanr/) is a lightweight interface to Stan for R that solves these problems.
-The downside (at the moment of writing this) is that, being lightweight, some functionality of `rstan` is lost, such as looking up functions with \index{\texttt{lookup}} `lookup()`,  exposing functions with \index{\texttt{expose\_stan\_function}} `expose_stan_function()`, as well as using the fitted model with the \index{\texttt{bridgesampling}} `bridgesampling` package to generate Bayes factors. Furthermore, the package `cmdstanr` is currently under development and the \index{Application programming interface} application programming interface \index{API} (API) might still change. However, the user interested in an easy (and painless) installation and the latest features of Stan might find it useful.
+The downside (at the moment of writing this) is that, being lightweight, some functionality of `rstan` is lost, such as looking up functions with \index{\texttt{lookup}} `lookup()`, as well as using the fitted model with the \index{\texttt{bridgesampling}} `bridgesampling` package to generate Bayes factors. Furthermore, the package `cmdstanr` is currently under development and the \index{Application programming interface} application programming interface \index{API} (API) might still change. However, the user interested in an easy (and painless) installation and the latest features of Stan might find it useful.
 
 Once `cmdstanr` is installed, we can use it as follows:
 
@@ -127,7 +127,7 @@ The vignette of https://mc-stan.org/cmdstanr/ shows more use cases, and how the 
 
 
 
-## Matrix, vector, or \index{\texttt{array}} array in Stan? {#app-stancontainers}
+## Matrix, vector, or array in Stan? {#app-stancontainers}
 
 Stan contains three basic \index{Linear algebra type} linear algebra types, `vector`, \index{\texttt{row\_vector}} `row_vector`, and `matrix`. But Stan also allows for building arrays of any dimension from any type of element (integer,  real, etc.). This means that there are several ways to define one-dimensional N-sized containers of real numbers,
 
@@ -183,7 +183,7 @@ See also Stan's user's guide section on matrices, vector, and arrays [@Stan2023,
 
 ## A simple non-centered parameterization {#app-noncenterparam}
 
-The sampler can explore the parameter space more easily if its step size is appropriate for all the parameters. This is achieved when there are no strong  dependencies between parameters. We want to assume the following.
+Stan's sampler can explore the parameter space more easily if its step size is appropriate for all the parameters. This is achieved when there are no strong  dependencies between parameters. We want to assume the following.
 
 \begin{equation}
 \mathbf{u}_{2} \sim \mathit{Normal}(0, \tau_{u_2})
@@ -218,7 +218,7 @@ A question that might be raised here is whether using a non-centered parameteriz
 
 
 
-## Cholesky factorization {#app-cholesky}
+## Cholesky factorization for reparameterizing hierarchical models with correlations between adjustments to different parameters {#app-cholesky}
 
 First, some definitions that we will need below. A matrix is square if the number of rows and columns is identical. A \index{Square matrix} square matrix $A$ is symmetric if $A^T = A$, i.e., if transposing the matrix gives the matrix back. Suppose that $A$ is a known matrix with real numbers. If $\boldsymbol{x}$ is a vector of variables with length $p$ (a $p\times 1$ matrix), then $x^T A x$ is called a \index{Quadratic form} quadratic form in $x$ ($x^T A x$  will be a scalar, $1\times 1$). If $x^TAx>0$ for all $x$, then $A$ is a \index{Positive definite matrix} positive definite matrix. If  $x^TAx\geq 0$ for all $x\neq0$, then $A$ is positive semi-definite.
 
@@ -233,7 +233,7 @@ L_{21}  & L_{22}
 \end{equation}
 
 
-For a model without a correlation between adjustments for the intercept and slope, we assumed that adjustments $u_{1}$ and $u_{2}$ were generated by two independent normal distributions. But now we want to allow the possibility that the adjustments can have a non-zero correlation. We can use the Cholesky factorization to generate \index{Correlated random variables} correlated random variables in the following way.
+For a model without a correlation between adjustments for the intercept and slope as the one in section \@ref(sec-uncorrstan), we assumed that adjustments $u_{1}$ and $u_{2}$ were generated by two independent normal distributions. But in section \@ref(sec-corrstan), we want to allow the possibility that the adjustments can have a non-zero correlation. We can use the Cholesky factorization to generate \index{Correlated random variables} correlated random variables in the following way.
 
 1.  Generate uncorrelated vectors, $z_{u_1}$ and $z_{u_2}$, for each vector of
     adjustments $u_1$ and $u_2$, as sampled from $\mathit{Normal}(0,1)$:
@@ -364,7 +364,7 @@ sd(u[2, ])
 
 ## Different rank visualizations and the `SBC` package. {#app-sbc}
 
-Implementing the simulation-based calibration algorithm "by hand" introduces a new source of potential errors. Fortunately, the R package  \index{SBC} `SBC` [@R-SBC] provides tools to validate a Stan model (or any sampling algorithm) by allowing us to run simulation-based calibrations easily.
+Implementing the simulation-based calibration algorithm "by hand" introduces a new source of potential errors as we did in section \@ref(sec-validSBC). Fortunately, the R package  \index{SBC} `SBC` [@R-SBC] provides tools to validate a Stan model (or any sampling algorithm) by allowing us to run simulation-based calibrations easily.
 The package is in active development at the moment^[Even though the package is already fully functional, function names and arguments might change by the time this book is published.] and can be installed with the following command.
 
 ```{r,eval = FALSE}
