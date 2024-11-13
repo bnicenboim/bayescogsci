@@ -377,7 +377,7 @@ ggplot(data_acc, aes(xend = T)) +
 
 ```
 
-A log-normal distribution is partly justified by the work by @ulrichInformationProcessingModels1993 (also see Box \@ref(thm:lognormal)), and as discussed later, it is very convenient mathematically.
+A log-normal distribution is partly justified by the work by @ulrichInformationProcessingModels1993 (also see online section \@ref(app-lognormal)), and as discussed later, it is very convenient mathematically.
 
 For simplicity, assume that the distance  $D$ to the threshold is kept constant. This might not be a good assumption if the experiment is designed so that subjects change their threshold depending on speed or accuracy incentives (that was not the case in this experiment), or if the subject gets fatigued as the experiment progresses, or if there is reason to believe that there might be \index{Random fluctuation} random fluctuations in this \index{Threshold} threshold. Later in this chapter, we will discuss what happens if this assumption is relaxed.
 
@@ -684,7 +684,7 @@ T_0 &\sim \mathit{Normal}(150, 100) \text{ with } 0 < T_0 < min(rt_n)\\
 where $\boldsymbol{\alpha}$ is a vector $\langle \alpha'_{n}, \alpha'_{nw} \ \rangle$, and $\boldsymbol{\beta}$ is a vector of all the $\beta$ used in the likelihoods.
 
 
-To translate the model into Stan, we need a normal distribution truncated so that the values lie between zero and $min(\mathbf{rt})$ for the prior  of `T_0`. This means dividing the original distribution by the \index{Difference of the CDFs} difference of the CDFs evaluated at these two points; see Box \@ref(thm:truncation). In log-space, this is a difference between the log-transformed original distribution and the logarithm of the difference of the CDFs. The function `log_diff_exp` is a more stable version of this last operation [i.e., less prone to underflow/overflow, \index{Underflow} \index{Overflow} see @BlanchardEtAl2020]. What \index{\texttt{log\_diff\_exp}} `log_diff_exp`  does is to take the log of the difference of the exponent of two functions. In this case the functions are two log-CDFs.
+To translate the model into Stan, we need a normal distribution truncated so that the values lie between zero and $min(\mathbf{rt})$ for the prior  of `T_0`. This means dividing the original distribution by the \index{Difference of the CDFs} difference of the CDFs evaluated at these two points; see online section \@ref(app-truncation). In log-space, this is a difference between the log-transformed original distribution and the logarithm of the difference of the CDFs. The function `log_diff_exp` is a more stable version of this last operation [i.e., less prone to underflow/overflow, \index{Underflow} \index{Overflow} see @BlanchardEtAl2020]. What \index{\texttt{log\_diff\_exp}} `log_diff_exp`  does is to take the log of the difference of the exponent of two functions. In this case the functions are two log-CDFs.
 
 ```{stan, output.var = "none", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
 target += normal_lpdf(T_0 | 150, 100)

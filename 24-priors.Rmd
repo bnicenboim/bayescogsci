@@ -546,9 +546,9 @@ ggplot(df_varcomps, aes(x = sd)) +
   facet_grid(rows = vars(component))
 ```
 
-We can now use the equations \@ref(eq:meantrunc) and \@ref(eq:vartrunc) shown in Box \@ref(thm:truncation) to work out the means and standard deviations of a corresponding \index{Truncated normal distribution} truncated normal distribution. As an example, we could assume a prior distribution truncated at $0$ from below, and at $1000$ ms from above. That is, $a=0$, and $b=1000$.
+We can now use the equations \@ref(eq:meantrunc) and \@ref(eq:vartrunc) shown in online section \@ref(app-truncation) to work out the means and standard deviations of a corresponding \index{Truncated normal distribution} truncated normal distribution. As an example, we could assume a prior distribution truncated at $0$ from below, and at $1000$ ms from above. That is, $a=0$, and $b=1000$.
 
-We can write a function that takes the estimated means and standard deviations, and returns the mean and standard deviation of the corresponding truncated distribution (see Box \@ref(thm:truncation)). The function `compute_meansd_parent()` provided in `bcogsci` accomplishes this.
+We can write a function that takes the estimated means and standard deviations, and returns the mean and standard deviation of the corresponding truncated distribution (see online \@ref(app-truncation)). The function `compute_meansd_parent()` provided in `bcogsci` accomplishes this.
 
 
 The largest variance component among the group-level effects (that is, all variance components other than the residual standard deviation) is the by-subjects intercept. One can compute the mean and standard deviation of of the truncated distribution that would generate the observed mean and standard deviation of the item-level estimates:

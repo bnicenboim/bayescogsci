@@ -141,7 +141,7 @@ The description of the model makes it clear that an ideal subject who never gues
 rt_n \sim \mathit{LogNormal}(\alpha + \beta \cdot x_n, \sigma)
 \end{equation}
 
-In the previous equation, $x$ is larger for difficult trials. If we center $x$, $\alpha$ represents the average logarithmic transformed response time for a subject engaged in the task, and $\beta$ is the effect of \index{Trial difficulty} trial difficulty on log-response time. We assume a non-deterministic process, with a noise parameter $\sigma$. See also Box \@ref(thm:lognormal) for more information about log-normally distributed response times.
+In the previous equation, $x$ is larger for difficult trials. If we center $x$, $\alpha$ represents the average logarithmic transformed response time for a subject engaged in the task, and $\beta$ is the effect of \index{Trial difficulty} trial difficulty on log-response time. We assume a non-deterministic process, with a noise parameter $\sigma$. See also online section \@ref(app-lognormal) for more information about log-normally distributed response times.
 
 Alternatively, a subject that guesses in every trial would show a response time distribution that is independent of the difficulty of the trial:
 
@@ -380,7 +380,7 @@ The Stan code for this model is shown below as `mixture_rt2.stan`.
 ```{stan output.var = "mix2_stan", code = readLines(mixture_rt2),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
 ```
 
-Once we change the upper bound of `gamma` in the `parameters` block, we also need to truncate the distribution in the `model` block by correcting the PDF with its CDF. This correction is carried out using the CDF because we are truncating the distribution at the right-hand side; recall that earlier we used the complement of the CDF when we truncate a distribution at the left-hand side); see Box \@ref(thm:truncation).
+Once we change the upper bound of `gamma` in the `parameters` block, we also need to truncate the distribution in the `model` block by correcting the PDF with its CDF. This correction is carried out using the CDF because we are truncating the distribution at the right-hand side; recall that earlier we used the complement of the CDF when we truncate a distribution at the left-hand side); see online section \@ref(app-truncation).
 
 ```
   target += normal_lpdf(gamma | 6, 1) -
@@ -625,7 +625,7 @@ For $\beta_{task}$, we assume an effect that can be rather large and we won't as
 \end{equation}
 
 
-This means that the subject could be affected by the instructions in the expected way, with an increased probability to be task-engaged, leading to better accuracy when the instructions  emphasize  accuracy ($\beta_{task} >0$). Alternatively, the subject might be behaving in an unexpected way, with a decreased probability to be task-engaged, leading to worse accuracy when the instructions emphasize accuracy ($\beta_{task} <0$). The latter situation, $\beta_{task} <0$, could represent the instructions being misunderstood. It's certainly possible to include priors that encode the expected direction of the effect instead: $\mathit{Normal}_{+}(0,1)$. Unless there is a compelling reason to constrain the prior in this way, following Cromwell's rule (Box \@ref(thm:cromwell)), we leave open the possibility of the $\beta$ parameter having negative values.
+This means that the subject could be affected by the instructions in the expected way, with an increased probability to be task-engaged, leading to better accuracy when the instructions  emphasize  accuracy ($\beta_{task} >0$). Alternatively, the subject might be behaving in an unexpected way, with a decreased probability to be task-engaged, leading to worse accuracy when the instructions emphasize accuracy ($\beta_{task} <0$). The latter situation, $\beta_{task} <0$, could represent the instructions being misunderstood. It's certainly possible to include priors that encode the expected direction of the effect instead: $\mathit{Normal}_{+}(0,1)$. Unless there is a compelling reason to constrain the prior in this way, following Cromwell's rule (Box \@ref(thm:cromwell) in the online chapter \@ref(ch-priors)), we leave open the possibility of the $\beta$ parameter having negative values.
 
 How can we choose a prior for $\alpha_{task}$ that encodes the same information that we had in the previous model in $p_{task}$? One possibility is to create an auxiliary parameter $p_{btask}$, that represents the baseline probability of being engaged in the task, with the same prior that we use in the previous section, and then transform it to an unconstrained space for our regression with the logit function:
 

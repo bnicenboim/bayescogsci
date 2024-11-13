@@ -80,7 +80,7 @@ Calculate the mean, variance, and the lower quantile q1 and the upper quantile q
 Practice getting summaries from samples--Part 2.
 ```
 
-This time we generate the data with a truncated normal distribution from the package `extraDistr`. The details of this distribution will be discussed later in section \@ref(sec-pupil) and in the Box \@ref(thm:truncation), but for now we can treat it as an unknown generative process:
+This time we generate the data with a truncated normal distribution from the package `extraDistr`. The details of this distribution will be discussed later in section \@ref(sec-pupil) and in the online section \@ref(app-truncation), but for now we can treat it as an unknown generative process:
 
 ```{r}
 data_gen1 <- rtnorm(1000, mean = 300, sd = 200, a = 0)
@@ -1410,14 +1410,7 @@ cat(readLines(system.file("stan_models",
     sep = "\n")
 ```
 
-## Mixture models {#ch-mixture}
-
-
-
-
-
-
-
+## Mixture models
 
 ```{exercise, pcorrect}
 Changes in the true point values.
