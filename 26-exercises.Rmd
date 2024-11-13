@@ -1072,7 +1072,7 @@ You are given mean voice onset time (VOT) data (with SEs) in milliseconds for En
 
 Then use `brms` with measurement error included in both the dependent and independent variables. Do a sensitivity analysis to check the influence of the priors on the posteriors of the relevant parameters.
 
-
+## Introduction to model comparison 
 
 ## Bayes factors  
 
@@ -1225,6 +1225,7 @@ Fit a rec-normal and a log-normal model using Stan to each of the four data sets
 What do you conclude?
 
 
+## Introduction to cognitive modeling
 
 ## Multinomial processing trees 
 

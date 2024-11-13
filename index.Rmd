@@ -125,7 +125,7 @@ list_code <- function(vector){
 \renewcommand{\chaptermark}[1]{\markboth{\uppercase{#1}}{\uppercase{#1}}}
 \chaptermark{Preface}
 
-```{r eval=FALSE,fig.align='center', echo=FALSE, include=identical(knitr:::pandoc_to(), 'html')}
+```{r cover, eval=FALSE,fig.align='center', echo=FALSE, include=identical(knitr:::pandoc_to(), 'html')}
 fig.link='https://www.crcpress.com/product/isbn/9781138700109'
 knitr::include_graphics('images/temporarycover.jpg', dpi = NA)
 ```

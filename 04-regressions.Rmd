@@ -2,7 +2,7 @@
 
 We generally run experiments because we are interested in the relationship between two or more variables. A regression will tell us  how our \index{Dependent variable} *dependent variable*, also called the *response* or \index{Outcome variable} *outcome variable* (e.g., pupil size, response times, accuracy, etc.) is affected by one or many \index{Independent variable} *independent variables*, *predictors*, or \index{Explanatory variable} *explanatory variables*. Predictors can be categorical (e.g., male or female), ordinal (first, second, third, etc.), or continuous (e.g., age). In this chapter we focus on simple regression models with different likelihood functions. 
 
-```{r echo = FALSE}
+```{r sel, echo = FALSE}
 ## no idea why dplyr doesn't remember this
 select <- dplyr::select
 ```
@@ -44,7 +44,7 @@ This means that the formula in `brms` will be  `p_size ~ 1 + c_load`, where `1` 
 
 For setting plausible priors, some research needs to be done to find some  information about pupil sizes. Although we might know that pupil diameters range between  2 to 4 mm  in bright light to 4 to 8 mm in the dark [@spectorPupils1990], this experiment was conducted with the Eyelink-II eyetracker which measures the pupils in arbitrary units [@hayesMappingCorrectingInfluence2016]. If this is our first-ever analysis of pupil size, before setting up the priors, we'll need to look at some measures of pupil size. (If we had analyzed this type of data before, we could also look at estimates from previous experiments). Fortunately, we have some measurements of the same subject with no attentional load for the first 100 ms, measured every 10 ms,  in the data frame `df_pupil_pilot` from the package `bcogsci`: This will give us some idea about the order of magnitude of our dependent variable.
 
-```{r, message = FALSE}
+```{r datadfpupil, message = FALSE}
 data("df_pupil_pilot")
 df_pupil_pilot$p_size %>% summary()
 ```
@@ -58,7 +58,7 @@ With this information we can set a \index{Regularizing prior} regularizing prior
 
 Given that our  predictor load is centered, with the prior for $\alpha$, we are saying that we suspect that the average pupil size  for the average load in the experiment will be in a 95% credible interval limited by approximately $1000 \pm 2 \cdot 500 = [0, 2000]$ units. We can calculate this with more precision in `R`  using the `qnorm()` function:
 
-```{r}
+```{r qnormalpha}
 qnorm(c(.025, .975), mean = 1000, sd = 500)
 ```
 
