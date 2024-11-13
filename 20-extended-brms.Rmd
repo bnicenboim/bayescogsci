@@ -570,7 +570,7 @@ Some important connections and differences between exchangeability and the frequ
 
 ## The Matrix Formulation of Hierarchical Models (the Laird-Ware form) {#app-matrixHierachicalModel}
 
-We have been writing linear models as follows; where $n$ refers to the row id in the data frame.
+In the book, we generally write linear models as follows; where $n$ refers to the row id in the data frame.
 
 \begin{equation}
 y_n \sim \mathit{Normal}(\alpha + \beta\cdot x_n)
@@ -782,7 +782,7 @@ Z_w \odot z_w +
 
 
 
-## Treatment contrast with \index{Intercept} intercept as the \index{Grand mean} grand mean. {#app-cTreatGM}
+## Treatment contrast with  intercept as the  grand mean {#app-cTreatGM}
 
 Above, we have introduced the treatment contrast, where each contrast compares one condition to a baseline condition. We have discussed that the intercept in the treatment contrast estimates the condition mean for the \index{Baseline condition} baseline condition. There are some applications where this behavior may seem sub-optimal. This can be the case in experimental designs with multiple factors, where we may want to use \index{Centered contrasts} centered contrasts (this is discussed below). Moreover, the contrast coding of the population-level (or fixed) effects also defines what the group-level (or random) effects assess. If the intercept assesses the grand mean--rather than the baseline condition--in hierarchical models, then the group-level intercepts reflect the grand mean variance, rather than the variance in the baseline condition.
 

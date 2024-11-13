@@ -182,7 +182,7 @@ Finally, we indicate the prior distributions and likelihood functions in the \in
 ```
 
 
-The variable `target` is a reserved word in Stan; every statement with `target +=` adds terms to the \index{Unnormalized log posterior density} unnormalized *log* posterior density. We do this because adding to the unnormalized log posterior amounts to multiplying a term in the numerator of the unnormalized posterior. As explained earlier, Stan uses the shape of the unnormalized posterior to sample from the actual posterior distribution. See Box \@ref(thm:target) for a more detailed explanation, and see Box \@ref(thm:tilde) for alternative notations.
+The variable `target` is a reserved word in Stan; every statement with `target +=` adds terms to the \index{Unnormalized log posterior density} unnormalized *log* posterior density. We do this because adding to the unnormalized log posterior amounts to multiplying a term in the numerator of the unnormalized posterior. As explained earlier, Stan uses the shape of the unnormalized posterior to sample from the actual posterior distribution. See online section \@ref(app-target) for a more detailed explanation, and see online section \@ref(app-tilde) for alternative notations.
 
 
 We didn't use curly brackets with the for-loop; this is a common practice if the for-loop has only one line, but brackets can be added and are obligatory if the for-loop spans several lines.
