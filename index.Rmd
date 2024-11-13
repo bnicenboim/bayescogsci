@@ -189,7 +189,7 @@ We adopt the following conventions:
 
 ## Online materials {-}
 
-The entire book, including all data and source code, is available online for free on [https://bruno.nicenboim.me/bayescogsci/](https://bruno.nicenboim.me/bayescogsci/). The solutions to exercises will be made available on request.
+The entire book, including all data and source code, is available online for free at [https://bruno.nicenboim.me/bayescogsci/](https://bruno.nicenboim.me/bayescogsci/). Additional optional materials and exercises for each chapter are also available online. Solutions to exercises can be provided upon request.
 
 ## Software needed {-}
 
