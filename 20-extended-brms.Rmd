@@ -567,26 +567,6 @@ Some important connections and differences between exchangeability and the frequ
 
 
 
-## Some important (and sometimes confusing) points: {#app-hierarchical}
-
-* Why does $u$ have a mean of $0$?
-
-   Because we want $u$ to capture only differences between subjects, we could achieve the same by assuming the following relationship between the likelihood and the intercept and slope:
-
-   \begin{equation}
-   \begin{aligned}
-   signal_n &\sim \mathit{Normal}(\alpha_{subj[n]} + \beta_{subj[n]} \cdot c\_cloze_n, \sigma)  \\
-   \alpha_i &\sim \mathit{Normal}(\alpha,\tau_{u_1})\\
-   \beta_i &\sim \mathit{Normal}(\beta,\tau_{u_2})\\
-   \end{aligned}
-   \end{equation}
-
-   In fact, this is another common way to write the model.
-
-* Why do the adjustments $u$ have a normal distribution?
-
-The adjustments $u$ are conventionally assumed to come from a normal distribution. One motivation for choosing a normal distribution here is that if we don't know anything about the distribution besides its mean and variance, the normal distribution is the most conservative assumption [see chapter 9 of @mcelreath2015statistical].
-
 
 ## The Matrix Formulation of Hierarchical Models (the Laird-Ware form) {#app-matrixHierachicalModel}
 
