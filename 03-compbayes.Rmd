@@ -381,8 +381,7 @@ prior_pred %>%
   xlab("predicted t (ms)") +
   theme(axis.text.x = element_text(angle = 40,
                                    vjust = 1,
-                                   hjust = 1,
-                                   size = 14)) +
+                                   hjust = 1)) +
   scale_y_continuous(limits = c(0, 0.0005),
                      breaks = c(0, 0.00025, 0.0005),
                      name = "density") +

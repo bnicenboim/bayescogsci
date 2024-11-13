@@ -781,7 +781,7 @@ if (file.exists("dataR/df_rank_lambda.RDS")) {
 
 
 
-(ref:recoveryexp) a) Posterior distribution of the parameter $\lambda$ of `fit_exp` together with its true values as a black line. b) Rank histograms of $\lambda$ and from our hand-made implementation of the exponential distribution. The dashed lines represent the 99% confidence interval. 
+(ref:recoveryexp) (a) Posterior distribution of the parameter $\lambda$ of `fit_exp` together with its true values as a black line. (b) Rank histogram of $\lambda$ and from our hand-made implementation of the exponential distribution. The dashed lines represent the 99% confidence interval. 
 
 ```{r recoveryexp, message = FALSE, fig.cap = "(ref:recoveryexp)", fig.show="hold", out.width="45%", fig.width = 3, fig.height = 3 , fold = TRUE}
 # Plot a
@@ -789,7 +789,7 @@ post_exp <- as.data.frame(fit_exp) %>%
   select("lambda")
 mcmc_recover_hist(post_exp, true = lambda) +
   # make it similar to plot b:
-  ggtitle("a") +
+  ggtitle("(a) Posterior distribution") +
   xlab("lamda") +
   theme(plot.title = element_text(hjust = 0),
         legend.position="none",
@@ -806,7 +806,7 @@ ggplot(df_rank_lambda, aes(x = rank)) +
                  closed = "left", colour = "black") +
   scale_y_continuous("count") +
   geom_hline(yintercept = c(ci_l, ci_u), linetype = "dashed") +
-  ggtitle("b") +
+  ggtitle("(b) Rank histogram") +
     theme(plot.title = element_text(hjust = 0))
 ```
 

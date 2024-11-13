@@ -371,7 +371,7 @@ Plotting this prior confirms where most of the probability mass lies; see Figure
 
 (ref:dbeta) A density plot for the $\mathit{Beta}(8,2)$ prior on $p_{task}$.
 
-```{r dbeta, fold = TRUE, fig.cap = "(ref:dbeta)", fig.height = 2.2}
+```{r dbeta, fold = TRUE, fig.cap = "(ref:dbeta)", fig.height = 3.2}
 plot(function(x) dbeta(x, 8, 2), ylab = "density" , xlab= "probability")
 ```
 
@@ -791,10 +791,11 @@ ppd_stat(rt_pred, stat = meanrt_diff)
 rt_pred <- extract(fit_mix_rtacc2_priors)$rt_pred
 ppd_dens_overlay(rt_pred[1:100,]) +
   coord_cartesian(xlim = c(0, 2000)) +
-  ggtitle("(a) Prior predictive distribution")
+  ggtitle("(a) Prior predictive distribution\n")
 # b
 ppd_stat(rt_pred, stat = meanrt_diff) +
-  ggtitle("(b) Prior predictive distribution of differences in RTs")
+  ggtitle("(b) Prior predictive distribution\nof differences in RTs") +
+  theme(legend.position="none")
 
 ```
 
@@ -1052,7 +1053,8 @@ df_fit_mix_h <- fit_mix_h %>% as.data.frame() %>%
 true_values <- c(alpha, beta, sigma, gamma, sigma2,
                 p_correct, p_btask, beta_task, tau_u[1],
                 tau_u[2], tau_u[3], rep(rho,3))
-mcmc_recover_hist(df_fit_mix_h, true_values)
+mcmc_recover_hist(df_fit_mix_h, true_values) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 ```
 
 The model seems to be underestimating the probability of subjects being correct  (`p_correct`) and the amount of noise (`sigma`). However, the numerical differences are relatively small. We can be relatively certain that the model is not seriously misspecified. As mentioned in previous chapters, a more principled (and computationally demanding) approach uses simulation based calibration introduced in section \@ref(sec-validSBC) of chapter \@ref(ch-custom) [also see @talts2018validating; @schad2020toward]. An intermediate approach would be to re-run the simulation above a few times with a larger number of observations and/or with different true, data-generating parameters to see whether the estimates behave as expected.
@@ -1294,13 +1296,13 @@ ppc_stat(ls_dots_data_short$rt,
 # a
 ppc_dens_overlay(y = ls_dots_data_short$rt, yrep = rt_pred[1:100,]) +
   coord_cartesian(xlim = c(0, 2000)) +
-  ggtitle("(a) Posterior predictive distribution")
+  ggtitle("(a) Posterior predictive distribution\n")
 
 # b
 ppc_stat(ls_dots_data_short$rt,
          yrep = rt_pred,
          stat = meanrt_diff) +
-  ggtitle("(b) Posterior predictive distribution of differences in RTs")
+  ggtitle("(b) Posterior predictive distribution\nof differences in RTs")
 ```
 Another important posterior predictive check includes comparing the fit of the model using a quantile probability plot, which is presented in the next chapter.
 

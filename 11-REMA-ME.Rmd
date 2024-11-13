@@ -462,12 +462,12 @@ mcmc_plot(fit_indiv,
           variable = "^b_c",
           regex = TRUE,
           type = "hist") +
-  ggtitle("(a) Effect without taking account the measurement error") +
+  ggtitle("(a) Without modeling  measurement error") +
   xlim(c(-0.05, 0.03))
 
 # Plot b
 mcmc_plot(fit_indiv_me, variable = "^bsp", regex = TRUE, type = "hist") +
-  ggtitle("(a) Effect without taking the measurement error") +
+  ggtitle("(b) Modeling measurement error") +
   xlim(c(-0.05, 0.03))
 
 ```

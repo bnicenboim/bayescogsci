@@ -144,7 +144,7 @@ It is also possible to check whether the alternative model is making good predic
 
 The following code stores the difference in predictive accuracy of the models in a variable and plots it in Figure \@ref(fig:diffpredacc).
 
-```{r diffpredacc, fig.cap = "The difference in predictive accuracy between a model including the effect of cloze and a null model. A larger (more positive) difference indicates an advantage for the model that includes the effect of cloze.", fig.width=2.2 }
+```{r diffpredacc, fig.cap = "The difference in predictive accuracy between a model including the effect of cloze and a null model. A larger (more positive) difference indicates an advantage for the model that includes the effect of cloze.", fig.height=2.2 }
 df_eeg <- mutate(df_eeg,
                  diff_elpd = loo_sih$pointwise[, "elpd_loo"] -
                    loo_sih_null$pointwise[, "elpd_loo"])
@@ -395,18 +395,19 @@ ggplot(df_stroop, aes(x = RT, y = diff_elpd)) +
 
 (ref:diffpredacclog12) (a) Difference in predictive accuracy between Stroop models with log-normal and normal likelihoods, where a more positive value favors the log-normal model. (b) Difference in predictive accuracy between the same models, focusing on observations under two seconds, with positive values again favoring the log-normal model.
 
-```{r diffpredacclog12 , message = FALSE, echo = FALSE, fig.cap = "(ref:diffpredacclog12)", fig.show = "hold", out.width="49%", fig.width = 3.9, fig.height =3.2 }
+```{r diffpredacclog12, message = FALSE, echo = FALSE, fig.cap = "(ref:diffpredacclog12)", fig.show = "hold", out.width="49%", fig.width = 3.9, fig.height =3.2 }
 
 ggplot(df_stroop, aes(x = RT, y = diff_elpd)) +
-  geom_point(alpha = .4) + xlab("RC (ms)") +
-  ggtitle("(a) Predictive accuracy for the whole range of observations")
+  geom_point(alpha = .4) +
+  xlab("RC (ms)") +
+  ggtitle("(a) Whole range of observations")
 
 ggplot(df_stroop, aes(x = RT, y = diff_elpd)) +
   geom_point(alpha = .3) +
   xlab("RC (ms)") +
   geom_hline(yintercept = 0, linetype = "dashed") +
   coord_cartesian(xlim = c(0, 2000), ylim = c(-10, 10)) +
-  ggtitle("(b) Predictive accuracy for observations smaller than 2 seconds")
+  ggtitle("(b) Observations smaller than 2 seconds")
 ```
 
 Figure \@ref(fig:diffpredacclog12)(b) suggests that the advantage of the log-normal likelihood seems to lie in being able to account for most of the observations in the data set, which occur around the $500$ ms.

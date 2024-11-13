@@ -409,7 +409,7 @@ plots <- purrr::map(ab, function(p){
     aes(linetype = "Scaled likelihood")
   ) +
     theme(legend.position =  "none") +
-    ggtitle(paste0("Prior:\n beta(a = ", p[1], ", b = ", p[2],")")))
+    ggtitle(paste0("Prior: Beta(a = ", p[1], ", b = ", p[2],")")))
   })
 
 

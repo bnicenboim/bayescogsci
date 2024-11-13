@@ -176,7 +176,7 @@ ggplot(by_subj, aes(x=rank_ms, y=`rank_%`,label=subj))+geom_text()
 
 (ref:rtlexical) The distribution of response times for words and non-words, and correct and incorrect answers.
 
-```{r rtlexical, fig.cap = "(ref:rtlexical)", message = FALSE, warning= FALSE, fold = TRUE}
+```{r rtlexical, fig.cap = "(ref:rtlexical)", message = FALSE, warning= FALSE, fold = TRUE, fig.height = 3.5}
 acc_lbl <- as_labeller(c(`0` = "Incorrect", `1` = "Correct"))
 ggplot(df_blp, aes(y = rt, x = freq + .01, shape = lex, color = lex)) +
   geom_point(alpha = .5) +
@@ -239,7 +239,7 @@ Plot the data by joining the points that belong to the same quantiles with lines
 
 (ref:qpplex) Quantile probability plots showing $0.1$, $0.3$, $0.5$, $0.7$, and $0.9$-th response time quantiles plotted against  proportion of incorrect responses (left) and proportion of correct responses (right) for strings that are words and non-words.
 
-```{r qpplex, fig.cap = "(ref:qpplex)"}
+```{r qpplex, fig.cap = "(ref:qpplex)", fig.height = 3.5}
 ggplot(df_blp_lex_q, aes(x = p, y = rt_q)) +
   geom_vline(xintercept = .5, linetype = "dashed") +
   geom_point(aes(shape = lex)) +
@@ -260,7 +260,7 @@ Whereas we previously aggregated over all the observations, ignoring subjects, w
 
 (ref:qppfreq) Quantile probability plot showing  $0.1$, $0.3$, $0.5$, $0.7$, and $0.9$-th response times quantiles plotted against  proportion of incorrect responses (left) and proportion of correct responses (right) for words of different frequency. Word frequency is grouped according to quantiles: The first group is words with frequencies smaller than the $0.2$-th quantile, the second group is words with frequencies smaller than the $0.4$-th quantile and larger than the $0.2$-th quantile, and so forth.
 
-```{r qppfreq, fig.cap = "(ref:qppfreq)", warning = FALSE}
+```{r qppfreq, fig.cap = "(ref:qppfreq)", warning = FALSE, fig.height = 3.5}
 df_blp_freq_q <- df_blp %>%
   # Subset only words:
   filter(lex == "word") %>%
@@ -333,7 +333,7 @@ The log-normal race model assumes that the \index{Rate} rate $V$ in each trial i
 V \sim \mathit{LogNormal}(\mu_v, \sigma_v)
 \end{equation}
 
-```{r lognormalrace, echo = FALSE, fig.cap = "A schematic illustration of the log-normal race model for the lexical-decision task with a word stimulus. A larger rate of accumulation (V) leads to a larger slope. Here, the choice of word is selected."}
+```{r lognormalrace, echo = FALSE, fig.cap = "A schematic illustration of the log-normal race model for the lexical-decision task with a word stimulus. A larger rate of accumulation (V) leads to a larger slope. Here, the choice of word is selected.", fig.height = 4}
 set.seed(100)
 D_w <- 10000
 D_nw <- 10000
@@ -504,7 +504,7 @@ df_blp1_sim <- df_blp_1subj %>%
 
 (ref:scatterracesim) The distribution of response times for words and non-words, and correct and incorrect answers for the synthetic data of one subject.
 
-```{r scatterracesim, fig.cap = "(ref:scatterracesim)", message = FALSE, warning= FALSE, fold = TRUE}
+```{r scatterracesim, fig.cap = "(ref:scatterracesim)", message = FALSE, warning= FALSE, fold = TRUE, fig.height =3.5}
 acc_lbl <- as_labeller(c(`0` = "Incorrect", `1` = "Correct"))
 ggplot(df_blp1_sim, aes(y = rt, x = freq + .01, shape = lex, color = lex)) +
   geom_point(alpha = .5) +
@@ -1121,12 +1121,10 @@ $[`r qbeta(.025,.9,70)`, `r qbeta(.975,.9,70) `]$.^[The average is calculated as
 
 (ref:thetac) Prior distribution for the probability of contaminated responses $\theta_{c}$. Most of the probability mass is close to $0$.
 
-```{r thetac, fig.cap = "(ref:thetac)", fold = TRUE}
+```{r thetac, fig.cap = "(ref:thetac)", fold = TRUE, fig.height = 2.2}
  ggplot(data = tibble(theta_c = c(0, 1)), aes(theta_c)) +
-  stat_function(
-    fun = dbeta,
-    args = list(shape1 = 0.9, shape2 = 70),
-  ) +
+  stat_function(fun = dbeta,
+                args = list(shape1 = 0.9, shape2 = 70),) +
   ylab("density")
 ```
 
@@ -1138,7 +1136,7 @@ T_0 \sim  \mathit{LogNormal}(log(150), 0.6)
 
 (ref:tnd) Prior distribution for $T_0$. The dashed lines show the 95% credible interval.
 
-```{r tnd, fig.cap = "(ref:tnd)", fold = TRUE}
+```{r tnd, fig.cap = "(ref:tnd)", fold = TRUE, fig.height = 2.2}
 sdlog <- .6
 lq = qlnorm(.025,log(150), sdlog)
 hq = qlnorm(.975,log(150), sdlog)
@@ -1490,8 +1488,8 @@ Now, plot the results with the code shown below (Figure \@ref(fig:qppfreqpp)).
 
 (ref:qppfreqpp) Quantile probability plots showing   0.1, 0.3, 0.5, 0.7, and 0.9 response times quantiles plotted against  proportion of incorrect responses (left) and proportion of correct responses (right) for only words of different frequency. Word frequency are grouped according to quantiles: The first group are words with frequencies smaller than the 0.2-th quantile, the second group are words with frequencies smaller than the 0.4-th quantile and larger than the 0.2-th quantile, and so forth. The summary of the observed data is plotted in black and the summaries of the synthetic data sets are plotted in gray.
 
-```{r qppfreqpp, fig.cap = "(ref:qppfreqpp)", warning = FALSE}
-ggplot(df_blp_pred_qpf %>% filter(sim <200 ), aes(x = p, y = rt_q)) +
+```{r qppfreqpp, fig.cap = "(ref:qppfreqpp)", warning = FALSE, fig.height = 3.5}
+ggplot(df_blp_pred_qpf %>% filter(sim < 200), aes(x = p, y = rt_q)) +
   geom_point(shape = 4, alpha = 0.1) +
   geom_line(aes(group = interaction(q, response, sim)),
             alpha = 0.1,

@@ -85,7 +85,7 @@ The shape of the unnormalized posterior density is completely defined and it wil
 
 (ref:up) The unnormalized posterior defined by equation \@ref(eq:up).
 
-```{r up, fig.cap = "(ref:up)" ,echo = FALSE, warning=FALSE, fig.height = 2.2}
+```{r up, fig.cap = "(ref:up)" ,echo = FALSE, warning=FALSE, fig.height = 3.5}
 mu <- seq(-40, 40, 1)
 sigma <- seq(0.5, 40, 1)
 
@@ -695,7 +695,7 @@ print(fit_recall, pars = c("alpha", "beta"))
 ```
 
 
-In Figure \@ref(fig:cri)(a), we plot the 95% CrI of the parameters of interest.
+In Figure \@ref(fig:cri-vaccdet)(a), we plot the 95% CrI of the parameters of interest.
 
 ```{r cri, message = FALSE, fig.keep = "none"}
 df_fit_recall <- as.data.frame(fit_recall)
@@ -751,7 +751,7 @@ mcmc_intervals(df_fit_recall,
                prob_outer = .95,
                prob = .8,
                point_est = "mean") +
-  ggtitle("(a) Parameters of interest in log-odds")
+  ggtitle("(a) Parameters of interest\nin log-odds")
 
 mcmc_intervals(df_fit_recall,
                pars = c("set_size", "trial", "interaction"),
@@ -759,7 +759,7 @@ mcmc_intervals(df_fit_recall,
                prob = .8,
                point_est = "mean") +
   xlab("Change in accuracy") +
-  ggtitle("(b) Effects on the average accuracy")
+  ggtitle("(b) Effects on\nthe average accuracy")
 
 ```
 

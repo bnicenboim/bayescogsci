@@ -205,7 +205,7 @@ for (l in 0:4) {
                 ndraws = 1000,
                 newdata = df_sub_pupil,
                 stat = "mean") +
-    geom_point(data = df_sub_pupil, aes(x = p_size, y = 0.1)) +
+    geom_point(data = df_sub_pupil, aes(x = p_size, y = 0.2)) +
     ggtitle(paste("load: ", l)) +
     coord_cartesian(xlim = c(400, 1000))
   print(p)
@@ -470,7 +470,7 @@ As an example data set, we look at a study investigating the capacity level of \
 
 (ref:oberauer) The flow of events in a trial with memory set size 4 and free recall. Adapted from @oberauerWorkingMemoryCapacity2019; licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
 
-```{r oberauer, fig.cap = "(ref:oberauer)", fig.height =5, echo = FALSE, out.width = "100%"}
+```{r oberauer, fig.cap = "(ref:oberauer)", fig.height =3, echo = FALSE, out.width = "100%"}
 knitr::include_graphics("cc_figure/fig1_oberauer_2019_modified.png")
 ```
 
@@ -525,7 +525,7 @@ The generalized linear modeling framework solves this problem by defining a  \in
 
 The term \index{$\{1-\theta_n}$} $\frac{\theta_n}{1-\theta_n}$ is called the \index{Odds} *odds*.^[Odds are defined to be the ratio of the probability of success to the probability of failure. For example, the odds of obtaining a one in a fair six-sided die are $\frac{1/6}{1-1/6}=1/5$. The odds of obtaining a heads in a fair coin are $1/1$. Do not confuse this technical term with the day-to-day usage of the word "odds" to mean probability.]  The \index{Logit link function} logit link function is therefore a \index{Log-odds} log-odds; it maps probability values ranging from $(0,1)$ to real numbers lying between $-\infty$ and $+\infty$. Figure \@ref(fig:logisticfun) shows the logit link function, $\eta = g(\theta)$, and the \index{Inverse logit} inverse logit, $\theta = g^{-1}(\eta)$, which is called the \index{Logistic function} *logistic function*; the relevance of this logistic function will become clear in a moment.
 
-```{r logisticfun, fig.cap = "The logit and inverse logit (logistic) function." ,echo = FALSE}
+```{r logisticfun, fig.cap = "The logit and inverse logit (logistic) function." ,echo = FALSE, fig.height = 2.2}
 x <- seq(0.001, 0.999, by = 0.001)
 y <- log(x / (1 - x))
 logistic_dat <- data.frame(theta = x, eta = y)
