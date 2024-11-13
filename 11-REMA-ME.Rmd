@@ -74,7 +74,7 @@ The priors are based on domain knowledge; it seems reasonable to allow the effec
 
 This model can be implemented in \index{brms} `brms` in a relatively straightforward way as shown below. We show the Stan version later in the chapter (section \@ref(sec-stanma));  the Stan version presents some interesting challenges that can be useful for the reader interested in deepening their Stan modeling knowledge.
 
-#### `brms` version of the meta-analysis model
+#### `brms` version of the meta-analysis model {#sec-brmsmeta}
 
 First, define the priors:
 
@@ -112,7 +112,7 @@ fit_sbi
 short_summary(fit_sbi)
 ```
 
-The `sigma` parameter does not play any role in this model, but appears in the `brms` output anyway. In the model specification, `sigma` was explicitly removed by writing `sigma = FALSE`. For this reason, we can ignore that parameter in the model summary output above. Box \@ref(thm:sigmatrue) explains what happens if we set `sigma = TRUE`.
+The `sigma` parameter does not play any role in this model, but appears in the `brms` output anyway. In the model specification, `sigma` was explicitly removed by writing `sigma = FALSE`. For this reason, we can ignore that parameter in the model summary output above. Online section \@ref(app-sigmatrue) explains what happens if we set `sigma = TRUE`.
 
 As theory predicts, the overall effect from these studies has a positive sign.
 
@@ -284,7 +284,7 @@ Then, given that $\zeta_n \sim \mathit{Normal}(\zeta, \tau)$,
 \text{effect}_n \sim \mathit{Normal}(\zeta, \sqrt{SE^2 + \tau^2}) (\#eq:ma2-again2)
 \end{equation}
 
-See Box \@ref(thm:sigmatrue) if it's not clear why this reparameterization works.
+See online section \@ref(app-sigmatrue) if it's not clear why this reparameterization works.
 
 This is equivalent to the `brms` model where `sigma = TRUE`. As with `brms`, we lose the possibility of estimating the posterior of the true effect of the individual studies.
 

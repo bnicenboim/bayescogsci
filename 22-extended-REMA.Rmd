@@ -1,7 +1,20 @@
 # Evidence synthesis and measurements with error - Extended
-## What happens if we set `sigma = TRUE`? {#app-sigmatrue}
 
-If we set `sigma = TRUE`, we won't be able to get estimates for $\zeta_{n}$, since they are handled implicitly. The model presented formally in Equation \@ref(eq:ma0) is equivalent to the following one in Equation \@ref(eq:ma2).  A critical difference is that $\zeta_n$ does not appear any more.
+## What happens if we set `sigma = TRUE` in `resp_se()` function in `brms`? {#app-sigmatrue}
+
+If we modify the meta-analysis `brms` model in section \@ref(sec-brmsmeta) by setting `sigma = TRUE` in `resp_se()` function, we won't be able to get estimates for $\zeta_{n}$. This is because these estimates will be handled implicitly. The model presented formally in Equation \@ref(eq:ma0), repeated here as \@ref(eq:ma0again) is equivalent to the one in Equation \@ref(eq:ma2).  A critical difference is that $\zeta_n$ does not appear any more.
+
+
+\begin{equation}
+\begin{aligned}
+\text{effect}_n \sim & \mathit{Normal}(\zeta_n, SE_n) \quad n=1,\dots, N_{studies}\\
+\zeta_n \sim & \mathit{Normal}(\zeta, \tau) \\
+\zeta \sim & \mathit{Normal}(0,100)\\
+ \tau \sim & \mathit{Normal}_+(0,100)
+\end{aligned}
+(\#eq:ma0again)
+\end{equation}
+
 
 \begin{equation}
 \begin{aligned}
