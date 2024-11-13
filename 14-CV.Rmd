@@ -436,7 +436,7 @@ If there is a large number of observations and the models under consideration ar
 
 ## Cross-validation in Stan
 
-PSIS-LOO-CV and K-fold-CV can also be used with our Stan models, but care has to be taken to store the appropriate log-likelihood in the \index{\texttt{generated quantities}} `generated quantities` block.^[This means the sampling notation should not be used in this block (see Box \@ref(thm:tilde)).]
+PSIS-LOO-CV and K-fold-CV can also be used with our Stan models, but care has to be taken to store the appropriate log-likelihood in the \index{\texttt{generated quantities}} `generated quantities` block.^[This means the sampling notation should not be used in this block (see online section \@ref(app-tilde)).]
 
 ### \index{PSIS-LOO-CV in Stan} PSIS-LOO-CV in Stan
 
