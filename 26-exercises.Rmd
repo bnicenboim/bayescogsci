@@ -188,13 +188,13 @@ f(x\mid \theta) = \frac{\exp(-\theta) \theta^x}{x!} \hbox{ for } x=0,1,2,\dots
 
 where the rate $\theta$ is unknown, and the numbers of utterances of the target word on each day are independent given $\theta$.
 
-As an aside: Given $n$ independent observations of a Poisson random variable with rate parameter $\theta$, the maximum-likelihood estimator (MLE) for $\theta$ turns out to be $\hat{\theta} = \frac{\sum{i=1}^n x_i}{n}$. When we are talking about a particular sample of data, the maximum-likelihood estimate is computed using the formula for the estimator,  $\frac{\sum{i=1}^n x_i}{n}$, and is represented as $\bar{x}$.
+As an aside: Given $n$ independent observations of a Poisson random variable with rate parameter $\theta$, the maximum-likelihood estimator (MLE) for $\theta$ turns out to be $\hat{\theta} = \frac{\sum_{i=1}^n x_i}{n}$. When we are talking about a particular sample of data, the maximum-likelihood estimate is computed using the formula for the estimator,  $\frac{\sum_{i=1}^n x_i}{n}$, and is represented as $\bar{x}$.
 
-We are told that the prior mean of $\theta$ is 100 and prior variance for $\theta$  is 225. This information is based on the results of previous studies on the topic. We will use the $\mathit{Gamma}(a,b)$ density (see previous question) as a prior for $\theta$ because this is a conjugate prior to the Poisson distribution.
+We are told that the prior mean of $\theta$ is 100 and prior variance for $\theta$  is $225$. This information is based on the results of previous studies on the topic. We will use the $\mathit{Gamma}(a,b)$ density (see previous question) as a prior for $\theta$ because this is a conjugate prior to the Poisson distribution.
 
 a) First, visualize the prior, a Gamma density prior for $\theta$ based on the above information.
 
-[Hint: we know that for a Gamma density with parameters $a$, $b$, the mean is  $\frac{a}{b}$ and the variance is $\frac{a}{b^2}$. Since we are given values for the mean and variance, we can solve for a,b, which gives us the Gamma density.]
+[Hint: we know that for a Gamma density with parameters $a$, $b$, the mean is  $\frac{a}{b}$ and the variance is $\frac{a}{b^2}$. Since we are given values for the mean and variance, we can solve for $a,b$, which gives us the Gamma density.]
 
 
 ```{r, echo=FALSE,eval=FALSE,fig.cap="\\label{fig1}The Gamma prior for the parameter theta."}
