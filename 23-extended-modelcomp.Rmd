@@ -21,8 +21,7 @@ How can credible intervals be used sensibly? The \index{Region of practical equi
 There is one situation where credible intervals could arguably be used to carry out a null hypothesis test. When priors are flat, credible intervals can show frequentist properties, making it reasonable to check whether zero falls within the credible interval. For example, @newall2023evaluation use credible intervals as confidence intervals after calibration. They explicitly verify that 5% of the 95% credible intervals exclude zero when no effect exists. When using such an approach, a verification step would be necessary. We don't discuss this approach any further because our aim in this part of the book is not to derive frequentist statistics from Bayesian analysis, but to use Bayesian methods for obtaining posterior probabilities and Bayes factors, focusing on Bayesian hypothesis testing.
 
 
-## The likelihood ratio vs the Bayes factor. {#app-likR}
-
+## The likelihood ratio vs the Bayes factor {#app-likR}
 
 The \index{Likelihood ratio test} likelihood ratio test is a very similar, but \index{Frequentist approach} frequentist, approach to model comparison and hypothesis testing, which also compares the likelihood for the data given two different models. We show this here to highlight the similarities and differences between frequentist and Bayesian hypothesis testing. In contrast to the Bayes factor, the likelihood ratio test depends on the "best" (i.e., the maximum likelihood) estimate for the model parameter(s), that is, the model parameter $\theta$ occurs on the right side of the semi-colon in the equation for each likelihood. (An aside: we do not use a \index{Conditional statement} conditional statement, i.e., the vertical bar, when talking about likelihood in the frequentist context; instead, we use a semi-colon. This is because the statement $f(y\mid \theta)$ is a conditional statement, implying that $\theta$ has a probability density function associated with it; in the frequentist framework, parameters cannot have a pdf associated with them, they are assumed to have fixed, point values.)
 
@@ -33,7 +32,9 @@ LikRat = \frac{P(\boldsymbol{y} ; \boldsymbol{\hat{\Theta}_1}, \mathcal{M}_1)}{P
 That means that in the likelihood ratio test, each model is tested on its ability to explain the data using this "best" estimate for the model parameter (here, the \index{Maximum likelihood estimate} maximum likelihood estimate $\hat{\theta}$). That is, the likelihood ratio test reduces the full range of possible parameter values to a \index{Point value} point value, leading to overfitting the model to the maximum likelihood estimate \index{MLE} (MLE). If the MLE badly misestimates the true value of the parameter (point value), due to \index{Type M error} Type M error [@gelmancarlin], we could end up with a "significant" effect that is just a consequence of this misestimation [it will not be consistently replicable; see @VasishthMertzenJaegerGelman2018 for an example]. By contrast, the Bayes factor involves range hypotheses, which are implemented via \index{Integral} integrals over the model parameter; that is, it uses marginal likelihoods that are averaged across all possible prior values of the model parameter(s). Thus, if, due to Type M error, the best point estimate (the MLE) for the model parameter(s) is not very representative of the possible values for the model parameter(s), then Bayes factors will be superior to the frequentist likelihood ratio test (see exercise  \@ref(exr:bf-logn)). An additional difference, of course, is that Bayes factors rely on priors for estimating each model's parameter(s), whereas the frequentist likelihood ratio test does not (and cannot) consider priors in the estimation of the best-fitting model parameter(s). As we show in this chapter, this has far-reaching consequences for Bayes factor-based model comparison.
 
 
-## How do we get rid of the integral in the approximation of elpd? {#app-integral}
+## Approximation of the (expected) log predictive density of a model without integration {#app-integral}
+
+To compare models based on their predictive accuracy, we often use the expected log predictive density ($elpd$), which evaluates how well a model's predictions align with likely future data. In previous sections, we introduced the idea that the $elpd$ can be calculated by integrating over all possible future data, weighting predictions by their likelihood under the true data-generating process. However, because the true data-generating distribution, $p_t$, is unknown, we instead use the observed data distribution as a proxy. This allows us to approximate the $elpd$ by summing the posterior predictive density of our observed data points, assuming they reflect the distribution of future data.
 
 As an example, imagine that there are $N$ observations in an experiment. Suppose also that the \index{True generative process} true generative process (which is normally always unknown to us) is a \index{Beta distribution} Beta distribution:
 
@@ -85,7 +86,7 @@ The main problem with this approach is that we are using `y_data` twice, once to
 
 
 
-## The cross-validation algorithm {#app-CV-alg}
+## The cross-validation algorithm for the expected log predictive density of a model {#app-CV-alg}
 
 Here we spell out the Bayesian \index{Cross-validation algorithm} cross-validation algorithm in detail:
 
@@ -93,7 +94,7 @@ Here we spell out the Bayesian \index{Cross-validation algorithm} cross-validati
 
 2. Fit $K$ models using each of the $K$ training sets, and obtain posterior distributions $p_{-k} (\Theta) = p(\Theta\mid D_{-k})$, where $\Theta$ is the vector of model parameters.
 
-3. Each posterior distribution $p(\Theta\mid D_{-k})$ is used to compute the predictive accuracy for each held-out data-point $y_n$ in the vector $D_{k}$:
+3. Each posterior distribution $p(\Theta\mid D_{-k})$ is used to compute the predictive accuracy (calculated as $\widehat{elpd}$) for each held-out data-point $y_n$ in the vector $D_{k}$:
 
   \begin{equation}
     \widehat{elpd}_n = \log p(y_n \mid D_{-k}) \text{ with } y_n \in D_k
@@ -122,7 +123,7 @@ se(\widehat{elpd}) = \sqrt{N \mathit{Var}(\widehat{ELPD})}
 (\#eq:sekfold)
 \end{equation}
 
-  The difference between the $elpd_{kfold}$ of two competing models, $\mathcal{M}_1$ and $\mathcal{M}_2$ , is a measure of \index{Relative predictive performance} relative predictive performance. The  standard error of their difference can be computed using the formula discussed in @vehtariPracticalBayesianModel2017:
+  The difference between the $elpd_{kfold}$ of two competing models, $\mathcal{M}_1$ and $\mathcal{M}_2$, is a measure of \index{Relative predictive performance} relative predictive performance. The  standard error of their difference can be computed using the formula discussed in @vehtariPracticalBayesianModel2017:
 
 \begin{equation}
 se(\widehat{elpd}_{\mathcal{M}1} - \widehat{elpd}_{\mathcal{M}2}) = \sqrt{N \mathit{Var}(\widehat{ELPD_{\mathcal{M}1}} - \widehat{ELPD_{\mathcal{M}2}})}
