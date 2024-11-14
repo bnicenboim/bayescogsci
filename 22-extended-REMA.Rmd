@@ -97,7 +97,7 @@ posterior_summary(fit_sbi_sigma,
 
 Compare this with the original model:
 
-```{r fitsbi, message = FALSE, eval = !file.exists("dataR/fit_sbi.RDS")}
+```{r fitsbi2, message = FALSE, eval = !file.exists("dataR/fit_sbi.RDS")}
 fit_sbi <- brm(effect | resp_se(`SE`, sigma = FALSE) ~
                  1 + (1 | study_id),
                data = df_sbi,
