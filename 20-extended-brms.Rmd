@@ -11,7 +11,7 @@ source("04-regressions.R")
 
 ## An efficient function for generating prior predictive distributions in R {#app-efficientpriorpd}
 
-As noted previously, generating prior predictive distributions can be computationally slow if done naively in R with a for-loop; for instance, producing $1000$ samples of the prior predictive distribution for our model from section \@ref(sec-priorpred) results in $361000$ predicted values, which takes a few seconds to compute. Although this approach works, it is not optimal for larger models or datasets. 
+As noted in section \@ref(sec-priorpred), generating prior predictive distributions can be computationally slow if done naively in R with a for-loop: Producing $1000$ samples of the prior predictive distribution for our model from section \@ref(sec-priorpred) results in $361000$ predicted values, which takes a few seconds to compute. Although this approach works, it is not optimal for more complex models or larger datasets. 
 
 To address this, one could use a more efficient function using the `map2_dfr()` function from the `purrr` package, which yields approximately a 10-fold increase in speed.  Although the distributions should be the same with both functions, the specific numbers in the tables won't be, due to the randomness in the process of sampling.
 
@@ -49,7 +49,7 @@ toc()
 
 ##  Truncated distributions {#app-truncation}
 
-Any distribution can be truncated. For a continuous distribution, the truncated version of the original distribution will have non-zero probability density values for a continuous subset of the original coverage. To make this more concrete, in our previous example, the normal distribution has coverage for values between minus infinity to plus infinity, and our truncated version $\mathit{Normal}_+$ has coverage between zero and plus infinity: all negative values have a density of zero. Let's see how we can generalize this to be able to understand any truncation of any continuous distribution. (For the discrete case, we can simply replace the integral with a sum, and replace PDF with PMF).
+Any distribution can be truncated. For a continuous distribution, the truncated version of the original distribution will have non-zero probability density values for a continuous subset of the original coverage. To make this more concrete, in the example of section \@ref(sec-revisit), the normal distribution has coverage for values between minus infinity to plus infinity, and our truncated version $\mathit{Normal}_+$ has coverage between zero and plus infinity: all negative values have a density of zero. Let's see how we can generalize this to be able to understand any truncation of any continuous distribution. (For the discrete case, we can simply replace the integral with a sum, and replace PDF with PMF).
 
 From the axiomatic definitions of probability, we know that the  area below a PDF, $f(x)$, must be equal to one  (section \@ref(introprob)). More formally, this means that the integral of $f$ evaluated as $f(-\infty <X < \infty)$ should be equal to one:
 
@@ -447,7 +447,7 @@ One advantage of assuming log-normally distributed response times (but, in fact,
 
 ## Prior predictive checks in R {#app-priorR}
 
-The following function is an edited version of the earlier  `normal_predictive_distribution` from the online section \@ref(sec-efficientpriorpd) in section \@ref(sec-priorpred); it has been edited to make it compatible with logistic regression and dependent on set size.
+The following function is an edited version of the earlier  `normal_predictive_distribution` from the online section \@ref(app-efficientpriorpd), which was used in section \@ref(sec-priorpred); it has been edited to make it compatible with logistic regression and dependent on set size.
 
 As we did before, our custom function uses the `purrr` function `map2_dfr()`, which runs an efficient for-loop, iterating over two vectors (here `alpha_samples` and `beta_samples`), and builds a data frame with the output. 
 
@@ -509,9 +509,11 @@ mean_accuracy <-
   mutate(prior = paste0("Normal(0, ", prior_beta_sd, ")"))
 ```
 
-Plot the accuracy in Figure \@ref(fig:priors4beta) as follows.
+The plot of the accuracy is shown in Figure \@ref(fig:priors4beta) of the book, and repeated here in Figure \@ref(fig:priors4betacode).
 
-```{r priors4betacode}
+(ref:priors4betacode) The prior predictive distributions of mean accuracy of the model defined in section \@ref(sec-logistic), for different set sizes and different priors for $\beta$.
+
+```{r priors4betacode, fig.cap="(ref:priors4betacode)", message = FALSE}
 mean_accuracy %>%
   ggplot(aes(accuracy)) +
   geom_histogram() +
@@ -519,7 +521,7 @@ mean_accuracy %>%
   scale_x_continuous(breaks = c(0, .5, 1))
 ```
 
-It's sometimes more useful to look at the predicted differences in accuracy between set sizes. We calculate them as follows, and plot them in  Figure \@ref(fig:priors4beta2). 
+It's sometimes more useful to look at the predicted differences in accuracy between set sizes. We calculate them as follows, and plot them in Figure \@ref(fig:priors4beta2) of the book, repeated here in Figure \@ref(fig:priors4beta2code). 
 
 ```{r}
 diff_accuracy <- mean_accuracy %>%
@@ -530,8 +532,9 @@ diff_accuracy <- mean_accuracy %>%
   filter(set_size > 2)
 ```
 
- 
-```{r priors4beta2code}
+(ref:priors4beta2code) The prior predictive distributions of differences in mean accuracy between set sizes of the model defined in section \@ref(sec-logistic) for different priors for $\beta$.
+
+```{r priors4beta2code,fig.cap="(ref:priors4beta2code)", message = FALSE}
 diff_accuracy %>%
   ggplot(aes(diff_accuracy)) +
   geom_histogram() +
@@ -637,7 +640,7 @@ y =  X \zeta + \varepsilon
 \end{equation}
 
 The above matrix formulation of the linear model extends to the hierarchical model very straightforwardly. For example,
-consider the model $M_{sih}$ that we just saw above. This model has the following likelihood:
+consider the by-subjects and by-items correlated varying intercept varying slopes model $M_{sih}$ that we saw in section \@ref(sec-sih). This model has the following likelihood:
 
  \begin{multline}
   signal_n \sim \mathit{Normal}(\alpha + u_{subj[n],1} + w_{item[n],1} \\

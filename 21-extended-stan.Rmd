@@ -7,7 +7,11 @@ source("08-introstan.R")
 
 ## What does `target` do in Stan models? {#app-target}
 
-We can exemplify how \index{\texttt{target}} `target` works with one hypothetical iteration of the sampler.
+We can exemplify how \index{\texttt{target}} `target` works with one hypothetical iteration of the sampler in the model `normal.stan` discussed in section @\ref(sec-firststan) and shown below:
+
+```{stan output.var = "normal_vec", code = readLines(normal),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
+```
+
 
 ```{r stannormaldoit, ref.label="stannormal", echo=FALSE, message = FALSE, results= "hide"}
 ```
@@ -183,7 +187,7 @@ See also Stan's user's guide section on matrices, vector, and arrays [@Stan2023,
 
 ## A simple non-centered parameterization {#app-noncenterparam}
 
-Stan's sampler can explore the parameter space more easily if its step size is appropriate for all the parameters. This is achieved when there are no strong  dependencies between parameters. We want to assume the following.
+Stan's sampler can explore the parameter space more easily if its step size is appropriate for all the parameters. This is achieved when there are no strong  dependencies between parameters. In section \@ref(sec-uncorrstan), we fit an uncorrelated  varying intercept and slopes model with Stan, and we assume the following.
 
 \begin{equation}
 \mathbf{u}_{2} \sim \mathit{Normal}(0, \tau_{u_2})
@@ -364,7 +368,7 @@ sd(u[2, ])
 
 ## Different rank visualizations and the `SBC` package. {#app-sbc}
 
-Implementing the simulation-based calibration algorithm "by hand" introduces a new source of potential errors as we did in section \@ref(sec-validSBC). Fortunately, the R package  \index{SBC} `SBC` [@R-SBC] provides tools to validate a Stan model (or any sampling algorithm) by allowing us to run simulation-based calibrations easily.
+Implementing the simulation-based calibration algorithm "by hand", as we did in section \@ref(sec-validSBC), introduces a new source of potential errors. Fortunately, the R package  \index{SBC} `SBC` [@R-SBC] provides tools to validate a Stan model (or any sampling algorithm) by allowing us to run simulation-based calibrations easily.
 The package is in active development at the moment^[Even though the package is already fully functional, function names and arguments might change by the time this book is published.] and can be installed with the following command.
 
 ```{r,eval = FALSE}
