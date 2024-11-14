@@ -85,7 +85,7 @@ The shape of the unnormalized posterior density is completely defined and it wil
 
 (ref:up) The unnormalized posterior defined by equation \@ref(eq:up).
 
-```{r up, fig.cap = "(ref:up)" ,echo = FALSE, warning=FALSE, fig.height = 3.5}
+```{r up, fig.cap = "(ref:up)" ,echo = FALSE, warning=FALSE, fig.height = 3.5, out.width = "120%"}
 mu <- seq(-40, 40, 1)
 sigma <- seq(0.5, 40, 1)
 
@@ -703,7 +703,8 @@ mcmc_intervals(df_fit_recall,
                regex_pars = "beta",
                prob_outer = .95,
                prob = .8,
-               point_est = "mean")
+               point_est = "mean") +
+  xlab("log-odds") 
 ```
 
 As we did in \@ref(sec-comlogis), we might want to communicate the posterior in proportions rather than in log-odds (as seen in the parameters `beta`). We can do this in R manipulating the data frame `df_fit_recall`, or extracting the samples with `extract(fit_recall)`. Another alternative presented here is by using the \index{\texttt{generated quantities}} generated quantities block. To make the code more compact we declare the type of each variable and store its content in the same line in `recall_prop.stan`.
@@ -751,6 +752,7 @@ mcmc_intervals(df_fit_recall,
                prob_outer = .95,
                prob = .8,
                point_est = "mean") +
+  xlab("log-odds") +
   ggtitle("(a) Parameters of interest\nin log-odds")
 
 mcmc_intervals(df_fit_recall,

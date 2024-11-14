@@ -823,7 +823,7 @@ p1 <- pp_check(fit_prior_press_ln,
                stat = "mean",
                prefix = "ppd") +
   coord_cartesian(xlim = c(0.001, 300000)) +
-  scale_x_continuous("Finger tapping times [ms]",
+  scale_x_continuous("Finger tapping times (ms)",
                      trans = "log",
                      breaks = c(0.001, 1, 100, 1000, 10000, 100000),
                      labels = c("0.001", "1", "100", "1000", "10000",
@@ -834,7 +834,7 @@ p2 <- pp_check(fit_prior_press_ln,
                stat = "min",
                prefix = "ppd") +
   coord_cartesian(xlim = c(0.001, 300000)) +
-  scale_x_continuous("Finger tapping times [ms]",
+  scale_x_continuous("Finger tapping times (ms)",
                      trans = "log",
                      breaks = c(0.001, 1, 100, 1000, 10000, 100000),
                      labels = c("0.001", "1", "100", "1000", "10000",
@@ -845,7 +845,7 @@ p3 <- pp_check(fit_prior_press_ln,
                stat = "max",
                prefix = "ppd") +
   coord_cartesian(xlim = c(0.001, 300000)) +
-  scale_x_continuous("Finger tapping times [ms]",
+  scale_x_continuous("Finger tapping times (ms)",
                      trans = "log",
                      breaks = c(0.001, 1, 100, 1000, 10000, 100000),
                      labels = c("0.001", "1", "10", "1000", "10000",

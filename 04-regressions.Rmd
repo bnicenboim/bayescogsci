@@ -205,7 +205,7 @@ for (l in 0:4) {
                 ndraws = 1000,
                 newdata = df_sub_pupil,
                 stat = "mean") +
-    geom_point(data = df_sub_pupil, aes(x = p_size, y = 0.2)) +
+    geom_point(data = df_sub_pupil, aes(x = p_size, y = 0.9)) +
     ggtitle(paste("load: ", l)) +
     coord_cartesian(xlim = c(400, 1000))
   print(p)
@@ -470,7 +470,7 @@ As an example data set, we look at a study investigating the capacity level of \
 
 (ref:oberauer) The flow of events in a trial with memory set size 4 and free recall. Adapted from @oberauerWorkingMemoryCapacity2019; licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
 
-```{r oberauer, fig.cap = "(ref:oberauer)", fig.height =3, echo = FALSE, out.width = "100%"}
+```{r oberauer, fig.cap = "(ref:oberauer)", fig.height =3, echo = FALSE, out.width = "100%", out.height = "70%"}
 knitr::include_graphics("cc_figure/fig1_oberauer_2019_modified.png")
 ```
 
@@ -537,7 +537,7 @@ p1 <- ggplot(logistic_dat, aes(x = theta, y = eta))+
   ggtitle("The logit link") +
   annotate("text",
     x = 0.3, y = 4,
-    label = list('paste(eta, "=", g(theta))'), parse = TRUE, size = 8
+    label = list('paste(eta, "=", g(theta))'), parse = TRUE, size = 5
   )
 
 p2 <- ggplot(logistic_dat, aes(x = eta, y = theta))+
@@ -547,7 +547,7 @@ p2 <- ggplot(logistic_dat, aes(x = eta, y = theta))+
   ggtitle("The inverse logit link (logistic)") +
   annotate("text",
   x = -3.5, y = 0.80,
-  label = list('paste(theta, "=", g^-1, (eta))'), parse = TRUE, size = 8
+  label = list('paste(theta, "=", g^-1, (eta))'), parse = TRUE, size = 5
 )
 
 gridExtra::grid.arrange(p1, p2, ncol = 2)

@@ -1558,7 +1558,7 @@ p1 <- ggplot(data = datT, aes(y = logBF10, x = Estimate)) +
     breaks = log10(breaks),
     labels = MASS::fractions(breaks)
   ) +
-  labs(x = "Difference in reading times [ms]", y = "BF10")
+  labs(x = "Difference in reading times (ms)", y = "BF10")
 
 breaks <- c(1 / 10, 1 / 3, 1, 3, 10)
 ggplot(data = datT, aes(y = logBF10, x = Estimate)) +
