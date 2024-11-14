@@ -181,9 +181,10 @@ eq_system <- function(x, parms) {
   c(F1 = parms["mu"] - mu_hat + sigma_hat *
       (dnorm(beta) - dnorm(alpha)) / (pnorm(beta) - pnorm(alpha)),
     F2 = parms["sigma"] - sigma_hat *
-      sqrt((1 - ((beta) * dnorm(beta) - (alpha) * dnorm(alpha)) /
-            (pnorm(beta) - pnorm(alpha)) - ((dnorm(beta) - dnorm(alpha)) /
-             (pnorm(beta) - pnorm(alpha)))^2)))}
+     sqrt((1 - ((beta) * dnorm(beta) - (alpha) * dnorm(alpha)) /
+      (pnorm(beta) - pnorm(alpha)) - ((dnorm(beta) - dnorm(alpha)) /
+             (pnorm(beta) - pnorm(alpha)))^2)))
+}
 ```
 
 Solving the two equations using `multiroot()` from the package `rootSolve` gives us the mean and standard deviation $\hat\mu$ and $\hat\sigma$ of the parent normal distribution. (Notice that `x` is a required parameter of the previous function so that it works with `multiroot()`, however, outside of the function the variable `x` is a vector containing the samples of the truncated normal distribution generated with `rtnorm()`). 
