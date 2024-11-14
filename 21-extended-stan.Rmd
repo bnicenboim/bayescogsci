@@ -7,7 +7,7 @@ source("08-introstan.R")
 
 ## What does `target` do in Stan models? {#app-target}
 
-We can exemplify how \index{\texttt{target}} `target` works with one hypothetical iteration of the sampler in the model `normal.stan` discussed in section @\ref(sec-firststan) and shown below:
+We can exemplify how \index{\texttt{target}} `target` works with one hypothetical iteration of the sampler in the model `normal.stan` discussed in section \@ref(sec-firststan) and shown below:
 
 ```{stan output.var = "normal_vec", code = readLines(normal),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
 ```
