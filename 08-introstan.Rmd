@@ -95,7 +95,10 @@ dup <- expand.grid(mu, sigma) %>%
   mutate(density = map2_dbl(.data$mu,
                             .data$sigma,
                             ~ q(mu = .x, sigma = .y, y = Y)))
-lattice::wireframe(density ~ mu * sigma, data = dup)
+lattice::wireframe(density ~ mu * sigma, data = dup,
+                   xlab = list(label = "mu", cex = 0.9),
+                   ylab = list(label = "sigma", cex = 0.9),
+                    zlab = list(label = "density", cex = 0.9, rot = 95))
 ```
 
 
