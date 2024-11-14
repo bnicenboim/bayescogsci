@@ -171,7 +171,7 @@ As instructors, we have noticed over the years that students with such a mindset
 
 ## How to read this book {-}
 
-The chapters in this book are intended to be read in sequence, but during the first pass through the book, the reader should feel free to completely skip the boxes. These boxes provide a more formal development [useful to transition to more advanced textbooks like @Gelman14], or deal with tangential aspects of the topics presented in the chapter.
+The chapters in this book are intended to be read in sequence, but during the first pass through the book, readers should feel free to skip the optional, in-depth materials available online. These resources provide a more formal development [useful to transition to more advanced textbooks like @Gelman14], or deal with tangential aspects of the topics presented in the chapter.
 
 Here are some suggested paths through this book, depending on the reader's goals:
 
