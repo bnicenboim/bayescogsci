@@ -402,7 +402,7 @@ tab5 <- df_contrasts5 %>%
   ## geom_bar(stat = "identity") +
   geom_errorbar(width = 0.2) +
    geom_point() +
-  labs(y = "Response times [ms]", x = "Group (F)"))
+  labs(y = "Response times (ms)", x = "Group (F)"))
 ```
 
 We find (see model estimates and data shown in Figure \@ref(fig:figRTF)) that response times in group $F2$ are roughly $25$ ms faster than in group $F1$ (Estimate of $-24$).  This suggests that as expected, the training program that group $F2$ obtained seems to be successful in speeding up response times. Recall that one cannot just look at the 95% credible interval and check whether zero is outside the interval to declare that we have found an effect. To make a discovery claim, we need to run a Bayes factor analysis on this data set to directly test this hypothesis, and this may or may not provide evidence for a difference in response times between groups.
@@ -440,7 +440,7 @@ The results from the `brms` model now show that the difference in response times
 (plot_RT_IQ <- ggplot(data = df_contrasts5, aes(x = IQ, y = RT, colour = F, linetype = F)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  labs(y = "Response times [ms]"))
+  labs(y = "Response times (ms)"))
 ```
 
 This result can also be seen in Figure \@ref(fig:figRTFIQ), which shows that response times decrease with increasing IQ, as suggested by the `brms` model. However, the heights of the two \index{Regression line} regression lines do not differ from each other, consistent with the observation in the `brms` model that the effect of factor $F$ did not seem to differ from zero. That is, factor $F$ in the `brms` model estimates the difference in height of the regression line between both groups.
@@ -478,7 +478,7 @@ This again contains data from response times (RT) in two groups. Let's assume th
 (plot_RTxIQ <- ggplot(data = df_contrasts6, aes(x = IQ, y = RT, colour = F, linetype = F)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  labs(y = "Response times [ms]"))
+  labs(y = "Response times (ms)"))
 ```
 
 The results, displayed in Figure \@ref(fig:figRTFxIQ), suggest that the data seem to support our hypothesis. For the subjects performing the complex task, response times seem to decrease with increasing IQ, whereas for subjects performing the simple task, response times seem to be independent of IQ. As stated before, our primary hypothesis relates to the difference in slopes. Statistically speaking, this is assessed in the \index{Interaction} interaction between the factor and the covariate. Thus, we run a `brms` model where the interaction is included. Importantly, we first use scaled \index{Sum contrasts} sum contrasts for the group effect, and again center the \index{Covariate} covariate IQ.

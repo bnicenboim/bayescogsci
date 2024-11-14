@@ -85,7 +85,7 @@ The shape of the unnormalized posterior density is completely defined and it wil
 
 (ref:up) The unnormalized posterior defined by equation \@ref(eq:up).
 
-```{r up, fig.cap = "(ref:up)" ,echo = FALSE, warning=FALSE, fig.height = 3.5, out.width = "120%"}
+```{r up, fig.cap = "(ref:up)" ,echo = FALSE, warning=FALSE, fig.height = 3.5, fig.width = 7}
 mu <- seq(-40, 40, 1)
 sigma <- seq(0.5, 40, 1)
 

@@ -470,7 +470,7 @@ As an example data set, we look at a study investigating the capacity level of \
 
 (ref:oberauer) The flow of events in a trial with memory set size 4 and free recall. Adapted from @oberauerWorkingMemoryCapacity2019; licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
 
-```{r oberauer, fig.cap = "(ref:oberauer)", fig.height =3, echo = FALSE, out.width = "100%", out.height = "70%"}
+```{r oberauer, fig.cap = "(ref:oberauer)", fig.height =3, echo = FALSE, out.width = "100%", out.height = "50%"}
 knitr::include_graphics("cc_figure/fig1_oberauer_2019_modified.png")
 ```
 
