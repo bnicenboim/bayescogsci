@@ -172,17 +172,17 @@ Next, solve for $\hat\mu$ and $\hat\sigma$ given the observed mean and the stand
 
 Define the \index{System of equations} system of equations according to the specifications of \index{\texttt{multiroot()}} `multiroot()` from the package \index{\texttt{rootSolve}} `rootSolve`: `x` for the unknowns ($\hat\mu$ and $\hat\sigma$), and `parms` for the known parameters: $a$, $b$, and the mean and standard deviation of the truncated normal.
 
-```{r}
+```{r, warning = FALSE}
 eq_system <- function(x, parms) {
   mu_hat <- x[1]
   sigma_hat <- x[2]
   alpha <- (parms["a"] - mu_hat) / sigma_hat
   beta <- (parms["b"] - mu_hat) / sigma_hat
   c(F1 = parms["mu"] - mu_hat + sigma_hat *
-      (dnorm(beta) - dnorm(alpha)) / (pnorm(beta) - pnorm(alpha)),
+    (dnorm(beta) - dnorm(alpha)) / (pnorm(beta) - pnorm(alpha)),
     F2 = parms["sigma"] - sigma_hat *
      sqrt((1 - ((beta) * dnorm(beta) - (alpha) * dnorm(alpha)) /
-      (pnorm(beta) - pnorm(alpha)) - ((dnorm(beta) - dnorm(alpha)) /
+   (pnorm(beta) - pnorm(alpha)) - ((dnorm(beta) - dnorm(alpha)) /
              (pnorm(beta) - pnorm(alpha)))^2)))
 }
 ```
