@@ -1,4 +1,4 @@
-An Introduction to Bayesian Data Analysis for Cognitive Science
+Introduction to Bayesian Data Analysis for Cognitive Science
 
 Six keywords:
 

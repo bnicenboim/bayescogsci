@@ -1,5 +1,5 @@
 ---
-title: "An Introduction to Bayesian Data Analysis for Cognitive Science"
+title: "Introduction to Bayesian Data Analysis for Cognitive Science"
 author: "Bruno Nicenboim, Daniel J. Schad, and Shravan Vasishth"
 date: "`r Sys.Date()`"
 knit: "bookdown::render_book"
@@ -15,7 +15,7 @@ fontsize: 12pt
 monofont: "Source Code Pro"
 monofontoptions: "Scale=0.7"
 site: bookdown::bookdown_site
-description: "An introduction to Bayesian data analysis for Cognitive Science."
+description: "Introduction to Bayesian data analysis for Cognitive Science."
 url: 'https://bruno.nicenboim.me/bayescogsci/'
 github-repo: 'https://github.com/bnicenboim/bayescogsci'
 cover-image: images/temporarycover.jpg
