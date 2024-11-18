@@ -1,3 +1,8 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 # Contrast coding {#ch-contr}
 
 Whenever one uses a \index{Categorical factor} categorical factor as a predictor in a Bayesian regression model, for example when estimating the difference in a dependent variable between two or three experimental conditions, it becomes necessary to code the discrete factor levels into numeric predictor variables. This coding is termed *contrast coding*. For example, in the previous chapter (section \@ref(sec-stroop)), we coded two experimental conditions as $-1$ and $+1$, i.e., implementing a sum contrast. Those *contrasts* are the values that we assign to predictor variables to encode specific comparisons between factor levels and to create predictor terms to estimate these comparisons in any type of regression, including Bayesian regressions.
@@ -44,7 +49,7 @@ names(table1a) <- c("Factor", "N data", "Est. means", "Std. dev.", "Std. errors"
 
 (ref:cFig1Means) Means and standard errors of the simulated dependent variable (e.g., response times in seconds) in two conditions $F1$ and $F2$.
 
-```{r cFig1Means, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, fig.width=4, fig.height=2.2, fig.cap = "(ref:cFig1Means)"}
+```{r cFig1Means, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, fig.width=4, fig.height=2.3, fig.cap = "(ref:cFig1Means)"}
 #(plot1 <- qplot(x = F, y = M, group = 1, data = table1, geom = c("point", "line")) +
 (plot1 <- ggplot(aes(x = F, y = M, group = 1), data = table1) +
   geom_point() + geom_line() +
@@ -527,7 +532,7 @@ Qualitatively, the simulated pattern of results is similar to empirically observ
 
 ### \index{Repeated contrasts} Repeated contrasts {#repeatedcontrasts}
 
-Arguably, the most popular contrast psychologists and psycholinguists are interested in is the comparison between neighboring levels of a factor. This type of contrast is called the repeated contrast. In our example, our research question might be whether the frequency level \texttt{low} leads to slower response times than frequency level \texttt{medium-low}, whether frequency level \texttt{medium-low} leads to slower response times than frequency level \texttt{medium-high}, and whether frequency level \texttt{medium-high} leads to slower response times than frequency level \texttt{high}.
+Arguably, the most popular contrast psychologists and psycholinguists are interested in is the comparison between neighboring levels of a factor. This type of contrast is called the repeated contrast. In our example, our research question might be whether the frequency level `low` leads to slower response times than frequency level `medium-low`, whether frequency level `medium-low` leads to slower response times than frequency level `medium-high`, and whether frequency level `medium-high` leads to slower response times than frequency level `high`.
 
 Repeated contrasts are used to implement these comparisons. Consider first how to derive the contrast matrix for repeated contrasts, starting out by specifying the comparisons that are to be estimated. Importantly, this again applies the general strategy of how to translate (any) comparisons between groups or conditions into a set of contrasts, yielding a powerful tool of great value in many research settings. We follow the four-step procedure outlined above.
 
@@ -616,7 +621,7 @@ fixef(fit_Hel)
 
 When we fit the Bayesian model using our custom Helmert contrast, we can see that the estimates reflect the comparisons outlined above. The first estimate `Fb1` has a value of roughly $10$, reflecting the difference between conditions $F1$ and $F2$. The second estimate `Fb2` has a value of $5$, which reflects the difference between condition $F3$ ($10$) and the average of the first two conditions ($(10+20)/2=15$). The estimate `Fb3` reflects the difference between $F4$ ($40$) minus the average of the first three, which is $(10+20+10)/3=13.3$, and is thus $40-13.3=26.7$.
 
-
+Here, we can see that the generalized matrix inverse can be used to create contrasts that are not exactly equivalent to the ones provided by R per default (i.e., here `contr.helmert()`). Another example for this is discussed in online section \@ref(app-cTreatGM), which implements a treatment contrast, where the intercept captures the grand mean.
 
 ### Contrasts in linear regression analysis: The design or \index{Model matrix} model matrix
 
@@ -678,6 +683,35 @@ fixef(fit_Pol)
 ```
 
 In this example, condition means increase across factor levels in a linear fashion, but there may also be quadratic and cubic trends.
+
+However, one difficulty with the `contr.poly()` function is that the scaling of the predictor variables is not very clear, making it difficult to define priors. Therefore, an alternative can be to use custom polynomial contrasts:
+
+```{r, echo=TRUE}
+Xpol2           <- data.frame(linear=c(F1=-3,F2=-1,F3= 1,F4= 3)/2)
+Xpol2$quadratic <- Xpol2$linear^2 - mean(Xpol2$linear^2)
+Xpol2$cubic     <- Xpol2$linear^3 - mean(Xpol2$linear^3)
+```
+
+Because the linear and cubic trends are highly correlated, we orthogonalize the two:
+
+```{r, echo=TRUE}
+Xpol2$cubic <- resid(lm(cubic ~ linear, Xpol2))
+(contrasts(df_contrasts3$F) <- as.matrix(Xpol2))
+```
+
+```{r, echo=TRUE, message=FALSE, results="hide"}
+fit_Pol2 <- brm(DV ~ F,
+               data = df_contrasts3,
+               family = gaussian(),
+               prior = c(prior(normal(20, 50), class = Intercept),
+                         prior(normal(0, 50), class = sigma),
+                         prior(normal(0, 50), class = b)))
+```
+```{r, echo=TRUE}
+fixef(fit_Pol2)
+```
+
+The effects are now on interpretable scales.
 
 ### An alternative to contrasts: \index{Monotonic effects} Monotonic effects
 
