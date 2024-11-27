@@ -1372,13 +1372,18 @@ We can summarize the estimates of $\beta$ given different priors as shown in Tab
 
 ```{r priorsslopesmeansCIs,echo = FALSE, results = "asis"}
 
+if(knitr::is_html_output()) text  = "$(\\texttt{fit_stroop})$" else text  = "$(\\texttt{fit\\_stroop})$"
+
 df_beta_stroop %>%
   select(-Est.Error) %>%
   mutate(prior =paste0("$", gsub("normal","\\\\mathit{Normal}", prior),"$")) %>%
   as.data.frame() %>%
   mutate(across(where(is.numeric), ~ paste0("$",formatC(round(.x, 3),format = "f", digits=3), "$"))) %>%
   select(prior, everything()) %>%
-  kableExtra::kable(caption = "The summary (mean and 95\\% credible interval) for the posterior distribution of the slope in the model $(\\texttt{fit\\_stroop})$, given different priors on the slope parameter.", align =c("l","r","r","r"), vline= "", booktabs = TRUE,
+  kableExtra::kable(caption = paste0("The summary (mean and 95\\% credible interval) for the posterior distribution of the slope in the model ", text,", given different priors on the slope parameter."),
+                    align =c("l","r","r","r"),
+                    vline= "",
+                    booktabs = TRUE,
                     escape = FALSE)
 ```
 

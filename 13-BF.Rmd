@@ -184,7 +184,7 @@ A model might be more "complex" because it has a more spread-out prior, or alter
 p(X = k \mid a, b) = \frac{B(k+a, n-k+b)}{B(a,b)}
 \end{equation}
 
-What is important here is that this more complex distribution has two parameters ($a$ and $b$; rather than one, $\theta$) to explain the same data. We assume \index{Log-normally distributed prior} log-normally distributed priors for the $a$ and $b$ parameters, with location zero and scale $100$. The likelihood of this combined beta-binomial distribution is given by the R-function \index{\texttt{dbbinom}} `dbbinom()` in the package `extraDistr`. We can now write down the likelihood times the priors (given as log-normal densities, `dlnorm()`), and integrate out the influence of the two free model parameters $a$ and $b$ using numerical integration (applying \index{\texttt{integrate}} `integrate` twice):
+What is important here is that this more complex distribution has two parameters ($a$ and $b$; rather than one, $\theta$) to explain the same data. We assume \index{Log-normally distributed prior} log-normally distributed priors for the $a$ and $b$ parameters, with location zero and scale $100$. The likelihood of this combined beta-binomial distribution is given by the R-function \index{\texttt{dbbinom}} `dbbinom()` in the package `extraDistr`. We can now write down the likelihood times the priors (given as log-normal densities, `dlnorm()`), and integrate out the influence of the two free model parameters $a$ and $b$ using numerical integration (applying \index{\texttt{integrate}} `integrate()` twice):
 
 ```{r}
 plik3 <- function(a, b) {
