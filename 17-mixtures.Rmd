@@ -524,7 +524,7 @@ In  log-space:
 \begin{aligned}
 \log(p(rt, acc | \Theta)) =  \log(\exp(&\\
 & \log(p_{task}) +\\
-  &\log(LogNormal(rt_n | \alpha + \beta * x_n, \sigma)) + \\
+  &\log(LogNormal(rt_n | \alpha + \beta \cdot x_n, \sigma)) + \\
   &\log(Bernoulli(acc_n | p_{correct})))\\
   +&\\
  \exp(&\\
