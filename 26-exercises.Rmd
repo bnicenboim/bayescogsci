@@ -246,7 +246,7 @@ Specify the following priors:
 (\#eq:simrtpriors)
 \end{equation}
 
-Generate posterior predictive distributions of the parameters and check that the true values of the parameters $\mu=500, \sigma=50$ are recovered by the model. What this means is that you should check whether these true values lie within the range of the posterior distributions of the two parameters. This is a good sanity check for finding out whether a model can in principle recover the true parameter values correctly.
+Generate posterior distributions of the parameters and check that the true values of the parameters $\mu=500, \sigma=50$ are recovered by the model. What this means is that you should check whether these true values lie within the range of the posterior distributions of the two parameters. This is a good sanity check for finding out whether a model can in principle recover the true parameter values correctly.
 
 ### A simple linear model. {#exr:linearmod .unlisted}
 
