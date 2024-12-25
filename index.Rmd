@@ -185,7 +185,7 @@ We adopt the following conventions:
 
 - All distribution names are lower-case unless they are also a proper name (e.g., Poisson, Bernoulli).
 - The univariate normal distribution is parameterized by the mean and standard deviation (not variance).
-- The code for figures is provided only in some cases, where we consider it to be pedagogically useful. In other cases, the code remains hidden, but it can be found in the web version of the book. Notice that all the R code from the book can be extracted from the Rmd source files for each chapter, which are released with the book.
+- The code for figures is provided only in some cases, where we consider it to be pedagogically useful. In other cases, the code remains hidden, but it can be found in the web version of the book ([https://bruno.nicenboim.me/bayescogsci/](https://bruno.nicenboim.me/bayescogsci/)). Notice that all the R code from the book can be extracted from the Rmd source files for each chapter, which are released with the book ([https://github.com/bnicenboim/bayescogsci](https://github.com/bnicenboim/bayescogsci)).
 
 ## Online materials {-}
 
@@ -215,7 +215,7 @@ Before you start, please install
   - The R package `rstan`. At the time of writing this book, the CRAN version of `rstan` lags behind the latest developments in Stan so it is recommended to install `rstan` from `https://mc-stan.org/r-packages/` as indicated in  https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started
   - The R packages  `dplyr`, `purrr`, `tidyr`, `extraDistr`, `brms`, `hypr` and `lme4`  are used in many chapters of the book and can be installed the usual way: ` install.packages(c("dplyr","purrr","tidyr", "extraDistr", "brms","hypr","lme4"))`. We use `ggplot2` for figures; please consult the relevant documentation if you are unfamiliar with `ggplot2` [e.g., @R-ggplot2].
   - The following R packages are optional: `tictoc`, `rootSolve`,  `SHELF`, `cmdstanr`, and `SBC`.
-  - Some packages and their dependencies, such as `intoo`, `barsurf`, `bivariate`, and `SIN` could require manual installation from archived or github versions.
+  - Some packages and their dependencies, such as `intoo`, `barsurf`, `bivariate`, and `SIN` could require manual installation from archived or github versions. For such packages, go to the CRAN archive:  [https://cran.r-project.org/src/contrib/Archive/](https://cran.r-project.org/src/contrib/Archive/); download the tar.gz of the relevant package; and then install it from the command line using the command `R CMD INSTALL package.tar.gz`.
   - The data and Stan models used in this book can be installed using `remotes::install_github("bnicenboim/bcogsci")`. This command uses the function `install_github` from the package `remotes`. (Thus this package should be in the system as well.)
 
 In every R session, load these packages, and set the options shown below for Stan.
