@@ -620,7 +620,7 @@ p(\boldsymbol{y_{pred}}\mid \boldsymbol{\Theta},\boldsymbol{y})p(\boldsymbol{\Th
 Assuming that past and future observations are conditionally independent^[Two events A and B are defined to be conditionally independent given some event E if $P(A\cap B | E) = P(A|E) P(B|E)$. See chapter 2 of @blitzstein2014introduction for examples and more discussion of conditional independence.] given $\boldsymbol{\Theta}$, i.e., $p(\boldsymbol{y_{pred}}\mid \boldsymbol{\Theta},\boldsymbol{y})= p(\boldsymbol{y_{pred}}\mid \boldsymbol{\Theta})$, the above equation can be written as:
 
 \begin{equation}
-p(\boldsymbol{y_{pred}}\mid \boldsymbol{y} )=\int_{\boldsymbol{\Theta}} p(\boldsymbol{y_{pred}}\mid \boldsymbol{\Theta}) p(\boldsymbol{\Theta}\mid \boldsymbol{y})\, d\boldsymbol{\Theta}
+p(\boldsymbol{y_{pred}}\mid \boldsymbol{y} )=\int_{\boldsymbol{\Theta}} p(\boldsymbol{y_{pred}}\mid \boldsymbol{\Theta}) p(\boldsymbol{\Theta}\mid \boldsymbol{y})\, \mathrm{d}\boldsymbol{\Theta}
 (\#eq:postpp)
 \end{equation}
 
