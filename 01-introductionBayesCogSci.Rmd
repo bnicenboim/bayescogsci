@@ -787,7 +787,7 @@ If the standard deviations of the two random variables is $\sigma_X$ and $\sigma
 
 Consider now the continuous bivariate case; this time, we will use simulated data. Consider two normal random variables $X$ and $Y$, each of which coming from, for example, a $\mathit{Normal}(0,1)$ distribution, with some correlation $\rho_{X,Y}$ between the two random variables.
 
-A bivariate distribution for two random variables $X$ and $Y$, each of which comes from a normal distribution, is expressed in terms of the means and standard deviations of each of the two distributions, and the correlation $\rho_{XY}$ between them. The standard deviations and correlation are expressed in a special form of a $2\times 2$ matrix called a \index{Variance-covariance matrix} variance-covariance matrix $\Sigma$. If $\rho_{XY}$ is the correlation between the two random variables, and $\sigma _{X}$ and $\sigma _{Y}$ the respective standard deviations, the variance-covariance matrix is written as:
+A bivariate distribution for two random variables $X$ and $Y$, each of which comes from a normal distribution, is expressed in terms of the means and standard deviations of each of the two distributions, and the correlation $\rho_{XY}$ between them. The standard deviations and correlation in a bivariate distribution are expressed in a special form of a $2\times 2$ matrix called a \index{Variance-covariance matrix} variance-covariance matrix $\Sigma$. If $\rho_{XY}$ is the correlation between the two random variables, and $\sigma _{X}$ and $\sigma _{Y}$ the respective standard deviations, the variance-covariance matrix is written as:
 
 \begin{equation}\label{eq:covmatfoundations}
 \Sigma
