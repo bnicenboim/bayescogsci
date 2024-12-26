@@ -274,7 +274,7 @@ We see that we can fit our model without problems, and we get some posterior dis
 1. What information are the priors encoding? Do the priors make sense?
 2. Does the likelihood assumed in the model make sense for the data?
 
-We'll try to answer these questions by looking at the *prior and posterior predictive distributions*, and by doing sensitivity analyses. This is explained in the following sections.
+We'll try to answer these questions by looking at the *prior and posterior predictive distributions*, and by doing sensitivity analyses. This is explained in the sections that follow.
 
 
 
