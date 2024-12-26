@@ -11,7 +11,7 @@ P(A\mid B) = \frac{P(B\mid A) P(A)}{P(B)}
 (\#eq:bayes-P)
 \end{equation}
 
-Given a vector of data $\boldsymbol{y}$, Bayes' rule allows us to work out the posterior distributions  of the parameters of interest, which we can represent as the vector of parameters $\boldsymbol{\Theta}$. This computation is achieved by rewriting \@ref(eq:bayes-P) as  \@ref(eq:bayes). What is different here is that Bayes' rule is written in terms of probability distributions. Here, $p(\cdot)$ is a probability density function (continuous case) or a probability mass function (discrete case).
+Given a vector of data $\boldsymbol{y}$, Bayes' rule allows us to work out the posterior distributions  of the parameters of interest, which we can represent as the vector of parameters $\boldsymbol{\Theta}$. This computation is achieved by rewriting Equation \@ref(eq:bayes-P) as \@ref(eq:bayes). What is different here is that Bayes' rule is written in terms of probability distributions. Here, $p(\cdot)$ is a probability density function (continuous case) or a probability mass function (discrete case).
 
 \begin{equation}
 p(\boldsymbol{\Theta}|\boldsymbol{y}) = \cfrac{ p(\boldsymbol{y}|\boldsymbol{\Theta}) \times p(\boldsymbol{\Theta}) }{p(\boldsymbol{y})}
