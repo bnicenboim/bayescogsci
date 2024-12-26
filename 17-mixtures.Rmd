@@ -57,7 +57,7 @@ knitr::include_graphics("cc_figure/globalmotion_lr.PNG", dpi =1000)
 
 Ollman's [-@Ollman1966] fast-guess model assumes that the behavior in this task (and in any other choice task) is governed by two distinct cognitive processes: (i) a \index{Guessing mode} guessing mode, and (ii) a \index{Task-engaged mode} task-engaged mode. In the guessing mode, responses are fast and accuracy is at chance level. In the task-engaged mode, responses are slower and accuracy approaches 100%. This means that intermediate values of response times and accuracy can only be achieved by \index{Mixing responses} mixing responses from the two modes. Further assumptions of this model are that response times depend on the difficulty of the choice, and that the probability of being on one of the two states depend on the speed incentives during the instructions.
 
-To simplify matters, we ignore the possibility that the accuracy of the choice is also affected by the difficulty of the choice. Also, we ignore the possibility that subjects might be biased to one specific response in the guessing mode, but see online exercise \@ref(exr:mixbias).
+To simplify matters, we ignore the possibility that the accuracy of the choice is also affected by the difficulty of the choice. Also, we ignore the possibility that subjects might be biased to one specific response in the guessing mode, but see exercise \@ref(exr:mixbias) in the online materials.
 
 
 
@@ -141,7 +141,7 @@ The description of the model makes it clear that an ideal subject who never gues
 rt_n \sim \mathit{LogNormal}(\alpha + \beta \cdot x_n, \sigma)
 \end{equation}
 
-In the previous equation, $x$ is larger for difficult trials. If we center $x$, $\alpha$ represents the average logarithmic transformed response time for a subject engaged in the task, and $\beta$ is the effect of \index{Trial difficulty} trial difficulty on log-response time. We assume a non-deterministic process, with a noise parameter $\sigma$. See also online section \@ref(app-lognormal) for more information about log-normally distributed response times.
+In the previous equation, $x$ is larger for difficult trials. If we center $x$, $\alpha$ represents the average logarithmic transformed response time for a subject engaged in the task, and $\beta$ is the effect of \index{Trial difficulty} trial difficulty on log-response time. We assume a non-deterministic process, with a noise parameter $\sigma$. Also see the online section \@ref(app-lognormal) for more information about log-normally distributed response times.
 
 Alternatively, a subject that guesses in every trial would show a response time distribution that is independent of the difficulty of the trial:
 
@@ -380,7 +380,7 @@ The Stan code for this model is shown below as `mixture_rt2.stan`.
 ```{stan output.var = "mix2_stan", code = readLines(mixture_rt2),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
 ```
 
-Once we change the upper bound of `gamma` in the `parameters` block, we also need to truncate the distribution in the `model` block by correcting the PDF with its CDF. This correction is carried out using the CDF because we are truncating the distribution at the right-hand side; recall that earlier we used the complement of the CDF when we truncate a distribution at the left-hand side); see online section \@ref(app-truncation).
+Once we change the upper bound of `gamma` in the `parameters` block, we also need to truncate the distribution in the `model` block by correcting the PDF with its CDF. This correction is carried out using the CDF because we are truncating the distribution at the right-hand side; recall that earlier we used the complement of the CDF when we truncate a distribution at the left-hand side); see the online section \@ref(app-truncation).
 
 ```
   target += normal_lpdf(gamma | 6, 1) -
@@ -1359,7 +1359,7 @@ generated quantities {
 }
 ```
 
-It is important to bear in mind that we can only compare models on the same dependent variable(s). That is, we would need to compare this model with another one fit to the same dependent variables and also in the same scale:  accuracy (`0` or `1`) and response time in milliseconds. This means that, for example, we cannot compare our  fast-guess model with an accuracy-only model. It also means that to compare our fast-guess model with a model based on left/right choices (known as stimulus coding, see section \@ref(sec-acccoding)) and response times, we would need to reparameterize one of the two models; see online exercise \@ref(exr:lnldt) of chapter \@ref(ch-lognormalrace).
+It is important to bear in mind that we can only compare models on the same dependent variable(s). That is, we would need to compare this model with another one fit to the same dependent variables and also in the same scale:  accuracy (`0` or `1`) and response time in milliseconds. This means that, for example, we cannot compare our  fast-guess model with an accuracy-only model. It also means that to compare our fast-guess model with a model based on left/right choices (known as stimulus coding, see section \@ref(sec-acccoding)) and response times, we would need to reparameterize one of the two models; see the online exercise \@ref(exr:lnldt) for chapter \@ref(ch-lognormalrace).
 
 
 To conclude, the fast-guess model shows a relatively decent fit to the data and is able to account for the speed-accuracy trade-off.  The model shows some inaccuracies that could lead to its revision and improvement. To what extent the inaccuracies are acceptable or not depends on  (i) the empirical finding that we want to account for (for example, we can already assume that the model will struggle to fit data sets that show slow errors); and (ii) its comparison with a competing account.
