@@ -550,14 +550,14 @@ In the second line of code above, we are computing the cumulative probability of
 
 ### Truncating a normal distribution
 
-In the above discussion, the support for the normal distribution ranges from minus infinity to plus infinity.  One can define PDFs with a more limited support; an example would be a normal distribution whose PDF $f(x)$ is such that the lower bound is truncated at $0$ to allow only positive values. In such a case, the area under the range minus infinity to zero ($\int_{-\infty}^0 f(x) \, dx$) will be $0$ because the range lies outside the support of the truncated normal distribution. Also,  if one truncates the standard normal ($\mathit{Normal}(0,1)$) at $0$, in order to make the area between zero and plus infinity sum up to $1$, we would have to multiply it by $2$, because we just halved the area under the curve. More formally and more generally, we would have to multiply the truncated distribution $f(x)$ by some factor $k$ such that the following integral sums to $1$:
+In the above discussion, the support for the normal distribution ranges from minus infinity to plus infinity.  One can define PDFs with a more limited support; an example would be a normal distribution whose PDF $f(x)$ is such that the lower bound is truncated at $0$ to allow only positive values. In such a case, the area under the range minus infinity to zero ($\int_{-\infty}^0 f(x) \, \mathrm{d}x$) will be $0$ because the range lies outside the support of the truncated normal distribution. Also,  if one truncates the standard normal ($\mathit{Normal}(0,1)$) at $0$, in order to make the area between zero and plus infinity sum up to $1$, we would have to multiply it by $2$, because we just halved the area under the curve. More formally and more generally, we would have to multiply the truncated distribution $f(x)$ by some factor $k$ such that the following integral sums to $1$:
 
 \begin{equation}
-k \int_{0}^{\infty} f(x)\, dx = 1
+k \int_{0}^{\infty} f(x)\, \mathrm{d}x = 1
 (\#eq:factork)
 \end{equation}
 
-Clearly, this factor is $k = \frac{1}{\int_{0}^{\infty} f(x)\, dx}$. For the standard normal, this integral is easy to compute using `R`; we just calculate the complement of the cumulative distribution (CCDF):
+Clearly, this factor is $k = \frac{1}{\int_{0}^{\infty} f(x)\, \mathrm{d}x}$. For the standard normal, this integral is easy to compute using `R`; we just calculate the complement of the cumulative distribution (CCDF):
 
 ```{r}
 pnorm(0, mean = 0, sd = 1, lower.tail = FALSE)
@@ -570,7 +570,7 @@ The above calculation implies that $k$ is indeed $2$, as we informally argued ($
 Also, if we had truncated the distribution at 0 to the right instead of the left (allowing only negative values), we would have to find the factor $k$ in the same way as above, except that we would have to find $k$ such that:
 
 \begin{equation}
-k \int_{-\infty}^{0} f(x)\, dx = 1
+k \int_{-\infty}^{0} f(x)\, \mathrm{d}x = 1
 \end{equation}
 
 For the standard normal case, in `R`, this factor would require us to use the CDF:
@@ -783,7 +783,7 @@ If the standard deviations of the two random variables is $\sigma_X$ and $\sigma
 
 
 
-### Example 2: \index{Continuous bivariate distribution} Continuous bivariate distributions {#sec-contbivar}
+### Example 2: Continuous bivariate distributions {#sec-contbivar}
 
 Consider now the continuous bivariate case; this time, we will use simulated data. Consider two normal random variables $X$ and $Y$, each of which coming from, for example, a $\mathit{Normal}(0,1)$ distribution, with some correlation $\rho_{X,Y}$ between the two random variables.
 
@@ -822,25 +822,25 @@ The joint PDF is written with reference to the two variables $f_{X,Y}(x,y)$. It 
 Formally, we would write the volume as a double integral: we are summing up the volume under the surface representing the joint density for $X$ and $Y$ (hence the two integrals).
 
 \begin{equation}
-\iint_{S_{X,Y}} f_{X,Y}(x,y)\, dx dy = 1
+\iint_{S_{X,Y}} f_{X,Y}(x,y)\, \mathrm{d}x \mathrm{d}y = 1
 \end{equation}
 
 
-Here, the terms $dx$ and $dy$ express the fact that we are summing up the volume under the surface.
+Here, the terms $\mathrm{d}x$ and $\mathrm{d}y$ express the fact that we are summing up the volume under the surface.
 
 The joint CDF would be written as follows. The equation below gives us the probability of observing a value like $(u,v)$ or some value smaller than that (i.e., some $(u',v')$, such that $u'<u$ and $v'<v$).
 
 \begin{equation}
 \begin{split}
 F_{X,Y}(u,v) =& P(X<u,Y<v)\\
-             =& \int_{-\infty}^u \int_{-\infty}^v f_{X,Y}(x,y)\, dy dx\\
+             =& \int_{-\infty}^u \int_{-\infty}^v f_{X,Y}(x,y)\, \mathrm{d}y \mathrm{d}x\\
 \end{split}
 \end{equation}
 
 Just as in the discrete case, the \index{Marginal distribution} marginal distributions can be derived by marginalizing out the other random variable:
 
 \begin{equation}
-f_X(x) = \int_{S_Y} f_{X,Y}(x,y)\, dy, \quad f_Y(y) = \int_{S_X} f_{X,Y}(x,y)\, dx
+f_X(x) = \int_{S_Y} f_{X,Y}(x,y)\, \mathrm{d}y, \quad f_Y(y) = \int_{S_X} f_{X,Y}(x,y)\, \mathrm{d}x
 \end{equation}
 
 Here, $S_X$ and $S_Y$ are the respective supports.
@@ -879,7 +879,7 @@ plot(f2,
 
 In this book, we will make use of such multivariate distributions a lot, and it will soon become important to know how to generate simulated bivariate or multivariate data that is correlated. So let's look at that next.
 
-### Generate \index{Simulate data} simulated bivariate \index{Multivariate} (multivariate) data {#sec-generatebivariatedata}
+### Generate simulated bivariate (or multivariate) data {#sec-generatebivariatedata}
 
 Suppose we want to generate $100$ pairs of correlated continuous data, with correlation $\rho=0.6$. The two random variables both have a Normal PDF, and have mean $0$, and standard deviations $5$ and $10$, respectively.
 
@@ -901,6 +901,7 @@ ggplot(tibble(u_1 = u[, 1], u_2 = u[, 2]), aes(u_1, u_2)) +
   geom_point()
 ```
 
+### Decomposing a variance-covariance matrix {#sec-decomposevcovmatrix}
 
 One final useful fact about the variance-covariance matrix---one that we will need later---is that it can be decomposed into the component standard deviations and an underlying correlation matrix. For example, consider the matrix above:
 
@@ -964,9 +965,9 @@ sd_diag %*% corrmatrix %*% sd_diag
 
 This decomposition and reassembly of the variance-covariance matrix will become important when we start building hierarchical models in Stan.
 
-## An important concept: The \index{Marginal likelihood} marginal likelihood \index{Integrating out a parameter} (integrating out a parameter) {#sec-marginal}
+## An important concept: The marginal likelihood  (integrating out a parameter) {#sec-marginal}
 
-Here, we introduce a concept that will turn up many times in this book. The concept we unpack here is called "integrating out a parameter". We will need this when we encounter Bayes' rule in the next chapter, and when we use Bayes factors later in the book (chapter \@ref(ch-bf)).
+Here, we introduce a concept that will turn up many times in this book. The concept we unpack here is called "integrating out a parameter." We will need this when we encounter Bayes' rule in the next chapter, and when we use Bayes factors later in the book (chapter \@ref(ch-bf)).
 
 Integrating out a parameter refers to the following situation. The example used here discusses the binomial distribution, but the approach is generally applicable for any distribution.
 
@@ -1006,18 +1007,16 @@ Taking the common factors ($\frac{1}{3}$ and $\binom{10}{7}$) out:
 
 \begin{equation}
 \begin{split}
-p(k=7,n=10) =& \frac{1}{3} \binom{10}{7}[ 0.1^7 (1-0.1)^{3} \\
+p(k=7,n=10) =& \frac{1}{3} \binom{10}{7} \left[ 0.1^7 (1-0.1)^{3} \\
 +&  0.5^7 (1-0.5)^{3} \\
-+&  0.9^7 (1-0.9)^{3}] \\
++&  0.9^7 (1-0.9)^{3} \right] \\
 =& `r sum(dbinom(7,size=10,prob=c(0.1,0.5,0.9)))/3`
 \end{split}
 \end{equation}
 
 Thus, a marginal likelihood is a kind of weighted sum of the likelihood, weighted by the possible values of the parameter.^[Where does the above formula come from? It falls out from the law of total probability discussed above.]
 
-The above example was contrived, because we stated that the parameter $\theta$ has only three possible values.
-
-Now consider the case where the parameter $\theta$ can have all possible values between $0$ and $1$; every possible value is equally likely. Formally, what this means is that the possible values of $\theta$ can be described in terms of the uniform distribution with lower bound $0$ and upper bound $1$ [for more details on this distribution, see section 5.2 in @blitzstein2014introduction]. This is a continuous distribution, and because the area under the distribution has to sum to $1$, the density of every possible value of $\theta$ is $1$.
+The above example was contrived, because we stated that the parameter $\theta$ has only three possible discrete values. Now consider the case where the parameter $\theta$ can have all possible values between $0$ and $1$; every possible value is equally likely. Formally, what this means is that the possible values of $\theta$ can be described in terms of the uniform distribution with lower bound $0$ and upper bound $1$ [for more details on this distribution, see section 5.2 in @blitzstein2014introduction]. This is a continuous distribution, and because the area under the distribution has to sum to $1$, the density of every possible value of $\theta$ is $1$.
 
 In this example, the summation now has to be done over a continuous space $[0,1]$. The way this summation is expressed in mathematics is through the \index{Integral} integral symbol:
 
@@ -1043,9 +1042,9 @@ integrate(BinLik, lower = 0, upper = 1)$value
 
 The value that is output by the `integrate()` function above is the marginal likelihood.
 
-This completes our discussion of random variables and probability distributions. We now summarize what we have learned so far.
+This completes our discussion of random variables and probability distributions. Next, we summarize what we have learned so far about univariate distributions.
 
-## Summary of useful R functions relating to distributions
+## Summary of some useful R functions
 
 Table \@ref(tab:dpqrfunctions) summarizes the different functions relating to PMFs and PDFs, using the binomial and normal as examples.
 
@@ -1071,6 +1070,7 @@ This chapter briefly reviewed some very basic concepts in probability theory, un
 ## Further reading
 
 An informal but useful discussion about probability appears in @spiegelhalter2024probability. 
-A quick review of the mathematical foundations needed for statistics is available in the short book by @fox2009mathematical, as well as @gill2006essential. @morin2016probability and @blitzstein2014introduction are accessible introductions to probability theory. @RossProb offers a more advanced treatment which discusses random variable theory and illustrates applications of probability theory. Some basic results  about random variables are also discussed in the above-mentioned textbooks (for example, the expectation and variance of sums of random variables); some of these results will be needed in later chapters of the present book.
-A good formal introduction to mathematical statistics (covering classical frequentist theory) is @millermiller. The freely available book by @kerns2014introduction introduces frequentist and Bayesian statistics from the ground up in a very comprehensive and systematic manner; the source code for the book is available from https://github.com/gjkerns/IPSUR. The open-access book, *Probability and Statistics: a simulation-based introduction*, by Bob Carpenter is also worth studying: https://github.com/bob-carpenter/prob-stats. A thorough introduction to the matrix algebra needed for statistics, with examples using R, is provided in @fieller. Commonly used probability distributions are presented in detail in @millermiller, @blitzstein2014introduction, and @RossProb.
+A quick review of the mathematical foundations needed for statistics is available in the short book by @fox2009mathematical, as well as @gill2006essential.
+A more comprehensive introduction to the mathematical background needed for advanced Bayesian modeling is @jordan2008mathematical. @morin2016probability and @blitzstein2014introduction are accessible introductions to probability theory. @RossProb offers a more advanced treatment which discusses random variable theory and illustrates applications of probability theory. Some basic results  about random variables are also discussed in the above-mentioned textbooks (for example, the expectation and variance of sums of random variables); some of these results will be needed in later chapters of the present book.
+A good formal introduction to mathematical statistics (covering classical frequentist theory) is @millermiller. The freely available book by @kerns2014introduction introduces frequentist and Bayesian statistics from the ground up in a very comprehensive and systematic manner; the source code for the book is available from https://github.com/gjkerns/IPSUR. The open-access book, *Probability and Statistics: a simulation-based introduction*, by Bob Carpenter is also worth studying: https://github.com/bob-carpenter/prob-stats. A thorough introduction to the matrix algebra needed for statistics, with examples using R, is provided in @fieller. Commonly used probability distributions are presented in detail in @millermiller, @blitzstein2014introduction, and @RossProb. A useful handbook of continuous univariate distributions is @johnson1995continuous.
 
