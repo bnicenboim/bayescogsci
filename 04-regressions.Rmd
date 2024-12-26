@@ -314,7 +314,7 @@ pp_check(fit_prior_press_trial,
   coord_cartesian(ylim = c(0, 50))
 ```
 
-Prior selection might look daunting and can be a lot of work. However,  this work is usually done only the first time we start working with an experimental paradigm; besides, priors can be informed by the estimates from previous experiments (even maximum likelihood estimates from frequentist models can be useful). We will generally use very similar (or identical priors) for analyses dealing with the same type of task. When in doubt, a sensitivity analysis (see section \@ref(sec-sensitivity)) can tell us whether the posterior distribution depends unintentionally strongly on our prior selection. We discuss prior selection also in online chapter  \@ref(ch-priors). 
+Prior selection might look daunting and can be a lot of work. However,  this work is usually done only the first time we start working with an experimental paradigm; besides, priors can be informed by the estimates from previous experiments (even maximum likelihood estimates from frequentist models can be useful). We will generally use very similar (or identical priors) for analyses dealing with the same type of task. When in doubt, a sensitivity analysis (see section \@ref(sec-sensitivity)) can tell us whether the posterior distribution depends unintentionally strongly on our prior selection. We also discuss prior selection in the online chapter  \@ref(ch-priors). 
 
 
 ### The \index{brms} `brms` model
