@@ -1,6 +1,6 @@
 # Introduction to Bayesian data analysis {#ch-introBDA}
 
-Before we can start analyzing realistic data sets using Bayes' rule, it is important to understand the application of Bayes' rule in one of the simplest of cases, data involving the binomial likelihood. This simple case is important to understand because it encapsulates the essence of the Bayesian approach to data analysis, and because it allows us to analytically work out the posterior distribution of the parameter of interest, using just a pen and paper. This simple case also helps us to appreciate a crucial point: The posterior distribution of a parameter is a compromise between the prior and the likelihood. This important insight will play a central role in the realistic data analysis situations we will cover in the remainder of this book.
+Before we can start analyzing realistic data sets using Bayes' rule, it is important to understand the application of Bayes' rule in one of the simplest of cases, data involving the binomial likelihood. This simple case is important to understand because it encapsulates the essence of the Bayesian approach to data analysis, and because it allows us to analytically work out the posterior distribution of the parameter of interest, using just pen and paper. This simple case also helps us to appreciate a crucial point: The posterior distribution of a parameter is a compromise between the prior and the likelihood. This important insight will play a central role in the realistic data analysis situations we will cover in the remainder of this book.
 
 ## \index{Bayes' rule} Bayes' rule
 
@@ -36,7 +36,7 @@ The terms here have the following meaning. We elaborate on each point with an ex
 
 * The *Marginal Likelihood*, $p(\boldsymbol{y})$, was introduced in chapter \@ref(ch-intro) and standardizes the posterior distribution to ensure that the \index{Area under the curve} area under the curve of the distribution sums to 1, that is, it ensures that the posterior is a valid probability distribution.
 
-An example will clarify all these terms, as we explain below.
+An example will clarify all these terms.
 
 ## Deriving the \index{Posterior} posterior using Bayes' rule: An analytical example {#sec-analytical}
 
@@ -56,7 +56,7 @@ sd(estimated_means)
 
 The repeated runs of the (simulated) experiment are the sole underlying cause for the variability (shown by the output of the `sd(estimated)` command above) in the estimated proportion; the parameter $\theta=0.80$ itself is invariant here (we are repeatedly estimating this point value).
 
-However, consider now an alternative radical idea: what if we treat $\theta$ as a random variable? That is, suppose now that $\theta$ has a PDF associated with it. This PDF would now represent our belief about possible values of $\theta$, even before we have seen any data. For example, if at the outset of the experiment, we believe that all possible values between $0$ and $1$ are equally likely, we could represent that belief by stating that $\theta \sim \mathit{Uniform}(0,1)$.  The radical new idea here is that we now have a way to represent our prior belief or knowledge about plausible values of the parameter.
+However, consider now an alternative, radical idea: what if we treat $\theta$ as a random variable? That is, suppose now that $\theta$ has a PDF associated with it. This PDF would now represent our belief about possible values of $\theta$, even before we have seen any data. For example, if at the outset of the experiment, we believe that all possible values between $0$ and $1$ are equally likely, we could represent that belief by stating that $\theta \sim \mathit{Uniform}(0,1)$.  The radical new idea here is that we now have a way to represent our prior belief or knowledge about plausible values of the parameter.
 
 Now, if we were to run our simulated experiments again and again, there would be *two* sources of variability in the estimate of the parameter: the data as well as the uncertainty associated with $\theta$.
 
@@ -116,7 +116,7 @@ p(\theta|a,b)=  \frac{1}{B(a,b)} \theta^{a - 1} (1-\theta)^{b-1}
 
 The term $B(a,b)$ expands to $\int_0^1 \theta^{a-1}(1-\theta)^{b-1}\, d\theta$, and is a normalizing constant that ensures that the \index{Area under the curve} area under the curve sums to one. In some textbooks, you may see the PDF of the beta distribution with the normalizing constant $\frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}$ (the expression $\Gamma(n)$ is defined as (n-1)!): $$p(\theta|a,b)=  \frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)} \theta^{a - 1} (1-\theta)^{b-1}$$  These two statements for the beta distribution are identical because $B(a,b)$ can be shown to be equal to $\frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}$ [@RossProb].
 
-The beta distribution's parameters $a$ and $b$ can be interpreted as expressing our prior beliefs about the probability of success; $a$ represents the number of "successes", in our case, answers that are "umbrella" and $b$ the number of failures, the answers that are not "umbrella". Figure \@ref(fig:betas2) shows the different beta distribution shapes given different values of $a$ and $b$.
+The beta distribution's parameters $a$ and $b$ can be interpreted as expressing our prior beliefs about the probability of success; $a$ represents the number of "successes", in our case, answers that are "umbrella" and $b$ the number of failures, the answers that are not "umbrella." Figure \@ref(fig:betas2) shows the different beta distribution shapes given different values of $a$ and $b$.
 
 
 ```{r betas2, echo=FALSE,  fig.cap = "Examples of beta distributions with different parameters.", tidy = FALSE, fig.height = 6 }
@@ -164,9 +164,9 @@ qbeta(c(0.025, 0.975), shape1 = 10, shape2 = 10)
 
 In Figure \@ref(fig:betas2), we can see also the difference in uncertainty in these two examples graphically.
 
-Which prior should we choose? In a real data analysis problem, the choice of prior would depend on what prior knowledge we want to bring into the analysis (see online chapter \@ref(ch-priors)). If we don't have much prior information, we could use $a=b=1$; this gives us a uniform prior (i.e., $\mathit{Uniform}(0,1)$). This kind of prior goes by various names, such as \index{Flat, non-informative prior} *flat, non-informative prior*, or \index{Uninformative prior} *uninformative prior*. By contrast, if we have a lot of prior knowledge and/or a strong belief (e.g., based on a particular theory's predictions, or prior data) that $\theta$ has a particular range of plausible values, we can use a different set of $a, b$ values to reflect our belief about the parameter. Generally speaking, the larger our parameters a and b, the narrower the spread of the distribution; i.e., the lower our uncertainty about the mean value of the parameter.
+Which prior should we choose? In a real data analysis problem, the choice of prior would depend on what prior knowledge we want to bring into the analysis (see the online chapter \@ref(ch-priors)). If we don't have much prior information, we could use $a=b=1$; this gives us a uniform prior (i.e., $\mathit{Uniform}(0,1)$). This kind of prior goes by various names, such as *flat, non-informative prior*, or \index{Uninformative prior} *uninformative prior*. By contrast, if we have a lot of prior knowledge and/or a strong belief (e.g., based on a particular theory's predictions, or prior data) that $\theta$ has a particular range of plausible values, we can use a different set of $a, b$ values to reflect our belief about the parameter. Generally speaking, the larger the values of the parameters $a$ and $b$, the narrower the spread of the distribution; i.e., the lower our uncertainty about the mean value of the parameter.
 
-We will discuss prior specification in detail in online chapter \@ref(ch-priors). For the  moment, just for illustration, we choose the values $a=4$ and $b=4$ for the beta prior. Then, our prior for $\theta$ is the following beta PDF:
+We will discuss prior specification in detail in the online chapter \@ref(ch-priors). For the  moment, just for illustration, we choose the values $a=4$ and $b=4$ for the beta prior. Then, our prior for $\theta$ is the following beta PDF:
 
 \begin{equation}
 p(\theta) = \frac{1}{B(4,4)} \theta^{3} (1-\theta)^{3}
