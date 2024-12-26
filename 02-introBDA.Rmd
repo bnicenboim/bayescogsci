@@ -114,7 +114,7 @@ p(\theta|a,b)=  \frac{1}{B(a,b)} \theta^{a - 1} (1-\theta)^{b-1}
 \end{equation}
 
 
-The term $B(a,b)$ expands to $\int_0^1 \theta^{a-1}(1-\theta)^{b-1}\, d\theta$, and is a normalizing constant that ensures that the \index{Area under the curve} area under the curve sums to one. In some textbooks, you may see the PDF of the beta distribution with the normalizing constant $\frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}$ (the expression $\Gamma(n)$ is defined as (n-1)!): $$p(\theta|a,b)=  \frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)} \theta^{a - 1} (1-\theta)^{b-1}$$  These two statements for the beta distribution are identical because $B(a,b)$ can be shown to be equal to $\frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}$ [@RossProb].
+The term $B(a,b)$ expands to $\int_0^1 \theta^{a-1}(1-\theta)^{b-1}\, \mathrm{d}\theta$, and is a normalizing constant that ensures that the \index{Area under the curve} area under the curve sums to one. In some textbooks, you may see the PDF of the beta distribution with the normalizing constant $\frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}$ (the expression $\Gamma(n)$ is defined as (n-1)!): $$p(\theta|a,b)=  \frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)} \theta^{a - 1} (1-\theta)^{b-1}$$  These two statements for the beta distribution are identical because $B(a,b)$ can be shown to be equal to $\frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}$ [@RossProb].
 
 The beta distribution's parameters $a$ and $b$ can be interpreted as expressing our prior beliefs about the probability of success; $a$ represents the number of "successes", in our case, answers that are "umbrella" and $b$ the number of failures, the answers that are not "umbrella." Figure \@ref(fig:betas2) shows the different beta distribution shapes given different values of $a$ and $b$.
 
@@ -190,7 +190,7 @@ p(\theta|n=100,k=80) = \frac{\left[\binom{100}{80} \theta^{80} \times  (1-\theta
 (\#eq:betaunpost)
 \end{equation}
 
-where $p(k=80)$ is $\int_{0}^1 p(k=80|n=100,\theta) p(\theta)\, d\theta$. This term will be a constant once the number of successes $k$ is known; this is the marginal likelihood we encountered in chapter 1. In fact, once $k$ is known, there are several constant values in the above equation; they are constants because none of them depend on the parameter  of interest, $\theta$. We can collect all of these together:
+where $p(k=80)$ is $\int_{0}^1 p(k=80|n=100,\theta) p(\theta)\, \mathrm{d}\theta$. This term will be a constant once the number of successes $k$ is known; this is the marginal likelihood we encountered in chapter 1. In fact, once $k$ is known, there are several constant values in the above equation; they are constants because none of them depend on the parameter  of interest, $\theta$. We can collect all of these together:
 
 \begin{equation}
 p(\theta|n=100,k=80) =   \left[ \frac{\binom{100}{80}}{B(4,4)\times p(k=80)} \right]   [\theta^{80} (1-\theta)^{20} \times  \theta^{3} (1-\theta)^{3}]
