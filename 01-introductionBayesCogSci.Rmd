@@ -826,7 +826,7 @@ Formally, we would write the volume as a double integral: we are summing up the 
 \end{equation}
 
 
-Here, the terms $dx$ and $dy$ express the fact that we are summing the volume under the surface.
+Here, the terms $dx$ and $dy$ express the fact that we are summing up the volume under the surface.
 
 The joint CDF would be written as follows. The equation below gives us the probability of observing a value like $(u,v)$ or some value smaller than that (i.e., some $(u',v')$, such that $u'<u$ and $v'<v$).
 
