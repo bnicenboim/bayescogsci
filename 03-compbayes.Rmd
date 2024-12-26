@@ -344,6 +344,8 @@ normal_predictive_distribution <-
 
 The following code produces $1000$ samples of the prior predictive distribution of the model that we defined in section \@ref(sec-simplenormal). This means that it will produce $361000$ predicted values ($361$ predicted observations for each of the $1000$ simulations). Although this approach works, it's quite slow (a couple of seconds). See online section \@ref(app-efficientpriorpd) for a more efficient version of this function. Section \@ref(sec-lognormal) will show that it's possible to use `brms` to sample from the priors, ignoring the `t` in the data by setting `sample_prior = "only"`. However, since `brms` still depends on Stan's sampler, which uses Hamiltonian Monte Carlo, the prior sampling process can also fail to converge, especially when one uses very uninformative priors, like the ones used in this example. In contrast, our function above, which uses `rnorm()`, cannot have convergence issues and will always produce multiple sets of prior predictive data $y_{pred_1},\ldots,y_{pred_n}$.
 
+The code below uses the `tic()` and `toc()` functions from the `tictoc` package to print out the time it takes to run the code.
+
 ```{r, echo = FALSE}
 set.seed(123)
 ```
@@ -413,9 +415,9 @@ prior_pred %>%
 ```
 
 
-Figure \@ref(fig:priorpred-stats) shows that we used much less prior information than what we could have: Our priors were encoding the information that any mean between $0$ and $60000$ ms is equally likely. It seems clear that a value close to $0$ or to $60000$ ms would be extremely surprising. This wide range of mean values occurs because of the uniform prior on $\mu$. Similarly, maximum values are quite "uniform", spanning a much wider range than what one would expect. Finally, in the distribution of minimum values, negative finger tapping times occur. This might seem surprising (our prior for $\mu$ excluded negative values), but the reason that negative values appear is that the prior is interpreted together with the likelihood [@gelmanPriorCanOften2017], and  the likelihood is a normal distribution, which will allow for negative samples even if the location parameter $\mu$ has a positive value.
+Figure \@ref(fig:priorpred-stats) shows that we used much less prior information than what we could have: Our priors were encoding the information that any mean between $0$ and $60000$ ms is equally likely. It seems clear that a value close to $0$ or to $60000$ ms would be extremely surprising. This wide range of mean values occurs because of the uniform prior on $\mu$. Similarly, maximum values are quite "uniform", spanning a much wider range than what one would expect. Finally, in the distribution of minimum values, negative finger tapping times occur. This might seem surprising (our prior for $\mu$ excluded negative values), but the reason that negative values appear is that the prior is interpreted together with the likelihood [@gelmanPriorCanOften2017], and  the likelihood is a normal distribution, which will allow for negative samples even if the location parameter $\mu$ is constrained to have only positive values.
 
-To summarize the above discussion, the priors used in the example are clearly not very realistic given what we might know about finger tapping times for such a button pressing task. This raises the question: what priors should we have chosen? In the next section, we consider this question.
+To summarize the above discussion, the priors used in the example are clearly not very realistic given what we might know about finger tapping times for such a button-pressing task. This raises the question: what priors should we have chosen? In the next section, we consider this question.
 
 ## The influence of priors: \index{Sensitivity analysis} sensitivity analysis {#sec-sensitivity}
 
