@@ -70,7 +70,7 @@ We will focus on `brms` in this part of the book. This is because it can be usef
 
 ### A simple linear model: A single subject pressing a button repeatedly (a finger tapping task) {#sec-simplenormal}
 
-To illustrate the basic steps for fitting a model, consider the following example of a finger tapping task [for a review, see @hubel2013computerized]. Suppose that a subject first sees a blank screen. Then, after a certain amount of time (say $200$ ms), the subject sees a cross in the middle of a screen, and as soon as they see the cross, they tap on the space bar as fast as they can until the experiment is over ($361$ trials). The dependent measure here is the time it takes in milliseconds from one press of the space bar to the next one. The data in each trial are therefore finger tapping times in milliseconds. Suppose that the research question is: how long does it take for this particular subject to press a key?
+To illustrate the basic steps for fitting a model using `brms`, consider the following example of a finger tapping task [for a review, see @hubel2013computerized]. Suppose that a subject first sees a blank screen. Then, after a certain amount of time (say $200$ ms), the subject sees a cross in the middle of a screen, and as soon as they see the cross, they tap on the space bar as fast as they can until the experiment is over ($361$ trials). The dependent measure here is the time it takes in milliseconds from one press of the space bar to the next one. The data in each trial are therefore finger tapping times in milliseconds. Suppose that the research question is: how long does it take for this particular subject to press a key?
 
 Let's model the data with the following assumptions:
 
@@ -78,7 +78,7 @@ Let's model the data with the following assumptions:
 2. There is some noise in this process.
 3. The noise is normally distributed (this assumption is questionable given that finger tapping as also response times are generally  skewed; we will fix this assumption later).[^rt]
 
-[^rt]: We refer to the time it takes for a subject to respond or react to a stimuli as response time [response and reaction times are often used interchangeably, cf. @luce1986response]. In this case, however, there are no stimuli other than the cross on the screen, and the subject only taps the space bar as soon as they see the cross.
+[^rt]: We refer to the time it takes for a subject to respond or react to a stimulus as response time [response and reaction times are often used interchangeably, cf. @luce1986response]. In this case, however, there are no stimuli other than the cross on the screen, and the subject only taps the space bar as soon as they see the cross.
 
   This means that the likelihood for each observation $n$ will be:
 
