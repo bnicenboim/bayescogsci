@@ -429,7 +429,7 @@ Given some data and given a likelihood function, the tighter the prior, the grea
 - For a given set of data, the greater the certainty in the prior, the more heavily will the posterior be influenced by the prior mean.
 - Conversely, for a given set of data, the greater the *un*certainty in the prior, the more heavily will the posterior be influenced by the likelihood.
 
-Another important observation emerges if we increase the sample size (here, the number of trials) from $100$ to, say, $1000000$. Suppose we still get a sample mean of $0.8$ here, so that $k=800000$. Now, the posterior mean will be influenced almost entirely by the sample mean. This is because, in the general form for the posterior  $\mathit{Beta}(a+k,b+n-k)$ that we computed above, the $n$ and $k$ become very large relative to the a, b values, and dominate in determining the posterior mean.
+Another important observation emerges if we increase the sample size (here, the number of trials) from $100$ to, say, $1000000$. Suppose we still get a sample mean of $0.8$ here, so that $k=800000$. Now, the posterior mean will be influenced almost entirely by the sample mean. This is because, in the general form for the posterior  $\mathit{Beta}(a+k,b+n-k)$ that we computed above, the $n$ and $k$ become very large relative to the $a$, $b$ values, and dominate in determining the posterior mean.
 
 Whenever we do a Bayesian analysis, it is good practice to check whether the parameter you are interested in estimating is sensitive to the prior specification. Such an investigation is called a \index{Sensitivity analysis} *sensitivity analysis*. Later in this book, we will see many examples of sensitivity analyses in realistic data-analysis settings.
 
