@@ -841,7 +841,7 @@ c(mean = mean(effect_4m2), quantile(effect_4m2,
                                        c(0.025, 0.975)))
 ```
 
-As expected we get exactly the same values with `fitted()` than when we calculate them "by hand."
+As expected, we get exactly the same values with `fitted()` as when we calculate them "by hand."
 
 ### \index{Descriptive adequacy} Descriptive adequacy
 
