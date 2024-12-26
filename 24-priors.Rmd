@@ -1,4 +1,4 @@
-# The Art and Science of \index{Prior Elicitation} Prior Elicitation {#ch-priors}
+# The Art and Science of Prior Elicitation {#ch-priors}
 
 
 Nothing strikes fear into the heart of the newcomer to Bayesian methods more than the idea of specifying priors for the parameters in a model. On the face of it, this concern seems like a valid one; how can one know what the plausible parameter values are in a model before one has even seen the data?
