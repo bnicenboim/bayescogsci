@@ -476,7 +476,7 @@ As an example data set, we look at a study investigating the capacity level of \
 knitr::include_graphics("cc_figure/fig1_oberauer_2019_modified.png")
 ```
 
-It is well-established that as the number of items to be held in working memory increases, performance, that is accuracy, decreases [see @oberauerkliegel2001, among others]. We will investigate this claim with data from only one subject.
+It is well-established that as the number of items to be held in working memory increases, performance, that is, accuracy, decreases [see @oberauerkliegel2001, among others]. We will investigate this claim with data from only one subject.
 
 The data can be found in `df_recall` in the package `bcogsci`. The  code below loads the data, centers the predictor `set_size`, and briefly explores the data set.
 
@@ -493,7 +493,7 @@ df_recall %>%
   count()
 ```
 
-Here, the column `correct` records the incorrect vs. correct responses with `0` vs `1`, and the column `c_set_size` records the centered memory set size; these latter scores have continuous values -3, -1, 1, and 3. These continuous values are centered versions of 2, 4, 6, and 8.
+Here, the column `correct` records the incorrect vs. correct responses with `0` vs `1` respectively, and the column `c_set_size` records the centered memory set size; these latter scores have continuous values -3, -1, 1, and 3. These continuous values are centered versions of 2, 4, 6, and 8.
 
 ```{r}
 df_recall
