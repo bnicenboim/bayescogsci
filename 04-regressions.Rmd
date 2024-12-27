@@ -517,7 +517,7 @@ correct_n \sim \mathit{Bernoulli}(\theta_n)
 (\#eq:bernoullilik)
 \end{equation}
 
-Since $\theta_n$ is bounded to be between $0$ and $1$ (it is a probability), we cannot just fit a regression model using the normal (or log-normal) likelihood as we did in the preceding examples. Such a model would be inappropriate because it would assume that the data range from $-\infty$ to $+\infty$ (or from $0$ to $+\infty$),  rather than being limited to zeros and ones. 
+Since the observed data are either $0$ or $1$, we shouldn't just fit a regression model using the normal (or log-normal) likelihood as we did in the preceding examples. Such a model would be inappropriate because it would assume that the observed data are real numbers ranging from $-\infty$ to $+\infty$ (or from $0$ to $+\infty$). 
 
 The generalized linear modeling framework solves this problem by defining a  \index{Link function} *link function* $g(\cdot)$ that connects the linear model to the quantity to be estimated (here, the probabilities $\theta_n$). The link function used for $0$, $1$ responses is called the *logit link*, and is defined as follows. 
 
@@ -810,7 +810,7 @@ c(mean = mean(effect_4m2),
 
 We can also back-transform to probability scale using the function `fitted()` rather than using `plogis()`. One advantage is that this will work regardless of the type of link function; in this section we only discussed the logit link, but other link functions are possible to use in generalized linear models [e.g., the probit link; see @dobson2011introduction].
 
-Since the set size is the only predictor and it is centered, for estimating the average accuracy, we can consider an imaginary observation where the `c_set_size` is zero, which corresponds to an average set size. (If there were more centered predictors, we would need to set all of them to zero). Now we can use the `summary` argument provided by \index{\texttt{fitted}} `fitted()`.
+Since set size is the only predictor and it is centered, for estimating the average accuracy, we can consider an imaginary observation where the `c_set_size` is zero, which corresponds to an average set size. (If there were more centered predictors, we would need to set all of them to zero). Now we can use the `summary` argument provided by \index{\texttt{fitted}} `fitted()`.
 
 ```{r}
 fitted(fit_recall,
