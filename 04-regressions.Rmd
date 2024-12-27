@@ -429,7 +429,7 @@ Given that $\sigma$ is much smaller than $\mu$, $\sigma$ doesn't have a large in
 
 
 
-We see that no matter how we calculate the trial effect, there is a slowdown. When reporting the results of these analyses, one should present the posterior mean and a  credible interval, and then reason about whether the observed estimates are consistent with the prediction from the theory being investigated. The 95% credible interval used here is just a convention adopted from standard practice in psychology and related areas.
+We see that no matter how we calculate the trial effect, there is a slowdown. When reporting the results of these analyses, one should present the posterior mean and a  credible interval, and then reason about whether the observed estimates are consistent with the prediction from the theory being investigated. The 95% credible interval used here is just a convention adopted from standard practice in psychology and related areas, where the 95% confidence interval is the default. One could, for example, have used an 80% CrI.
 
 The practical relevance of the effect for the research question can be important too. For example, only after $100$ button presses do we see a barely noticeable slowdown:
 
