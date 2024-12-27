@@ -11,8 +11,10 @@ select <- dplyr::select
 
 Let us look at the effect of cognitive processing on human pupil size to illustrate the use of Bayesian linear \index{Regression model} regression models. Although pupil size is mostly related to the amount of light that reaches the retina or the distance to a perceived object, \index{Pupil size} pupil sizes are also systematically influenced by cognitive processing:  Increased cognitive load leads to an increase in the pupil size [for a review, see @mathotPupillometryPsychologyPhysiology2018].
 
-For this example, we'll use the data from one subject's pupil size of the control experiment by @wahnPupilSizesScale2016,  averaged by trial. The data are available from `df_pupil` in the package `bcogsci`.
-In this experiment, the subject covertly tracks between zero and five objects among several randomly moving objects on a computer screen. This task is called  \index{Multiple object tracking} multiple object tracking [or MOT; see @pylyshynTrackingMultipleIndependent1988]. First, several objects appear on the screen, and a subset of the objects are indicated as "targets" at the beginning. Then, the objects start moving randomly across the screen and become indistinguishable. After several seconds, the objects stop moving and the subject need to indicate which objects were the targets. See Figure \@ref(fig:mot). Our research goal is to examine how the number of moving objects being tracked--that is, how attentional load--affects pupil size.
+For this example, we'll use data from one subject's pupil size of the control experiment by @wahnPupilSizesScale2016,  averaged by trial. The data are available from `df_pupil` in the package `bcogsci`.
+In this experiment, the subject covertly tracks between zero and five objects among several randomly moving objects on a computer screen. Viewing zero targets is called a passive viewing condition.
+
+This task is called  \index{Multiple object tracking} multiple object tracking [or MOT; see @pylyshynTrackingMultipleIndependent1988]. First, several objects appear on the screen for two seconds, and a subset of the objects are indicated as "targets" at the beginning. Then, the objects start moving randomly across the screen and become indistinguishable. After several seconds, the objects stop moving and the subject need to indicate which objects were the targets. See Figure \@ref(fig:mot).^[The description of the procedure in the  @wahnPupilSizesScale2016 paper is as follows: "At the beginning of a trial, all objects were shown for two seconds. Then, a subset of objects turned gray for two seconds, indicating the targets and then reverted back to look like all the other objects. After an additional 500 ms, objects started to move and participants were instructed to track the targets. While objects were moving, they repelled each other and bounced off the screen borders."] Our research goal is to examine how the number of moving objects being tracked--that is, how attentional load--affects pupil size.
 
 (ref:mot) Flow of events in a trial where two objects need to be tracked. Adapted from @Blumberg2015; licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
 
@@ -23,7 +25,7 @@ knitr::include_graphics("cc_figure/MOT.png", dpi = 1000)
 
 ### \index{Likelihood} Likelihood and \index{Prior} priors
 
-We will model pupil size as normally distributed, because we are not expecting a skew, and we have no further information available about the distribution of pupil sizes. (Given the units used here, pupil sizes cannot be of size zero or negative, so we know for sure that this choice is not exactly right.) For simplicity, assume a linear relationship between load and the pupil size. 
+We will model pupil size as normally distributed, because we are not expecting a skew, and we have no further information available about the distribution of pupil sizes. (Given the units used here, pupil sizes cannot be of size zero or negative, so we know for sure that the choice of a normal likelihood is not exactly right.) For simplicity, assume a linear relationship between load and pupil size. 
 
 Let's summarize our assumptions:
 
