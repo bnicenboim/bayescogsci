@@ -332,7 +332,7 @@ fit_press_trial <-
       family = lognormal(),
       prior = c(prior(normal(6, 1.5), class = Intercept),
                 prior(normal(0, 1), class = sigma),
-                prior(normal(0, .01), class = b, coef = c_trial)))
+                prior(normal(0, 0.01), class = b, coef = c_trial)))
 ```
 
 Instead of printing out the complete output from the model, look at the estimates from the posteriors for the parameters $\alpha$, $\beta$, and $\sigma$. These parameters are on the log scale:
@@ -400,7 +400,7 @@ c(mean = mean(effect_beginning_ms),
   quantile(effect_beginning_ms, c(0.025, 0.975)))
 ```
 
-So far we converted the estimates to obtain median effects, that's why we used $exp(\cdot)$, if we want to obtain mean effects we need to take into account $\sigma$, since we need to calculate  $exp(\cdot + \sigma^2/2)$. However, we can also use the built-in function \index{\texttt{fitted}} `fitted()` which calculates mean effects. Consider again the difference between the second and the first trial this time using `fitted()`.
+So far; we converted the estimates to obtain median effects, that's why we used $exp(\cdot)$. If we want to obtain mean effects, we need to take into account $\sigma$, since we need to calculate  $exp(\cdot + \sigma^2/2)$. However, we can also use the built-in function \index{\texttt{fitted}} `fitted()` which calculates mean effects. Consider again the difference between the second and the first trial this time using `fitted()`.
 
 First, define for which observations we want to obtain the fitted values in millisecond scale. If we are interested in the difference between the second and first trial, create a data frame with  their centered versions.
 
@@ -417,7 +417,7 @@ beginning <- fitted(fit_press_trial,
 head(beginning, 3)
 ```
 
-Last, calculate the difference between trials, and report mean and 95% quantiles.
+The final step is to calculate the difference between trials, and report the mean and the 95% credible interval.
 
 ```{r}
 effect_beginning_ms <- beginning[, 2] - beginning[,1]
