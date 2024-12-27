@@ -321,7 +321,7 @@ Prior selection might look daunting and can be a lot of work. However,  this wor
 
 ### The \index{brms} `brms` model
 
-We are now relatively satisfied with the priors for our model, and we can fit the model of the effect of trial as a button-pressing using `brms`. We need to specify that the family is `lognormal()`.
+We are now relatively satisfied with the priors for our model, and we can fit the model of the effect of trial on button-pressing time using `brms`. We need to specify that the family is `lognormal()`.
 
 
 
