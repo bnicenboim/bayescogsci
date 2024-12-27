@@ -827,7 +827,7 @@ set_sizes <- fitted(fit_recall,
                  summary = FALSE)
 ```
 
-Then calculate the appropriate differences considering that column one of `set_sizes` corresponds to the average set size, column two to the average set size minus one and so forth.
+Then calculate the appropriate differences considering that column one of `set_sizes` corresponds to the average set size, column two to the average set size minus one, and so forth.
 
 ```{r}
 effect_middle <- set_sizes[, 1] - set_sizes[, 2] 
