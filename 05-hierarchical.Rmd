@@ -1225,7 +1225,7 @@ As always, we need priors for all the parameters in our model. For the populatio
  \end{aligned}
  \end{equation}
 
-Here, $\beta$ represents, on the log scale, the change in the intercept $\alpha$ as a function of the experimental manipulation. In this model, $\beta$ will probably be larger in magnitude than for the model that examined the  difference in pressing the spacebar for two consecutive trials in section \@ref(sec-lognormal). We might need to examine the prior for $\beta$ with predictive distributions, but we will delay this for now.
+Here, $\beta$ represents, on the log scale, the change in the intercept $\alpha$ as a function of the experimental manipulation. In this model, $\beta$ will probably be larger in magnitude than for the model that examined the  difference in pressing the spacebar for two consecutive trials in section \@ref(sec-lognormal). We might need to examine the prior for $\beta$ with predictive distributions, but we will postpone that for now.
 
 In contrast to our previous models, the intercept $\alpha$ is not the grand mean of the location. This is because the conditions were not balanced in the experiment (one-third of the conditions were congruent  and two-thirds incongruent). The intercept could be interpreted here as the time (in log-scale) it takes to respond if we ignore the experimental manipulation.
 Next, we turn our attention to the prior specification for the group-level parameters (or random effects). If we assume a possible correlation between by-subject intercepts and slopes, our model will have the following structure. In particular, we have to define priors for the parameters in the variance-covariance matrix $\Sigma_u$.
@@ -1265,7 +1265,7 @@ In practice, this means that we need priors for the by-subject standard deviatio
 \begin{bmatrix}
 1 & \rho_u \\
 \rho_u & 1
-\end{bmatrix} \sim \mathit{LKJcorr}(2)
+\end{bmatrix} &\sim \mathit{LKJcorr}(2)
 \end{aligned}
 \end{equation}
 
