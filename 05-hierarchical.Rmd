@@ -889,7 +889,7 @@ The next section spells out a model with full variance-covariance matrix for bot
 
 ### By-subjects and by-items correlated varying intercept varying slopes model ($M_{sih}$) {#sec-sih}
 
-Our new model, $M_{sih}$ will allow for differences in intercepts (mean voltage) and slopes (effects of predictability) across subjects and across items. In typical Latin square designs, subjects and items are said to be \index{Crossed random effects} *crossed random effects*---each subject sees exactly one instance of each item. Here  we assume a possible \index{Correlation} correlation between varying intercepts and slopes by subjects, and another one by items.
+Our new model, $M_{sih}$, will allow for differences in intercepts (mean voltage) and slopes (effects of predictability) across subjects and across items. In typical Latin square designs, subjects and items are said to be \index{Crossed random effects} *crossed random effects*---each subject sees exactly one instance of each item. Here  we assume a possible \index{Correlation} correlation between varying intercepts and slopes by subjects, as well as a correlation between varying intercepts and slopes  by items.
 
 
 * In $M_{sih}$, we model the EEG data with the following assumptions:
@@ -941,7 +941,7 @@ Our new model, $M_{sih}$ will allow for differences in intercepts (mean voltage)
  \end{aligned}
  \end{equation}
 
-We have added the index  $j$, which represents each item, as we did with subjects;  $item[n]$ indicates the item that corresponds to the observation in the $n$-th row of the data frame.
+The index  $j$ represents the item id; this is analogous to the index $i$ for subjects. Similarly,   $item[n]$ indicates the item that corresponds to the observation in the $n$-th row of the data frame.
 
 We have hyperparameters and hyperpriors as before:
 
@@ -977,7 +977,7 @@ We have hyperparameters and hyperpriors as before:
 \end{aligned}
 \end{equation}
 
-We set identical priors for by-items group-level effects as for  by-subject group-level effects, but this only because we don't have any differentiated prior information about subject-level vs. item-level variation. However, bear in mind that the estimation for items is completely independent from the estimation for subjects. Although we wrote many more equations than before, the `brms` model is quite straightforward to extend. 
+We set identical priors for by-items group-level effects as for  by-subject group-level effects, but this is only because we don't have any differentiated prior information about subject-level vs. item-level variation. However, bear in mind that the estimation for items is completely independent from the estimation for subjects. Although we wrote many more equations than before, the `brms` model is quite straightforward to extend. 
 
 We assign the priors to the by-subject and by-item parameters first:
 
@@ -1093,9 +1093,9 @@ pp_check(fit_N400_sih,
         legend.position.inside = c(.5,.08))
 ```
 
-Why is our \index{Maximal hierarchical model} "maximal" hierarchical model misfitting the by-subject distribution of data? This is because, the maximal models are, in general and implicitly, models with the maximal group-level effect structure for the location parameter (e.g., the mean, $\mu$, in a normal model). Other parameters (e.g., scale or shape parameters) are estimated as auxiliary parameters, and are assumed to be constant across observations and clusters. This assumption is so common that researchers may not be aware that it is just an assumption. In the Bayesian framework, it is easy to change such default assumptions if necessary. Changing the assumption that all subjects have the same residual standard deviation leads to the  distributional regression model. Such models can be fit in `brms`; see also the `brms` vignette, https://cran.r-project.org/web/packages/brms/vignettes/brms_distreg.html.
+Why is our \index{Maximal hierarchical model} "maximal" hierarchical model misfitting the by-subject distribution of data? This is because, the maximal models are, in general and implicitly, models with the maximal group-level effect structure for the location parameter (e.g., the mean, $\mu$, in a normal model). Other parameters (e.g., scale or shape parameters) are estimated as auxiliary parameters, and are assumed to be constant across observations and clusters. This assumption is so common that researchers may not be aware that it is just an assumption. In the Bayesian framework, it is easy to change such default assumptions if necessary. Changing the assumption that all subjects have the same residual standard deviation leads to the  distributional regression model. Such models can be fit in `brms`; also see the `brms` vignette, https://cran.r-project.org/web/packages/brms/vignettes/brms_distreg.html.
 
-We are going to change our previous likelihood, so that the scale, $\sigma$ has also a group-level effect structure. We exponentiate $\sigma$ to make sure that the negative adjustments do not cause $\sigma$ to become negative.
+We are going to change our previous likelihood, so that the scale $\sigma$ also has a group-level effect structure. We exponentiate $\sigma$ to make sure that the negative adjustments do not cause $\sigma$ to become negative.
 
 \begin{equation}
 \begin{aligned}
@@ -1176,9 +1176,9 @@ pp_check(fit_N400_s,
         legend.position.inside = c(.5,.08))
 ```
 
-The model `fit_N400_s` raises the question: how much structure should we add to our statistical model? Should we also assume that $\sigma$ can vary by items, and also by our experimental manipulation? Should we also have a maximal model for $\sigma$? Unfortunately, there are no clear answers that apply to every situation. The amount of complexity that we can introduce in a statistical model depends on (i) the answers we are looking for (we should include parameters that represent what we want to estimate), (ii) the size of the data at hand (more complex models require more data; this could mean more observations within subjects and/or the number of subjects), (iii) our computing power (as the complexity increases models take increasingly long to converge and require more computer power to finish the computations in a feasible time frame), and (iv) our domain knowledge.
+The model `fit_N400_s` raises the question: how much structure should we add to our statistical model? Should we also assume that $\sigma$ can vary by items, and also by our experimental manipulation? Should we also have a maximal model for $\sigma$? Unfortunately, there are no clear answers that apply to every situation. The amount of complexity that we can introduce in a statistical model depends on (i) the answers we are looking for (we should include parameters that represent what we want to estimate), (ii) the size of the data at hand (more complex models require more data; this could mean more observations within subjects and/or the number of subjects), (iii) our computing power (as the complexity increases, models take increasingly long to converge and require more computer power to finish the computations in a feasible time frame), and (iv) our domain knowledge.
 
-Whether certain effects should be included in a model also depends on whether they are known to impact posterior inference or statistical testing (e.g., via Bayes factors). For example, it is well known that estimating group-level effects for the location parameter can have a strong influence on the test statistics for the corresponding population-level effect [@barr2013; @SchadEtAlBF]. Given that population-level effects are often what researchers care about, it is therefore important to consider group-level effects for the location parameter. However, to our knowledge, it is not clear whether estimating group-level effects for the standard deviation of the likelihood has an impact on inferences for the population-level (or fixed) effects. Maybe there is one, but it is not widely known--statistical research would have to be conducted via simulations to assess whether such an influence can take place. The point here is that for some parameters, it's crucial to include them in the model, because they are known to affect the inferences that we want to draw from the data. Other model components may (presumably) be less decisive. Which ones these are remains an open question for research.
+Whether certain variance components should be included in a model also depends on whether there is evidence that they impact posterior inference or statistical testing (this could be investigated using model comparison techniques like Bayes factors). For example, it is well known that estimating group-level effects for the location parameter can have a strong influence on the test statistics for the corresponding population-level effect [@barr2013; @SchadEtAlBF]. Given that population-level effects are often what researchers care about, it is therefore important to consider group-level effects for the location parameter. However, to our knowledge, it is not clear whether estimating group-level effects for the standard deviation of the likelihood has an impact on inferences for the population-level (or fixed) effects. Maybe there is one, but it is not widely known--statistical research would have to be conducted via simulations to assess whether such an influence can take place. The point here is that for some parameters, it's crucial to include them in the model, because they are known to affect the inferences that we want to draw from the data. Other model components may (presumably) be less decisive. Which ones these are remains an open question for research.
 
 Ultimately, all models are approximations (that's in the best case; often, they are plainly wrong) and we need to think carefully about which aspects of our data we have to account and which aspects we can abstract away from.
 
