@@ -338,7 +338,7 @@ noun_s %>%
 ```
 
 
-For example, in (1) below, the continuation *'dog'*  has lower predictability than the continuation *'paint'*, and thus we would expect a more negative signal, that is, an N400 effect, in  *'dog'* in (b) in comparison with  *'paint'* in  (a). It is often the case that predictability is measured with a cloze task (see section \@ref(sec-binomialcloze)).
+For example, in (1) below, the continuation '*dog*'  has lower predictability than the continuation '*paint*,' and thus we would expect a more negative signal, that is, an N400 effect, in  '*dog*' in (b) in comparison with  '*paint*' in  (a). Predictability is often measured with a cloze task (see section \@ref(sec-binomialcloze)).
 
 1. Example from @kutasBrainPotentialsReading1984
     a. Don't touch the wet paint.
@@ -357,7 +357,7 @@ For this example, we are going to focus on the N400 effect for critical nouns fr
     b. The day was breezy so the boy went outside to fly an airplane.
 
 
-We'll ignore the goal of original experiment [@delongProbabilisticWordPreactivation2005], and its replication [@nieuwlandLargescaleReplicationStudy2018]. We are going to focus on the N400 at the final nouns in the experimental stimuli. In example (2), for example, the final noun *'kite'*  has higher predictability than *'airplane'*, and thus we would expect a more negative signal in  *'airplane '* in (b) in comparison with  *'kite'* in  (a).
+We'll ignore the goal of original experiment [@delongProbabilisticWordPreactivation2005], and its replication [@nieuwlandLargescaleReplicationStudy2018]. We are going to focus on the N400 at the final nouns in the experimental stimuli. In example (2), the final noun '*kite*'  has higher predictability than '*airplane*,' and thus we would expect a more negative signal in  '*airplane*' in (b) in comparison with  '*kite*' in  (a).
 
 
 To speed up computation,  we restrict the data set of @nieuwlandLargescaleReplicationStudy2018 to the subjects from the Edinburgh lab. This subset of the data can be found in `df_eeg` in the `bcogsci` package.  Center the cloze probability before using it as a predictor.
@@ -407,10 +407,7 @@ This model, call it $M_{cp}$, makes the following assumptions.
 
 **This model is incorrect for these data due to assumption (2) being violated.**
 
-With the last assumption, we are saying that the difference in the average signal when we compare nouns with cloze probability of 0 and 0.1 is the same as the difference in the signal when we compare nouns with cloze values of 0.1 and 0.2 (or 0.9 and 1). This is just an assumption, and it may not necessarily be the case in the actual data. This means that we are going to get a posterior for $\beta$ conditional on the assumption that the linear relationship holds. Even if it approximately holds, we still don't know how much we deviate from this assumption.
-
-
-
+With the last assumption, we are saying that the difference in the average signal when we compare nouns with cloze probability of 0 and 0.1 is the same as the difference in the signal when we compare nouns with cloze values of 0.1 and 0.2 (or 0.9 and 1). This is just an assumption, and it may not necessarily be the case in the actual data. This means that we are going to get a posterior for $\beta$ conditional on the assumption that the linear relationship holds. Even if the assumption approximately holds, we still don't know how much we deviate from this assumption.
 
 We can now decide on a likelihood and priors.
 
@@ -425,12 +422,11 @@ A normal likelihood seems reasonable for these data:
 
 where $n =1, \ldots, N$, and $signal$ is the dependent variable (average signal in the N400 spatiotemporal window in microvolts). The variable $N$ represents the total number of data points.
 
+As always, we need to rely on our previous knowledge and domain expertise to decide on priors. We know that ERPs (signals time-locked to a stimulus) have mean amplitudes of a couple of microvolts: This is easy to see in any plot of the EEG literature. This means that we don't expect the effect of our manipulation to exceed, say, $10 \mu V$. As before, a priori we'll assume that effects can be negative or positive. We can quantify our prior knowledge regarding plausible values of $\beta$ as normally distributed, centered at zero with a standard deviation of $10 \mu V$. (Other values such as  $5 \mu V$ would have been equally reasonable, since this smaller standard deviation would entail that 95% of the prior mass probability is between $-10$ and $10 \mu V$.)
 
-As always we need to rely on our previous knowledge and domain expertise to decide on priors. We know that ERPs (signals time-locked to a stimulus) have mean amplitudes of a couple of microvolts: This is easy to see in any plot of the EEG literature. This means that we don't expect the effect of our manipulation to exceed, say, $10 \mu V$. As before, a priori we'll assume that effects can be negative or positive. We can quantify our prior knowledge regarding plausible values of $\beta$ as normally distributed centered at zero with a standard deviation of $10 \mu V$. (Other values such as  $5 \mu V$ would have been also reasonable, since it would entail that 95% of the prior mass probability is between $-10$ and $10 \mu V$.)
+If the signal for each ERP is *baselined*, that is, the mean signal of a time window before the time window of interest is subtracted from the time window of interest, then the mean signal would be relatively close to $0$. Since we know that the ERPs were baselined in this study, we expect that the grand mean of our signal should be relatively close to zero. Our prior for $\alpha$ is then also normally distributed,  and centered at zero with a standard deviation of $10 \mu V$.
 
-If the signal for each ERP is *baselined*, that is, the mean signal of a time window before the time window of interest is subtracted from the time window of interest, then the mean signal would be relatively close to $0$. Since we know that the ERPs were baselined in this study, we expect that the grand mean of our signal should be relatively close to zero. Our prior for $\alpha$ is then normally distributed centered in zero with a standard deviation of $10 \mu V$ as well.
-
-The standard deviation of our signal distribution is harder to guess. We know that EEG signals are quite noisy, and that the standard deviation must be higher than zero. Our prior for  $\sigma$ is a  truncated normal distribution with  location  zero and scale 50. Recall that since we truncate the distribution, the parameters location and scale do not correspond to the mean and standard deviation of the new distribution; see online section \@ref(app-truncation).
+The prior for the standard deviation $\sigma$ of our signal distribution requires some thought. We know that EEG signals are quite noisy, and that the standard deviation must be higher than zero. Our prior for  $\sigma$ is a  truncated normal distribution with  location  zero and scale 50. Recall that since we truncate the distribution, the parameters location and scale do not correspond to the mean and standard deviation of the new distribution; see online section \@ref(app-truncation).
 
 We can draw random samples from this truncated distribution and calculate their mean and standard deviation:
 
@@ -526,8 +522,10 @@ We define the priors as follows:
 
 In `brms`, such a model can be fit by removing the common intercept with the formula `n400 ~ 0 + factor(subj) + c_cloze:factor(subj)`.
 
-This formula forces the model to estimate  one intercept and one slope for *each* level of `subj`. ^[If we don't remove the intercept, that is, if we use the formula `n400 ~ 1 + factor(subj) + c_cloze:factor(subj)`, with `factor(subj)` we are going estimate the deviation between the first subject and each of the other subjects.]
-The by-subject intercepts are indicated with `factor(subj)` and the by-subject slopes with `c_cloze:factor(subj)`. It's very important to specify that `subject` should be treated as a factor and not as a number; we don't assume that subject number 3 will show 3 times more positive (or negative) average signal than subject number 1! The model fits 37 independent intercepts and 37 independent slopes. By setting a prior to  `class = b` and omitting `coef`, we are essentially setting identical priors to all the intercepts and slopes of the model. The parameters are  independent from each other; it is only our previous knowledge (or prior beliefs) about their possible values (encoded in the priors) that is identical. We can set different priors to each intercept and slope, but that will mean setting `r 37*2` priors!
+This formula forces the model to estimate  one intercept and one slope for *each* level of `subj`. ^[If we don't remove the intercept, that is, if we use the formula `n400 ~ 1 + factor(subj) + c_cloze:factor(subj)`, with `factor(subj)` we are going estimate the deviation between the first subject and each of the other subjects. This is because the default contrast coding for the subjects, treated as a fixed effect, is treatment contrasts. See chapters \@ref(ch-contr) and  \@ref(ch-coding2x2).]
+The by-subject intercepts are indicated with `factor(subj)` and the by-subject slopes with `c_cloze:factor(subj)`. 
+
+It's very important to specify that `subject` should be treated as a factor and not as a numerical variable; we don't assume that subject number 3 will show 3 times more positive (or negative) average signal than subject number 1! The model fits 37 independent intercepts and 37 independent slopes. By setting a prior to  `class = b` and omitting `coef`, we are essentially setting identical priors to all the intercepts and slopes of the model. The parameters are  independent from each other; it is only our previous knowledge (or prior beliefs) about their possible values (encoded in the priors) that is identical. We can set different priors to each intercept and slope, but that will mean setting `r 37*2` priors!
 
 
 ```{r, message = FALSE, results = "hide"}
