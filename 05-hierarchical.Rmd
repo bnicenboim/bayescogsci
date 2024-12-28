@@ -589,7 +589,7 @@ ggplot(beta_by_subj,
 ### \index{Varying intercepts} Varying intercepts and \index{Varying slopes} varying slopes model ($M_{v}$) {#sec-uncorrelated}
 
 
-One major problem with the no-pooling model is that we completely ignore the fact that the subjects were doing the same experiment. We fit each subject's data ignoring the information available in the other subjects' data.
+One major problem with the no-pooling model is that we fit each subject's data ignoring the information available in the other subjects' data.
 Depending on the characteristics of the data set, the Bayesian no-pooling model might either underfit or overfit the individual subjects' data. It will ignore what can be learned from all the data taken together, and might end up in one of these two situations: if there is not enough data for some subjects, it will underfit—relying too much on the priors and learning too little from the data. Alternatively, if there is enough data, it might overfit, that is, it might learn "too much" from the individual subjects (the estimates from some subjects might be quite extreme and unrepresentative), leading us to overinterpret noisy estimates from the subjects' data [Type M error; see @gelmancarlin]. The model can be modified to explicitly assume that the subjects have an overall effect common to all the subjects, with the individual subjects deviating from this common effect.
 
 In the model that we fit next, we will assume that there is an overall effect that is common to the subjects and, importantly, that all subjects' parameters originate from one common (normal) distribution. This model specification will result in the estimation of posteriors for each subject being also influenced by what we know about all the subjects together. We begin with a hierarchical model with uncorrelated  varying intercepts and slopes. The analogous frequentist model can be fit using `lmer()` from the package `lme4`, using `(1 + c_cloze || subj)` or, equivalently, `(c_cloze || subj)` for the by-subject random effects.
@@ -626,14 +626,14 @@ Thus, the model $M_{v}$ has three *standard deviations*: $\sigma$, $\tau_{u_1}$ 
 
 The by-subject adjustments $u_1$ and $u_2$ are parameters in the model, and therefore have priors defined on them. By contrast, in the frequentist `lmer` model, the adjustments $u_1$ and $u_2$ are not parameters; they are called conditional modes; see @R-lme4.
 
-Parameters that appear in the prior specifications for parameters, such as $\tau_u$, are often called \index{Hyperparameter} *hyperparameters*,^[Another source of confusion here is that *hyperparameters* is also used in the machine learning literature with a different meaning.] and the  priors on such hyperparameters are called \index{Hyperprior} *hyperpriors*. Thus, the parameter $u_1$ has $\mathit{Normal}(0,\tau_{u_1})$ as a prior; $\tau_{u_1}$ is a hyperparameter, and the hyperprior on $\tau_{u_1}$ is $\mathit{Normal}(0,20)$.^[One could in theory keep going deeper and deeper, defining hyper-hyperpriors etc., but the model would quickly become impossible to fit.]
+Parameters that appear in the prior specifications for parameters, such as $\tau_u$, are often called \index{Hyperparameter} *hyperparameters*,^[Another potential source of confusion here is that *hyperparameters* is also used in the machine learning literature with a different meaning.] and the  priors on such hyperparameters are called \index{Hyperprior} *hyperpriors*. Thus, the parameter $u_1$ has $\mathit{Normal}(0,\tau_{u_1})$ as a prior; $\tau_{u_1}$ is a hyperparameter, and the hyperprior on $\tau_{u_1}$ is $\mathit{Normal}(0,20)$.^[One could in theory keep going deeper and deeper, defining hyper-hyperpriors etc., but the model would quickly become impossible to fit.]
 
 We know that in general, in EEG experiments, the standard deviations for the by-subject adjustments are smaller than the standard deviation of the observations (which is the within-subjects standard deviation). That is, usually the between-subject variability in the intercepts and slopes is smaller than the within-subjects variability in the data. For this reason, reducing the scale of the truncated normal distribution to $20$ (in comparison to $50$) seems reasonable for the priors of the $\tau$ parameters. As always, we can do a sensitivity analysis to verify that our priors are reasonably uninformative (if we intended them to be uninformative).
 
 
 For now, we are assuming that there is no relationship (no correlation) between the by-subject intercept and slope adjustments $u_1$ and $u_2$;  this lack of  correlation is indicated in `brms` using the double pipe `||`. The double pipe is also used in the same way in `lmer()` from the package `lme4` (in fact `brms` bases its syntax on that of the `lme4` package).
 
-In \index{brms} `brms`, we need to specify hyperpriors for $\tau_{u_1}$ and $\tau_{u_2}$; these are called `sd` in `brms`, to distinguish these standard deviations from the standard deviation of the residuals $\sigma$. As with the population-level effects, the by-subjects intercept adjustments are implicitly fit for the group-level effects and thus `(c_cloze || subj)` is equivalent to `(1 + c_cloze || subj)`. If we don't want an intercept we need to explicitly indicate it with `(0 + c_cloze || subj)` or `(-1 + c_cloze || subj)`. Such a removal of the intercept is not normally done.
+In \index{brms} `brms`, we need to specify hyperpriors for $\tau_{u_1}$ and $\tau_{u_2}$; these are called `sd` in `brms`, to distinguish these standard deviations from the standard deviation of the residuals $\sigma$. As with the population-level effects, the by-subjects intercept adjustments are implicitly fit for the group-level effects and thus `(c_cloze || subj)` is equivalent to `(1 + c_cloze || subj)`. If we don't want an intercept we need to explicitly indicate this with `(0 + c_cloze || subj)` or `(-1 + c_cloze || subj)`. Such a removal of the intercept is not normally done.
 
 ```{r, message = FALSE, results = "hide"}
 prior_v <-
@@ -843,7 +843,7 @@ ggplot(tibble(rho = c(-0.99, 0.99)), aes(rho)) +
 \begin{bmatrix}
 1 & \rho_u \\
 \rho_u & 1
-\end{bmatrix} \sim \mathit{LKJcorr}(2)
+\end{bmatrix} &\sim \mathit{LKJcorr}(2)
 \end{aligned}
 \end{equation}
 
@@ -851,7 +851,7 @@ ggplot(tibble(rho = c(-0.99, 0.99)), aes(rho)) +
 
 In our \index{brms} `brms` model, we allow a correlation  between the by-subject intercepts and slopes  by using a single pipe `|` instead of the double pipe `||` that we used previously. This convention follows the syntax used in the frequentist `lmer()` function. As before, the varying intercepts are implicitly fit.
 
-Because we have a new parameter, the correlation $\rho_{u}$, we need to add a new prior for this correlation;  in `brms`, this is achieved by addition a prior for the parameter type `cor`.
+Because we have a new parameter, the correlation  $\rho_{u}$, we need to add a new prior for this correlation. In `brms`, this is achieved by adding a prior for the parameter type `cor`. This is not obvious from the `brms` syntax, but the LKJ prior is being defined on the correlation matrix, not the correlation $\rho_{u}$.
 
 ```{r, message = FALSE, results = "hide"}
 prior_h <- c(prior(normal(0, 10), class = Intercept),
@@ -870,8 +870,8 @@ fit_N400_h <- brm(n400 ~ c_cloze + (c_cloze | subj),
                   data = df_eeg)
 ```
 
-The estimates do not change much in comparison with the varying intercept/slope model, probably because the estimation of the correlation is quite poor (i.e., there is a lot of uncertainty). While the inclusion of the correlation parameter is justified, this results, in our experience, in a slower convergence of the models (see also the discussion at the end of the section \@ref(sec-distrmodel)).
-As before, the estimates are shown graphically, in Figure \@ref(fig:plotfitN400h). One can access the complete summary as always with `fit_N400_h`.
+The estimates do not change much in comparison with the varying intercept and varying slope model, probably because the estimation of the correlation is quite poor (i.e., there is a lot of uncertainty in the posterior). While the inclusion of the correlation parameter is justified, this results, in our experience, in a slower convergence of the models (see also the discussion at the end of the section \@ref(sec-distrmodel)).
+As before, the estimates are shown graphically, in Figure \@ref(fig:plotfitN400h). As always, one can access the complete summary by typing `fit_N400_h`.
 
 (ref:plotfitN400h) The posteriors of the parameters in the model `fit_N400_h`.
 
