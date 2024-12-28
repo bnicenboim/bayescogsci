@@ -1286,7 +1286,7 @@ fit_stroop <- brm(RT ~ c_cond + (c_cond | subj),
                   family = lognormal(),
                   prior =
                     c(prior(normal(6, 1.5), class = Intercept),
-                      prior(normal(0, .01), class = b),
+                      prior(normal(0, 0.01), class = b),
                       prior(normal(0, 1), class = sigma),
                       prior(normal(0, 1), class = sd),
                       prior(lkj(2), class = cor)),
@@ -1316,12 +1316,12 @@ if we overlay the density plots for the prior and posterior distributions of $\b
 sample_b_post <- as_draws_df(fit_stroop)$b_c_cond
 # We generate samples from the prior as well:
 N <- length(sample_b_post)
-sample_b_prior <- rnorm(N, 0, .01)
+sample_b_prior <- rnorm(N, 0, 0.01)
 samples <-
   tibble(sample = c(sample_b_post, sample_b_prior),
          distribution = c(rep("posterior", N), rep("prior", N)))
 ggplot(samples, aes(x = sample, fill = distribution)) +
-  geom_density(alpha = .5)
+  geom_density(alpha = 0.5)
 ```
 
 #### \index{Sensitivity analysis} Sensitivity analysis
@@ -1430,7 +1430,7 @@ if (!file.exists("_bookdown_files/df_diffs_stroop.RDS")) {
 }
 ```
 
-Equation \@ref(eq:medianrt) gives us the posterior distributions of the median difference between conditions for the different models. We calculate the median difference rather than the mean difference because the mean depends on the parameter $\sigma$, but the median doesn't: The mean of a log-normal distribution is $\exp(\mu +\sigma ^{2}/2)$, and the median is simply $\exp(\mu)$; see also \@ref(sec-lognormal). Another reason for reporting the median difference is that it would be a better way to summarize a skewed reading time or response time distribution (the mean is very sensitive to extreme values).
+Equation \@ref(eq:medianrt) gives us the posterior distributions of the median difference between conditions for the different models. We calculate the median difference rather than the mean difference because the mean depends on the parameter $\sigma$, but the median doesn't: The mean of a log-normal distribution is $\exp(\mu +\sigma ^{2}/2)$, and the median is simply $\exp(\mu)$; also see section  \@ref(sec-lognormal). Another reason for reporting the median difference is that it would be a better way to summarize a skewed reading time or response time distribution (the mean is very sensitive to extreme values).
 
 Table \@ref(tab:meanrtdiffsummary) summarizes the posterior distributions under different priors using the means of the difference in medians, along with 95% credible intervals. It's important to realize that the use of the mean to summarize the posterior distribution is orthogonal to our use of the median to summarize the response times by condition: In the first case, we use the median to summarize a group of *observations*, and in the second case, we use the mean to summarize a group of *samples* from the posterior--we could have summarized the samples from the posterior with its median instead of the mean.
 
