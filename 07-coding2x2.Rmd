@@ -146,25 +146,13 @@ Now, defining the interaction is simply a matter of multiplying the two vectors:
 AxB <- A * B
 ```
 
-Incidentally, yet another way to add contrasts is to use the `merge` function in `R`. First, define a data frame that represents the main effects and interaction contrasts for the four conditions.
+Now the main effects and interaction can be directly interpreted as differences between averages and as differences between differences. If one wants the interaction term to be on the same scale as the main effects, it would need to be multiplied by 2, however, then its interpretation would not be straightforward (i.e., "the difference between differences") any more, but a scaled variant of this.
+Thus, putting the interaction on the same scale as the main effects has the advantage that it ensures that the prior has the same scaling across the different terms. However, it has the disadvantage that the interpretation of the interaction term is not straightforward.
 
 ```{r}
-(contr_coding <- data.frame(Condition = c("F1","F2","F3","F4"),
-                A = c(-1, -1, 1, 1),
-                B = c(-1, 1, -1, 1),
-                AxB = c(1, -1, -1, 1)))
+## rescale:
+(AxB <- A * B * 2)
 ```
-
-Then, one can merge this data frame with the data frame that contains the data:
-
-```{r}
-(df_contrasts3<-merge(df_contrasts3,
-                     contr_coding,
-                     by.x = c("F"),
-                     by.y = "Condition"))
-```
-
-Using `merge` can be easier to manage than `ifelse()` commands when working with more complex designs, such as $2\times 2\times 2$ factorial designs.
 
 Instead of using $\pm 1$ coding, an alternative is to use $\pm 1/2$ coding when using this approach:
 
@@ -175,18 +163,25 @@ B <- ifelse(df_contrasts3$F %in% c("F1", "F3"), -1 / 2, 1 / 2)
 (AxB <- A * B)
 ```
 
+This kind of vector-based contrast coding is convenient for more complex designs, such as $2\times 2\times 2$ factorial designs. However, in such complex designs, the `ifelse()` command can become cumbersome, so a better approach is to use the `merge` function in `R`. 
 
-
-Now the main effects and interaction can be directly interpreted as differences between averages and as differences between differences. If one wants the interaction term to be on the same scale as the main effects, it would need to be multiplied by 2, however, then its interpretation would not be straightforward (i.e., "the difference between differences") any more, but a scaled variant of this.
-Thus, putting the interaction on the same scale as the main effects has the advantage that it ensures that the prior has the same scaling across the different terms. However, it has the disadvantage that the interpretation of the interaction term is not straightforward.
+First, define a data frame that represents the main effects and interaction contrasts for the four conditions.
 
 ```{r}
-## rescale:
-(AxB <- A * B * 2)
+(contr_coding <- data.frame(Condition = c("F1","F2","F3","F4"),
+                A = c(-1 / 2, -1 / 2, 1 / 2, 1 / 2),
+                B = c(-1 / 2, 1 / 2, -1 / 2, 1 / 2),
+                AxB = c(1 / 2, -1 / 2, -1 / 2, 1 / 2)))
 ```
 
-This kind of vector-based contrast coding is convenient for more complex designs, such as $2\times 2\times 2$ factorial designs.
+Then, one can merge this data frame with the data frame that contains the data:
 
+```{r}
+(df_contrasts3<-merge(df_contrasts3,
+                     contr_coding,
+                     by.x = c("F"),
+                     by.y = "Condition"))
+```
 
 ### \index{Nested effects} Nested effects {#nestedEffects}
 
