@@ -4,7 +4,7 @@ Chapter\ \@ref(ch-contr) provides a basic introduction into contrast coding in s
 
 ## Contrast coding in a factorial \index{$2 \times 2$ design} $2 \times 2$ design {#sec-MR-ANOVA}
 
-In chapter \@ref(ch-contr) in section\ \@ref(sec-4levelFactor), we used a data set with one 4-level factor. Here, we assume that the same four means come from an $A(2) \times B(2)$ between-subject-factor design rather than an F(4) between-subject-factor design. Load the simulated data and show summary statistics in Table\ \@ref(tab:cTab4Means) and in Figure \@ref(fig:twobytwosimdatFig). The means and standard deviations are exactly the same as in Figure \@ref(fig:helmertsimdatFig) and in Table\ \@ref(tab:cTab3Means).
+In section\ \@ref(sec-4levelFactor) of chapter \@ref(ch-contr), we used a data set with one 4-level factor. Here, we assume that the same four means come from an $A(2) \times B(2)$ between-subject-factor design rather than an F(4) between-subject-factor design. Load the simulated data and show summary statistics in Table\ \@ref(tab:cTab4Means) and in Figure \@ref(fig:twobytwosimdatFig). The means and standard deviations are exactly the same as in Figure \@ref(fig:helmertsimdatFig) and in Table\ \@ref(tab:cTab3Means).
 
 ```{r, echo=FALSE, message=FALSE}
 data("df_contrasts4")
@@ -131,7 +131,7 @@ fit_F4hypr <- brm(DV ~ F,
 fixef(fit_F4hypr)
 ```
 
-The results show that the estimates for the main effects have double the size as compared to the sum contrasts--this is the result of the scaling that we applied. I.e., the main effects now directly estimate the difference between averages. The interaction estimates the difference between differences. Importantly, if we change the scaling of the contrasts, we also need to adapt the scaling of the priors. If adequate priors are used, then both contrasts would lead to the same hypothesis tests if one were doing hypothesis testing using Bayes factors. Thus, the `hypr` package can be used to code hypotheses in a $2 \times 2$ design.
+The results show that the estimates for the main effects have (approximately) double the size as compared to the $\pm 1$ sum contrasts--this is the result of the scaling that we applied. I.e., the main effects now directly estimate the difference between averages. The interaction estimates the difference between differences. Importantly, if we change the scaling of the contrasts, we also need to adapt the scaling of the priors. If appropriate priors are used, then both contrasts would lead to the same hypothesis tests if one were doing hypothesis testing using Bayes factors. Thus, the `hypr` package can be used to code hypotheses in a $2 \times 2$ design.
 
 An alternative way to code main effects and interactions is to use the `ifelse` command in R. For example, if we want to use $\pm 1$ sum contrasts in the above example, we can specify the contrasts for the main effects as vectors:
 
@@ -146,7 +146,27 @@ Now, defining the interaction is simply a matter of multiplying the two vectors:
 AxB <- A * B
 ```
 
-An alternative is to use $\pm 1/2$ coding when using this approach:
+Incidentally, yet another way to add contrasts is to use the `merge` function in `R`. First, define a data frame that represents the main effects and interaction contrasts for the four conditions.
+
+```{r}
+(contr_coding <- data.frame(Condition = c("F1","F2","F3","F4"),
+                A = c(-1, -1, 1, 1),
+                B = c(-1, 1, -1, 1),
+                AxB = c(1, -1, -1, 1)))
+```
+
+Then, one can merge this data frame with the data frame that contains the data:
+
+```{r}
+(df_contrasts3<-merge(df_contrasts3,
+                     contr_coding,
+                     by.x = c("F"),
+                     by.y = "Condition"))
+```
+
+Using `merge` can be easier to manage than `ifelse()` commands when working with more complex designs, such as $2\times 2\times 2$ factorial designs.
+
+Instead of using $\pm 1$ coding, an alternative is to use $\pm 1/2$ coding when using this approach:
 
 ```{r}
 A <- ifelse(df_contrasts3$F %in% c("F1", "F2"), -1 / 2, 1 / 2)
@@ -154,6 +174,8 @@ B <- ifelse(df_contrasts3$F %in% c("F1", "F3"), -1 / 2, 1 / 2)
 ## interaction:
 (AxB <- A * B)
 ```
+
+
 
 Now the main effects and interaction can be directly interpreted as differences between averages and as differences between differences. If one wants the interaction term to be on the same scale as the main effects, it would need to be multiplied by 2, however, then its interpretation would not be straightforward (i.e., "the difference between differences") any more, but a scaled variant of this.
 Thus, putting the interaction on the same scale as the main effects has the advantage that it ensures that the prior has the same scaling across the different terms. However, it has the disadvantage that the interpretation of the interaction term is not straightforward.
