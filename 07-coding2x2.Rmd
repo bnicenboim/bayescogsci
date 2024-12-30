@@ -576,7 +576,7 @@ One can also do analyses with \index{Interaction} interactions between a \index{
 
 ## Interactions in generalized linear models (with non-linear link functions) and non-linear models {#sec-interactions-NLM}
 
-Next, we look at \index{Generalized linear models} generalized linear models, where a linear predictor is passed through a non-linear \index{Link function} link function to predict the dependent variable. Examples for generalized linear models include \index{Logistic regression} logistic regression models and models assuming  a Poisson distribution. Even though a log-normal model is a linear model on a log-transformed dependent variable, the same techniques apply to this type of model since the logarithm transform is not linear. Here, we treat an example with a logistic model in a $2 \times 2$ factorial between-subject design. The logistic model has the following non-linear link function called the \index{Logistic function} logistic function: $P(y=1 \mid \eta) = \frac{1}{1 + \exp(-\eta)}$, where $\eta$ is the latent linear predictor. For example, in our $2 \times 2$ factorial design with main effects A and B and their interaction, $\eta$ is computed as a linear combination of the intercept plus the main effects and their interaction: $\eta = 1 + \beta_A x_A + \beta_B x_B + \beta_{A \times B} x_{A \times B}$.
+Next, we look at \index{Generalized linear models} generalized linear models, where a linear predictor is passed through a non-linear \index{Link function} link function to predict the dependent variable. Examples of generalized linear models include \index{Logistic regression} logistic regression models and models assuming  a Poisson distribution. Even though a log-normal model is a linear model on a log-transformed dependent variable, the same techniques apply to this type of model since the logarithm transform is not linear. Here, we treat an example with a logistic model in a $2 \times 2$ factorial between-subject design. The logistic model has the following non-linear link function called the \index{Logistic function} logistic function: $P(y=1 \mid \eta) = \frac{1}{1 + \exp(-\eta)}$, where $\eta$ is the latent linear predictor. For example, in our $2 \times 2$ factorial design with main effects A and B and their interaction, $\eta$ is computed as a linear combination of the intercept plus the main effects and their interaction: $\eta = 1 + \beta_A x_A + \beta_B x_B + \beta_{A \times B} x_{A \times B}$.
 
 Thus, there is a latent level of linear predictions ($\eta$), which are then passed through a non-linear link function to predict the probability that the observed data is a success ($P(y = 1)$). We will use this logistic model to analyze an example data set where the dependent variable is dichotomous, coded as either a $1$ (indicating success) or a $0$ (indicating failure).
 
@@ -680,14 +680,14 @@ df_postSamp_pDV %>%
   colMeans()
 ```
 
-Of course, the advantage is that we now have posterior samples for these conditions available, and can compute posterior 95\% credible intervals (also see Figure \@ref(fig:figpDV)). Rather than do it manually, the function \index{\texttt{conditional\_effects}} `conditional_effects()` can do this for us. By default, all main effects and two-way interactions estimated in the model are shown (this can be changed by including, for example, `effects = "A:B"`).
+Of course, the advantage is that we now have posterior samples for these conditions available, and can compute posterior 95\% credible intervals (also see Figure \@ref(fig:figpDV)). Rather than computing these manually, the function \index{\texttt{conditional\_effects}} `conditional_effects()` can do this for us. By default, all main effects and two-way interactions estimated in the model are shown (this can be changed by including, for example, `effects = "A:B"`).
 
 
 ```{r}
 conditional_effects(fit_pDV_AB.sum, robust = FALSE)[]
 ```
 
-We plot the two-way \index{Interaction} interaction using `brms` embedding the `conditional_effects()` call in `plot(.)[[1]]`. This allows us to select the first (and here the only) `ggplot2`  element and to customize it.
+We plot the two-way \index{Interaction} interaction using `brms`,  embedding the `conditional_effects()` call in `plot(.)[[1]]`. This allows us to select the first (and here the only) `ggplot2`  element and to customize it.
 
 (ref:figpDv) Means and 95 percent posterior credible intervals for a simulated data set of successful task performance in a $2 \times 2$ design.
 
@@ -699,7 +699,7 @@ plot(conditional_effects(fit_pDV_AB.sum,
   labs(y = "Success probability")
 ```
 
-As a final remark, we warn that certain types of interactions might be present at the probability scale, but not at the logit scale (or other way round), which can happen for any non-linear transformation [see @loftus1978interpretation; @wagenmakers2012interpretation].
+As a final remark, certain types of interactions might be present at the probability scale, but not at the logit scale (or the other way round); this can happen for any non-linear transformation [see @loftus1978interpretation; @wagenmakers2012interpretation].
 
 ## Summary
 
