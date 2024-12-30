@@ -683,7 +683,7 @@ fit_Pol <- brm(DV ~ F,
 fixef(fit_Pol)
 ```
 
-In this example, condition means increase across factor levels in a linear fashion, but there may also be quadratic and cubic trends.
+In this example, condition means increase across factor levels in a linear fashion: if one draws a linear regression line through all condition means, this line will increase towards the right. However, there may also be quadratic and cubic trends.
 
 However, one difficulty with the `contr.poly()` function is that the scaling of the predictor variables is not very clear, making it difficult to define priors. Therefore, an alternative can be to use custom polynomial contrasts:
 
