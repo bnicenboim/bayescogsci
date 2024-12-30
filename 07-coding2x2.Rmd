@@ -211,7 +211,7 @@ fixef(fit_Nest)
 
 The regression coefficients estimate the \index{Grand mean} grand mean, the difference for the \index{Main effects} main effect of part of speech ($B$) and the two differences (for $A$; i.e., simple main effects) within the two levels (noun and verb) of part of speech ($B$).
 
-These \index{Custom nested contrasts} custom nested contrasts' columns are scaled versions of the corresponding \index{Hypothesis matrix} hypothesis matrix. This is the case because the columns are orthogonal. It illustrates one advantage of \index{Orthogonal contrasts} orthogonal contrasts for the interpretation of regression coefficients: the underlying comparisons being estimated are already clear from the contrast matrix.
+These \index{Custom nested contrasts} custom nested contrasts' columns are scaled versions of the corresponding \index{Hypothesis matrix} hypothesis matrix. This is the case because the columns are orthogonal. This illustrates one advantage of \index{Orthogonal contrasts} orthogonal contrasts for the interpretation of regression coefficients: the underlying comparisons being estimated are already clear from the contrast matrix.
 
 There is also a built-in R formula specification for nested designs. The order of factors in the formula from left to right specifies a top-down order of nesting within levels, i.e., here factor $A$ (word frequency) is nested within levels of the factor $B$ (part of speech). This yields the same result as our previous result based on custom nested contrasts:
 
@@ -229,7 +229,7 @@ fit_Nest2 <- brm(DV ~ B / A,
 fixef(fit_Nest2)
 ```
 
-In cases such as these, where $A_{B1}$ vs. $A_{B2}$ are nested within levels of $B$, it is necessary to include the effect of $B$ (part of speech) in the model, even if one is only interested in the effect of $A$ (word frequency) within levels of $B$ (part of speech). Leaving out factor $B$ in this case would increase posterior uncertainty if the data are fully balanced, and could lead to biases in parameter estimation if the data are not fully balanced.
+In cases such as these, where $A_{B1}$ vs. $A_{B2}$ are nested within levels of $B$, it is necessary to include the effect of $B$ (part of speech) in the model, even if one is only interested in the effect of $A$ (word frequency) within levels of $B$ (part of speech). Leaving out factor $B$ in this particular case of a between-subjects deisn would increase posterior uncertainty if the data are fully balanced, and could lead to biases in parameter estimation if the data are not fully balanced.
 
 Again, we show how nested contrasts can be easily implemented using \index{\texttt{hypr}} `hypr`:
 
@@ -276,6 +276,8 @@ fixef(fit_Nest2Hypr)
 ```
 
 Regression coefficients estimate the \index{Grand mean} grand mean, the difference for the \index{Main effects} main effect of word frequency ($A$) and the two part of speech effects (for $B$; i.e., \index{Simple effects} simple main effects) within levels of word frequency ($A$).
+
+An important issue to keep in mind is that if, using nested contrasts, one finds a large effect in one nested comparison (e.g., `FA2xB`) but no difference or a smaller effect in the other comparison (here, `FA1xB`), one cannot conclude that there is an interaction; to argue for an interaction, one would have to test for the main effects and interaction using the ANOVA contrast coding [@nieuwenhuis2011erroneous].
 
 ### \index{Interaction} Interactions between contrasts
 
