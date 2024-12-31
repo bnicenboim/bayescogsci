@@ -217,9 +217,9 @@ normal <- system.file("stan_models",
                       package = "bcogsci")
 ```
 
-This command just points to a text file that the package `bcogsci` stores on your computer. You can open it to read the code (with any text editor, or `readLines()` in R). You'll need to compile this code and run it with `stan()`.
+This command just points to a text file that the package `bcogsci` stores on your computer. You can open it to read the code (with any text editor, or `readLines()` in `R`). You'll need to compile this code and run it with `stan()`.
 
-Stan requires the data to be in a list object in R. Below, we fit the model with the default number of \index{Chain} chains and \index{Iteration} iterations.
+Stan requires the data to be in a list object in `R`. Below, we fit the model with the default number of \index{Chain} chains and \index{Iteration} iterations.
 
 
 
@@ -258,7 +258,7 @@ print.stanfit <- function(fit, pars, probs = c(0.025, 0.975), digits_summary = 2
 }
 ```
 
-After transforming the `stanfit` object into a data frame, it's possible to provide summary plots as the one shown in \@ref(fig:mcmchist). The package \index{\texttt{bayesplot}} `bayesplot` [@R-bayesplot] is a wrapper around `ggplot2` [@R-ggplot2] and has several convenient functions to plot the samples. Bayesplot functions for posterior summaries start with `mcmc_`:
+After transforming the `stanfit` object into a data frame, it's possible to provide summary plots as the one shown in Figure \@ref(fig:mcmchist). The package \index{\texttt{bayesplot}} `bayesplot` [@R-bayesplot] is a wrapper around `ggplot2` [@R-ggplot2] and has several convenient functions to plot the samples. Bayesplot functions for posterior summaries start with `mcmc_`:
 
 (ref:mcmchist) Histograms of the samples of the posterior distributions of `mu` and `sigma` from the model `fit_score`.
 
@@ -267,12 +267,13 @@ df_fit_score <- as.data.frame(fit_score)
 mcmc_hist(df_fit_score, pars = c("mu", "sigma"))
 ```
 
-There are also several ways to get the samples for other summaries or customized plots, depending on whether we want a list, a data frame, or an array.^[In addition, the new package `posterior` provides useful tools for working with output from Bayesian models. It allows for converting the output between many different formats and offers consistent methods for operations commonly performed on samples, as well as summary functions.]
+There are also several ways to get the samples for other summaries or customized plots, depending on whether we want a list, a data frame, or an array.^[In addition, the new package `posterior` provides useful tools for working with output from Bayesian models. It allows for converting the output between many different formats,  and offers consistent methods for operations commonly performed on samples, as well as summary functions.]
 
 
 ```{r}
-# extract from rstan is sometimes overwritten by
-# a tidyverse version, we make sure that it's right one:
+# The function extract from rstan is sometimes overwritten by
+# a tidyverse version with the same name, so make sure that 
+# you are using the right function:
 rstan::extract(fit_score) %>%
   str()
 as.data.frame(fit_score) %>%
@@ -286,7 +287,7 @@ as.array(fit_score) %>%
 
 ## Another simple example: \index{Cloze probability} Cloze probability with Stan with the \index{Binomial likelihood} binomial likelihood {#sec-clozestan}
 
-Let's fit a Stan model (`binomial_cloze.stan`) to estimate the cloze probability of a word given its context: that is, what is the probability of an upcoming word given its previous context; the model that is detailed in \@ref(sec-analytical) and was fit in \@ref(sec-sampling). We want to estimate the cloze probability of *"umbrella"*, $\theta$,   given the following data:  *"umbrella"* was answered $80$ out of $100$ trials. We assume a \index{Binomial distribution} binomial distribution as the \index{Likelihood function} likelihood function, and \index{$Beta$} $Beta(a=4,b=4)$ as a \index{Prior} prior distribution for the cloze probability.
+Let's fit a Stan model (`binomial_cloze.stan`) to estimate the cloze probability of a word given its context: that is, what is the probability of an upcoming word given its previous context; the model that was detailed in section \@ref(sec-analytical) and was fit in section \@ref(sec-sampling). We want to estimate the cloze probability of *"umbrella"*, $\theta$,   given the following data:  *"umbrella"* was answered $80$ out of $100$ trials. We assume a \index{Binomial distribution} binomial distribution as the \index{Likelihood function} likelihood function, and \index{$Beta$} $Beta(a=4,b=4)$ as a \index{Prior} prior distribution for the cloze probability.
 
 
 ```{r, echo = FALSE}
