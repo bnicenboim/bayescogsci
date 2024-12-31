@@ -287,7 +287,7 @@ as.array(fit_score) %>%
 
 ## Another simple example: \index{Cloze probability} Cloze probability with Stan with the \index{Binomial likelihood} binomial likelihood {#sec-clozestan}
 
-Let's fit a Stan model (`binomial_cloze.stan`) to estimate the cloze probability of a word given its context: that is, what is the probability of an upcoming word given its previous context; the model that was detailed in section \@ref(sec-analytical) and was fit in section \@ref(sec-sampling). We want to estimate the cloze probability of *"umbrella"*, $\theta$,   given the following data:  *"umbrella"* was answered $80$ out of $100$ trials. We assume a \index{Binomial distribution} binomial distribution as the \index{Likelihood function} likelihood function, and \index{$Beta$} $Beta(a=4,b=4)$ as a \index{Prior} prior distribution for the cloze probability.
+Let's fit a Stan model (`binomial_cloze.stan`) to estimate the cloze probability of a word given its context: that is, what is the probability of an upcoming word given its previous context; the model that was detailed in section \@ref(sec-analytical) and was fit in section \@ref(sec-sampling). We want to estimate  $\theta$, the cloze probability of producing "*umbrella*,"  given the following data:  "*umbrella*" was produced in $80$ out of $100$ trials. We assume a binomial distribution as the likelihood function, and $Beta(a=4,b=4)$ as a prior distribution for the cloze probability.
 
 
 ```{r, echo = FALSE}
@@ -331,7 +331,7 @@ In the following sections, we will revisit and expand on some of the examples th
 
 ### A first \index{Linear regression} linear regression in Stan: Does attentional load affect \index{Pupil size} pupil size? {#sec-pupilstan}
 
-As in section \@ref(sec-pupil), we focus on  the effect of cognitive load on one subject's pupil size with a subset of the data of @wahnPupilSizesScale2016. We use the following likelihood and priors. For details about our decision on priors and likelihood, see section  \@ref(sec-pupil).
+As in section \@ref(sec-pupil), we focus on  the effect of cognitive load on one subject's pupil size with a subset of the data from  @wahnPupilSizesScale2016. We use the following likelihood and priors. For details about our decision on priors and likelihood, see section  \@ref(sec-pupil).
 
 \begin{equation}
 \begin{aligned}
@@ -342,7 +342,7 @@ p\_size_n &\sim \mathit{Normal}(\alpha + c\_load_n \cdot \beta,\sigma) \\
 \end{aligned}
 \end{equation}
 
-The Stan model `pupil.stan` follows:
+The Stan model `pupil.stan` is as follows:
 
 ```{r pupilstan, echo = FALSE}
 pupil <- system.file("stan_models",
@@ -373,14 +373,14 @@ target += normal_lpdf(sigma | 0, 1000)
     - normal_lccdf(0 | 0, 1000);
 ```
 
-As in our original example in \@ref(sec-pupil), we are assuming a truncated normal distribution as a prior for $\sigma$. Not only are we setting a lower boundary to the parameter with `lower = 0`, but we are also "correcting" its prior distribution by subtracting `normal_lccdf(0 | 0, 1000)`, where \index{\texttt{lccdf}} `lccdf` stands for \index{Log complement of a cumulative distribution function} log complement of a cumulative distribution function. Once we add a \index{Lower boundary} lower boundary, the probability mass under half of the "regular" normal distribution should be one, that is, when we integrate from zero (rather than from minus infinity) to infinity. As discussed in online section \@ref(app-truncation), we need to normalize the PDF by dividing it by the difference of its CDF evaluated in the new boundaries ($a = 0$ and $b = \infty$ in our case):
+As in our original example in section \@ref(sec-pupil), we are assuming a truncated normal distribution as a prior for $\sigma$. Not only are we setting a lower boundary to the parameter with `lower = 0`, but we are also "correcting" its prior distribution by subtracting `normal_lccdf(0 | 0, 1000)`, where \index{\texttt{lccdf}} `lccdf` stands for \index{Log complement of a cumulative distribution function} log complement of a cumulative distribution function. Once we add a \index{Lower boundary} lower boundary, the probability mass under half of the "regular" normal distribution should be one, that is, when we integrate from zero (rather than from minus infinity) to infinity. As discussed in online section \@ref(app-truncation), we need to normalize the PDF by dividing it by the difference of its CDF evaluated in the new boundaries ($a = 0$ and $b = \infty$ in our case):
 
 \begin{equation}
 f_{[a,b]}(x) = \frac{f(x)}{F(b) - F(a)}
 (\#eq:truncPDF2)
 \end{equation}
 
-where $f$ is a PDF and $F$ a CDF.
+where $f$ is the PDF and $F$ the CDF.
 
 This equation in log-space is:
 
@@ -436,7 +436,7 @@ To determine the probability that the posterior for beta is larger than zero giv
 mean(df_fit_pupil$beta > 0)
 ```
 
-To generate prior or \index{Posterior predictive distribution} posterior predictive distributions, we can create our own functions in R with the `purrr` function `map_dfr` (or a for-loop) as we did in section  \@ref(sec-trial) with the function `lognormal_model_pred()`. Alternatively, we can use the \index{\texttt{generated quantities}} `generated quantities` block in our model:
+To generate prior or \index{Posterior predictive distribution} posterior predictive distributions, we can create our own functions in `R` with the `purrr` function `map_dfr` (or a for-loop) as we did in section  \@ref(sec-trial) with the function `lognormal_model_pred()`. Alternatively, we can use the \index{\texttt{generated quantities}} `generated quantities` block in our model:
 
 ```{r pupilgenstan, echo = FALSE}
 pupil_gen <- system.file("stan_models",
@@ -453,7 +453,7 @@ For most of the probability functions, there is a matching \index{Pseudorandom n
 p_size_pred = normal_rng(alpha + c_load * beta, sigma);
 ```
 
-At the moment not all the PRNG are vectorized, but the ones that are only allow for \index{\texttt{array}} arrays  and, confusingly enough, not vectors. We define an array by indicating `array`, between brackets, the length of each dimension, then the type, and finaly the name of the variable. For example to define an array of real numbers with three dimension of length 6, 7, and 10 we write `array[6, 7, 10] real var`.^[The notation for arrays has changed in recent versions, the previous notation would have been `real[6, 7, 10] var`.] Vectors and matrices are also valid types for an array. See online section \@ref(app-stancontainers) for more about the difference between arrays and vectors, and other  algebra types. We also included a data variable called `onlyprior`, this is an integer that can only be set to $1$ (TRUE) or $0$ (FALSE). When `onlyprior == 1`, the likelihood is omitted from the model, `p_size` is ignored, and `p_size_pred` is the \index{Prior predictive distribution} prior predictive distribution. When `onlyprior == 0`, the likelihood is incorporated in the model (as it is in the original code `pupil.stan`) using `p_size`, and `p_size_pred` is the posterior predictive distribution.
+At the moment not all the PRNG are vectorized, but the ones that are only allow for \index{\texttt{array}} arrays  and, confusingly enough, not vectors. We define an array by indicating `array`, between brackets, the length of each dimension, then the type, and finally the name of the variable. For example, to define an array of real numbers with three dimensions of length 6, 7, and 10, we write `array[6, 7, 10] real var`.^[The notation for arrays has changed in recent versions, the previous notation would have been `real[6, 7, 10] var`.] Vectors and matrices are also valid types for an array. See online section \@ref(app-stancontainers) for more about the difference between arrays and vectors, and other  algebra types. We also included a data variable called `onlyprior`, this is an integer that can only be set to $1$ (TRUE) or $0$ (FALSE). When `onlyprior == 1`, the likelihood is omitted from the model, `p_size` is ignored, and `p_size_pred` is the \index{Prior predictive distribution} prior predictive distribution. When `onlyprior == 0`, the likelihood is incorporated in the model (as it is in the original code `pupil.stan`) using `p_size`, and `p_size_pred` is the posterior predictive distribution.
 
 
 If we want posterior predictive distributions, we fit the model to the data and set `onlyprior = 0`, if we want  prior predictive distributions, we sample from the priors and set `onlyprior = 1`. Then we use `bayesplot` functions to visualize predictive checks.
@@ -513,7 +513,7 @@ ppd_dens_overlay(yrep_prior_pupil[1:50, ])
 
 ### \index{Interaction} Interactions in Stan: Does attentional load interact with trial number affecting \index{Pupil size} pupil size? {#sec-interstan}
 
-We'll expand the previous model to also include the effect of (centered) trial and its interaction with cognitive load on one subject's pupil size. Our new likelihood will look as follows:
+We'll expand the previous model to also include the effect of (centered) trial and its interaction with cognitive load on one subject's pupil size. Our new likelihood is as follows:
 
 \begin{equation}
 p\_size_n \sim \mathit{Normal}(\alpha + c\_load_n \cdot \beta_1 + c\_trial \cdot \beta_2 + c\_load \cdot c\_trial \cdot \beta_3, \sigma)
@@ -542,7 +542,7 @@ pupil_int1 <- system.file("stan_models", "pupil_int1.stan", package = "bcogsci")
 ```{stan output.var = "pupilint_stan", code = readLines(pupil_int1),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
 ```
 
-When there are matrices or vectors involved,  `*` indicates matrix multiplication whereas `.*` indicates \index{Element-wise multiplication} element-wise multiplication; in R `%*%` indicates matrix multiplication whereas `*` indicates element-wise multiplication.
+When there are matrices or vectors involved,  `*` indicates matrix multiplication whereas `.*` indicates \index{Element-wise multiplication} element-wise multiplication; in `R`, `%*%` indicates matrix multiplication whereas `*` indicates element-wise multiplication.
 
 There is, however, an alternative notation that can simplify our code. In the following likelihood, $p\_size$ is a vector of N observations (in this case 41), $X$ is the model matrix with a dimension of $N \times N_{pred}$ (in this case $41 \times 3$), and $\beta$ a vector of $N_{pred}$ (in this case, 3) rows. Assuming that $\beta$ is a vector, we indicate with one line that each parameter $\beta_n$ is sampled from identical prior distributions.
 
@@ -600,9 +600,9 @@ fit_pupil_int <- stan(pupil_int, data = ls_pupil_X)
 print(fit_pupil_int, pars = c("alpha", "beta", "sigma"))
 ```
 
-In \@ref(fig:pupilintbeta), we  plot here the 95% CrI of the parameters of interest. We use \index{\texttt{regex\_pars}} `regex_pars`, rather than `pars`, because we want to capture `beta[1]`, `beta[2]`, and `beta[3]`; `regex_pars` use \index{Regular expression} regular expressions to select the parameters (for information about regular expressions in R see https://stat.ethz.ch/R-manual/R-devel/library/base/html/regex.html)
+In Figure \@ref(fig:pupilintbeta), we  plot the 95% CrI of the parameters of interest. We use \index{\texttt{regex\_pars}} `regex_pars`, rather than `pars`, because we want to capture `beta[1]`, `beta[2]`, and `beta[3]`; `regex_pars` use \index{Regular expression} regular expressions to select the parameters (for information about regular expressions in `R`, see https://stat.ethz.ch/R-manual/R-devel/library/base/html/regex.html).
 
-(ref:pupilintbeta) 95% CrI of the effect of load, `beta[1]`, the effect of trial, `beta[2]`, and their interaction, `beta[3]`.
+(ref:pupilintbeta) The means and 95% CrIs of the effect of load, `beta[1]`, the effect of trial, `beta[2]`, and their interaction, `beta[3]`.
 
 ```{r pupilintbeta, fig.cap = "(ref:pupilintbeta)", message = FALSE, fig.height = 2.5}
 df_fit_pupil_int <- as.data.frame(fit_pupil_int)
@@ -616,7 +616,7 @@ mcmc_intervals(fit_pupil_int,
 
 ### \index{Logistic regression} Logistic regression in Stan: Does set size and trial affect free recall? {#sec-logisticstan}
 
-We revisit and expand on the analysis presented in  \@ref(sec-logistic) of a subset of the data of @oberauerWorkingMemoryCapacity2019. In this example, we will investigate whether the length of a list and trial number affect the probability of correctly recalling a word.
+We revisit and expand on the analysis presented in  section \@ref(sec-logistic) of a subset of the data from  @oberauerWorkingMemoryCapacity2019. In this example, we will investigate whether the length of a list and trial number affect the probability of correctly recalling a word.
 
 As in section \@ref(sec-logistic), we assume a \index{Bernoulli likelihood} Bernoulli likelihood with a \index{Logit link function} logit link function, and the following priors (recall that the \index{Logistic function} logistic function is the inverse of the logit).
 
@@ -676,7 +676,7 @@ df_recall <- df_recall %>%
          c_trial = trial - mean(trial))
 ```
 
-Next, we create the model matrix, $X$, and prepare the data as a list. As in section \@ref(sec-interstan), we exclude the intercept from the matrix `X` using ` 0 +... `. This is because the Stan code that we are using already takes into account that the first column in the model matrix is going to be a vector of ones.
+Next, create the model matrix, $X$, and prepare the data as a list. As in section \@ref(sec-interstan), exclude the intercept from the matrix `X` using ` 0 +... `. This is because the Stan code that we are using already takes into account that the first column in the model matrix is going to be a vector of ones.
 
 ```{r}
 X <- model.matrix(~ 0 + c_set_size * c_trial, df_recall)
@@ -693,7 +693,7 @@ recall <- system.file("stan_models",
 fit_recall <- stan(recall, data = ls_recall)
 ```
 
-After fitting the model we can print and plot summaries of the posterior distribution.
+After fitting the model, we can print and plot summaries of the posterior distribution.
 
 ```{r}
 print(fit_recall, pars = c("alpha", "beta"))
@@ -712,7 +712,7 @@ mcmc_intervals(df_fit_recall,
   xlab("log-odds") 
 ```
 
-As we did in \@ref(sec-comlogis), we might want to communicate the posterior in proportions rather than in log-odds (as seen in the parameters `beta`). We can do this in R manipulating the data frame `df_fit_recall`, or extracting the samples with `extract(fit_recall)`. Another alternative presented here is by using the \index{\texttt{generated quantities}} generated quantities block. To make the code more compact we declare the type of each variable and store its content in the same line in `recall_prop.stan`.
+As shown in section \@ref(sec-comlogis), we might want to communicate the posterior in proportions rather than in log-odds (as seen in the parameters `beta`). This can be done in `R` by manipulating the data frame `df_fit_recall`, or by extracting the samples with `extract(fit_recall)`. Another alternative presented here is by using the generated quantities block. To make the code more compact, we declare the type of each variable and store its content in the same line in `recall_prop.stan`.
 
 ```{r recallpropstan, echo = FALSE}
 recall_prop <- system.file("stan_models",
@@ -770,7 +770,7 @@ mcmc_intervals(df_fit_recall,
 
 ```
 
-The plot in Figure \@ref(fig:cri-vaccdet)(b) shows that our model is estimating that by increasing the set size by one unit, the recall accuracy of the single subject is deteriorates by 2%. In contrast, there is hardly any trial effect or interaction between trial and set size.
+The plot in Figure \@ref(fig:cri-vaccdet)(b) shows that our model is estimating that by increasing the set size by one unit, the recall accuracy of the single subject deteriorates by 2%. In contrast, there is hardly any trial effect or interaction between trial and set size.
 
 
 ## Summary
@@ -779,5 +779,5 @@ This chapter introduced basic Stan syntax for fitting some standard linear model
 
 ## Further reading
 
-For further reading on the  Hamiltonian Monte Carlo algorithm, see the rather technical review of @betancourt2017conceptual, or the more conceptual introduction provided by  @monnahanFasterEstimationBayesian2017 or chapter 17 of @lambert2018student. A useful article with example R code is @nealMCMCUsingHamiltonian2011. A detailed walk-through on its implementation is also provided in Chapter 41 of @mackay. The Stan documentation [@Stan2023], consisting of a User's Guide and the Language Reference Manual are important starting points for going deeper into Stan programming: https://mc-stan.org/users/documentation/.
+For further reading on the  Hamiltonian Monte Carlo algorithm, see the rather technical review of @betancourt2017conceptual, or the more conceptual introduction provided by  @monnahanFasterEstimationBayesian2017 or chapter 17 of @lambert2018student. A useful article with example `R` code is @nealMCMCUsingHamiltonian2011. A detailed walk-through on its implementation is also provided in Chapter 41 of @mackay. The Stan documentation [@Stan2023], consisting of a User's Guide and the Language Reference Manual are important starting points for going deeper into Stan programming: https://mc-stan.org/users/documentation/.
 
