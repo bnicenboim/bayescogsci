@@ -40,11 +40,11 @@ One question that might arise here is the following: Given that we already know 
 
 To make this discussion concrete, let's say that we have a subject that  participates in a memory test, and in each trial we get a noisy score from their true \index{Working memory} working memory score. We assume that at each trial, the score is elicited with normally distributed noise. If we want to estimate the score and how much the noise makes it vary from trial to trial, we are assuming a normal likelihood and we want to estimate its mean and standard deviation.
 
-We will use simulated data produced by a normal distribution with a true mean of 3 and a true standard deviation of 10:
+We will use simulate data produced by a normal distribution with a true mean of $3$ and a true standard deviation of $10$ (the units are arbitrary):
 
 ```{r yscores}
-Y <- rnorm(n = 100, mean = 3, sd = 10)
-head(Y)
+y <- rnorm(n = 100, mean = 3, sd = 10)
+head(y)
 ```
 
 As always, given our prior knowledge, we decide on priors. In this case, we use a log-normal prior for the standard deviation, $\sigma$, since it can only be positive, but except for that, the prior distributions are quite arbitrary in this example.
@@ -84,7 +84,7 @@ q(mu = 0, sigma = 5, y = Y)
 
 The shape of the unnormalized posterior density is completely defined and it will look like Figure \@ref(fig:up).
 
-(ref:up) The unnormalized posterior defined by equation \@ref(eq:up).
+(ref:up) The unnormalized posterior defined by Equation \@ref(eq:up).
 
 ```{r up, fig.cap = "(ref:up)" ,echo = FALSE, warning=FALSE, fig.height = 3.5, fig.width = 7}
 mu <- seq(-40, 40, 1)
@@ -103,8 +103,8 @@ lattice::wireframe(density ~ mu * sigma, data = dup,
 ```
 
 
-Why is the shape of the unnormalized posterior density not enough? The main reason is that unless we already know which probability distribution we are dealing with (e.g., normal, Bernoulli, etc.) or we can easily \index{Integrate} integrate it (which can only be done in simpler cases) we cannot do much with the analytical form of the unnormalized posterior: We cannot calculate credible intervals, or know how likely it is that the true score is above or below zero, and even the mean of the posterior is impossible to calculate.
-This is because the unnormalized posterior distribution represents the shape of the posterior distribution. With just the shape of an unknown distribution, we can only answer the following question: What is the most (or least) likely value of the vector of parameters? We can answer this question by searching for the highest (or lowest) place in that shape. This leads us to the \index{Maximum a posteriori} maximum a posteriori \index{MAP} (MAP) estimate (i.e., the highest point in Figure \@ref(fig:up), or the lowest point of the negative log unnormalized log posterior), which is in a sense the "Bayesian counterpart" of the penalized maximum likelihood estimate (MLE). However, it is not truly Bayesian since it doesn't take into account the uncertainty of the posterior. Even calculating the mode is not always trivial. In simple cases as this one, one can calculate it analytically; but in more complex cases relatively complicated algorithms are needed. (If we can recognize the shape as a distribution, we are in a different situation. In that case, we might know already the formulas for the expectation, variance, etc. This is what we did in chapter \@ref(ch-introBDA), but this is an unusual situation in realistic analyses.)
+Why is the shape of the unnormalized posterior density not enough to obtain samples? The main reason is that unless we already know which probability distribution we are dealing with (e.g., normal, Bernoulli, etc.) or we can easily \index{Integrate} integrate it (which can only be done in simpler cases), we cannot do much with the analytical form of the unnormalized posterior: We cannot calculate credible intervals, or know how likely it is that the true score is above or below zero, and even the mean of the posterior is impossible to calculate.
+This is because the unnormalized posterior distribution represents the shape of the posterior distribution. With just the shape of an unknown distribution, we can only answer the following question: What is the most (or least) likely value of the vector of parameters? We can answer this question by searching for the highest (or lowest) place in that shape. This leads us to the \index{Maximum a posteriori} maximum a posteriori \index{MAP} (MAP) estimate (i.e., the highest point in Figure \@ref(fig:up), or the lowest point of the negative log unnormalized log posterior), which is in a sense the "Bayesian counterpart" of the penalized maximum likelihood estimate (MLE). However, the MAP is not truly Bayesian since it doesn't take into account the uncertainty of the posterior. Even calculating the mode is not always trivial. In simple cases such as this one, one can calculate it analytically; but in more complex cases, relatively complicated algorithms are needed. (If we can recognize the shape as a distribution, we are in a different situation. In that case, we might know already the formulas for the expectation, variance, etc. This is what we did in chapter \@ref(ch-introBDA), but this is an unusual situation in realistic analyses.)
 As we mentioned before, if we want to get \index{Posterior density value} posterior density values, we need the denominator of the Bayes rule (or \index{Marginal likelihood} marginal likelihood), $p(y)$, which requires integrating the unnormalized posterior. Even this is not too useful if we want to communicate findings: almost every summary statistic requires us to solve more integrals, and except for a handful of cases, these integrals might not have an analytical solution.
 
 If we want to be able to calculate \index{Summary statistics} summary statistics of the posterior distribution (mean, quantiles, etc.), we are going to need \index{Sample} samples from this distribution. This is because with enough samples of a probability distribution, we can achieve very good approximations of summary statistics.
