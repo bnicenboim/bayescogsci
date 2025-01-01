@@ -523,7 +523,7 @@ The code implements the following new types and functions:
   the vector `tau_u` and multiplies it by `L_u`.
 * \index{\texttt{to\_vector}} `to_vector(z_u)` makes a long vector out the matrix `z_u`.
 * \index{\texttt{lkj\_corr\_cholesky}} `lkj_corr_cholesky_lpdf(L_u | 2)` is the Cholesky factor associated with the \index{LKJ
-  correlation distribution} LKJ correlation distribution. It implies that `lkj_corr_lpdf(L_u * L_u'| 2)`. The symbol `'` indicates transposition (in R, this is the function `t()`).
+  correlation distribution} LKJ correlation distribution. It implies that `lkj_corr_lpdf(L_u * L_u'| 2)`. The symbol `'` indicates transposition (in `R`, this is the function `t()`).
 
 
 ```{stan output.var = "hierarchical_corr2_stan", code = readLines(hierarchical_corr2),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE} 
@@ -731,6 +731,6 @@ We also learned about some important and powerful tools for making the Stan mode
 
 @GelmanHill2007 provides a comprehensive introduction to Bayesian hierarchical  models, although that edition does not use Stan but rather WinBUGS. @SorensenVasishthTutorial is a short tutorial on hierarchical modeling using Stan, especially tailored for psychologists and linguists.
 
-An additional example of reparameterization (kindly suggested by Martin Modrák) involves reparameterizing a varying intercept/effects model in terms of total variance and its distribution across individual components. This approach has both theoretical advantages, such as making it easier to elicit priors on total variance and its split, and practical benefits, such as allowing us to work with data sets where only a small number of subjects have repeated measurements, which might otherwise pose computational challenges. This concept is explored in more depth in @hem2022. Additionally, a short gist provided by Martin Modrák demonstrates how this reparameterization resolves divergences and increases the effective sample size in a model adapted from this chapter. At the time of writing, Modrák's gist is available at  https://gist.github.com/martinmodrak/61a68f22ed954ae68abc76faeef860b6.
+An additional example of reparameterization (suggested by Martin Modrák, personal communication) involves reparameterizing a varying intercept/effects model in terms of total variance and its distribution across individual components. This approach has both theoretical advantages, such as making it easier to elicit priors on total variance and its split, and practical benefits, such as allowing us to work with data sets where only a small number of subjects have repeated measurements, which might otherwise pose computational challenges. This concept is explored in more depth in @hem2022. Additionally, a short gist provided by Martin Modrák demonstrates how this reparameterization resolves divergences and increases the effective sample size in a model adapted from this chapter. At the time of writing, Modrák's gist is available at  https://gist.github.com/martinmodrak/61a68f22ed954ae68abc76faeef860b6.
 
 
