@@ -367,7 +367,7 @@ From a mathematical point of view, the following model is equivalent to the one 
 
 
 
-The following Stan code (`hierarchical3.stan`) uses the previous parameterization, and introduces some new Stan functions:  \index{\texttt{to\_vector}} `to_vector()` converts a matrix  into a long column vector (in column-major order, that is, concatenating the columns from left to right); and \index{\texttt{std\_normal\_lpdf}} `std_normal_lpdf()`  implements the log PDF of a \index{Standard normal distribution} standard normal distribution, a normal distribution with location 0 and scale 1. This function is just a more efficient version of  `normal_lpdf(... | 0, 1)`. We also introduce a new optional \index{Block} block called \index{\texttt{transformed parameters}} `transformed parameters`. With each iteration of the sampler, the values of the parameters (i.e., `alpha`, `beta`, `sigma`,  and `z`) are available at the `transformed parameters` block, and we can derive new auxiliary variables based on them. In this case, we use `z_u` and `tau_u` to obtain `u`, that then becomes available in the `model` block. Notice that both the model block and R (when we output the stan object) can access both parameters and transformed parameters.
+The following Stan code (`hierarchical3.stan`) uses the previous parameterization, and introduces some new Stan functions:  \index{\texttt{to\_vector}} `to_vector()` converts a matrix  into a long column vector (in column-major order, that is, concatenating the columns from left to right); and \index{\texttt{std\_normal\_lpdf}} `std_normal_lpdf()`  implements the log PDF of a \index{Standard normal distribution} standard normal distribution, a normal distribution with location 0 and scale 1. This function is just a more efficient version of  `normal_lpdf(... | 0, 1)`. We also introduce a new optional \index{Block} block called \index{\texttt{transformed parameters}} `transformed parameters`. With each iteration of the sampler, the values of the parameters (i.e., `alpha`, `beta`, `sigma`,  and `z`) are available at the `transformed parameters` block, and we can derive new auxiliary variables based on them. In this case, we use `z_u` and `tau_u` to obtain `u`, that then becomes available in the `model` block. Notice that both the model block and `R` (when we output the stan object) can access both parameters and transformed parameters.
 
 ```{stan output.var = "hierarchical3_stan", code = readLines(hierarchical3),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE} 
 ```
@@ -485,7 +485,7 @@ computes a \index{Variance-covariance matrix} variance-covariance matrix from th
 ```{stan output.var = "hierarchical_corr_stan", code = readLines(hierarchical_corr),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE} 
 ```
 
-Problematic aspects of the first model presented in section \@ref(sec-uncorrstan) (before the reparameterization), that is,  dependencies between parameters, are also present here. Fit the model as follows:
+Problematic aspects of the first model presented in section \@ref(sec-uncorrstan) (before the reparameterization); that is,  dependencies between parameters, are also present here. Fit the model as follows:
 
 ```{r, message=FALSE, results="hide"}
 hierarchical_corr <- system.file("stan_models",
