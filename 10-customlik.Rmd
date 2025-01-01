@@ -556,7 +556,7 @@ The implication of the memoryless property is that we do not need to know the ag
 To give another example of memorylessness, the conditional probability that a certain event will happen in the next 100 ms is the same regardless of whether we have been already waiting 1000 ms, 10 ms, or 0 ms. Although the exponential distribution is not commonly used for modeling response times in cognitive science, it has been used in the past [@ashby1980decomposing; @ashby1982testing]. We focus on this distribution because of its simple analytical form.
 
 
-As a first step,  we make our own version of the \index{PDF} PDF in R, and then check that it integrates to 1 to verify that this is actually a proper distribution (and that we haven't introduced a typo in the formula).
+As a first step,  we make our own version of the \index{PDF} PDF in R, and then check that it integrates to one to verify that this is a proper distribution (and that we haven't introduced a typo in the formula).
 
 To avoid \index{Underflow} underflow, that is getting a zero instead of a very small number, we'll work in the log-scale. This will also be useful when we implement this function in Stan, thus the log PDF  is
 
@@ -566,7 +566,7 @@ To avoid \index{Underflow} underflow, that is getting a zero instead of a very s
 
 where $x >0$.
 
-Implement this function in R with the same arguments as the `d*` family of functions:  if `log = TRUE` the output is a log density; call this new function `dexp2`.
+Implement this function in `R` with the same arguments as the `d*` family of functions:  if `log = TRUE` the output is a log density; call this new function `dexp2`.
 
 ```{r}
 dexp2 <- function(x, lambda = 1, log = FALSE) {
@@ -579,7 +579,7 @@ dexp2 <- function(x, lambda = 1, log = FALSE) {
 }
 ```
 
-Verify that this function integrates to 1 for some point values of its parameter $\lambda$ (here, $\lambda = 1$ and $\lambda = 20$):
+Verify that this function integrates to one for some point values of its parameter $\lambda$ (here, $\lambda = 1$ and $\lambda = 20$):
 
 ```{r}
 dexp2_l1 <- function(x) dexp2(x, 1)
@@ -602,7 +602,7 @@ In this case, the quantile function (the \index{Inverse of the CDF} inverse of t
 Here is how one can derive this inverse of the CDF. First, consider the fact that the CDF of the exponential distribution is as follows. The term $q$ is some quantile of the distribution:
 
 \begin{equation}
-F(q) = \int_0^q \lambda \exp(-\lambda x)\, dx
+F(q) = \int_0^q \lambda \exp(-\lambda x)\, \mathrm{d}x
 \end{equation}
 
 We can solve this \index{Integral} integral by using the \index{U-substitution method} $u$-substitution method [@salas2003calculus]. First, define
@@ -614,21 +614,21 @@ u = g(x) = -\lambda x
 Then, the derivative $du/dx$ is:
 
 \begin{equation}
-\frac{du}{dx} = -\lambda
+\frac{\mathrm{d}u}{\mathrm{d}x} = -\lambda
 \end{equation}
 
-This implies that $du = - \lambda dx$, or that $- du = \lambda dx$.
+This implies that $\mathrm{d}u = - \lambda \mathrm{d}x$, or that $- \mathrm{d}u = \lambda \mathrm{d}x$.
 
-In the CDF, replace the term $\lambda dx$ with $-du$:
+In the CDF, replace the term $\lambda \mathrm{d}x$ with $-\mathrm{d}u$:
 
 \begin{equation}
-F(q) = \int_0^q \lambda \exp(-\lambda x)\, dx = \int_0^{-\lambda q} (- \exp(-\lambda x)\, du)
+F(q) = \int_0^q \lambda \exp(-\lambda x)\, \mathrm{d}x = \int_0^{-\lambda q} (- \exp(-\lambda x)\, \mathrm{d}u)
 \end{equation}
 
 Rewriting $-\lambda x$ as $u$, the CDF simplifies to:
 
 \begin{equation}
-F(q) = \int_0^q \lambda \exp(-\lambda x)\, dx = \int_0^q (- \exp(u)\, du)
+F(q) = \int_0^q \lambda \exp(-\lambda x)\, \mathrm{d}x = \int_0^q (- \exp(u)\, \mathrm{d}u)
 \end{equation}
 
 We know from calculus that the integral of $-\exp(u)$ is $-\exp(u)$. So, the integral becomes:
@@ -656,7 +656,7 @@ p-1 &= - e^{-\lambda q}\\
 \end{aligned}
 \end{equation}
 
-Write the quantile function (the inverse of the CDF) and the random number generator for the exponential distribution in R. To differentiate it from the built-in function in R, we will call it `qexp2`:
+Write the quantile function (the inverse of the CDF) and the random number generator for the exponential distribution in `R`. To differentiate it from the built-in function in `R`, we will call it `qexp2`:
 
 ```{r}
 qexp2 <- function(p, lambda = 1) {
@@ -669,7 +669,7 @@ rexp2 <- function(n, lambda = 1) {
 ```
 
 
-The functions that we would use in a Stan model are relatively faithful to the R code, but follow Stan conventions: The expression `log1m(p)` is more arithmetically stable than `log(1 - .)` for values of `p` close to one, the function `exp_lpdf` stores the sum of the log(PDF) evaluated at each value of x, this would be analogous to doing `sum(dexp2(x, lambda, log = TRUE))`; the function `exp_rng` implements a non-vectorized version of `rexp2` and uses the auxiliary function `exp_icdf` (icdf stands for inverse CDF), which is similar to `qexp2`. 
+The functions that we would use in a Stan model are relatively faithful to the `R` code, but follow Stan conventions: The expression `log1m(p)` is more arithmetically stable than `log(1 - .)` for values of `p` close to one, the function `exp_lpdf` stores the sum of the log(PDF) evaluated at each value of x, this would be analogous to doing `sum(dexp2(x, lambda, log = TRUE))`; the function `exp_rng` implements a non-vectorized version of `rexp2` and uses the auxiliary function `exp_icdf` (icdf stands for inverse CDF), which is similar to `qexp2`. 
 
 ```{r, echo = FALSE}
 exponential <- system.file("stan_models",
@@ -813,12 +813,12 @@ ggplot(df_rank_lambda, aes(x = rank)) +
 
 ## Summary
 
-In this chapter, we learned how to create a PDF that is not provided by Stan. We learned how to do this by doing a change of variables (with its Jacobian adjustment) and by building the distribution from scratch in a function ending in `_lpdf`. We also learned how to verify the correctness of the new functions by recovering the true values of the parameters and by using simulation-based calibration.
+In this chapter, we learned how to create a PDF that is not provided by Stan. We learned how to do this by doing a change of variables (using the Jacobian adjustment) and by building the distribution from scratch in a function ending in `_lpdf`. We also learned how to verify the correctness of the new functions by recovering the true values of the parameters and by using simulation-based calibration.
 
 ## Further reading
  
 
-\index{Jacobian adjustment} Jacobian adjustments in Bayesian models are an ongoing source of confusion and there are several posts in blogs and study cases that try to shed light on them:
+\index{Jacobian adjustment} Jacobian adjustments in Bayesian models are a common source of confusion and there are several posts in blogs and study cases that try to shed light on them:
 
 - https://rstudio-pubs-static.s3.amazonaws.com/486816_440106f76c944734a7d4c84761e37388.html
 - https://betanalpha.github.io/assets/case_studies/probability_theory.html#42_probability_density_functions
@@ -829,4 +829,4 @@ Jacobian adjustments are also relevant for adjusting priors for order constraint
 
 A complete tutorial of \index{Simulation-based calibration} simulation-based calibration using the \index{SBC} `SBC` package was presented in the online event \index{Stanconnect 2021} Stanconnect 2021, and it is available in https://www.martinmodrak.cz/post/2021-sbc_tutorial/. The ideas that predate this technique can be found in @Cooketal2006 and were extended in @talts2018validating. The use of ECDF-based visualizations is discussed in @sailynoja2022graphical. The role of simulation-based calibration in the Bayesian workflow is discussed in @schad2020toward. Examples of the use of simulation-based calibration to validate novel models used in cognitive science are @hartmann2020rtmpt and @burkner2020modelling. The extension of this procedure to validate Bayes factors is discussed in @SchadEtAlBF.
 
-Custom functions in general and custom probability functions are treated in  @Stan2023 (chapter 21 of the User's guide).
+Custom functions in general and custom probability functions are treated chapter 21 of the User's guide [@Stan2023].
