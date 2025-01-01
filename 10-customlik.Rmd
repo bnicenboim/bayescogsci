@@ -97,7 +97,7 @@ This change of variables requires an adjustment to the (unnormalized log) poster
 
 \begin{equation}
 \begin{aligned}
-p(\mathit{RT}_n | \mu, \sigma )& = \mathit{Normal}(1/\mathit{RT}_n | \mu, \sigma) \left| \frac{d}{d\mathit{RT}_n} 1/\mathit{RT}_n \right| = \\
+p(\mathit{RT}_n | \mu, \sigma )& = \mathit{Normal}(1/\mathit{RT}_n | \mu, \sigma) \left| \frac{\mathrm{d}}{\mathrm{d}\mathit{RT}_n} 1/\mathit{RT}_n \right| = \\
 & \mathit{Normal}(1/\mathit{RT}_n | \mu, \sigma) \cdot \left| - 1/\mathit{RT}_n^2 \right| = \\
 & \mathit{Normal}(1/\mathit{RT}_n | \mu, \sigma) \cdot  1/\mathit{RT}_n^2 
  \end{aligned}
@@ -272,12 +272,12 @@ Even though this approach can capture serious misspecifications in our models, i
 First, it's unclear what we should conclude if the true value of a parameter is not in the bulk of its posterior distribution. Even in a well-specified model, if we inspect enough parameters we will find that for some parameters, the bulks of their respective marginal posterior distributions can be relatively far away from their true values.
 
 
-The second shortcoming is that if the posteriors that we obtain are very wide, it might not be clear what to consider the bulk of the posterior distribution that needs to be inspected. 
+The second shortcoming is that if the posteriors that we obtain are very wide, it might not be clear what constitutes the bulk of the posterior distribution that needs to be inspected. 
 
 The third shortcoming is that regardless of how a successful recovery of parameters is defined, we might be able to  recover a posterior based on  data generated from some parts of the parameter space, but not based on data generated from other parts of parameter space [@talts2018validating]. However, inspecting the entire parameter space is infeasible.
 
  
-An alternative to our approach of plotting the true values of the parameters together with their posterior distributions is simulation-based calibration [@talts2018validating; @ModrakEtAl2023], which extends ideas of @Cooketal2006. This is discussed next.
+An alternative to our approach of plotting the true values of the parameters together with their posterior distributions is called  simulation-based calibration [@talts2018validating; @ModrakEtAl2023], which extends ideas of @Cooketal2006. This is discussed next.
 
 ### The \index{Simulation-based calibration} simulation-based calibration procedure 
    
@@ -479,7 +479,7 @@ fit_bad <- stan(model_code = recnormal_code_bad,
   control = list(adapt_delta = .99, max_treedepth = 14))
 ```
 
-Assessing the correctness of the model by looking at the recovery of the parameters is misleading in this case, as it is evident from Figure \@ref(fig:recoverybad). One could conclude that the model is fine based on this plot, since the true values of the parameters are well inside the bulk of their posterior distributions.
+Assessing the correctness of the model by looking at the recovery of the parameters is misleading in this case; this is evident from Figure \@ref(fig:recoverybad). One could conclude that the model is fine based on this plot, since the true values of the parameters are well inside the bulk of their posterior distributions.
 
 (ref:recoverybad)  Posterior distributions of the parameters of an incorrect model (truncation and Jacobian adjustments missing) together with their true values.
 
@@ -532,8 +532,8 @@ Even though simulation-based calibration is a comprehensive approach to test mod
 
 ## Another \index{Custom distribution} custom distribution: The exponential distribution \index{Exponential distribution} implemented manually
 
-There are cases when one needs a random variable with a distribution that is not included in Stan. Many times one can find the PDF (or a CDF)  derived in a paper, and one needs to implement it manually by writing the log PDF in the Stan language.
-Even though the exponential distribution is included in Stan, we demonstrate how we would  include it step-by-step as if it weren't available. This example extends what is demonstrated in @Stan2023 (section 22.1 of the User's guide).
+There are cases when one needs a random variable with a distribution that is not included in Stan. Often one can find the PDF (or a CDF)  derived in a paper, and one needs to implement it manually by writing the log PDF in the Stan language.
+Even though the exponential distribution is included in Stan, we demonstrate how we would  include it step-by-step as if it weren't available. This example extends the demonstration in section 22.1 of the User's guide [@Stan2023].
 
 
 The exponential distribution is used to model \index{Waiting time} waiting times until a certain event occurs. Its PDF is the following:
