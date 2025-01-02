@@ -1,7 +1,7 @@
 # (PART) Evidence synthesis and measurements with error {-}
 # \index{Meta-analysis} Meta-analysis and \index{Measurement-error model} measurement error models  {#ch-remame}
 
-In this chapter, we introduce two relatively underutilized models that are potentially very important for cognitive science: meta-analysis and  measurement-error models.
+In this chapter, we introduce two relatively underutilized modeling approaches that are potentially very important for cognitive science: meta-analysis and  measurement-error models.
 
 Meta-analysis can be very informative when carrying out systematic reviews, and measurement-error models are able to take into account uncertainty in one's dependent or independent variable (or both). What's common to these two classes of model is that they both assume that the $n$-th measured data point  $y_n$  has a location parameter, say $\zeta_n$ (pronounced *zeta en*), that is measured with some uncertainty that can be represented by the standard error  $SE_n$ of the measurement $y_n$:
 
@@ -38,7 +38,7 @@ We begin with the assumption that  there  is a true (unknown) effect $\zeta_n$ t
 \text{effect}_n \sim \mathit{Normal}(\zeta_n,SE_n)
 \end{equation}
 
-Each study is assumed to have a  different true effect $\zeta_n$ because each study will have been carried out under different conditions: in a different lab with different protocols and workflows, with different subjects, with different languages, with slightly different experimental designs, etc.
+Each study is assumed to have a  different true effect $\zeta_n$ because each study will have been carried out under different conditions: in a different lab with different protocols and workflows, with different subjects, possibly with different languages, with slightly different experimental designs, etc.^[In the current example, the dependent variable is either self-paced reading time or first-pass reading time from eyetracking; the simplifying assumption here is that despite these being quite different dependent variables, the dependent measure, which is in milliseconds, is a difference of means between two (sets of) conditions, and therefore gives an estimate of the effect of interest. An alternative approach would have been to standardize the effect size (Cohen's d) in each study; but this would be difficult to carry out in this example as much of the published work did not provide the original data; in many of the cases, only summary statistics from the publication were available. Using standardized effect sizes would also be open to criticism, because the effect size in self-paced reading and eyetracking may or may not be comparable.]
 
 Further, each of the true  underlying effects $\zeta_n$ has behind it some true unknown value $\zeta$. The parameter  $\zeta$ represents the underlying effect of similarity-based interference across experiments. Our goal is to obtain the posterior distribution of this overall effect.
 
