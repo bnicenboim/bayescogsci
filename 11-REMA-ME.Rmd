@@ -187,7 +187,7 @@ It is important to keep in mind that a meta-analysis is always going to yield  \
 
 #### Stan version of the meta-analysis model {#sec-stanma}
 
-Even though `brms` can handle meta-analyses, fitting them in Stan allows us for more flexibility, which might be necessary in some cases. As a first attempt we could build a model that closely follows the formal specification given in equation \@ref(eq:ma0).
+Even though `brms` can handle meta-analyses, fitting them in Stan allows us for more flexibility, which might be necessary in some cases. As a first attempt we could build a model that closely follows the formal specification given in Equation \@ref(eq:ma0).
 
 ```{r, echo = FALSE}
 ma0 <- system.file("stan_models",
@@ -219,7 +219,7 @@ We see that there are warnings. As discussed in section \@ref(sec-uncorrstan), w
 pairs(fit_sbi0, pars = c("zeta", "tau"))
 ```
 
-We face a similar problem as we faced in section \@ref(sec-uncorrstan), namely, the sampler cannot properly explore the neck of the funnel-shaped space, because of the strong correlation between the parameters. The solution is, as in section \@ref(sec-uncorrstan), a non-centered parameterization. Re-write \@ref(eq:ma0) as follows:
+We face a similar problem as we faced in section \@ref(sec-uncorrstan), namely, the sampler cannot properly explore the neck of the funnel-shaped space, because of the strong correlation between the parameters. The solution is, as in section \@ref(sec-uncorrstan), a non-centered parameterization. Re-write Equation \@ref(eq:ma0) as follows:
 
 \begin{equation}
 \begin{aligned}
@@ -232,7 +232,7 @@ z_n & \sim \mathit{Normal}(0, 1)\\
 (\#eq:ma1)
 \end{equation}
 
-This works because if $X \sim\mathit{Normal}(a, b)$ and $Y \sim \mathit{Normal}(0, 1)$, then $X = a + Y \cdot b$.  You can re-visit chapter \@ref(sec-uncorrstan) for more details.
+This works because if $X \sim\mathit{Normal}(a, b)$ and $Y \sim \mathit{Normal}(0, 1)$, then $X = a + Y \cdot b$.  You can re-visit section \@ref(sec-uncorrstan) for more details.
 
 Translate Equation \@ref(eq:ma1) into Stan code as follows in `meta-analysis1.stan`:
 
