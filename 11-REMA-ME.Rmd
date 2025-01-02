@@ -286,7 +286,7 @@ Then, given that $\zeta_n \sim \mathit{Normal}(\zeta, \tau)$,
 
 See online section \@ref(app-sigmatrue) if it's not clear why this reparameterization works.
 
-This is equivalent to the `brms` model where `sigma = TRUE`. As with `brms`, we lose the possibility of estimating the posterior of the true effect of the individual studies.
+This is equivalent to the `brms` model where `sigma = TRUE`. Parameterizing the model in this way causes us to lose the possibility of estimating the posterior of the true effect of the individual studies.
 
 Write this in Stan as follows; this code is available in the file  `meta-analysis2.stan` within the `bcogsci` package:
 
@@ -325,7 +325,7 @@ Measurement error models deal with the situation where some predictor or the dep
 As a motivating example, consider the following data from @NicenboimEtAlCogSci2018.
 For each subject, we have the partial-credit unit (PCU) scores of an operation span task as a  measure of their \index{Working memory capacity} working memory capacity [@conway2005working] along with their \index{Standard error} standard error. In addition, the reading fluency of each subject is calculated from a separate set of data based on the mean reading speeds (character/second) in a \index{Rapid automatized naming task} rapid automatized naming task [RAN, @DenklaRudel1976]; the standard error of the reading speed is also available.
 
-Of interest here is the extent of the association between  working memory capacity (measured as PCU) and \index{Reading fluency} reading fluency (measured as reading speed in 50 characters per second). We avoid making any causal claims: It could be that  our measure of working memory capacity really affects reading fluency or it could be the other way around. A third possibility is that there is a third variable (or several) that affects both reading fluency and working memory capacity. A treatment of causality in Bayesian models can be found in chapters 5 and 6 of @mcelreath2015statistical.
+Of interest here is the extent of the association between  working memory capacity (measured as PCU) and \index{Reading fluency} reading fluency (measured as reading speed in 50 characters per second). We avoid making any causal claims: It could be that  our measure of working memory capacity really affects reading fluency or it could be the other way around. A third possibility is that there is a third variable (or several) that affects both reading fluency and working memory capacity. A treatment of causal inference in Bayesian models can be found in chapters 5 and 6 of @mcelreath2015statistical.
 
 ```{r}
 data("df_indiv")
@@ -372,7 +372,7 @@ Figure \@ref(fig:meplotstanplot)(a) shows the posterior distribution of the slop
 
 
 
-Taking this uncertainty of the measurement is important; in many practical research problems, researchers will often take average measurements like these and examine the correlation between them. However, each of those data points is being measured with some error (uncertainty), but this error is being ignored when we take the averaged values. Ignoring this uncertainty leads to over-enthusiastic inferences. A measurement-error model solves this issue by taking uncertainty into account.
+Taking this uncertainty of the measurement is important; in many practical research problems, researchers will often take average measurements like these and examine the correlation between them. However, each of those data points is being measured with some error (uncertainty), but this error is being ignored when we take the averaged values. Ignoring this uncertainty leads to over-enthusiastic inferences. A measurement-error model solves this issue.
 
 The measurement error model is stated as follows. There is assumed to be a true unobserved value $y_{n,TRUE}$ for the dependent variable, and a true unobserved value $x_{n,TRUE}$ for the predictor, where $n$ is indexing the observation number.
 The observed values $y_n$ and the predictor $x_n$ are assumed to be generated with some error:
@@ -391,7 +391,7 @@ y_{n,TRUE} \sim\mathit{Normal}(\alpha + \beta x_{n,TRUE},\sigma)
 (\#eq:masquare)
 \end{equation}
 
-In addition, there is also an unknown standard deviation (standard error) of the latent unknown means that generate the underlying PCU means. I.e., we assume that each of the observed centered PCU scores are normally distributed with an underlying mean, $\chi$, and a standard deviation $\tau$. This is very similar to the meta-analysis situation we saw earlier: $\zeta_n \sim\mathit{Normal}(\zeta,\tau)$, where $\zeta_n$ was the location parameter of each study, and $\zeta$ was the (unknown) location  parameter representing the effect of interest, and $\tau$ was the between-study variability.
+In addition, there is also an unknown standard deviation (standard error) of the latent unknown means that generate the underlying PCU means. I.e., we assume that each of the observed centered PCU scores is normally distributed with an underlying mean, $\chi$, and a standard deviation $\tau$. This is very similar to the meta-analysis situation we saw earlier: $\zeta_n \sim\mathit{Normal}(\zeta,\tau)$, where $\zeta_n$ was the location parameter of each study, and $\zeta$ was the (unknown) location  parameter representing the effect of interest, and $\tau$ was the between-study variability.
 
 \begin{equation}
 x_{n,TRUE} \sim\mathit{Normal}(\chi,\tau)
@@ -462,20 +462,17 @@ mcmc_plot(fit_indiv,
           variable = "^b_c",
           regex = TRUE,
           type = "hist") +
-  ggtitle("(a) Without modeling  measurement error") +
+  ggtitle("(a) No  measurement error") +
   xlim(c(-0.05, 0.03))
 
 # Plot b
 mcmc_plot(fit_indiv_me, variable = "^bsp", regex = TRUE, type = "hist") +
-  ggtitle("(b) Modeling measurement error") +
+  ggtitle("(b) With measurement error") +
   xlim(c(-0.05, 0.03))
 
 ```
 
-
-
-
-Figure \@ref(fig:seerrors) visualizes the main reason why we have no clear association in the measurement error analysis: the two points at the top left part of the plot that were driving the effect have very large SE for the measurement of reading speed. The code to produce it appears below and overlays several (250) regression lines that correspond to different samples of the posterior distribution with the measurements of reading speed and PCU.
+Figure \@ref(fig:seerrors) visualizes the main reason why we have no clear association in the measurement error analysis: the two points at the top left part of the plot that were driving the effect have very large SE for the measurement of reading speed. The code to produce Figure \@ref(fig:seerrors) appears below and overlays several (250) regression lines that correspond to different samples of the posterior distribution with the measurements of reading speed and PCU.
 
 ```{r seerrors, fig.cap = "The relationship between centered mean PCU scores and  mean reading speed accounting for measurement error. The error bars represent two standard errors. The regression lines are produced with 250 samples of the intercept and slope from the posterior distribution.",  message = FALSE, warning = FALSE, fig.height = 3.5}
 df_reg <- as_draws_df(fit_indiv_me) %>%
@@ -495,11 +492,11 @@ ggplot(df_indiv, aes(x = c_mean_pcu, y = mean_rspeed)) +
 ```
 
 
-Of course, the conclusion here cannot be that there is no association between PCU scores and reading speed. In order to claim an absence of an effect, we would need to use Bayes factor (see chapter \@ref(ch-bf)) or cross-validation (see chapter \@ref(ch-cv)).
+Of course, the conclusion here cannot be that there is no association between PCU scores and reading speed. In order to claim an absence of an effect, we would need to use Bayes factors (see chapter \@ref(ch-bf)) or cross-validation (see chapter \@ref(ch-cv)).
 
 #### The Stan version of the measurement error model  {#sec-stanme}
 
-As it happened when we modeled the meta-analysis, the main difficulty for modeling measurement error models directly in Stan is that we need to reparameterize the models to avoid correlations between samples of different parameters.
+As it happened when we carried out the meta-analysis, the main difficulty for modeling measurement error models directly in Stan is that we need to reparameterize the models to avoid correlations between samples of different parameters.
 The two changes that we need to do to the parameterization of our model presented in Equation \@ref(eq:me) are the following.
 
 1. Sample from an auxiliary parameter $z_n$ rather than directly from $x_{n,TRUE}$, as we did in Equation \@ref(eq:ma1):
@@ -564,5 +561,5 @@ This chapter introduced two statistical tools that are potentially of great rele
 ## Further reading
 
 For some examples of Bayesian meta-analyses in psycholinguistics, see @VasishthetalPLoSOne2013,  @JaegerEngelmannVasishth2017,
-@NicenboimRoettgeretal, @NicenboimPreactivation2019,  @BuerkiEtAl2020, @cox2022bayesian, and @Buerki2022. A frequentist meta-analysis of priming effects in psycholinguistics appears in @mahowald2016meta. @sutton2012evidence and @cochrane are two useful general introductions that discuss systematic reviews, meta-analysis, and evidence synthesis; these  two references are from medicine, where meta-analysis is more widely used than in cognitive science. A potentially important article for meta-analysis introduces a methodology for modeling bias, to adjust for different kinds of bias in the data [@turner2008bias]. Meta-analyses have important limitations and should not be taken at face value; this point is  discussed in, e.g., @spector1991potential.
+@NicenboimRoettgeretal, @NicenboimPreactivation2019,  @BuerkiEtAl2020, @cox2022bayesian, and @Buerki2022. A frequentist meta-analysis of priming effects in psycholinguistics appears in @mahowald2016meta. @sutton2012evidence and @cochrane are two useful general introductions that discuss systematic reviews, meta-analysis, and evidence synthesis; these  two references are from medicine, where meta-analysis is more widely used than in cognitive science. A potentially important article for meta-analysis introduces a methodology for modeling bias, to adjust for different kinds of bias in the data [@turner2008bias]. Meta-analyses have important limitations and should not be taken at face value; this point is  discussed in, e.g., @spector1991potential. A practical book-length introduction to Bayesian meta-analysis is @grantmetaanalysis.
 
