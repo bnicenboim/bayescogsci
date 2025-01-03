@@ -74,7 +74,7 @@ With these distributions as background, consider now a simulated situation where
 
 ### A model for multiple responses using the multinomial likelihood {#sec-mult}
 
-Impaired \index{Picture naming} picture naming \index{Anomia} (anomia) is common in most cases of \index{Aphasia} aphasia. It is assessed as part of most comprehensive aphasia test batteries, since picture naming accuracy is relatively easily obtained and is a reliable test score; in addition, the types of errors that are committed can provide useful information for diagnosis.
+Impaired \index{Picture naming} picture naming \index{Anomia} (anomia) is a common form of aphasia. It is assessed as part of most comprehensive aphasia test batteries, since picture naming accuracy is relatively easily obtained and is a reliable test score; in addition, the types of errors that are committed can provide useful information for diagnosis.
 
 In this simulated experiment, the responses are categorized as shown in Table \@ref(tab:responses).
 
