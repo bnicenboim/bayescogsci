@@ -448,8 +448,6 @@ This model might be useful for estimating the latent parameters, $a$, $t$, $f$, 
 Recall that for the multinomial likelihood in section \@ref(sec-mult), we had a simplex of size five, which means that we had four free parameters (since the fifth can be deduced based on the others). With five possible answers we can always estimate a vector of probabilities $\boldsymbol{\theta}$ that fits the data, in the same way that with two possible answers (e.g., zeros and ones), we can always estimate a single  probability $\theta$ that fits the data (using a Bernoulli or binomial likelihood).
 The MPT that we present here is just \index{Reparameterization} reparameterizing the vector $\boldsymbol{\theta}$ of the multinomial likelihood (with the same number of free parameters). This means that it will always achieve a perfect fit; see online exercise \@ref(exr:mpt-mnm).  This doesn't mean that this MPT model is "useless": Under the assumption that the model is meaningful, one can estimate its latent parameters and this estimation can have theoretical implications. If we want to be able to falsify this model, we'll need to constrain it more, as we suggest below.
 
-
-
 ### An MPT model assuming by-item variability {#sec-MPT-reg}
 
 
@@ -502,7 +500,7 @@ head(f_true)
 ```
 
 
-This change in our assumptions entails that the probability of each response changes depending on the item associated with each observation. The  parameters `theta` now have to be a matrix. This is in R; in Stan, we will code it as an \index{Array of simplexes} array of simplexes, i.e., an array of non-negative values that sums to 1.
+This change in our assumptions entails that the probability of each response changes depending on the item associated with each observation. The  parameters `theta` now have to be a matrix. This is in `R`; in Stan, we will code it as an \index{Array of simplexes} array of simplexes, i.e., an array of non-negative values that sums to 1.
 
 We continue with the functions defined in section \@ref(sec-mpt-data), and the same values for `a_true`, `t_true`, and `c_true` as defined in that section. Since most of the equations depend on `f`, and `f` is a vector now, the outcomes are automatically vectors. But this is not the case for `theta_NR_v`, and thus we need to repeat the value.
 
@@ -602,7 +600,7 @@ a_{h,n} &= \text{logit}^{-1}(a_{h,n}')
 
 Where $u_{a,subj[n]}$ is a vector with the same length as the total number of observations. The meaning of this notation was explained in the section \@ref(sec-hierstan).
 
-This is done in R as follows:
+This is done in `R` as follows:
 
 ```{r}
 a_true <- 0.75 # as before
@@ -834,6 +832,6 @@ In this chapter, we learned to fit increasingly complex MPTs to model categorica
 ## Further reading
 
 @Koster2017 present a tutorial on multinomial logistic regression/categorical regression in the context of behavioral ecology and anthropology.  Other tutorials on MPTs are presented by @matzkeBayesianEstimationMultinomial2015 and @SchmidtEtAl2023Howdeveloptest. For the complete implementation of an MPT relating to aphasia, see @WalkerEtAl2018. Some examples of cognitive models using MPTs are @lee2020application and @smith2010beta. An example of using MPTs to model garden-pathing processes in sentence processing appears in @paapevasishthmpt2022.
-Some extensions of MPT models that directly encode the temporal sequence of latent processes by accounting for response times have been developed as well [@HeckErdfelder2016Extendingmultinomialprocessing; @KlauerKellen2018RTMPTsProcess; @HeckEtAl2018GeneralizedProcessingTree].
+Some extensions of MPT models that directly encode the temporal sequence of latent processes by accounting for response times have been developed as well [@HeckErdfelder2016Extendingmultinomialprocessing; @Klaueretal2018; @HeckEtAl2018GeneralizedProcessingTree].
 
 
