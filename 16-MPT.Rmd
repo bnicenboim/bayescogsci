@@ -122,7 +122,7 @@ A common prior for the vector of probability parameters of a multinomial distrib
 \boldsymbol{\theta} \sim \mathit{Dirichlet}(\boldsymbol{\alpha})
 \end{equation}
 
-The Dirichlet distribution has a parameter $\alpha$, called \index{Concentration parameter} concentration parameter, and it is a vector with the same length as $\boldsymbol{\theta}$. If we set $\boldsymbol{\alpha} = \langle2,2,2,2,2\rangle$, this is  analogous to $\sim \mathit{Beta}(2,2)$, that is, the intuition behind this concentration parameter is that the \index{Prior probability distribution} prior probability distribution of the vector $\boldsymbol{\theta}$ corresponds to having seen each outcome twice.
+The Dirichlet distribution has a parameter $\alpha$, called the concentration parameter, and it is a vector with the same length as $\boldsymbol{\theta}$. If we set $\boldsymbol{\alpha} = \langle2,2,2,2,2\rangle$, this is  analogous to $\sim \mathit{Beta}(2,2)$, that is, the intuition behind this concentration parameter is that the \index{Prior probability distribution} prior probability distribution of the vector $\boldsymbol{\theta}$ corresponds to having seen each outcome twice.
 
 A Stan model assuming a multinomial likelihood and Dirichlet prior is shown below. Since the elements of $\boldsymbol{\theta}$ should sum to one we declare this vector, `theta`, as a \index{\texttt{simplex}} `simplex`. The \index{Simplex type} simplex type ensures that its elements sum to one and also constrains them to have \index{Non-negative value} non-negative values. In order to generate the vector $\boldsymbol{\alpha}$ that contains five times the value two, we use `rep_vector(2, 5)` (which is similar to `rep(2, 5)` in R).
 
