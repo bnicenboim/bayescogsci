@@ -28,13 +28,13 @@ p(y_n | \Theta) = \theta \cdot p_1(y_n| \Theta_1) + (1-\theta) \cdot p_2(y_n | \
 
 The intuition behind this formula is that each \index{Likelihood function} likelihood function, $p_1$, $p_2$ is weighted by its probability of being the relevant generative process. For our purposes, it  suffices to say that marginalization works; the reader interested in the mathematics behind marginalization is directed to the further reading section at the end of the chapter.^[As mentioned above, other probabilistic languages that do not rely on Hamiltonian dynamics (exclusively) are able to deal with this. However, even when sampling discrete parameters is possible, marginalization is more efficient  [@YackulicEtAl2020]: when $z_n$ is omitted we are fitting a model with $n$ fewer parameters.]
 
-Even though Stan cannot fit a model with the discrete indicator of the latent class $\mathbf{z}$ that we used in equation \@ref(eq:mixz), this equation will prove very useful when we want to generate \index{Synthetic data} synthetic data.
+Even though Stan cannot fit a model with the discrete indicator of the latent class $\mathbf{z}$ that we used in Equation \@ref(eq:mixz), this equation will prove very useful when we want to generate \index{Synthetic data} synthetic data.
 
 
 
 
 
-In the following sections, we model a well-known phenomenon (i.e., the speed-accuracy trade-off)  assuming an underlying \index{Finite mixture process} finite mixture process. We start from the verbal description of the model, and then implement the model in Stan step by step.
+In the following sections, we model a well-known phenomenon (i.e., the speed-accuracy trade-off)  assuming an underlying \index{Finite mixture process} finite mixture process. We start from the verbal description of the model, and then implement the model step by step in Stan.
 
 ## A mixture model of the speed-accuracy trade-off: The fast-guess model account
 
