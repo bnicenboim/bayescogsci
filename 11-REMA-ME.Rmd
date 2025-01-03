@@ -90,7 +90,7 @@ fit_sbi <- brm(effect | resp_se(`SE`, sigma = FALSE) ~
                  1 + (1 | study_id),
                data = df_sbi,
                prior = priors,
-               control = list(adapt_delta = .99, max_treedepth = 10))
+               control = list(adapt_delta = 0.99, max_treedepth = 10))
 ```
 
 ```{r, echo= FALSE, eval = TRUE}
@@ -210,7 +210,7 @@ ls_sbi <- list(N = nrow(df_sbi),
                study_id = df_sbi$study_id)
 fit_sbi0 <- stan(ma0,
                  data = ls_sbi,
-                 control = list(adapt_delta = .999, max_treedepth = 12))
+                 control = list(adapt_delta = 0.999, max_treedepth = 12))
 ```
 
 We see that there are warnings. As discussed in section \@ref(sec-uncorrstan), we can use pairs plots to uncover pathologies in the sampling. Here we see the samples of `zeta` and `tau` are highly correlated:
@@ -254,7 +254,7 @@ ma1 <- system.file("stan_models",
                    package = "bcogsci")
 fit_sbi1 <- stan(ma1,
                  data = ls_sbi,
-                 control = list(adapt_delta = .999,
+                 control = list(adapt_delta = 0.999,
                                 max_treedepth = 12))
 ```
 
@@ -307,7 +307,7 @@ ma2 <- system.file("stan_models",
                    package = "bcogsci")
 fit_sbi2 <- stan(ma2,
                  data = ls_sbi,
-                 control = list(adapt_delta = .9))
+                 control = list(adapt_delta = 0.9))
 ```
 
 ```{r}
