@@ -6,7 +6,7 @@ In this chapter, we introduce a widely-used class of cognitive models that can b
 ## Modeling \index{Multiple categorical response} multiple categorical responses
 
 One way to model \index{Categorical response} categorical responses is using multinomial or categorical distributions.
-The categorical responses could be "yes" or "no"; "blue", "red" or "yellow"; "true", "false", or "I don't know"; or more complicated categories, but crucially the response of each observation can be coded as belonging to only one category. The multinomial and the categorical distribution represent two ways of characterizing the underlying \index{Generative process} generative process for such data.
+The categorical responses could be "yes" or "no"; "blue", "red" or "yellow"; "true", "false", or "I don't know"; or more complicated categories. Crucially, the response of each observation can be coded as belonging to only one of several possible categories. The multinomial and the categorical distribution represent two ways of characterizing the underlying \index{Generative process} generative process for such data.
 
 The \index{Multinomial distribution} *multinomial distribution* is the generalization of the \index{Binomial distribution} binomial distribution for more than two possible outcomes. Recall that the binomial works like this: in order to randomly generate the number of successes in an observation consisting of $10$ trials, with the probability of success of $0.5$, one can type:
 
