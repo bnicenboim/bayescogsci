@@ -490,7 +490,7 @@ df_dots_simdata3 <- tibble(trial = 1:N,
 
 Plot the simulated data in Figure \@ref(fig:simdata3). This time we can see the effect of task difficulty on the simulated response times and accuracy:
 
-(ref:simdata3) Response times by accuracy accounting for task difficulty in the simulated data (`df_dots_simdata3`) that follows the fast-guess model.
+(ref:simdata3) Response times by accuracy, accounting for task difficulty in the simulated data (`df_dots_simdata3`) that follows the fast-guess model.
 
 ```{r simdata3, message = FALSE, fig.cap="(ref:simdata3)", fig.height = 2.2}
 ggplot(df_dots_simdata3, aes(x = factor(acc), y = rt)) +
@@ -515,7 +515,7 @@ p(rt, acc | \Theta) = & p_{task} \cdot \\
 \end{aligned}
 \end{equation}
 
-In  log-space:
+In log-space:
 
 \begin{equation}
 \begin{aligned}
@@ -622,7 +622,7 @@ For $\beta_{task}$, we assume an effect that can be rather large and we won't as
 \end{equation}
 
 
-This means that the subject could be affected by the instructions in the expected way, with an increased probability to be task-engaged, leading to better accuracy when the instructions  emphasize  accuracy ($\beta_{task} >0$). Alternatively, the subject might be behaving in an unexpected way, with a decreased probability to be task-engaged, leading to worse accuracy when the instructions emphasize accuracy ($\beta_{task} <0$). The latter situation, $\beta_{task} <0$, could represent the instructions being misunderstood. It's certainly possible to include priors that encode the expected direction of the effect instead: $\mathit{Normal}_{+}(0,1)$. Unless there is a compelling reason to constrain the prior in this way, following Cromwell's rule (Box \@ref(thm:cromwell) in the online chapter \@ref(ch-priors)), we leave open the possibility of the $\beta$ parameter having negative values.
+This means that the subject could be affected by the instructions in the expected way, with an increased probability to be task-engaged, leading to better accuracy when the instructions  emphasize  accuracy ($\beta_{task} >0$). Alternatively, the subject might behave in an unexpected way, with a decreased probability to be task-engaged, leading to worse accuracy when the instructions emphasize accuracy ($\beta_{task} <0$). The latter situation, $\beta_{task} <0$, could represent the instructions being misunderstood. It's certainly possible to include priors that encode the expected direction of the effect instead: $\mathit{Normal}_{+}(0,1)$. Unless there is a compelling reason to constrain the prior in this way, following Cromwell's rule (Box \@ref(thm:cromwell) in the online chapter \@ref(ch-priors)), we leave open the possibility of the $\beta$ parameter having negative values.
 
 How can we choose a prior for $\alpha_{task}$ that encodes the same information that we had in the previous model in $p_{task}$? One possibility is to create an auxiliary parameter $p_{btask}$, that represents the baseline probability of being engaged in the task, with the same prior that we use in the previous section, and then transform it to an unconstrained space for our regression with the logit function:
 
@@ -720,15 +720,17 @@ target += log_sum_exp(log_inv_logit(lodds_task) + ...,
                       log1m_inv_logit(lodds_task) + ...)
 ```
 
-We also add a \index{\texttt{generated quantities}} `generated quantities` block that can be used for further (prior or posterior) predictive checks. In this block we do use `z` as an indicator of the latent class (task-engaged mode or fast-guessing mode), since we do not estimate `z`, but rather generate it based on the parameter's posteriors.
+We also add a \index{\texttt{generated quantities}} `generated quantities` block that can be used for further (prior or posterior) predictive checks. In this block, we do use `z` as an indicator of the latent class (task-engaged mode or fast-guessing mode), since we do not estimate `z`, but rather generate it based on the parameter's posteriors.
 
-We use the dummy variable \index{\texttt{onlyprior}} `onlyprior` to indicate whether we use the data or we only sample from the priors.  One can always do the predictive checks in R, transforming the code that we wrote for the simulation into a function, and writing the priors in R. However, it can be simpler to take advantage of Stan output format and rewrite the code in Stan. One downside of this is that the `stanfit` object that stores the model output can become too large for the memory of the computer. Another downside is reduced robustness, as it is more likely to overlook an error if we only work in Stan than if we implemented the code in different programming languages (R and Stan).
+We use the dummy variable \index{\texttt{onlyprior}} `onlyprior` to indicate whether we use the data or we only sample from the priors.  One can always do the predictive checks in `R`, transforming the code that we wrote for the simulation into a function, and writing the priors in `R`. However, it can be simpler to take advantage of Stan output format and rewrite the code in Stan. One downside of this is that the `stanfit` object that stores the model output can become too large for the memory of the computer. Another downside is reduced robustness, as it is more likely that we overlook an error if we only work in Stan than if we implemented the code in different programming languages (`R` and Stan).
+
+The code shown below is available in the `bcogsci` package and is called `mixture_rtacc2.stan`.
 
 ```{stan output.var = "mix4_stan", code = readLines(mixture_rtacc2),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
 ```
 
 
-We save the code as `mixture_rtacc2.stan`, and before fitting it to the simulated data, we perform \index{Prior predictive check} prior predictive checks.
+Before fitting the model to the simulated data, we perform prior predictive checks.
 
 #### Prior predictive checks
 
@@ -854,7 +856,7 @@ rt_n \sim
 \end{equation}
 
 
-We assume that the three vectors of $u$ (adjustment to the intercept and slope of the task-engaged distribution, and the adjustment to the guessing time distribution) follow a \index{Multivariate normal distribution} multivariate normal distribution centered on zero. For simplicity and lack of any prior knowledge about this experiment design and method, we assume the same (weakly informative) prior distribution for the three variance components and the same regularizing \index{LKJ prior} LKJ prior for the three correlations between the adjustments ($\rho_{u_{1,2}}, \rho_{u_{1,3}}, \rho_{u_{2,3}}$):
+We assume that the three vectors of $u$ (adjustment to the intercept and slope of the task-engaged distribution, and the adjustment to the guessing time distribution) follow a \index{Multivariate normal distribution} multivariate normal distribution centered on zero. For simplicity and lack of any prior knowledge about this experiment design and method, we assume the same (weakly informative) prior distribution for the three variance components and the same regularizing \index{LKJ prior} LKJ prior for the correlation matrix $\mathbf{R_u}$ that contains the three correlations between the adjustments ($\rho_{u_{1,2}}, \rho_{u_{1,3}}, \rho_{u_{2,3}}$):
 
 \begin{equation}
 \begin{aligned}
@@ -864,7 +866,7 @@ We assume that the three vectors of $u$ (adjustment to the intercept and slope o
 \end{aligned}
 \end{equation}
 
-Before we fit the model to the real data set, we simulate data again; this time we simulate 100 trials of each of 20 subjects.
+Before we fit the model to the real data set, we simulate data again; this time we simulate 100 trials from 20 subjects each.
 
 ```{r fake-data-pars-mix, message = FALSE, tidy = FALSE}
 # Build the fake stimuli
@@ -969,19 +971,19 @@ simdata_dots <- function(N_subj = 20,
 }
 ```
 
-Verify that the distribution of the simulated response times conditional on the simulated accuracy and the experimental manipulations make sense with the plot shown in Figure \@ref(fig:simdatartacc).
+Verify that the distribution of the simulated response times conditional on the simulated accuracy and the experimental manipulations make sense; see Figure \@ref(fig:simdatartacc).
 
 (ref:simdatartacc) The distribution of response times conditional on the simulated accuracy and the experimental manipulations for the simulated hierarchical data (`df_dots_simdata`) that follows the fast-guess model.
 ```{r simdatartacc, fig.cap = "(ref:simdatartacc)",message = FALSE}
 ggplot(df_dots_simdata, aes(x = factor(acc), y = rt)) +
-  geom_point(position = position_jitter(width = .4,
+  geom_point(position = position_jitter(width = 0.4,
                                         height = 0), alpha = 0.5) +
   facet_wrap(diff ~ emphasis) +
   xlab("Accuracy") +
   ylab("Response time")
 ```
 
-We implement the model in Stan as follows in  `mixture_h.stan`. The hierarchical extension uses the Cholesky factorization for the group-level effects (as we did in section \@ref(sec-corrstan)).
+We implement the model in Stan as follows in  `mixture_h.stan`. The hierarchical extension uses the Cholesky factorization for the group-level effects (as in section \@ref(sec-corrstan)).
 
 ```{stan output.var = "mixh_stan", code = readLines(mixture_h),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
 ```
