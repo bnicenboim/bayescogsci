@@ -494,7 +494,7 @@ Plot the simulated data in Figure \@ref(fig:simdata3). This time we can see the 
 
 ```{r simdata3, message = FALSE, fig.cap="(ref:simdata3)", fig.height = 2.2}
 ggplot(df_dots_simdata3, aes(x = factor(acc), y = rt)) +
-  geom_point(position = position_jitter(width = .4, height = 0),
+  geom_point(position = position_jitter(width = 0.4, height = 0),
              alpha = 0.5) +
   facet_wrap(diff ~ .) +
   xlab("Accuracy") +
