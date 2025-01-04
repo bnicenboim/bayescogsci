@@ -241,14 +241,14 @@ Plot the data by joining the points that belong to the same quantiles with lines
 
 ```{r qpplex, fig.cap = "(ref:qpplex)", fig.height = 3.5}
 ggplot(df_blp_lex_q, aes(x = p, y = rt_q)) +
-  geom_vline(xintercept = .5, linetype = "dashed") +
+  geom_vline(xintercept = 0.5, linetype = "dashed") +
   geom_point(aes(shape = lex)) +
   geom_line(aes(group = interaction(q, response))) +
   ylab("RT quantiles (ms)") +
   scale_x_continuous("Response proportion", breaks = seq(0, 1, .2)) +
   scale_shape_discrete("Lexicality") +
-  annotate("text", x = .40, y = 500, label = "incorrect") +
-  annotate("text", x = .60, y = 500, label = "correct")
+  annotate("text", x = 0.40, y = 500, label = "incorrect") +
+  annotate("text", x = 0.60, y = 500, label = "correct")
 ```
 
 
@@ -287,13 +287,13 @@ ggplot(df_blp_freq_q, aes(x = p, y = rt_q)) +
   geom_point(shape = 4) +
   geom_text(
     data = df_blp_freq_q %>%
-      filter(q == .1),
+      filter(q == 0.1),
     aes(label = freq_group), nudge_y = 12) +
   geom_line(aes(group = interaction(q, response))) +
   ylab("RT quantiles (ms)") +
-  scale_x_continuous("Response proportion", breaks = seq(0, 1, .2)) +
-  annotate("text", x = .40, y = 900, label = "incorrect") +
-  annotate("text", x = .60, y = 900, label = "correct")
+  scale_x_continuous("Response proportion", breaks = seq(0, 1, 0.2)) +
+  annotate("text", x = 0.40, y = 900, label = "incorrect") +
+  annotate("text", x = 0.60, y = 900, label = "correct")
 ```
 
 
@@ -586,7 +586,7 @@ T_{w,n} &\sim \mathit{LogNormal}(\mu_{w,n}, \sigma) \\
 (\#eq:alphaprime)
 \end{equation}
 
-The parameter $\alpha'_w$ absorbs the location of the threshold distribution ($\mu_{d_w}$, which we assumed it is independent of the accumulator, that is, it is equal to $\mu_d$) minus the intercept of the rate distribution ($\mu_{v_{w,n}}$), and represents a bias. As $\alpha'_w$ gets smaller, the accumulator will be more likely to reach the threshold first all things being equal, biasing the responses to `word`.
+The parameter $\alpha'_w$ absorbs the location of the threshold distribution ($\mu_{d_w}$, which we assumed is independent of the accumulator; that is, it is equal to $\mu_d$) minus the intercept of the rate distribution ($\mu_{v_{w,n}}$), and represents a bias. As $\alpha'_w$ gets smaller, the accumulator will be more likely to reach the threshold first, all things being equal, biasing the responses to `word`.
 
 
 Similarly, for the non-word accumulator,
