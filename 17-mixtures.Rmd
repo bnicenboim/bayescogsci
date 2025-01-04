@@ -458,7 +458,7 @@ First, simulate response times, as done earlier:
 
 ```{r}
 N <- 1000
-x <- c(rep(-0.5, N/2), rep(.5, N/2)) # difficulty
+x <- c(rep(-0.5, N/2), rep(0.5, N/2)) # difficulty
 alpha <- 5.8
 beta <- 0.05
 sigma <- 0.4
