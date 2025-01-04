@@ -866,10 +866,10 @@ We assume that the three vectors of $u$ (adjustment to the intercept and slope o
 \end{aligned}
 \end{equation}
 
-Before we fit the model to the real data set, we simulate data again; this time we simulate 100 trials from 20 subjects each.
+Before we fit the model to the real data set, we simulate data again; this time we simulate $20$ subjects, each of whom delivers a total of $100$ trials (each subject sees $25$ trials for each of the four conditions).
 
 ```{r fake-data-pars-mix, message = FALSE, tidy = FALSE}
-# Build the fake stimuli
+# Build the simulate data set
 N_subj <- 20
 N_trials <- 100
 # Parameters' true point values
@@ -1004,7 +1004,7 @@ mixture_h <- system.file("stan_models",
 fit_mix_h <- stan(file = mixture_h,
                   data = ls_dots_simdata,
                   iter = 3000,
-                  control = list(adapt_delta = .9))
+                  control = list(adapt_delta = 0.9))
 ```
 
 
@@ -1029,9 +1029,9 @@ print(fit_mix_h, pars = c("alpha", "beta", "sigma", "gamma",
                           "rho_u[2,3]"))
 ```
 
-We see that we can fit the hierarchical extension of our model to simulated data. Next we'll evaluate whether we can recover the true point values of the parameters.
+We see that we can fit the hierarchical extension of our model to simulated data. Next, we'll evaluate whether we can recover the true point values of the parameters.
 
-#### \index{Parameter recovery} Recovery of the parameters
+#### Recovery of the parameters
 
 By "recovering" the true values of the parameters, we mean that the true point values are somewhere inside the bulk of the posterior distribution of the model.
 
@@ -1039,7 +1039,7 @@ By "recovering" the true values of the parameters, we mean that the true point v
 select <- dplyr::select
 ```
 
-We use `mcmc_recover_hist()` to compare the posterior distributions of the relevant parameters of the model with their true point values in Figure \@ref(fig:recovermixt).
+In in Figure \@ref(fig:recovermixt), we use `mcmc_recover_hist()` to compare the posterior distributions of the relevant parameters of the model with their true point values.
 
 (ref:recovermixt) Posterior distributions of the main parameters of the mixture model `fit_mix_h` together with their true point values.
 
@@ -1238,7 +1238,7 @@ If we want to know whether our model achieves descriptive adequacy, we need to l
 
 #### Posterior predictive checks {#sec-ppdmixture}
 
-For the \index{Posterior predictive check} posterior predictive checks, we can write the generated quantities block in a new file. The advantage is that we can generate as many observations as needed *after estimating the parameters*. There is no model block in the following Stan program and the parameters together with all the transformed parameters appear in the `parameters` block. We use  the `gqs()` function in the `rstan` library, which allows us to use the posterior draws from a previously fitted model to generate posterior predicted data.
+For the \index{Posterior predictive check} posterior predictive checks, we can write the generated quantities block in a new file; in the `bcogsci` package, this code is in the file ` mixture_h2_gen.stan`. The advantage of creating a new file is that we can generate as many observations as needed *after estimating the parameters*. There is no model block in the following Stan program and the parameters together with all the transformed parameters appear in the `parameters` block. We use  the `gqs()` function in the `rstan` library, which allows us to use the posterior draws from a previously fitted model to generate posterior predicted data.
 
 ```{stan output.var = "mixh_stan_showcode", code = readLines(mixture_h2_gen),  tidy = TRUE, comment="", eval = TRUE, cache = FALSE, cache.lazy = FALSE}
 ```
@@ -1366,10 +1366,10 @@ To conclude, the fast-guess model shows a relatively decent fit to the data and 
 
 ## Summary
 
-In this chapter, we learned to fit increasingly complex two-component mixture models using Stan, starting with a simple model and ending with a fully hierarchical model. We saw how to ensure model convergence via prior constraints, and how to evaluate model fit using the usual prior and posterior predictive checks, and to investigate parameter recovery. Such mixture models are notoriously difficult to fit, but they have a lot of potential in cognitive science applications, especially in developing computational models of different kinds of cognitive processes.
+In this chapter, we learned how to fit increasingly complex two-component mixture models using Stan, starting with a simple model and ending with a fully hierarchical model. We saw how to ensure model convergence via prior constraints, and how to evaluate model fit using the usual prior and posterior predictive checks, and to investigate parameter recovery. Such mixture models are notoriously difficult to fit, but they have a lot of potential in cognitive science applications, especially in developing computational models of different kinds of cognitive processes.
 
 ## Further reading
 
-The reader interested in a deeper understanding of marginalization is referred to  @pullin2021statistical. Betancourt discusses problems of identification in  Bayesian mixture models in a case study ( https://mc-stan.org/users/documentation/case-studies/identifying_mixture_models.html).
+The reader interested in a deeper understanding of marginalization is referred to  @pullin2021statistical. Betancourt discusses problems of identification in  Bayesian mixture models in a case study (https://mc-stan.org/users/documentation/case-studies/identifying_mixture_models.html).
 An in-depth treatment of finite mixture modeling can be found in @fruhwirth2006finite. An in-depth treatment of the fast-guess model and other mixture models of response times is provided in Chapter 7 of @luce1986response.
 
