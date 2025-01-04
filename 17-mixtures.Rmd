@@ -31,9 +31,6 @@ The intuition behind this formula is that each \index{Likelihood function} likel
 Even though Stan cannot fit a model with the discrete indicator of the latent class $\mathbf{z}$ that we used in Equation \@ref(eq:mixz), this equation will prove very useful when we want to generate \index{Synthetic data} synthetic data.
 
 
-
-
-
 In the following sections, we model a well-known phenomenon (i.e., the speed-accuracy trade-off)  assuming an underlying \index{Finite mixture process} finite mixture process. We start from the verbal description of the model, and then implement the model step by step in Stan.
 
 ## A mixture model of the speed-accuracy trade-off: The fast-guess model account
@@ -65,7 +62,7 @@ To simplify matters, we ignore the possibility that the accuracy of the choice i
 
 We implement the assumptions behind Ollman's fast-guess model and examine its fit to data of a global motion detection task from @Dutilh2019quality.
 
-The data set from @Dutilh2019quality contains approximately 2800 trials of each of the 20 subjects participating in a global motion detection task and can be found in `df_dots` in the `bcogsci` package. There were two level of coherence, yielding hard and easy trials (`diff`), and the trials where done under instructions that emphasized either accuracy or speed (`emphasis`). More information about the data set can be found by accessing the documentation for the data set (by typing `?df_dots` in the R console, assuming that the `bcogsci` package is installed).
+The data set from @Dutilh2019quality contains approximately 2800 trials of each of the 20 subjects participating in a global motion detection task and can be found in `df_dots` in the `bcogsci` package. There were two level of coherence, yielding hard and easy trials (`diff`), and the trials where done under instructions that emphasized either accuracy or speed (`emphasis`). More information about the data set can be found by accessing the documentation for the data set (by typing `?df_dots` on the `R` command line, assuming that the `bcogsci` package is installed).
 
 ```{r, message = FALSE}
 data("df_dots")
@@ -126,7 +123,7 @@ df_lp
 df_dots %>% filter(diff == "easy", emphasis == "accuracy") %>% {quantile(.$rt, probs = probs)}
 
 df_dots %>% group_by(diff, emphasis) %>%
-   mutate(rtq = quantile(rt, probs = .1)) %>%
+   mutate(rtq = quantile(rt, probs = 0.1)) %>%
    filter(diff == "easy", emphasis == "accuracy")
 x <- 1:100
 x[ntile(1:100,4)==10]
@@ -239,7 +236,7 @@ ggplot(df_dots_simdata1, aes(rt)) +
   geom_histogram()
 ```
 
-To implement the mixture model defined in equation \@ref(eq:logpriorsunif) in Stan, the discrete parameter $z$ needs to be marginalized out:
+To implement the mixture model defined in Equation \@ref(eq:logpriorsunif) in Stan, the discrete parameter $z$ needs to be marginalized out:
 
 \begin{equation}
 \begin{aligned}
@@ -352,14 +349,14 @@ traceplot(fit_mix_rt) +
 
 The problem with this model is that the \index{Mixture component} mixture components  (i.e., the fast-guesses and the engaged mode) are underlyingly \index{Exchangeable} exchangeable and thus the posterior is \index{Multimodal} multimodal and the model does not converge. Each chain (and each iteration) doesn't know how each component was identified by the rest of the chains (e.g., in some chains and iterations, $z=0$ corresponds to fast guesses, whereas in other cases, it corresponds to deliberate responses). However, we do have information that can identify the components: According to the theoretical model, we know that the average response in the engaged mode, represented by $\alpha$, should be slower than the average response in the guessing mode, $\gamma$.
 
-Even though the theoretical model assumes that guesses are faster than engaged responses, this is not explicit in our computational model. That is, our model lacks some of the theoretical information that we have, namely that the distribution of engaged \index{Response time} response times should be slower than the distribution of guesses times. This can be encoded with \index{Order constraints} \index{inequality constraints} *order constraints* or *inequality constraints*, that is a \index{Strong prior} strong prior for $\gamma$, where we assume that its prior distribution is truncated on an upper  bound by the value of $\alpha$:
+Even though the theoretical model assumes that guesses are faster than engaged responses, this is not explicit in our computational model. That is, our model lacks some of the theoretical information that we have, namely that the distribution of engaged \index{Response time} response times should be slower than the distribution of guessing times. This can be encoded with \index{Order constraints} \index{inequality constraints} *order constraints* or *inequality constraints*: a \index{Strong prior} strong prior for $\gamma$, where we assume that the upper bound of its prior distribution is truncated at the value $\alpha$:
 
 
 \begin{equation}
 \gamma \sim \mathit{Normal}(6, 1), \text{for } \gamma < \alpha
 \end{equation}
 
-This would be enough to make the model to converge.
+This would be enough to make the model converge.
 
 Another softer constraint that we could add to our implementation is the assumption that subjects are generally more likely to be trying to do the task than just guessing. If this assumption is correct, we also improve the accuracy of our estimation of the posterior of the model. (The opposite is also true: If subjects are not trying to do the task, this assumption will be unwarranted and our prior information will lead us further from the "true" values of the parameters). The following prior has the probability density concentrated near $1$.
 
