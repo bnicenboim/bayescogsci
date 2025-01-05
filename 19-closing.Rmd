@@ -10,7 +10,7 @@ A key idea in Bayesian modeling is \index{Uncertainty quantification} uncertaint
 just interested in the estimates of our parameters, but also in how unsure
 we are about the parameter values. This shift in focus towards uncertainty
 quantification, and away from binary conclusions like "the effect is significant"
-or "the effect is not significant",  is useful because it furnishes a more realistic
+or "the effect is not significant,"  is useful because it furnishes a more realistic
 picture of what we can conclude from the model. Such a focus on uncertainty quantification
 also teaches us to embrace uncertainty as a fact of life. Journal articles from many different fields reporting the results
 of experiments often foster an illusion of robustness in their conclusions; the recent
@@ -38,14 +38,7 @@ and can cost a lot of time and effort. The computations can also take time. Howe
  the bottom line here is that one can either get fast answers to the wrong question, or
  slow (albeit uncertain!) answers to the real question one wants to answer. There is no free lunch.
 
- Bayesian modeling comes with another cost: one has to spend some time checking that the
- software used works as intended. This means not ignoring the warnings that the
- software issues, but it also means that we should carry out gold-standard checks
- to make sure that the model recovers the parameters as it is supposed to. Simulation
- of data is an important tool here. Although this model validation process can be
- time-consuming and computationally expensive, it is important to make sure that
- the model behaves as it should when we know what the ground truth is. Model validation is a process
- that even frequentist modelers could benefit from; for example, it is rare in psychology and linguistics  for researchers to check whether the linear mixed models they use for inference could even in principle recover the model parameters accurately.
+ Bayesian modeling comes with another cost: one has to spend some time checking that the software used works as intended. This means not ignoring the warnings that the software issues, but it also means that we should carry out gold-standard checks to make sure that the model recovers the parameters as it is supposed to. Simulation of data is an important tool here. Although this model validation process can be time-consuming and computationally expensive, it is important to make sure that the model behaves as it should when we know what the ground truth is. Model validation is a process that even frequentist modelers could benefit from; for example, it is rare in psychology and linguistics  for researchers to check whether the linear mixed models they use for inference could even in principle recover the model parameters accurately, or produce realistic data.
 
 In closing, we hope that the reader finds this book useful in their research,
 and we look forward to seeing more and more work in cognitive science that uses
