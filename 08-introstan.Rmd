@@ -287,7 +287,7 @@ as.array(fit_score) %>%
 
 ## Another simple example: \index{Cloze probability} Cloze probability with Stan with the \index{Binomial likelihood} binomial likelihood {#sec-clozestan}
 
-Let's fit a Stan model (`binomial_cloze.stan`) to estimate the cloze probability of a word given its context: that is, what is the probability of an upcoming word given its previous context; the model that was detailed in section \@ref(sec-analytical) and was fit in section \@ref(sec-sampling). We want to estimate  $\theta$, the cloze probability of producing "*umbrella*,"  given the following data:  "*umbrella*" was produced in $80$ out of $100$ trials. We assume a binomial distribution as the likelihood function, and $Beta(a=4,b=4)$ as a prior distribution for the cloze probability.
+Let's fit a Stan model (`binomial_cloze.stan`) to estimate the cloze probability of a word given its context: that is, what is the probability of an upcoming word given its previous context; the model that was detailed in section \@ref(sec-analytical) and was fit in section \@ref(sec-sampling). We want to estimate  $\theta$, the cloze probability of producing "*umbrella*,"  given the following data:  "*umbrella*" was produced in $80$ out of $100$ trials. We assume a binomial distribution as the likelihood function, and $\mathit{Beta}(a=4,b=4)$ as a prior distribution for the cloze probability.
 
 
 ```{r, echo = FALSE}
