@@ -963,7 +963,7 @@ if(!file.exists("dataR/fit_blp_h_sim.RDS")){
 ```
 
 
-The code below compares the posterior distributions of the relevant parameters of the model with their true values, and plots them in Figure \@ref(fig:recoverlnraceh). The true value for all the correlations was $0.3$, but we need to correct the sign depending on whether there was a minus sign in front of the adjustment when we built `mu_v_w` and `mu_v_wn` or not: For example, there is no minus before `u[subj, 1]`, but there is one before `u[subj, 2]`, thus the true correlation between `u[subj, 1]` and `u[subj, 2]` we generated should be negative (plus times minus is minus); and there is a minus before `u[subj, 3]` and thus the correlation between `u[subj, 2]` and `u[subj, 3]` should positive (minus times minus is positive).
+The code below compares the posterior distributions of the relevant parameters of the model with their true values, and plots them in Figure \@ref(fig:recoverlnraceh). The true value for all the correlations was $0.3$, but we need to correct the sign depending on whether there was a minus sign in front of the adjustment when we built `mu_v_w` and `mu_v_wn` or not: For example, there is no minus before `u[subj, 1]`, but there is one before `u[subj, 2]`, thus the true correlation between `u[subj, 1]` and `u[subj, 2]` we generated should be negative (plus times minus is minus); and there is a minus before `u[subj, 3]` and thus the correlation between `u[subj, 2]` and `u[subj, 3]` should be positive (minus times minus is positive).
 
 (ref:recoverlnraceh) Posterior distributions of the main parameters of the log-normal race model `fit_blp_h_sim` together with their true values.
 
