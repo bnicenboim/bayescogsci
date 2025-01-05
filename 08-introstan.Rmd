@@ -436,7 +436,7 @@ To determine the probability that the posterior for beta is larger than zero giv
 mean(df_fit_pupil$beta > 0)
 ```
 
-To generate prior or \index{Posterior predictive distribution} posterior predictive distributions, we can create our own functions in `R` with the `purrr` function `map_dfr` (or a for-loop) as we did in section  \@ref(sec-trial) with the function `lognormal_model_pred()`. Alternatively, we can use the \index{\texttt{generated quantities}} `generated quantities` block in our model:
+To generate prior or \index{Posterior predictive distribution} posterior predictive distributions, we can create our own functions in `R` with the `purrr` function `map_dfr()` (or a for-loop) as we did in section  \@ref(sec-trial) with the function `lognormal_model_pred()`. Alternatively, we can use the \index{\texttt{generated quantities}} `generated quantities` block in our model:
 
 ```{r pupilgenstan, echo = FALSE}
 pupil_gen <- system.file("stan_models",
