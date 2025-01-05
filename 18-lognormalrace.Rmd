@@ -755,7 +755,7 @@ Print the parameters values:
 print(fit_blp1_sim, pars = c("alpha", "beta", "T_0", "sigma"))
 ```
 
-As in previous chapters, `mcmc_recover_hist()` can be used to compare the posterior distributions of the relevant parameters of the model with their true point values (Figure \@ref(fig:recoverlnrace)). Indeed, \@ref(fig:recoverlnrace) shows that the model recovers the parameters reasonably well. First, however, we need to reparameterize the true values, since $D$ cannot be known, and we don't fit $V$, but rather $D/V$, with $V$ log-normally distributed. Then, obtain an estimate of $\alpha'$, rather than $\alpha$, such that $\alpha' = log(mu_{d}) - \alpha$.
+As in previous chapters, `mcmc_recover_hist()` can be used to compare the posterior distributions of the relevant parameters of the model with their true point values (Figure \@ref(fig:recoverlnrace)). Indeed, Figure \@ref(fig:recoverlnrace) shows that the model recovers the parameters reasonably well. First, however, we need to reparameterize the true values, since $D$ cannot be known, and we don't fit $V$, but rather $D/V$, with $V$ log-normally distributed. Then, obtain an estimate of $\alpha'$, rather than $\alpha$, such that $\alpha' = log(mu_{d}) - \alpha$.
 
 
 
@@ -811,7 +811,7 @@ Next, for each iteration `n` of the original for loop, generate an auxiliary var
 ```
 
 
-The variable `log_lik` contains the log-likelihood for each trial. We must not forget to add the total log-likelihood to the `target` variable. This is done simply by `target += sum(log_lik)`.^[There are two advantage of iterating first and then adding the total log likelihood to `target`: (i) we can use the variable `log_lik` for model comparison with cross-validation (see chapter \@ref(ch-cv)) without the need to repeating code in the generated quantities, and (ii) using `sum` and adding to `target` once is slighter faster than adding to `target` at each iteration.]
+The variable `log_lik` contains the log-likelihood for each trial. We must not forget to add the total log-likelihood to the `target` variable. This is done simply by `target += sum(log_lik)`.^[There are two advantages of iterating first and then adding the total log likelihood to `target`: (i) we can use the variable `log_lik` for model comparison with cross-validation (see chapter \@ref(ch-cv)) without the need to repeating code in the generated quantities, and (ii) using `sum` and adding to `target` once is slighter faster than adding to `target` at each iteration.]
 
 The complete Stan code for this model can be found in the `bcogsci` package  as `lnrace_mod.stan`, it is left for the reader to verify that the results are the same as from the non-modular model `lnrace.stan` fit earlier.
 
@@ -839,7 +839,7 @@ A simple hierarchical version of the previous model assumes that all the paramet
 \end{equation}
 
 
-Similarly to the \index{Hierarchical implementation} hierarchical implementation of the fast-guess model in section \@ref(sec-fastguessh), assume that $\boldsymbol{u}$ is a matrix with as many rows as  subjects and six columns. Also assume that $u$  follows a \index{Multivariate normal distribution} multivariate normal distribution centered at zero. For lack of more information, we assume the same (weakly informative) prior distribution for the six variance components $\tau_{u_{1}}, \tau_{u_{2}}, \ldots, \tau_{u_{6}}$ with a somewhat smaller effect than we assumed for the prior of $\sigma$. As with previous hierarchical models, we assign a regularizing \index{LKJ prior} LKJ prior for the correlations between the adjustments:^[There are 15 correlations since there are 15 ways to choose 2 variables out of 6 for specifying the pairwise correlations, where order doesn't matter. This is calculated with ${6 \choose 2}$ which is `choose(6, 2)` in R.]
+Similarly to the \index{Hierarchical implementation} hierarchical implementation of the fast-guess model in section \@ref(sec-fastguessh), assume that $\boldsymbol{u}$ is a matrix with as many rows as  subjects and six columns. Also assume that $u$  follows a \index{Multivariate normal distribution} multivariate normal distribution centered at zero. For lack of more information, we assume the same (weakly informative) prior distribution for the six variance components $\tau_{u_{1}}, \tau_{u_{2}}, \ldots, \tau_{u_{6}}$ with a somewhat smaller effect than we assumed for the prior of $\sigma$. As with previous hierarchical models, we assign a regularizing \index{LKJ prior} LKJ prior for the correlations between the adjustments:^[There are 15 correlations since there are 15 ways to choose 2 variables out of 6 for specifying the pairwise correlations, where order doesn't matter. This is calculated with ${6 \choose 2}$ which is `choose(6, 2)` in `R`.]
 
 \begin{equation}
 \begin{aligned}
@@ -849,7 +849,7 @@ Similarly to the \index{Hierarchical implementation} hierarchical implementation
 \end{aligned}
 \end{equation}
 
-Before fitting the model to the real data, verify that it works with simulated data. To create synthetic data of several subjects, repeat the same generative process used before, and add the by-subject adjustments `u` in the same way as in section \@ref(sec-fastguessh).  This version of the log-normal race model assumes that all the parameters $\alpha$ and $\beta$ have by-subject adjustments; that is, 6 adjustments. To simplify the model, ignore the possibility of an adjustment for the non-decision time $T_0$, but see @nicenboimModelsRetrievalSentence2018 for an implementation of the log-normal race model with a hierarchical non-decision time.
+Before fitting the model to the real data, verify that it works with simulated data. To create synthetic data of several subjects, repeat the same generative process used before, and add the by-subject adjustments `u` in the same way as in section \@ref(sec-fastguessh).  This version of the log-normal race model assumes that all the parameters $\alpha$ and $\beta$ have by-subject adjustments; that is, six adjustments. To simplify the model, ignore the possibility of an adjustment for the non-decision time $T_0$, but see @nicenboimModelsRetrievalSentence2018 for an implementation of the log-normal race model with a hierarchical non-decision time.
 For simplicity, all the adjustments `u` are normally distributed with the same  standard deviation of $0.2$, and they have a $0.3$ correlation between pairs of `u`'s; see `tau_u` and `rho` below.
 
 First, set a seed, take a subset of the data set to keep the same structure, set true point values, and auxiliary variables that indicate the number of observations, subjects, etc.
@@ -1024,7 +1024,7 @@ ls_blp_h <- list(N = nrow(df_blp),
                  c_lfreq = df_blp$c_lfreq)
 fit_blp_h <- stan(lnrace_h,
                   data = ls_blp_h,
-                  control = list(adapt_delta = .99,
+                  control = list(adapt_delta = 0.99,
                                  max_treedepth = 14))
 
 ```
@@ -1212,7 +1212,7 @@ ls_blp_h <- list(N = nrow(df_blp),
                  c_lfreq = df_blp$c_lfreq)
 fit_blp_h_cont <- stan(lnrace_h_cont,
                        data = ls_blp_h,
-                       control = list(adapt_delta = .99,
+                       control = list(adapt_delta = 0.99,
                                       max_treedepth = 14))
 
 ```
@@ -1289,7 +1289,7 @@ lnrace_h_contb <- system.file("stan_models",
                               package = "bcogsci")
 fit_blp_h_contb <- stan(lnrace_h_contb,
                         data = ls_blp_h,
-                        control = list(adapt_delta = .99,
+                        control = list(adapt_delta = 0.99,
                                        max_treedepth = 14))
 ```
 
