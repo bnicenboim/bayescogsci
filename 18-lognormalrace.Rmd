@@ -1486,7 +1486,7 @@ df_blp_pred_qpf <- df_blp_pred  %>%
 
 Now, plot the results with the code shown below (Figure \@ref(fig:qppfreqpp)).
 
-(ref:qppfreqpp) Quantile probability plots showing   0.1, 0.3, 0.5, 0.7, and 0.9 response times quantiles plotted against  proportion of incorrect responses (left) and proportion of correct responses (right) for words of different frequency. Word frequency are grouped according to quantiles: The first group is words with frequencies smaller than the 0.2-th quantile, the second group is words with frequencies smaller than the 0.4-th quantile and larger than the 0.2-th quantile, and so forth. The summary of the observed data is plotted in black and the summaries of the synthetic data sets are plotted in gray.
+(ref:qppfreqpp) Quantile probability plots showing  $0.1$, $0.3$, $0.5$, $0.7$, and $0.9$ response times quantiles plotted against  proportion of incorrect responses (left) and proportion of correct responses (right) for words of different frequency. Word frequency are grouped according to quantiles: The first group is words with frequencies smaller than the $0.2$-th quantile, the second group is words with frequencies smaller than the $0.4$-th quantile and larger than the $0.2$-th quantile, and so forth. The summary of the observed data is plotted in black and the summaries of the synthetic data sets are plotted in gray.
 
 ```{r qppfreqpp, fig.cap = "(ref:qppfreqpp)", warning = FALSE, fig.height = 3.5}
 ggplot(df_blp_pred_qpf %>% filter(sim < 200), aes(x = p, y = rt_q)) +
