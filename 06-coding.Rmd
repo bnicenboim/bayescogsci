@@ -529,7 +529,7 @@ names(table3a) <- c("Factor", "N data", "Est. means", "Std. dev.", "Std. errors"
 
 We assume that the four factor levels $F1$ to $F4$ reflect levels of word frequency, including the levels `low`, `medium-low`, `medium-high`, and `high` frequency words, and that the dependent variable reflects response time.
 
-Qualitatively, the simulated pattern of results is similar to empirically observed values for word frequency effects on single fixation durations in eye tracking [@heister2012analysing; see their Figure 5.4].
+Qualitatively, the simulated pattern of results is similar to empirically observed values for word frequency effects on single fixation durations in eye tracking [see Figure 5.4 in @heister2012analysing].
 Normally, one may expect the pattern to be monotonically decreasing, i.e., higher word frequency should lead to faster reading times. However, we choose this more complex pattern because we think it may be helpful in understanding how polynomial and monotonic contrasts work (see below).
 
 ### \index{Repeated contrasts} Repeated contrasts {#repeatedcontrasts}
