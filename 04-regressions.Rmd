@@ -298,7 +298,7 @@ Repeat the same procedure with $\beta \sim \mathit{Normal}(0,0.01)$; the resulti
 
 (ref:priorbeta2) The prior predictive distribution of the median difference in finger tapping times between adjacent trials based on the model defined in section \@ref(sec-trial) with $\beta \sim \mathit{Normal}(0, 0.01)$.
 
-```{r priorbeta2,fig.cap="(ref:priorbeta2)", warning = FALSE, message = FALSE, echo = FALSE, fig.height = 2}
+```{r priorbeta2,fig.cap="(ref:priorbeta2)", message = FALSE, echo = FALSE, fig.height = 2}
 fit_prior_press_trial <-
   brm(t ~ 1 + c_trial,
       data = df_spacebar_ref,
@@ -307,7 +307,7 @@ fit_prior_press_trial <-
                 prior(normal(0, 1), class = sigma),
                 prior(normal(0, .01), class = b, coef = c_trial)),
       sample_prior = "only",
-      control = list(adapt_delta = .9))
+      control = list(adapt_delta = .99))
 pp_check(fit_prior_press_trial,
          type = "stat",
          prefix = "ppd",
