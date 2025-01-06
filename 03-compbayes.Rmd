@@ -741,7 +741,7 @@ prior_pred_ln <-
 
 Next, plot the distribution of some representative statistics; see Figure \@ref(fig:priorpredlogunif).
 
-(ref:priorpredlogunif) The prior predictive distribution of the mean, median, minimum, and maximum value of the log-normal model with priors defined in Equation \@ref(eq:logpriorsunif), that is $\mu \sim \mathit{Uniform}(0, 11)$ and $\sigma \sim \mathit{Uniform}(0, 1)$. The x-axis is log-transformed.
+(ref:priorpredlogunif) The prior predictive distribution of the mean, median, minimum, and maximum value of the log-normal model with priors defined in Equation \@ref(eq:logpriorsunif), that is $\mu \sim \mathit{Uniform}(0, 11)$ and $\sigma \sim \mathit{Uniform}(0, 1)$. The x-axis shows values back-transformed from the log-scale.
 
 ```{r priorpredlogunif,fig.cap="(ref:priorpredlogunif)", message = FALSE, echo = FALSE, fig.height = 4}
 prior_pred_ln %>%
