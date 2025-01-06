@@ -778,6 +778,8 @@ mcmc_recover_hist(estimates, true_values) +
 
 Before moving on to a more complex version of this model, it's worth spending some time making the code more modular. Encapsulate the likelihood of the log-normal race model by writing it as a function. The function has four arguments, the decision time `T`, the choice `nchoice` (this will only work with two choices, `1` and `2`), an array of locations `mu` (which again we implicitly assume to have two elements), and a common scale `sigma`.
 
+\Begin{samepage}
+
 ```{stan, output.var = "none", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
 functions {
   real lognormal_race2_lpdf(real T, int nchoice,
@@ -793,6 +795,8 @@ functions {
   }
 }
 ```
+
+\End{samepage}
 
 Next, for each iteration `n` of the original for loop, generate an auxiliary variable `T` which contains the decision time for the current trial, and `mu` as an array of size two that contains all the parameters that affect the location at each trial. This will allow us to use our new function as follows in the `model` block:^[This for-loop can also be implemented in the `transformed parameter` block; the advantage of doing this is that the log-likelihood of each observation can be used, for example, for cross-validation; the disadvantage is that the R object might be very large, because it will store the log-likelihood during the warm-up period as well.]
 
