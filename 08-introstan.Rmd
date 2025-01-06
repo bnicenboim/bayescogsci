@@ -567,8 +567,7 @@ pupil_int2 <- system.file("stan_models",
 ```{stan output.var = "pupilint2_stan", code = readLines(pupil_int2),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
 ```
 
-For some likelihood functions, Stan provides  a more \index{Efficient implementation} efficient implementation of the linear regression than the one manually written in the previous code. It's critical to understand that, in general,  a more efficient implementation should not only be faster, but should also achieve the same number of effective samples (or more) than a less efficient implementation (and should also show convergence). In this case, we can achieve that using `_glm` functions.  We can replace the last line with the following statement (the order of the arguments is important):^[An extra boost in efficiency can be obtained in regular regressions where `X` and `Y` are data (rather than parameters as in cases of missing data or measurement error), since this function can be executed on a GPU.]
-
+For some likelihood functions, Stan provides  a more \index{Efficient implementation} efficient implementation of the linear regression than the one manually written in the previous code. It's critical to understand that, in general,  a more efficient implementation should not only be faster, but should also achieve the same number of effective samples (or more) than a less efficient implementation (and should also show convergence). In this case, we can achieve that using `_glm` functions.  We can replace the last line with the following statement (the order of the arguments is important):
 ```
 target += normal_id_glm_lpdf(p_size | X, alpha, beta, sigma);
 ```
