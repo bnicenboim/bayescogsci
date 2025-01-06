@@ -299,7 +299,7 @@ if(!file.exists("dataR/loo_stroop_log.RDS")){
 loo_stroop_log
 ```
 
-The summary shows that $k$ estimates are ok.
+The summary shows that $\hat{k}$ estimates are ok.
 
 ```{r, echo= FALSE}
 if(!file.exists("dataR/fit_stroopm2.RDS")){
