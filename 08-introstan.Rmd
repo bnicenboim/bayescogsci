@@ -79,7 +79,7 @@ q <- function(mu, sigma, y) {
 For example, if we want to know the unnormalized posterior density for the vector of parameters $\langle \mu,\sigma \rangle = \langle 0, 5 \rangle$, we do the following:
 
 ```{r}
-q(mu = 0, sigma = 5, y = Y)
+q(mu = 0, sigma = 5, y = y)
 ```
 
 The shape of the unnormalized posterior density is completely defined and it will look like Figure \@ref(fig:up).
@@ -95,7 +95,7 @@ dup <- expand.grid(mu, sigma) %>%
   setNames(c("mu", "sigma")) %>%
   mutate(density = map2_dbl(.data$mu,
                             .data$sigma,
-                            ~ q(mu = .x, sigma = .y, y = Y)))
+                            ~ q(mu = .x, sigma = .y, y = y)))
 lattice::wireframe(density ~ mu * sigma, data = dup,
                    xlab = list(label = "mu", cex = 0.9),
                    ylab = list(label = "sigma", cex = 0.9),
@@ -152,7 +152,7 @@ set.seed(123)
 ```
 
 ```{r yscoresagain, eval = FALSE}
-Y <- rnorm(n = 100, mean = 3, sd = 10)
+y <- rnorm(n = 100, mean = 3, sd = 10)
 ```
 
 As mentioned earlier, \index{Stan code} Stan code is organized in \index{Block} blocks. The first block indicates what constitutes data for the model:
@@ -224,8 +224,8 @@ Stan requires the data to be in a list object in `R`. Below, we fit the model wi
 
 
 ```{r stannormal, message=FALSE, results = "hide"}
-Y <- rnorm(n = 100, mean = 3, sd = 10)
-lst_score_data <- list(y = Y, N = length(Y))
+y <- rnorm(n = 100, mean = 3, sd = 10)
+lst_score_data <- list(y = y, N = length(Y))
 # Fit the model with the default values of number of
 # chains and iterations: chains = 4, iter = 2000
 fit_score <- stan(normal, data = lst_score_data)
@@ -287,7 +287,7 @@ as.array(fit_score) %>%
 
 ## Another simple example: \index{Cloze probability} Cloze probability with Stan with the \index{Binomial likelihood} binomial likelihood {#sec-clozestan}
 
-Let's fit a Stan model (`binomial_cloze.stan`) to estimate the cloze probability of a word given its context: that is, what is the probability of an upcoming word given its previous context; the model that was detailed in section \@ref(sec-analytical) and was fit in section \@ref(sec-sampling). We want to estimate  $\theta$, the cloze probability of producing "*umbrella*,"  given the following data:  "*umbrella*" was produced in $80$ out of $100$ trials. We assume a binomial distribution as the likelihood function, and $Beta(a=4,b=4)$ as a prior distribution for the cloze probability.
+Let's fit a Stan model (`binomial_cloze.stan`) to estimate the cloze probability of a word given its context: that is, what is the probability of an upcoming word given its previous context; the model that was detailed in section \@ref(sec-analytical) and was fit in section \@ref(sec-sampling). We want to estimate  $\theta$, the cloze probability of producing "*umbrella*,"  given the following data:  "*umbrella*" was produced in $80$ out of $100$ trials. We assume a binomial distribution as the likelihood function, and $\mathit{Beta}(a=4,b=4)$ as a prior distribution for the cloze probability.
 
 
 ```{r, echo = FALSE}
@@ -436,7 +436,7 @@ To determine the probability that the posterior for beta is larger than zero giv
 mean(df_fit_pupil$beta > 0)
 ```
 
-To generate prior or \index{Posterior predictive distribution} posterior predictive distributions, we can create our own functions in `R` with the `purrr` function `map_dfr` (or a for-loop) as we did in section  \@ref(sec-trial) with the function `lognormal_model_pred()`. Alternatively, we can use the \index{\texttt{generated quantities}} `generated quantities` block in our model:
+To generate prior or \index{Posterior predictive distribution} posterior predictive distributions, we can create our own functions in `R` with the `purrr` function `map_dfr()` (or a for-loop) as we did in section  \@ref(sec-trial) with the function `lognormal_model_pred()`. Alternatively, we can use the \index{\texttt{generated quantities}} `generated quantities` block in our model:
 
 ```{r pupilgenstan, echo = FALSE}
 pupil_gen <- system.file("stan_models",
