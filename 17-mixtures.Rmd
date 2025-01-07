@@ -904,9 +904,8 @@ Sigma_u <- diag(tau_u, 3, 3) %*% Cor_u %*% diag(tau_u, 3, 3)
 u <- mvrnorm(n = N_subj, c(0, 0, 0), Sigma_u)
 # Check whether they are correctly correlated
 # (There will be some random variation,
-# but if you increase the number of observations and
-# the value of the correlation, you'll be able to obtain
-# a more exact value below):
+# but if you increase the number of observations, 
+# you'll be able to obtain more exact values below):
 cor(u)
 # Check the SDs:
 sd(u[, 1]); sd(u[, 2]); sd(u[, 3])
