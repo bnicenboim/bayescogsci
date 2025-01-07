@@ -407,7 +407,7 @@ This model, call it $M_{cp}$, makes the following assumptions.
 
 **This model is incorrect for these data due to assumption (2) being violated.**
 
-With the last assumption, we are saying that the difference in the average signal when we compare nouns with cloze probability of 0 and 0.1 is the same as the difference in the signal when we compare nouns with cloze values of 0.1 and 0.2 (or 0.9 and 1). This is just an assumption, and it may not necessarily be the case in the actual data. This means that we are going to get a posterior for $\beta$ conditional on the assumption that the linear relationship holds. Even if the assumption approximately holds, we still don't know how much we deviate from this assumption.
+With the last assumption, we are saying that the difference in the average signal when we compare nouns with cloze probability of $0$ and $0.1$ is the same as the difference in the signal when we compare nouns with cloze values of $0.1$ and $0.2$ (or $0.9$ and $1$). This is just an assumption, and it may not necessarily be the case in the actual data. This means that we are going to get a posterior for $\beta$ conditional on the assumption that the linear relationship holds. Even if the assumption approximately holds, we still don't know how much we deviate from this assumption.
 
 We can now decide on a likelihood and priors.
 
