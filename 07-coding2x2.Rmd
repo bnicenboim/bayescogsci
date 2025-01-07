@@ -168,7 +168,7 @@ This kind of vector-based contrast coding is convenient for more complex designs
 First, define a data frame that represents the main effects and interaction contrasts for the four conditions.
 
 ```{r}
-(contr_coding <- data.frame(Condition = c("F1","F2","F3","F4"),
+(contr_coding <- data.frame(Condition = c("F1", "F2", "F3", "F4"),
                             A = c(-1 / 2, -1 / 2, 1 / 2, 1 / 2),
                             B = c(-1 / 2, 1 / 2, -1 / 2, 1 / 2),
                             AxB = c(1 / 2, -1 / 2, -1 / 2, 1 / 2)))
@@ -177,10 +177,10 @@ First, define a data frame that represents the main effects and interaction cont
 Then, one can merge this data frame with the data frame that contains the data:
 
 ```{r}
-(df_contrasts3 < -merge(df_contrasts3,
-                      contr_coding,
-                      by.x = c("F"),
-                      by.y = "Condition"))
+(df_contrasts3 <- merge(df_contrasts3,
+                        contr_coding,
+                        by.x = "F",
+                        by.y = "Condition"))
 ```
 
 ### \index{Nested effects} Nested effects {#nestedEffects}
