@@ -163,24 +163,24 @@ B <- ifelse(df_contrasts3$F %in% c("F1", "F3"), -1 / 2, 1 / 2)
 (AxB <- A * B)
 ```
 
-This kind of vector-based contrast coding is convenient for more complex designs, such as $2\times 2\times 2$ factorial designs. However, in such complex designs, the `ifelse()` command can become cumbersome, so a better approach is to use the `merge` function in `R`. 
+This kind of vector-based contrast coding is convenient for more complex designs, such as $2\times 2\times 2$ factorial designs. However, in such complex designs, the `ifelse()` command can become cumbersome, so a better approach is to use the `merge()` function in `R`. 
 
 First, define a data frame that represents the main effects and interaction contrasts for the four conditions.
 
 ```{r}
 (contr_coding <- data.frame(Condition = c("F1","F2","F3","F4"),
-                A = c(-1 / 2, -1 / 2, 1 / 2, 1 / 2),
-                B = c(-1 / 2, 1 / 2, -1 / 2, 1 / 2),
-                AxB = c(1 / 2, -1 / 2, -1 / 2, 1 / 2)))
+                            A = c(-1 / 2, -1 / 2, 1 / 2, 1 / 2),
+                            B = c(-1 / 2, 1 / 2, -1 / 2, 1 / 2),
+                            AxB = c(1 / 2, -1 / 2, -1 / 2, 1 / 2)))
 ```
 
 Then, one can merge this data frame with the data frame that contains the data:
 
 ```{r}
-(df_contrasts3<-merge(df_contrasts3,
-                     contr_coding,
-                     by.x = c("F"),
-                     by.y = "Condition"))
+(df_contrasts3 < -merge(df_contrasts3,
+                      contr_coding,
+                      by.x = c("F"),
+                      by.y = "Condition"))
 ```
 
 ### \index{Nested effects} Nested effects {#nestedEffects}
