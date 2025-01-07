@@ -676,7 +676,7 @@ df_recall <- df_recall %>%
          c_trial = trial - mean(trial))
 ```
 
-Next, create the model matrix, $X$, and prepare the data as a list. As in section \@ref(sec-interstan), exclude the intercept from the matrix `X` using ` 0 +... `. This is because the Stan code that we are using already takes into account that the first column in the model matrix is going to be a vector of ones.
+Next, create the model matrix, $X$, and prepare the data as a list. As in section \@ref(sec-interstan), exclude the intercept from the matrix `X` using ` 0 +... `. This is because in the Stan code that we are using, the intercept is kept separate from the model matrix $X$, which only has the contrast coding for the slope parameters. The approach we take here is equivalent to defining a model matrix whose first column is a vector of ones.
 
 ```{r}
 X <- model.matrix(~ 0 + c_set_size * c_trial, df_recall)
