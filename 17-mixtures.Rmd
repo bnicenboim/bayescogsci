@@ -842,7 +842,7 @@ We see that we fit the model without problems. Before we evaluate the recovery o
 ### A \index{Hierarchical implementation} hierarchical implementation of the fast-guess model {#sec-fastguessh}
 
 So far we have evaluated the behavior of one simulated subject.
-We discussed before (in the context of distributional regression models, in section \@ref(sec-distrmodel), and in the MPT modeling chapter \@ref(ch-MPT)) that, in principle, every parameter in a model can be made hierarchical. However, this doesn't guarantee that we'll learn anything from the data for those parameters, or that our model will converge. A safe approach here is to start simple, using simulated data. Despite the fact that convergence with simulated data does not guarantee the convergence of the same model with real data, in our experience the reverse is in general true.
+We discussed before (in the context of distributional regression models, in section \@ref(sec-distrmodel), and in the MPT modeling chapter \@ref(ch-MPT)) that, in principle, every parameter in a model can be made hierarchical. However, this doesn't guarantee that we'll learn anything from the data for those parameters, or that our model will converge. A safe approach here is to start simple, using simulated data. If a model converges on simulated data, it does not guarantee convergence on real data. However, if a model fails to converge on simulated data, it is very likely to fail with real data as well.
 
 For our hierarchical version, we assume that both response times and the effect of task difficulty  vary by subject, and that different subjects have different guessing times. This entails the following change to the response time distribution:
 
