@@ -793,7 +793,8 @@ This means that the prior for $\mu$ is still not too informative (these are medi
  `brms` allows one to sample from the priors, ignoring the observed data `t` , by setting `sample_prior = "only"` in the `brm` function.
 
 
-If we want to use `brms` to generate prior predictive data in this manner even before we have any data, we do need to include a data frame  (at least for the current version of `brms`). Setting `sample_prior = "only"` will ignore the data frame.
+
+If we want to use `brms` to generate prior predictive data in this manner even before we have any data, we do need to include a data frame with the relevant dependent variable (`y` in this case). Setting `sample_prior = "only"` will ignore the values of the dependent variable.
 
 ```{r, results="hide", message= FALSE}
 fit_prior_press_ln <-
