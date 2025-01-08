@@ -793,19 +793,17 @@ This means that the prior for $\mu$ is still not too informative (these are medi
  `brms` allows one to sample from the priors, ignoring the observed data `t` , by setting `sample_prior = "only"` in the `brm` function.
 
 
-If we want to use `brms` to generate prior predictive data in this manner even before we have any data, we do need to have some non-`NA` values as the dependent variable `t`  (at least for the current version of `brms`). Setting \index{\texttt{sample\_prior}} `sample_prior = "only"` will ignore the values of the dependent variable, but we still need to add a data frame in the `data =` specification in the `brm()` function: In this case, we add a vector of `1` as `data`. The family is specified as `lognormal()`; recall that in the first example, the family was  `gaussian()`.
+If we want to use `brms` to generate prior predictive data in this manner even before we have any data, we do need to include a data frame  (at least for the current version of `brms`). Setting `sample_prior = "only"` will ignore the data frame.
 
 ```{r, results="hide", message= FALSE}
-df_spacebar_ref <- df_spacebar %>%
-  mutate(t = rep(1, n()))
 fit_prior_press_ln <-
   brm(t ~ 1,
-      data = df_spacebar_ref,
+      data = df_spacebar,
       family = lognormal(),
       prior = c(prior(normal(6, 1.5), class = Intercept),
                 prior(normal(0, 1), class = sigma)),
       sample_prior = "only",
-      control = list(adapt_delta = .9))
+      control = list(adapt_delta = 0.9))
 ```
 
 To avoid the warnings, increase the `adapt_delta` parameter's default value from $0.8$ to $0.9$ to simulate the data. Since Stan samples from the prior distributions in the same way that it samples from the posterior distribution, one should not ignore warnings; always ensure that the model  converges. In that respect, the custom function `normal_predictive_distribution()` defined in section \@ref(sec-priorpred) has the advantage that it will always yield independent samples from the prior distribution and will not experience any convergence problems. This is because it just relies on the `rnorm()` function in R.
