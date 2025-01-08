@@ -226,7 +226,7 @@ Stan requires the data to be in a list object in `R`. Below, we fit the model wi
 
 ```{r stannormal, message=FALSE, results = "hide"}
 y <- rnorm(n = 100, mean = 3, sd = 10)
-lst_score_data <- list(y = y, N = length(Y))
+lst_score_data <- list(y = y, N = length(y))
 # Fit the model with the default values of number of
 # chains and iterations: chains = 4, iter = 2000
 fit_score <- stan(normal, data = lst_score_data)
