@@ -4,7 +4,7 @@ Six keywords:
 
 Bayesian statistics
 Bayesian hierarchical models
-Generalized linear model
+Generalized linear models
 Computational cognitive modeling
 Bayesian hypothesis testing
 Bayesian model comparison
@@ -66,25 +66,7 @@ a correlation between them), and a distributional regression model, in which
 each grouping variable (e.g., subject) is assumed to have its own residual
 standard deviation parameter.
 
-Chapter 6: The Art and Science of Prior Elicitation
-
-Here we discuss how one can derive/elicit priors for parameters in a model. A
-practical example from psycholinguistics is presented: the priors for the
-parameters in a hierarchical regression model of self-paced reading data are
-developed step by step in order to illustrate how one can reason about the
-priors in a model. The chapter also discusses how one can systematically elicit
-priors from domain experts, or from meta-analyses, and using posteriors from
-previous experiments when planning the analysis for a future study.
-
-Chapter 7: Workflow
-
-This chapter discusses the process of model-building in detail, focusing on
-asking and answering questions such as: are the model assumptions consistent
-with domain knowledge; how sensitive is the model to prior choice; and does the
-model adequately characterize the data? An important model-validation method
-called simulation-based calibration is discussed.
-
-Chapter 8: Contrast coding
+Chapter 6: Contrast coding
 
 This chapter introduces the theory behind contrast coding for planned
 experiments that usually have a factorial design. The central idea introduced
@@ -93,32 +75,32 @@ introduced for defining contrasts. Different types of contrast coding are
 discussed: sum contrasts, Helmert contrasts, sliding or successive difference
 contrasts, and polynomial contrasts.
 
-Chapter 9: Contrast coding for designs with two predictor variables
+Chapter 7: Contrast coding with two predictor variables
 
 This chapter introduces contrast coding for experiment designs that have
 multifactorial designs (the 2x2 factorial design is the most common example of
 these). Analysis of variance coding and nested contrast coding are introduced.
 
-Chapter 10: Introduction to the probabilistic programming language Stan
+Chapter 8: Introduction to the probabilistic programming language Stan
 
 The basic building blocks of the programming language Stan are introduced in
 this chapter. Stan is used to develop two simple examples that involve the
 normal and binomial likelihoods. Then, the Stan syntax for simple regression
 models is introduced.
 
-Chapter 11: Hierarchical models and reparameterization
+Chapter 9: Hierarchical models and reparameterization
 
 This chapter extends chapter 10 by incrementally introducing the Stan syntax for building
 increasingly complex hierarchical models: varying intercepts models,
 and varying intercepts and slopes models with and without correlations.
 
-Chapter 12: Custom distributions
+Chapter 10: Custom distributions
 
 Sometimes it becomes necessary to define a custom probability density function (PDF).
 The basics of writing one's own PDF are discussed here, including a discussion about how
 to include a Jacobian adjustment, when a a change of variables is required. Two simple examples are discussed to illustrate the process.
 
-Chapter 13: Evidence synthesis and measurements with error
+Chapter 11: Meta-analysis and measurement error models
 
 Two important and relatively underutilized classes of hierarchical model are
 introduced here: random-effects meta-analysis models, and measurement error
@@ -129,7 +111,7 @@ independent variable) may have associated with it some variability; this class
 of model takes this variability into account in the regression modeling
 framework.
 
-Chapter 14: Introduction to model comparison
+Chapter 12: Introduction to model comparison
 
 Having defined more than one model, an obvious question that arises is:
 which model represents the data generative process better? One graphical
@@ -138,7 +120,7 @@ there are more quantitative ways to investigate model fit. In this short
 chapter, we discuss some important ideas to consider when engaging in model
 comparison.
 
-Chapter 15: Bayes factors
+Chapter 13: Bayes factors
 
 The Bayesian analog to the frequentist likelihood ratio test (aka the ANOVA) is the Bayes factor.
 In this chapter, we first explain the definition of the Bayes factor, and then illustrate its
@@ -146,7 +128,7 @@ application via some simple examples. An important detail regarding the Bayes fa
 is that it can be very sensitive to the prior specification; we discuss the nuances
 of and the pitfalls associated with computing Bayes factors.
 
-Chapter 16: Cross-validation
+Chapter 14: Cross-validation
 
 An alternative to using Bayes factors for model comparison is cross-validation.
 In an approach called k-fold cross-validation, k subsets of the data (called the
@@ -160,7 +142,7 @@ estimated elpd computed. This is called leave-one-out cross-validation (LOO-CV).
 approximation of LOO-CV is available in the loo package, this is called PSIS-LOO.
 We discuss the details of computing estimated elpd values in Stan as well as brms.
 
-Chapter 17: Introduction to cognitive modeling
+Chapter 15: Introduction to cognitive modeling
 
 This chapter transitions to building customized process models within Stan;
 the focus is on defining latent (unobservable) processes that represent
@@ -168,7 +150,7 @@ theoretical assumptions about the particular cognitive process being modeled.
 In this chapter, we discuss the characteristics and types of such models, and the advantages of
 developing these kinds of process models.
 
-Chapter 18: Multinomial processing trees
+Chapter 16: Multinomial processing trees
 
 This chapter introduces a class of cognitive model that is very widely used in
 mathematical psychology. These models allow the researcher to define
@@ -177,7 +159,7 @@ lead to an observed categorical behavioral response. We show through a practical
 the models can be implemented in Stan, and how such models can be made
 hierarchical.
 
-Chapter 19: Mixture models
+Chapter 17: Mixture models
 
 Here, we discuss an important class of model whereby the data are assumed to come
 from two or more distinct distributions. A multivariate mixture model is discussed
@@ -185,7 +167,7 @@ via a practical example; such a model includes two dependent variables simultane
 (in our example, accuracies and response times). A hierarchical version of
 such a model is also illustrated.
 
-Chapter 20: A simple accumulator model to account for choice response time
+Chapter 18: A simple accumulator model to account for choice response time
 
 This chapter introduces the log-normal race model, a type of sequential sampling
 model used to account for both response times and accuracy in decision-making
