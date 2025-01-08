@@ -2,9 +2,9 @@
 
 Chapter\ \@ref(ch-contr) provides a basic introduction into contrast coding in situations where there is one predictor variable, i.e., one factor, whose effects can be estimated using a specified contrast matrix. Here, we investigate how contrast coding generalizes to situations where there is more than one predictor variable. This could either be a situation where two factors are present or where one factor is paired with a continuous predictor variable, i.e., a covariate. We first discuss contrast coding for the case of two factors (for $2 \times 2$ designs; section\ \@ref(sec-MR-ANOVA)) and then go on to investigate situations where one predictor is a factor and the other predictor is a covariate (section\ \@ref(sec-contrast-covariate)). One problem in the analysis of interactions occurs in situations where the model is not linear, but has some non-linear link function, for example in logistic models, or when assuming a log-normally distributed dependent variable. In these situations, the model makes predictions for each condition (i.e., design cell) at the latent level of the linear model. Sometimes it is important to translate these model predictions to the level of the observations (e.g., to probabilities in a logistic regression model). We will discuss how this can be implemented in section\ \@ref(sec-interactions-NLM). 
 
-## Contrast coding in a factorial \index{$2 \times 2$ design} $2 \times 2$ design {#sec-MR-ANOVA}
+## Contrast coding in a factorial $2 \times 2$ design {#sec-MR-ANOVA}
 
-In section\ \@ref(sec-4levelFactor) of chapter \@ref(ch-contr), we used a data set with one 4-level factor. Here, we assume that the same four means come from an $A(2) \times B(2)$ between-subject-factor design rather than an F(4) between-subject-factor design. Load the simulated data and show summary statistics in Table\ \@ref(tab:cTab4Means) and in Figure \@ref(fig:twobytwosimdatFig). The means and standard deviations are exactly the same as in Figure \@ref(fig:helmertsimdatFig) and in Table\ \@ref(tab:cTab3Means).
+In section\ \@ref(sec-4levelFactor) of chapter \@ref(ch-contr), we used a data set with one 4-level factor. Here, we assume that the same four means come from an $A(2) \times B(2)$ between-subject-factor design rather than an $F(4)$ between-subject-factor design. Load the simulated data and show summary statistics in Table\ \@ref(tab:cTab4Means) and in Figure \@ref(fig:twobytwosimdatFig). The means and standard deviations are exactly the same as in Figure \@ref(fig:helmertsimdatFig) and in Table\ \@ref(tab:cTab3Means).
 
 ```{r, echo=FALSE, message=FALSE}
 data("df_contrasts4")
@@ -39,7 +39,7 @@ kable(table4a %>%
 ```
 
 
-In order to carry out a $2\times 2$ \index{Analysis of variance} ANOVA-type \index{Main effects} (main effects and \index{Interaction} interaction) analysis, one needs \index{Sum contrasts} sum contrasts in the linear model. (This is true for factors with two levels, but does not generalize to factors with more levels.) The results of such an analysis are shown in Table\ \@ref(tab:table18b). (This analysis uses sum contrasts: $-1$/$+1$; however, scaled sum contrasts $-0.5$/$+0.5$ could also be used; in this case, the priors would need to be adapted to the respective scale.)
+In order to carry out a $2\times 2$ \index{Analysis of variance} ANOVA-type \index{Main effects} (main effects and \index{Interaction} interaction) analysis, one needs \index{Sum contrasts} sum contrasts in the linear model. (This is true for factors with two levels, but does not generalize to factors with more levels.) The results of such an analysis are shown in Table\ \@ref(tab:table18b). (The analysis immediately below uses sum contrasts: $-1$/$+1$; however, scaled sum contrasts $-0.5$/$+0.5$ could also be used; in this case, the priors would need to be adapted to the respective scale.)
 
 ```{r, echo=TRUE, message=FALSE}
 contrasts(df_contrasts4$A) <- contr.sum(2)
@@ -79,7 +79,7 @@ kable(tab18 %>%
 ```
 
 
-Next, we reproduce the $A(2) \times B(2)$ - ANOVA with contrasts specified for the corresponding one-way $F(4)$ ANOVA, that is by treating the $2 \times 2 = 4$ condition means as four levels of a single factor $F$. In other words, we go back to the data frame simulated for the analysis of repeated contrasts (see chapter\ \@ref(ch-contr), section\ \@ref(sec-4levelFactor)). We first define weights for condition means according to our hypotheses, invert this matrix, and use it as the contrast matrix for factor $F$. We define weights of $1/4$ and $-1/4$. We do so because (a) we want to compare the mean of two conditions to the mean of two other conditions (e.g., factor $A$ compares $\frac{F1 + F2}{2}$ to $\frac{F3 + F4}{2}$). Moreover, (b) we want coefficients to code half the difference between condition means, reflecting sum contrasts. Together $(a+b)$, this yields weights of $1/2 \cdot 1/2 = 1/4$. The resulting contrast matrix contains contrast coefficients of $+1$ or $-1$, showing that we successfully implemented sum contrasts. The results are identical to the previous models.
+Next, we reproduce the $A(2) \times B(2)$ ANOVA, with contrasts specified for the corresponding one-way $F(4)$ ANOVA; that is, by treating the $2 \times 2 = 4$ condition means as four levels of a single factor $F$. In other words, we go back to the data frame simulated for the analysis of repeated contrasts (see chapter\ \@ref(ch-contr), section\ \@ref(sec-4levelFactor)). We first define weights for condition means according to our hypotheses, invert this matrix, and use it as the contrast matrix for factor $F$. We define weights of $1/4$ and $-1/4$. We do so because (a) we want to compare the mean of two conditions to the mean of two other conditions (e.g., factor $A$ compares $\frac{F1 + F2}{2}$ to $\frac{F3 + F4}{2}$). Moreover, (b) we want coefficients to code half the difference between condition means, reflecting sum contrasts. Together $(a+b)$, this yields weights of $1/2 \cdot 1/2 = 1/4$. The resulting contrast matrix contains contrast coefficients of $+1$ or $-1$, showing that we successfully implemented sum contrasts. The results are identical to the previous models.
 
 ```{r, echo=FALSE}
 ginv2 <- function(x) { # define a function to make the output nicer
@@ -110,7 +110,9 @@ fixef(fit_F4.sum)
 
 This shows that it is possible to specify the contrasts not only for each factor (e.g., here in the $2 \times 2$ design) separately. Instead, one can also pool all experimental conditions (or design cells) into one large factor (here factor $F$ with $4$ levels), and specify the contrasts for the main effects and for the interactions in the resulting one large contrast matrix simultaneously.
 
-In this approach, it can again be very useful to apply the \index{\texttt{hypr}} `hypr` package to construct contrasts for a \index{$2 \times 2$ design} $2 \times 2$ design. The first parameter estimates the main effect $A$, i.e., it compares the average of $F1$ and $F2$ to the average of $F3$ and $F4$. The second parameter estimates the main effect $B$, i.e., it compares the average of $F1$ and $F3$ to the average of $F2$ and $F4$. We code direct differences between the averages, i.e., we implement scaled sum contrasts instead of sum contrasts. This is shown below: the contrast matrix contains coefficients of $+1/2$ and $-1/2$ instead of $+1$ and $-1$. The \index{Interaction} interaction term estimates the difference between differences, i.e., the difference between $F1 - F2$ and $F3 - F4$.
+In this approach, it can again be very useful to apply the \index{\texttt{hypr}} `hypr` package to construct contrasts for a \index{$2 \times 2$ design} $2 \times 2$ design. The first parameter estimates the main effect $A$, i.e., it compares the average of $F1$ and $F2$ to the average of $F3$ and $F4$. The second parameter estimates the main effect $B$, i.e., it compares the average of $F1$ and $F3$ to the average of $F2$ and $F4$. 
+
+We code direct differences between the averages, i.e., we implement scaled sum contrasts instead of sum contrasts. This is shown below: the contrast matrix contains coefficients of $+1/2$ and $-1/2$ instead of $+1$ and $-1$. The \index{Interaction} interaction term estimates the difference between differences, i.e., the difference between $F1 - F2$ and $F3 - F4$.
 
 ```{r, echo=TRUE, message=FALSE}
 hAxB <- hypr(A = (F1 + F2) / 2 ~ (F3 + F4) / 2,
@@ -133,11 +135,13 @@ fixef(fit_F4hypr)
 
 The results show that the estimates for the main effects have (approximately) double the size as compared to the $\pm 1$ sum contrasts--this is the result of the scaling that we applied. I.e., the main effects now directly estimate the difference between averages. The interaction estimates the difference between differences. Importantly, if we change the scaling of the contrasts, we also need to adapt the scaling of the priors. If appropriate priors are used, then both contrasts would lead to the same hypothesis tests if one were doing hypothesis testing using Bayes factors. Thus, the `hypr` package can be used to code hypotheses in a $2 \times 2$ design.
 
-An alternative way to code main effects and interactions is to use the `ifelse` command in R. For example, if we want to use $\pm 1$ sum contrasts in the above example, we can specify the contrasts for the main effects as vectors:
+Now the main effects and interaction can be directly interpreted as differences between averages and as differences between differences. If one wants the interaction term to be on the same scale as the main effects, it would need to be multiplied by 2; however, then its interpretation would not be straightforward any more (i.e., it is no longer "the difference between differences" but a scaled variant of this). Thus, putting the interaction on the same scale as the main effects has the advantage that it ensures that the prior has the same scaling across the different terms. However, it has the disadvantage that the interpretation of the interaction term is not straightforward.
+
+Incidentally, an alternative way to code main effects and interactions is to use the `ifelse` command in `R`. For example, if we want to use $\pm 1/2$ sum contrasts as in the above example, we can specify the contrasts for the main effects as vectors:
 
 ```{r}
-A <- ifelse(df_contrasts3$F %in% c("F1", "F2"), -1, 1)
-B <- ifelse(df_contrasts3$F %in% c("F1", "F3"), -1, 1)
+A <- ifelse(df_contrasts3$F %in% c("F1", "F2"), -1 / 2, 1 / 2)
+B <- ifelse(df_contrasts3$F %in% c("F1", "F3"), -1 / 2, 1 / 2)
 ```
 
 Now, defining the interaction is simply a matter of multiplying the two vectors:
@@ -146,24 +150,12 @@ Now, defining the interaction is simply a matter of multiplying the two vectors:
 AxB <- A * B
 ```
 
-Now the main effects and interaction can be directly interpreted as differences between averages and as differences between differences. If one wants the interaction term to be on the same scale as the main effects, it would need to be multiplied by 2, however, then its interpretation would not be straightforward (i.e., "the difference between differences") any more, but a scaled variant of this.
-Thus, putting the interaction on the same scale as the main effects has the advantage that it ensures that the prior has the same scaling across the different terms. However, it has the disadvantage that the interpretation of the interaction term is not straightforward.
-
 ```{r}
 ## rescale:
 (AxB <- A * B * 2)
 ```
 
-Instead of using $\pm 1$ coding, an alternative is to use $\pm 1/2$ coding when using this approach:
-
-```{r}
-A <- ifelse(df_contrasts3$F %in% c("F1", "F2"), -1 / 2, 1 / 2)
-B <- ifelse(df_contrasts3$F %in% c("F1", "F3"), -1 / 2, 1 / 2)
-## interaction:
-(AxB <- A * B)
-```
-
-This kind of vector-based contrast coding is convenient for more complex designs, such as $2\times 2\times 2$ factorial designs. However, in such complex designs, the `ifelse()` command can become cumbersome, so a better approach is to use the `merge` function in `R`. 
+This kind of vector-based contrast coding is convenient for more complex designs, such as $2\times 2\times 2$ factorial designs. However, in such complex designs, the `ifelse()` command can become cumbersome, so a better approach is to use the `merge` function in `R`, as shown below. 
 
 First, define a data frame that represents the main effects and interaction contrasts for the four conditions.
 
