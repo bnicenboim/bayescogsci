@@ -2,12 +2,13 @@ This book introduces Bayesian data analysis and Bayesian cognitive modeling to
 students and researchers in cognitive science (e.g., linguistics,
 psycholinguistics, psychology, computer science), with a particular focus on
 modeling data from planned experiments.  The book relies on the probabilistic
-programming language Stan and the front-end R package brms. The main text in the
-book only assumes that the reader is familiar with the statistical programming
-language R, and has basic high school exposure to pre-calculus mathematics; some
-of the important mathematical constructs needed for the book are introduced in
-the first chapter. The R Markdown source code that generated the book is
-publicly available at https://bruno.nicenboim.me/bayescogsci/.
+programming language Stan and the R package brms, which is a front-end to Stan.
+The book only assumes that the reader is familiar with the
+statistical programming language R, and has basic high school exposure to
+pre-calculus mathematics; some of the important mathematical constructs needed
+for the book are introduced in the first chapter. The R Markdown source code
+that generated the book is publicly available at
+https://bruno.nicenboim.me/bayescogsci/.
 
 Through this book, the reader will be able to develop a practical ability to
 apply Bayesian modeling within their own field. The book begins with an informal
@@ -24,8 +25,9 @@ a well-defined workflow. Later chapters introduce the Stan programming language,
 and cover advanced topics using practical examples: contrast coding, model
 comparison using Bayes factors and cross-validation, hierarchical models and
 reparameterization, defining custom distributions, measurement error models and
-meta-analysis, and finally, some examples of cognitive models: multinomial processing trees, 
-finite mixture models, and accumulator models.
+meta-analysis, and finally, some examples of cognitive models: multinomial processing trees,
+finite mixture models, and accumulator models. Additional chapters,
+appendices, and exercises are provided as online materials.
 
 Bruno Nicenboim is an assistant professor in the department of Cognitive Science
 and Artificial Intelligence at Tilburg University in the Netherlands, working
