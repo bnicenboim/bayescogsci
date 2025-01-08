@@ -64,7 +64,7 @@ q(\mu, \sigma |y) = \prod_n^{100} \mathit{Normal}(y_n|\mu, \sigma) \cdot \mathit
 (\#eq:up)
 \end{equation}
 
-where $y = {`r Y[1]`, `r Y[2]`, \ldots}$
+where $y = {`r y[1]`, `r y[2]`, \ldots}$
 
 We can also define the unnormalized posterior,  $q(\cdot)$, as a function in R:
 
