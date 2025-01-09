@@ -929,7 +929,6 @@ dwald <- function(x, lambda, mu, log = FALSE) {
 Researchers often do not release the data that lie behind the published paper. This creates the problem that one has to figure out the estimated effect size and standard error from published statistics. This exercise gives some practice on how to do this by considering some typical cases that are encountered in repeated measures designs.
 
 (a) Suppose that in a repeated measures reading study, the observed t-value from a paired t-test is 2.3 with degrees of freedom 23. Suppose also that the estimated standard deviation is 150 ms. What is the estimated standard error and the estimated effect size?
-(a) Suppose that in a repeated measures reading study, the observed $t$-value from a paired $t$-test is is 2.3 with degrees of freedom 23. Suppose also that the estimated standard deviation is 150 ms. What is the estimated standard error and the estimated effect size?
 
 (b) A repeated measures reading study reports an F-score from an analysis of variance as $F(1,34)=6.1$, with an effect size of 25 ms. What is the estimated standard error?
 
