@@ -1220,7 +1220,6 @@ The traceplots in Figure \@ref(fig:traceplotnomulti) show that this times the ch
 ```{r traceplotnomulti, fold=TRUE, fig.cap = "(ref:traceplotnomulti)", message = FALSE , fig.height = 3.5}
 traceplot(fit_mixs_data) +
   scale_x_continuous(breaks = NULL)
-
 ```
 
 
@@ -1239,12 +1238,12 @@ If we want to know whether our model achieves descriptive adequacy, we need to l
 
 For the \index{Posterior predictive check} posterior predictive checks, we can write the generated quantities block in a new file; in the `bcogsci` package, this code is in the file ` mixture_h2_gen.stan`. The advantage of creating a new file is that we can generate as many observations as needed *after estimating the parameters*. There is no model block in the following Stan program and the parameters together with all the transformed parameters appear in the `parameters` block. We use  the `gqs()` function in the `rstan` library, which allows us to use the posterior draws from a previously fitted model to generate posterior predicted data.
 
-```{stan output.var = "mixh_stan_showcode", code = readLines(mixture_h2_gen),  tidy = TRUE, comment="", eval = TRUE, cache = FALSE, cache.lazy = FALSE}
+```{stan mixh2stancode, output.var = "mixh2_stan_showcode", code = readLines(mixture_h2_gen),  tidy = TRUE, comment="", eval = TRUE, cache = FALSE, cache.lazy = FALSE}
 ```
 
 Generate responses from 500 simulated experiments as follows:
 
-```{r mixh2gen, eval = FALSE, eval = !file.exists("dataR/gen_mix_data.RDS")}
+```{r mixh2gen, eval = FALSE, eval = !file.exists("dataR/gen_mix_data.RDS"), cache = FALSE}
 mixture_h2_gen <- system.file("stan_models",
                               "mixture_h2_gen.stan",
                               package = "bcogsci")

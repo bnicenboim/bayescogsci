@@ -301,7 +301,7 @@ ma2 <- system.file("stan_models",
 
 Fit the model:
 
-```{r, message=FALSE, results="hide"}
+```{r ma2sbi2, message=FALSE, results="hide", cache.lazy = FALSE, cache = FALSE}
 ma2 <- system.file("stan_models",
                    "meta-analysis2.stan",
                    package = "bcogsci")
@@ -539,7 +539,7 @@ ls_me <- list(N = nrow(df_indiv),
               SE_x = df_indiv$se_pcu)
 fit_indiv_me_stan <- stan(me, data = ls_me)
 ```
-```{r readfitmindiv, echo= FALSE}
+```{r readfitmindiv, echo= FALSE, cache = FALSE}
 if (!file.exists("dataR/fit_mindiv.RDS")) {
   saveRDS(fit_indiv_me_stan, "dataR/fit_mindiv.RDS")
 } else {
