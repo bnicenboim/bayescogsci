@@ -301,7 +301,7 @@ ma2 <- system.file("stan_models",
 
 Fit the model:
 
-```{r ma2sbi2, message=FALSE, results="hide", cache.lazy = FALSE, cache = FALSE}
+```{r ma2sbi2, message=FALSE, results="hide", cache.lazy = FALSE, cache = TRUE}
 ma2 <- system.file("stan_models",
                    "meta-analysis2.stan",
                    package = "bcogsci")
