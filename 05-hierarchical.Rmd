@@ -79,8 +79,9 @@ fit_h <- brm(y ~ 1 + (1 | subj), df_h,
                c(prior(normal(50, 200), class = Intercept),
                  prior(normal(2, 5), class = sigma),
                  prior(normal(10, 20), class = sd)),
-             # increase iterations to avoid convergence issues
-             iter = 5000)
+             # increase iterations and adapt_delta to avoid convergence issues
+             iter = 5000,
+             control = list(adapt_delta = .99))
 ```
 
 ```{r, eval = FALSE}
