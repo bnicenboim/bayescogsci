@@ -6,10 +6,8 @@
 <!-- \setlength{\parskip}{5pt} -->
 
 ```{r include = FALSE,cache=FALSE}
-papaja::r_refs(file = "packages.bib")
-## knitr::write_bib(c(
-##   .packages(), 'bookdown', 'knitr', 'rmarkdown', 'htmlwidgets', 'webshot', 'DT',
-##   'miniUI', 'tufte', 'servr', 'citr', 'rticles'
-## ), 'packages.bib')
+## Do not uncomment:
+## papaja::r_refs(file = "packages.bib")
+
 ```
 
