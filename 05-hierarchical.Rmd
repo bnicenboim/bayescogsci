@@ -76,12 +76,13 @@ Fit this model in `brms` in the following way. For now, the prior distributions 
 ```{r, message = FALSE, results = "hide"}
 fit_h <- brm(y ~ 1 + (1 | subj), df_h,
              prior =
-               c(prior(normal(50, 200), class = Intercept),
+               c(prior(normal(50, 100), class = Intercept),
                  prior(normal(2, 5), class = sigma),
-                 prior(normal(10, 20), class = sd)),
-             # increase iterations and adapt_delta to avoid convergence issues
+                 prior(normal(10, 10), class = sd)),
+             # increase iterations, adapt_delta to avoid convergence issues
              iter = 5000,
-             control = list(adapt_delta = .99))
+             control = list(adapt_delta = .99,
+                            max_treedepth = 12))
 ```
 
 ```{r, eval = FALSE}

@@ -39,7 +39,8 @@ local({
 
   knitr::knit_hooks$set(source = function(x, options) {
    splitline <- function(x)  stringr::str_split(x,"\n")[[1]]
-   x[any(nchar(splitline(x)) > 69)] <- paste0(x[any(nchar(splitline(x)) > 69)],"\n", warning("`## Warning: Line is too long.`"))
+   # giving false alarms:
+   ## x[any(nchar(splitline(x)) > 69)] <- paste0(x[any(nchar(splitline(x)) > 69)],"\n", warning("`## Warning: Line is too long.`"))
     fold <- options$fold
     if(is.null(fold)) fold <- FALSE
     if(fold==TRUE){

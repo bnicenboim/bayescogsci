@@ -1458,9 +1458,9 @@ df_blp_pred
 
 Finally, create a data frame with the results of the quantile probability function applied by simulation and by frequency:
 
-```{r, warning = FALSE}
+```{r}
 df_blp_pred_qpf <- df_blp_pred  %>%
-  # Subset only words
+  # Subset only words 
   filter(lex == "word") %>%
   # Create 5 word frequencies group
   mutate(freq_group =
