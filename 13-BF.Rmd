@@ -1411,11 +1411,9 @@ As discussed earlier, the `bayes_factor` command should be run several times to 
 
 #### Variability of the Bayes factor: \index{Posterior simulation} Posterior simulations
 
-One way to investigate how variable the outcome of Bayes factor analyses can be (given that the Bayes factor is computed in a stable and accurate way), is to run prior predictive simulations. A key question then is how to set priors that yield realistic simulated data sets. Here, we choose the priors based on the posterior from a previous real empirical data set.
-That is, one can use the posterior from the model above, and use it as a prior in future prior predictive simulations. Computing the Bayes factor analysis again on the simulated data can provide some insight into how variable the Bayes factor will be.
+One way to investigate how variable the outcome of Bayes factor analyses can be (given that the Bayes factor is computed in a stable and accurate way), is to generate some realistic data and compute Bayes factors for these simulated data. A key question then is how to set priors that yield realistic simulated data sets. Here, we use the posteriors from the analysis of a real empirical data set and generate posterior predictive distributions, which serve as our realistic simulated data.  Computing the Bayes factor analysis again on the simulated data can provide some insight into how variable the Bayes factor will be.
 
-Here, we perform the prior predictive simulations. To determine the priors, we use a single given data set and model [namely the Bayesian hierarchical model fitted to the data from @lago2015agreement], and use the posterior distributions from this model as the prior for our analysis.
-In these simulations, one takes posterior samples for the model parameters (i.e., $p(\boldsymbol{\Theta} \mid \boldsymbol{y})$), and for each posterior sample of the model parameters, one can simulate new data $\tilde{\boldsymbol{y}}$ from the model $p(\tilde{\boldsymbol{y}} \mid \boldsymbol{\Theta})$.
+Here, we perform these simulations. We start with a data set and a model [the Bayesian hierarchical model fitted to the data from @lago2015agreement], and use the posterior distributions from this model to generate posterior predictive data. In these simulations, one takes posterior samples for the model parameters (i.e., $p(\boldsymbol{\Theta} \mid \boldsymbol{y})$), and for each posterior sample of the model parameters, one can simulate new data $\tilde{\boldsymbol{y}}$ from the model $p(\tilde{\boldsymbol{y}} \mid \boldsymbol{\Theta})$.
 
 ```{r PostPred, echo=TRUE, eval = !file.exists("dataR/m1_lageoE1_postPred.RDS") }
 pred_lagoE1 <- posterior_predict(m1_lagoE1)
@@ -1428,7 +1426,8 @@ if (!file.exists("dataR/m1_lageoE1_postPred.RDS")) {
 }
 ```
 
-The question that we are interested in here now is, how much information is contained in this simulated data. That is, we can run Bayesian models on this simulated data and compute Bayes factors to test whether in the simulated data there is evidence for agreement attraction effects.
+The question that we are interested in here now is, how much information is contained in this simulated data. That is, we can run Bayesian models on these simulated data sets and compute Bayes factors to test whether in the simulated data there is evidence for agreement attraction effects.
+
 The interesting question here is how variable the outcomes of these Bayes factor analyses will be among various simulated replications of the same study.
 
 Now, using $50$ different simulated data sets simulated from the fitted model, we carry out this analysis.
@@ -1511,7 +1510,7 @@ if (!file.exists("dataR/LagoE1_PosPredModels.RDS")) {
 
 #### Visualize distribution of Bayes factors
 
-We can now visualize the distribution of Bayes factors ($BF_{10}$) across prior predictive distributions by plotting a histogram.
+We can now visualize the distribution of Bayes factors ($BF_{10}$) across the simulated data by plotting a histogram.
 In this histogram, values greater than one support the alternative model (M1) that there are agreement attraction effects (i.e., the sentence type effect differs from zero), and values of the Bayes factor less than one support the null model (M0), which states that there is no agreement attraction effect (i.e., there is no difference in reading times between experimental conditions).
 
 ```{r plotBFdistrn, echo=FALSE, message=FALSE, fig.height=4, fig.cap="Estimates of the retrieval interference facilitatory effect and the 95% credible intervals for all simulations (solid lines) and the empirically observed data (dashed line) are shown in the left panel. An illustration of the alternative model's Bayes factors (BF10) over the null model in 50 simulated data sets is shown in the right panel. The horizontal error bar displays 95% of all Bayes factors, the dashed line displays the Bayes factor calculated from the empirical data, and the vertical solid black line displays equal evidence for both hypotheses."}
@@ -1559,7 +1558,7 @@ p2 <- ggplot(
 cowplot::plot_grid(p1, p2, ncol=2)
 ```
 
-The results show that the Bayes factors are quite variable. The Bayes factor results differ in that they either provide strong evidence for the alternative model ($BF_{10} > 10$) or moderate evidence for the null model ($BF_{10} < 1/3$), despite the fact that all data sets are simulated from the same distribution. The majority of the simulated data sets support the alternative model with moderate to weak evidence. In other words, this analysis reveals a \index{Dance of the Bayes factors} "dance of the Bayes factors" with simulated repetitions of the same study, similar to the "dance of $p$-values" [@cumming2014new]. The variation in these findings demonstrates a very important point that is not widely appreciated: the evidence we get from a particular Bayes factors calculation may not hold up if the same study is replicated. Just obtaining a large Bayes factor alone is not necessarily informative; the variation in the Bayes factor under (hypothetical or actual) repeated sampling needs to be considered as well. For a real-life example, see the replication attempt reported in @Schoknecht2025.
+The results show that the Bayes factors are quite variable. The Bayes factor results differ in that they either provide strong evidence for the alternative model ($BF_{10} > 10$) or moderate evidence for the null model ($BF_{10} < 1/3$), despite the fact that all data sets are simulated from the same distribution. The majority of the simulated data sets support the alternative model with moderate to weak evidence. In other words, this analysis reveals the \index{Dance of the Bayes factors} "dance of the Bayes factors" with simulated repetitions of the same study, similar to the "dance of $p$-values" [@cumming2014new].^[See http://daniellakens.blogspot.com/2016/07/dance-of-bayes-factors.html.] The variation in these findings demonstrates a very important point that is not widely appreciated: the evidence we get from a particular Bayes factors calculation may not hold up if the same study is replicated. Just obtaining a large Bayes factor alone is not necessarily informative; the variation in the Bayes factor under (hypothetical or actual) repeated sampling needs to be considered as well. For a real-life example, see the replication attempt reported in @Schoknecht2025.
 
 Why are there variations in the Bayes factors amongst the simulated data sets? The difference between the two sentence types' reading times, and thus the experimental effect from which we want to draw conclusions, could vary depending on the noise and uncertainty in the posterior predictive simulations. This is one obvious explanation for why the results could be so different. Plotting the Bayes factors from this simulated data set against the estimated difference in simulated reading times between the two sentence types (as determined by the Bayesian model) therefore provides an interesting perspective. In other words, we take the population-level effects of the Bayesian model and extract the estimated mean difference in reading times at the verb between plural and singular attractor conditions. Then, we plot the Bayes factor as a function of this difference (along with 95% credible intervals).
 
@@ -1597,7 +1596,7 @@ Crucially, this behavior arises from the fact that we are utilizing informative 
 
 The precise question of whether the data provide more support for the effect size found in the meta-analysis than the absence of any effect is addressed by computing Bayes factors for such a prior with a non-zero mean.
 
-The important lesson to learn from this analysis is that Bayes factors can be quite variable for different data sets assessing the same phenomenon. Individual data sets in the cognitive sciences often do not contain a lot of information about the phenomenon of interest, even when--as is the case here with agreement attraction--the phenomenon is thought to be a relatively robust phenomenon. For a more detailed investigation of how Bayes factors can vary with data, in both simulated and real replication studies, we refer the reader to the published version of the arXiv article, and @SampleSizeCBB2021.
+The important lesson to learn from this analysis is that Bayes factors can be quite variable for different data sets assessing the same phenomenon. Individual data sets in the cognitive sciences often do not contain a lot of information about the phenomenon of interest, even when--as is the case here with agreement attraction--the phenomenon is thought to be a relatively robust one. For a more detailed investigation of how Bayes factors can vary with data, in both simulated and real replication studies, we refer the reader to the published version of the arXiv article, and @SampleSizeCBB2021.
 
 
 ### A cautionary note about Bayes factors {#sec-caution}
