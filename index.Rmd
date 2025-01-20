@@ -148,7 +148,7 @@ Any rigorous introduction to Bayesian data analysis requires at least a passive 
 
 What we do expect is familiarity with arithmetic, basic set theory and elementary probability theory (e.g., sum and product rules, conditional probability), simple matrix operations like addition and multiplication, and simple algebraic operations. A quick look through chapter 1 of @gill2006essential before starting this book is highly recommended. We also presuppose that, when the need arises, the reader is willing to look up concepts that that they might have forgotten (e.g., logarithms). We also provide a self-paced course on some basic concepts in mathematics (aimed at non-mathematicians) which the reader can work through: see https://vasishth.github.io/FoM/.
 
-We also expect that the reader already knows and/or is willing to learn enough of the programming language R [@R-base] to reproduce the examples presented and to carry out the exercises. If the reader is completely unfamiliar with R, before starting this book they should first consult books like [R for data science](https://r4ds.had.co.nz/), and [Efficient R programming](https://csgillespie.github.io/efficientR/). Readers familiar with python may find the python port of the first five chapters by Jozsef Arato useful (see [here](https://github.com/jozsarato/bayescogdat)).
+We also expect that the reader already knows and/or is willing to learn enough of the programming language R [@R-base] to reproduce the examples presented and to carry out the exercises. If the reader is completely unfamiliar with R, before starting this book they should first consult books like [R for data science](https://r4ds.had.co.nz/), and [Efficient R programming](https://csgillespie.github.io/efficientR/). Readers familiar with python may find the python port of the first five chapters by Jozsef Arato useful (https://github.com/jozsarato/bayescogdat).
 
 We also assume that the reader has encountered simple linear modeling, and linear mixed models [@R-lme4;@baayen2008mixed]. What this means in practice is that the reader should have used the `lm()` and `lmer()` functions in R. A passing acquaintance with basic statistical concepts, like the correlation between two variables, is also taken for granted.
 
@@ -176,7 +176,7 @@ The chapters in this book are intended to be read in sequence, but during the fi
 
 Here are some suggested paths through this book, depending on the reader's goals:
 
-- For a short course for complete beginners, read chapters \@ref(ch-intro) to  \@ref(ch-hierarchical). We usually cover these five chapters in a five-day summer school course that we teach annually. Most of the material in this chapter is also covered in a free four-week course available online: https://open.hpi.de/courses/bayesian-statistics2023.
+- For a short course for complete beginners, read chapters \@ref(ch-intro) to  \@ref(ch-hierarchical). We usually cover these five chapters in a five-day summer school course that we teach annually. Most of the material in these chapters are also covered in a free four-week course available online: https://open.hpi.de/courses/bayesian-statistics2023.
 - For a course that focuses on regression models with the  R package `brms`, read chapters \@ref(ch-intro) to  \@ref(ch-coding2x2) and, optionally, \@ref(ch-bf).
 - For an advanced course that focuses on complex models involving Stan, read chapters \@ref(ch-introstan) to  \@ref(ch-lognormalrace).
 
@@ -217,7 +217,7 @@ Before you start, please install
   - The R packages  `dplyr`, `purrr`, `tidyr`, `extraDistr`, `brms`, `hypr` and `lme4`  are used in many chapters of the book and can be installed the usual way: ` install.packages(c("dplyr","purrr","tidyr", "extraDistr", "brms","hypr","lme4"))`. We use `ggplot2` for figures; please consult the relevant documentation if you are unfamiliar with `ggplot2` [e.g., @R-ggplot2].
   - The following R packages are optional: `tictoc`, `rootSolve`,  `SHELF`, `cmdstanr`, and `SBC`.
   - Some packages and their dependencies, such as `intoo`, `barsurf`, `bivariate`, and `SIN` could require manual installation from archived or github versions. For such packages, go to the CRAN archive:  [https://cran.r-project.org/src/contrib/Archive/](https://cran.r-project.org/src/contrib/Archive/); download the tar.gz of the relevant package; and then install it from the command line using the command `R CMD INSTALL package.tar.gz`.
-  - The data and Stan models used in this book can be installed using `remotes::install_github("bnicenboim/bcogsci")`. This command uses the function `install_github` from the package `remotes`. (Thus this package should be in the system as well.)
+  - The data and Stan models used in this book can be installed using `remotes::install_github("bnicenboim/bcogsci")`. This command uses the function `install_github()` from the package `remotes`. (Thus this package should be in the system as well.)
 
 In every R session, load these packages, and set the options shown below for Stan.
 

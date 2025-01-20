@@ -36,7 +36,7 @@ The probability axioms refer to the sample space $\Omega$, event space $F$, and 
 
 - For every event $E$ in the event space $F$, the probability $P(E)$ is a real number between $0$ and $1$.
 - The event $E=\Omega$ belongs to $F$, and $P(\Omega)=1$.
-- If the events$A_1, A_2, A_3,...$ are mutually exclusive (in other words, if no two of these subsets of $\Omega$ overlap), then the probability of the event "one of $A_1$ or $A_2$ or $A_3$ or ..." is given by the sum of the probability of $A_1$ occurring, of $A_2$ occurring, of $A_3$ occurring, ... (this sum could be finite or infinite).
+- If the events $A_1, A_2, A_3,...$ are mutually exclusive (in other words, if no two of these subsets of $\Omega$ overlap), then the probability of the event "one of $A_1$ or $A_2$ or $A_3$ or ..." is given by the sum of the probability of $A_1$ occurring, of $A_2$ occurring, of $A_3$ occurring, ... (this sum could be finite or infinite).
 
 Together, the triplet $(\Omega, F, P)$ is called a \index{Probability space} probability space.
 
