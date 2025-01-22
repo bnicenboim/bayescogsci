@@ -583,7 +583,7 @@ Later in this book, we will be using such truncated distributions when doing Bay
 
 ## Bivariate and multivariate distributions
 
-So far, we have only discussed \index{Univariate} univariate distributions; these are distributions that involve only one variable. For example, when we talk about data generated from a Binomial distribution, or from a Normal distribution, these are univariate distributions.
+So far, we have only discussed \index{Univariate} univariate distributions; these are distributions that involve only one variable. For example, when we talk about data generated from a Binomial distribution, or from a normal distribution, these are univariate distributions.
 
 It is also possible to specify distributions with two or more dimensions. Some examples will make it clear what a bivariate (or more generally, multivariate) distribution is.
 
@@ -881,7 +881,7 @@ In this book, we will make use of such multivariate distributions a lot, and it 
 
 ### Generate simulated bivariate (or multivariate) data {#sec-generatebivariatedata}
 
-Suppose we want to generate $100$ pairs of correlated continuous data, with correlation $\rho=0.6$. The two random variables both have a Normal PDF, and have mean $0$, and standard deviations $5$ and $10$, respectively.
+Suppose we want to generate $100$ pairs of correlated continuous data, with correlation $\rho=0.6$. The two random variables both have a normal PDF, and have mean $0$, and standard deviations $5$ and $10$, respectively.
 
 Here is how we would generate such data. First, define a variance-covariance matrix; then, use the multivariate analog of the `rnorm()` function, `mvrnorm()`, from the `MASS` package to generate $100$ data points.
 

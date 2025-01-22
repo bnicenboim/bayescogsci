@@ -196,7 +196,7 @@ p(\boldsymbol{y_{pred}}) &= \int p(\boldsymbol{y_{pred}}, \boldsymbol{\Theta}) \
 \end{aligned}
 \end{equation}
 
-As an illustration, let's say that we consider our likelihood to be a Normal distribution with mean $\mu$ and standard deviation $\sigma$. Assume that we now define $\sigma \sim \mathit{Uniform}(1,2)$ and $\mu \sim \mathit{Normal}(0,1)$ as priors on the parameters. The steps below can be used to create the prior predictive distribution:
+As an illustration, let's say that we consider our likelihood to be a normal distribution with mean $\mu$ and standard deviation $\sigma$. Assume that we now define $\sigma \sim \mathit{Uniform}(1,2)$ and $\mu \sim \mathit{Normal}(0,1)$ as priors on the parameters. The steps below can be used to create the prior predictive distribution:
 
   - Perform the following 100,000 times:
     - Select one sample (m) from the distribution $\mathit{Normal}(0,1)$.

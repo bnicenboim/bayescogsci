@@ -1,7 +1,7 @@
 # (PART) Cognitive modeling with Stan {-}
 # Introduction to cognitive modeling {#ch-cogmod}
 
-Until this point in the book, we have been discussing models that specify a \index{Generative process} generative process for the observed data. This generative process could be as simple as $Y \sim Normal(\mu,\sigma)$ or it could be an elaborate hierarchical model that incorporates multiple variance components. Usually, in these kinds of models, what is of interest is a parameter that represents a so-called "effect" of interest. Examples that we encountered in the present book are: the effect of word frequency on reading time; effect of relative clause type on reading time; and the effect of attentional load on pupil size.
+Until this point in the book, we have been discussing models that specify a \index{Generative process} generative process for the observed data. This generative process could be as simple as $Y \sim \mathit{Normal}(\mu,\sigma)$ or it could be an elaborate hierarchical model that incorporates multiple variance components. Usually, in these kinds of models, what is of interest is a parameter that represents a so-called "effect" of interest. Examples that we encountered in the present book are: the effect of word frequency on reading time; effect of relative clause type on reading time; and the effect of attentional load on pupil size.
 
 ## What characterizes a computational cognitive model?
 
