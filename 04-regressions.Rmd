@@ -102,7 +102,7 @@ qnorm(c(0.025, 0.975), mean = 0, sd = 100)
 That is, we don't expect changes in size that increase or decrease the pupil size more than 200 units for one unit increase in load.
 
 
-The priors we have specified here are relatively \index{Uninformative prior} uninformative; as mentioned earlier, this is because we are considering the situation where we don't have much prior experience with pupil size studies. In other settings, we might have more prior knowledge and experience; in that case, one could use somewhat more principled priors. We will return to this point in the online chapter on priors  (online chapter \@ref(ch-priors)) and Bayesian workflow (online chapter \@ref(ch-workflow)).
+The priors we have specified here are relatively \index{Uninformative prior} uninformative; as mentioned earlier, this is because we are considering the situation where we don't have much prior experience with pupil size studies. In other settings, we might have more prior knowledge and experience; in that case, one could use somewhat more principled priors. We address this point in the online chapter on priors (online chapter \@ref(ch-priors)) and Bayesian workflow (online chapter \@ref(ch-workflow)).
 
 
 
