@@ -303,7 +303,7 @@ In Bayesian data analysis, we will constantly be asking the question: what infor
 
 #### Compute the probability of a particular outcome (discrete case only)
 
-The binomial distribution shown in Figure \@ref(fig:binomplot) already shows the probability of each possible event under a different value for $\theta$. In `R`, there is a built-in function that allows us to calculate the probability of $k$ successes out of $n$, given a particular value of $k$ (this number constitutes our data), the number of trials $n$, and given a particular value of $\theta$; this is the `dbinom()` function. For example, the probability of 5 successes out of 10 when $\theta$ is $0.5$ is (note: we are using $k$ to represent the number of successes, but the `dbinom` function below uses $x$ instead):
+The binomial distribution shown in Figure \@ref(fig:binomplot) already shows the probability of each possible event under a different value for $\theta$. In `R`, there is a built-in function that allows us to calculate the probability of $k$ successes out of $n$, given a particular value of $k$ (this number constitutes our data), the number of trials $n$, and given a particular value of $\theta$; this is the `dbinom()` function. For example, the probability of 5 successes out of 10 when $\theta$ is $0.5$ is (note: we are using $k$ to represent the number of successes, but the `dbinom()` function below uses `x` instead):
 
 ```{r dnormexample1}
 dbinom(x = 5, size = 10, prob = 0.5)

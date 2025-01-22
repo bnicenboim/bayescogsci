@@ -142,7 +142,7 @@ fit_press <-
       family = gaussian(),
       prior =
  c(prior(uniform(0, 60000), class = Intercept, lb = 0, ub = 60000),
-  prior(uniform(0, 2000), class = sigma, lb = 0, ub = 2000)),
+   prior(uniform(0, 2000), class = sigma, lb = 0, ub = 2000)),
       chains = 4,
       iter = 2000,
       warmup = 1000)
@@ -374,6 +374,8 @@ Figure \@ref(fig:priorpred-simple) shows the first 18 samples of the prior predi
 
 (ref:priorpred-simple) Eighteen samples from the prior predictive distribution of the model defined in section \@ref(sec-simplenormal).
 
+\Begin{samepage}
+
 ```{r priorpred-simple, fig.cap = "(ref:priorpred-simple)", message = FALSE, fig.height = 5}
 prior_pred %>%
   filter(iter <= 18) %>%
@@ -388,7 +390,7 @@ prior_pred %>%
                      name = "density") +
   facet_wrap(~iter, ncol = 3)
 ```
-
+\End{samepage}
 
 The prior predictive distribution in Figure \@ref(fig:priorpred-simple)  shows data sets generated from the model that are not realistic: Apart from the fact that the data sets show that finger tapping times distributions are symmetrical--and we know from prior experience with such data that they are generally right-skewed--some data sets present finger tapping times that are unrealistically long. Worse yet, if we inspect enough samples from the prior predicted data, it will become clear that a few data sets have negative finger tapping time values.
 
@@ -433,7 +435,7 @@ In the button-pressing example discussed in this chapter, an example of a flat, 
 
 ### \index{Regularizing prior} Regularizing priors
 
-If there does not exist much prior information (and if this information cannot be worked out through reasoning about the problem), and there is enough data (what "enough" means here will presently become clear when we look at specific examples), it is fine to use  *regularizing priors*. These are priors that down-weight extreme values (that is, they provide regularization), they are usually not very informative, and mostly let the likelihood dominate in determining the posteriors. These priors are theory-neutral; that is, they usually do not bias the parameters to values supported by any prior belief or theory.  The idea behind this type of prior is to help to stabilize computation. These priors are sometimes called \index{Weakly informative prior} *weakly informative* or \index{Mildly informative prior} *mildly informative* priors in the Bayesian literature. For many applications, they perform well, but discussed in chapter \@ref(ch-bf), they tend to be problematic if Bayes factors need to be computed.
+If there does not exist much prior information (and if this information cannot be worked out through reasoning about the problem), and there is enough data (what "enough" means here will presently become clear when we look at specific examples), it is fine to use  *regularizing priors*. These are priors that down-weight extreme values (that is, they provide regularization), they are usually not very informative, and mostly let the likelihood dominate in determining the posteriors. These priors are theory-neutral; that is, they usually do not bias the parameters to values supported by any prior belief or theory.  The idea behind this type of prior is to help to stabilize computation. These priors are sometimes called \index{Weakly informative prior} *weakly informative* or \index{Mildly informative prior} *mildly informative* priors in the Bayesian literature. For many applications, they perform well, but as discussed in chapter \@ref(ch-bf), they tend to be problematic if Bayes factors need to be computed.
 
 In the button-pressing example, an example of a regularizing prior would be $\mu \sim \mathit{Normal}_{+}(0,1000)$. This is a normal distribution prior truncated at $0$ ms, and allows a relatively constrained range of positive values for button-pressing times (roughly, up to $2000$ ms or so). This is a regularizing prior because it rules out negative button-pressing times and down-weights extreme values over $2000$ ms.
 Here, one could assume a non-truncated prior like  $\mathit{Normal}(0,1000)$. This could still be seen as a regularizing prior even though we don't expect $\mu$ to be negative; the data would ensure that the posterior distribution has positive values (because we would have no negative button-pressing times in the data).
@@ -455,7 +457,7 @@ These four options constitute a continuum. The uniform prior from the last model
 
 ## Revisiting the button-pressing example with different priors {#sec-revisit}
 
-What would happen if even wider priors were used for the model defined previously (in section \@ref(sec-simplenormal))? Suppose that every value between $-10^{6}$ and $10^{6}$ ms is assumed to be equally likely for the location parameter $\mu$. This prior is clearly unrealistic and actually makes no sense at all: we are not expecting negative finger tapping times. Regarding the standard deviation, one could assume that any value between $0$ and $10^{6}$ is equally likely.^[Even though, in theory, one could use even wider priors, in practice, these are the widest priors that achieve convergence using brms.] The likelihood remains unchanged.
+What would happen if even wider priors were used for the model defined previously (in section \@ref(sec-simplenormal))? Suppose that every value between $-10^{6}$ and $10^{6}$ ms is assumed to be equally likely for the location parameter $\mu$. This prior is clearly unrealistic and actually makes no sense at all: we are not expecting negative finger tapping times. Regarding the standard deviation, one could assume that any value between $0$ and $10^{6}$ is equally likely.^[Even though, in theory, one could use even wider priors, in practice, these are the widest priors that achieve convergence using `brms`.] The likelihood remains unchanged.
 
 \begin{equation}
 \begin{aligned}
@@ -484,7 +486,7 @@ fit_press_unif <- brm(t ~ 1,
                                      max_treedepth = 15))
 ```
 
-Even with these extremely unrealistic priors, which require us to change the `adapt_delta` and `max_treedepth` default values to achieve convergence, the output of the model is virtually identical to the previous one (see Figure \@ref(fig:postcomp)).
+Even with these extremely unrealistic priors, which require us to change the number of iterations,`iter`, and `adapt_delta` and `max_treedepth` default values to achieve convergence, the output of the model is virtually identical to the previous one (see Figure \@ref(fig:postcomp)).
 
 ```{r, echo = FALSE}
 ## Shorter output
@@ -639,7 +641,7 @@ normal_predictive_distribution(mu_samples = mu_samples,
 
 
 
-The `brms` function \index{\texttt{posterior\_predict}} `posterior_predict()` is a convenient function that delivers  samples from the  posterior predictive distribution. Using the command  `posterior_predict(fit_press)` yields the predicted finger tapping times in a matrix,  with the samples as rows and the observations (data-points) as columns. (Bear in mind that if a model is fit with `sample_prior = "only"`, the dependent variable is ignored and `posterior_predict` will yield samples from the prior predictive distribution).
+The `brms` function \index{\texttt{posterior\_predict}} `posterior_predict()` is a convenient function that delivers  samples from the  posterior predictive distribution. Using the command  `posterior_predict(fit_press)` yields the predicted finger tapping times in a matrix,  with the samples as rows and the observations (data-points) as columns. (Bear in mind that if a model is fit with `sample_prior = "only"`, the dependent variable is ignored and `posterior_predict()` will yield samples from the prior predictive distribution).
 
 The posterior predictive distribution can be used to examine the "descriptive adequacy" of the model under consideration [@Gelman14, Chapter 6; @shiffrinSurveyModelEvaluation2008]. Examining the posterior predictive distribution to establish \index{Descriptive adequacy} descriptive adequacy is called \index{Posterior predictive check} posterior predictive checking. The goal here is to establish that the posterior predictive data look more or less similar to the observed data. Achieving descriptive adequacy means that the current data could have been generated by the model. Although passing a test of descriptive adequacy is not strong evidence in favor of a model, a major failure in descriptive adequacy can be interpreted as strong evidence against a model [@shiffrinSurveyModelEvaluation2008].
 For this reason, comparing the descriptive adequacy of different models is not enough to differentiate between their relative performance. 
