@@ -1028,7 +1028,7 @@ How do the conclusions from the Bayes factor analyses compare with the conclusio
 \vspace{-.5cm}
 Consider the question response accuracy of the data of Experiment 1 of @grodner.
 
-a. Compare a model that assumes that RC type affects question accuracy on the population level and with the effect varying by-subjects and by-items with *a null model* that assumes that there is no population-level effect present.
+a. Compare a model that assumes that RC type affects question accuracy on the population-level and with the effect varying by-subjects and by-items with *a null model* that assumes that there is no population-level effect present.
 b. Compare a model that assumes that RC type affects question accuracy on the population level and with the effect varying by-subjects and by-items with *another null model* that assumes that there is no population-level or group-level effect present, that is no by-subject or by-item effects. What's the meaning of the results of the Bayes factor analysis?
 
 Assume that for the effect of RC on question accuracy, $\beta \sim \mathit{Normal}(0, 0.1)$ is a reasonable prior, and that for all the variance components, the same prior, $\tau \sim \mathit{Normal}_{+}(0, 1)$, is a reasonable prior.
