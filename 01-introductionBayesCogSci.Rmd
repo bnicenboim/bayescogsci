@@ -13,24 +13,48 @@ An example would be obtaining a 6 when tossing a die again and again. However, t
 
 Both the frequency-based and the uncertain-belief perspective have their place in statistical inference, and depending on the situation, we are going to rely on both ways of thinking.
 
-The probability of something happening is defined to be constrained in the way described below.  A concrete example of "something happening" is obtaining nine correct answers when we ask a subject $10$ yes-no questions (say, about the meaning of a sentence). The statements below are not formal definitions of the axioms of probability theory; for more details (and more precise formulations), see @blitzstein2014introduction, @RossProb, @kerns2014introduction, @resnick2019probability, or @kolmogorov2018foundations (among many other books). 
-Keep in mind that different textbooks have slightly different ways of presenting the underlying structure of what constitutes a \index{Probability space} probability space (defined below).
+The statements below are not formal definitions of the axioms of probability theory; for more details (and more precise formulations), see @blitzstein2014introduction, @RossProb, @kerns2014introduction, @resnick2019probability, or @kolmogorov2018foundations (among many other books). 
+Keep in mind that different textbooks have slightly different ways of presenting the underlying structure of what constitutes a probability space (defined below).
 
-In the presentation that follows, we assume  familiarity with basic set theory. For the reader unfamiliar with this topic, a quick and accessible refresher can be found in section 7.3 of @gill2006essential.
+The probability of something happening is defined to be constrained in the way described below.  A concrete example of "something happening" is an outcome, $\omega$, of for example obtaining nine correct ($c$) answers and one incorrect ($i$) when we ask a subject $10$ yes-no questions (say, about the meaning of a sentence), that is a sequence of  correct ($c$) and incorrect ($i$) answers, such as  $iiiiciiiii$. Another possible outcome is $cciicicici$. The outcomes  are thus all possible sequences of correct and incorrect answers, and the sample space, $\Omega$, is the set of all possible outcomes. Consider events, $E$, next; the event corresponding to obtaining one correct answer when $10$ questions are asked, is the subset of outcomes $\{ciiiiiiiii,iciiiiiiii,iiciiiiiii,\ldots\}$; in other words, the event corresponding to obtaining one correct answer is a set containing $10$ elements. Similarly, the event corresponding to obtaining nine correct answers when $10$ questions are asked is the subset of outcomes $\{ccccccccci,ccccccccic,\ldots \}$.^[When the sample space $\Omega$ is finite, any subset of $\Omega$ can be an event; in this case, the event space $F$ is the collection of all possible subsets of $\Omega$. In set theory, a set of all the subsets of another set is called a  power set, and the number of subsets of any set with $n$ elements is $2^n$. For example, for a standard six-sided die, the sample space is the set $\Omega=\{1,2,3,4,5,6\}$ and the event space $F$ will contain $2^6 = 64$ sets: the empty set, six one-element sets, $15$ two-element sets, $20$ three-element sets, ..., and one six-element set. Here are three assumptions we will always make about any event space: (a) Both the empty set and universal set ($\Omega$) belong to the event space $F$; (b) if $E$ is an event, then so is the complement of $E$; and (c) for any list of events $A_1, A_2,...$ (finite or infinite), the phrase "$A_1$ or $A_2$ or ..." describes another event.]
 
-The formal axioms of probability that will be presented below involve three ingredients: a set $\Omega$ known as the \index{Sample space} *sample space*, a collection of subsets of $\Omega$ denoted by $F$ and called the \index{Event space} *event space*, and a real-valued function named $P$ that assigns a number to each set in the family $F$. The elements of $\Omega$ are typically denoted $\omega$; these are called \index{Outcomes} *outcomes*. Sets in the family $F$ are often denoted by $E$, and called \index{Events} *events*. The simplest events are the single-element sets of the form $\{\omega\}$ for different choices of $\omega$ in $\Omega$; these are called the \index{Elementary events} *elementary events*.
 
-When the sample space $\Omega$ is finite, any subset of $\Omega$ can be an event; in this case, the event space $F$ is the collection of all possible subsets of $\Omega$. In set theory, a set of all the subsets of another set is called a \index{Power set} power set, and the number of subsets of any set with $n$ elements is $2^n$. For example, for a standard six-sided die, the sample space is the set $\Omega=\{1,2,3,4,5,6\}$ and the event space $F$ will contain $2^6 = 64$ sets: the empty set, six one-element sets, $15$ two-element sets, $20$ three-element sets, ..., and one six-element set. Here are three assumptions we will always make about any event space:
+When we conduct an experiment, if we get a particular outcome like $ciiiiiiiii$, then we say that the event  $\{ciiiiiiiii,iciiiiiiii,iiciiiiiii,\ldots\}$ occurred. A probability space involves two more key ingredients:  A collection of subsets of $\Omega$ denoted by $F$ and called the *event space*; and a real-valued function named $P$ that assigns a number (probability) to each set in $F$.
 
-- Both the empty set and universal set ($\Omega$) belong to the event space $F$.
-- If $E$ is an event, then so is the complement of $E$.
-- For any list of events $A_1, A_2,...$ (finite or infinite), the phrase "$A_1$ or $A_2$ or ..." describes another event.
+Table \@ref(tab:probtab) summarizes the notation.
 
-For our purposes here, it suffices to rely on the intuition gained by considering the case where $\Omega$ is a finite set. 
-
-To make the above abstract concepts more concrete, consider again the situation where we conduct an experiment in which we ask subjects to respond to $10$ questions that can either have a correct ($c$) or incorrect ($i$) answer. A possible outcome is the following sequence of correct (represented as $c$) and incorrect (represented as $i$) answers: $ciciccicci$. Another possible outcome is $cciicicici$. The outcomes $\omega$ are thus all possible sequences of correct and incorrect answers, and the sample space $\Omega$ is the set of all possible outcomes. Consider events next; the event corresponding to obtaining one correct answer when $10$ questions are asked, is the subset of outcomes $\{ciiiiiiiii,iciiiiiiii,iiciiiiiii,\ldots\}$; in other words, the event corresponding to obtaining one correct answer is a set containing $10$ elements. Similarly, the event corresponding to obtaining nine correct answers when $10$ questions are asked is the subset of outcomes $\{ccccccccci,ccccccccic,\ldots \}$.
-
-When we conduct an experiment, if we get a particular outcome like $ciiiiiiiii$, then we say that the event  $\{ciiiiiiiii,iciiiiiiii,iiciiiiiii,\ldots\}$ occurred.
+```{r probtab, echo=FALSE, results = "asis"}
+kableExtra::kable(
+  data.frame(
+    Symbol = c("$\\Omega$", "$F$", "$P$", "$\\omega$", "$E$"),
+    Name = c(
+      "Sample space",
+      "Event space",
+      "Probability function",
+      "Outcome",
+      "Event"
+    ),
+    `Brief explanation` = c(
+      "The set of all possible outcomes",
+      "A collection of subsets of $\\Omega$",
+      "Assigns probabilities to events in $F$",
+      "An element of $\\Omega$",
+      "A subset of $\\Omega$"
+    ),
+    Example = c(
+      "All possible sequences of correct (c) or incorrect (i) answers of length 10; that is $2^{10}=1024$ sequences.",
+      "All sequences with exactly 1 correct answer, or exactly 9 correct answers, etc.",
+      "If each question is answered correctly with probability $\\theta$, $P(\\{ciiiiiiiii\\}) = (1-\\theta)^9\\theta$.",
+      "The particular sequence $ciiiiiiiii$.",
+      "A collection of sequences $\\{ciiiiiiiii, iciiiiiiii, iiciiiiiii, iiiciiiiii, \\ldots\\}$."
+    )
+  ),
+  caption = "Basic Probability Terminology for the 10-question example.",
+   vline= "",
+  booktabs = TRUE,
+  escape = FALSE
+)
+```
 
 The probability axioms refer to the sample space $\Omega$, event space $F$, and probability $P$ as follows:
 
@@ -38,13 +62,13 @@ The probability axioms refer to the sample space $\Omega$, event space $F$, and 
 - The event $E=\Omega$ belongs to $F$, and $P(\Omega)=1$.
 - If the events $A_1, A_2, A_3,...$ are mutually exclusive (in other words, if no two of these subsets of $\Omega$ overlap), then the probability of the event "one of $A_1$ or $A_2$ or $A_3$ or ..." is given by the sum of the probability of $A_1$ occurring, of $A_2$ occurring, of $A_3$ occurring, ... (this sum could be finite or infinite).
 
-Together, the triplet $(\Omega, F, P)$ is called a \index{Probability space} probability space.
+Together, the triplet $(\Omega, F, P)$ is called a *probability space*.
 
 In the context of data analysis, we will talk about probability in the following way. Consider some data that we might have collected. This could be discrete $0,1$ responses in a question-response accuracy task, or continuous measurements of reading times in milliseconds from an eyetracking study, or multi-category responses like "yes", "no", or "don't know", or electrical potentials on the microvolts scale. 
 
 In any such case, we will say that the data are being generated from a \index{Random variable} *random variable*, which we will designate with a capital letter such as $Y$.^[Here, we use $Y$, but we could have used any letter, such as $X, Z,...$. Later on, in some situations we will use Greek letters like $\theta, \mu, \sigma$ to represent a random variable.]
 
-The actually observed outcome (a $0,1$ response; reading time, a response like "yes", "no", "don't know", etc.), which is also an elementary event, will be distinguished from the random variable that generated it by using lower case $y$ for the observed outcome. We can call $y$ an instance of $Y$; every new observed outcome can be different due to random variability.
+The actually observed outcome (a $0,1$ response; reading time, a response like "yes", "no", "don't know", etc.) will be distinguished from the random variable that generated it by using lower case $y$ for the observed outcome. We can call $y$ an instance of $Y$; every new observed outcome can be different due to random variability.
 
 We can summarize the above informal concepts relating to random variables very compactly if we re-state them in mathematical form. A mathematical statement has the advantage not only of brevity but also of reducing (and hopefully eliminating) ambiguity.
 
@@ -77,6 +101,7 @@ In later chapters, we will spend some time trying to understand how such a prior
 Given such a prior distribution and some data $y$, the end-product of a Bayesian data analysis is what is called the \index{Posterior distribution} *posterior distribution* of the parameter (or parameters) given the data: $p(\theta | y)$. This posterior distribution is the probability distribution of $\theta$ after conditioning on $y$, i.e., after the data has been observed and is therefore known. All our statistical inference is based on this posterior distribution of $\theta$; we can even carry out hypothesis tests that are analogous (but not identical) to the likelihood ratio based frequentist hypothesis tests.
 
 We already mentioned conditional probability above when discussing the probability of the data given some parameter $\theta$, which we wrote as the PMF $p(y|\theta)$. Conditional probability is an important concept in Bayesian data analysis, not least because it allows us to derive Bayes' theorem. Let's look at the definition of conditional probability next.
+
 
 ## \index{Conditional probability} Conditional probability {#condprob}
 
