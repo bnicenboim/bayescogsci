@@ -138,10 +138,10 @@ A Stan program is usually saved as a `.stan` file and accessed through R (or oth
 lookup(plogis)
 ```
 
-There are three columns in the output of this call. The first one indicates Stan function names, the second one their arguments with their type, and the third one the type they return. Unlike `R`, Stan is strict with the type of the variables.^[In this kind of output, there are some types that are new to the R user (but they are also used in C++): `reals` indicates that any of `real`, `real[]`, `vector`, or `row_vector`. A return type `R` with an input type `T` indicates that the type of the output of the function is the same as type of the argument.] In order to decide which function to use, it is necessary to look at the Stan documentation and find the function that matches our specific needs (for `plogis`, the corresponding function would be `inv_logit()`).
+There are three columns in the output of this call. The first one indicates Stan function names, the second one their arguments with their type, and the third one the type they return. Unlike R, Stan is strict with the type of the variables.^[In this kind of output, there are some types that are new to the R user (but they are also used in C++): `reals` indicates that any of `real`, `real[]`, `vector`, or `row_vector`. A return type R with an input type `T` indicates that the type of the output of the function is the same as type of the argument.] In order to decide which function to use, it is necessary to look at the Stan documentation and find the function that matches our specific needs (for `plogis`, the corresponding function would be `inv_logit()`).
 
 
-Another important difference from `R` is that every variable needs to be declared with its type (real, integer, vector, matrix, etc.). The next two sections exemplify these details through  basic Stan programs.
+Another important difference from R is that every variable needs to be declared with its type (real, integer, vector, matrix, etc.). The next two sections exemplify these details through  basic Stan programs.
 
 
 ## A first simple example with Stan: \index{Normal likelihood} Normal likelihood {#sec-firststan}
@@ -218,9 +218,9 @@ normal <- system.file("stan_models",
                       package = "bcogsci")
 ```
 
-This command just points to a text file that the package `bcogsci` stores on your computer. You can open it to read the code (with any text editor, or `readLines()` in `R`). You'll need to compile this code and run it with `stan()`.
+This command just points to a text file that the package `bcogsci` stores on your computer. You can open it to read the code (with any text editor, or `readLines()` in R). You'll need to compile this code and run it with `stan()`.
 
-Stan requires the data to be in a list object in `R`. Below, we fit the model with the default number of \index{Chain} chains and \index{Iteration} iterations.
+Stan requires the data to be in a list object in R. Below, we fit the model with the default number of \index{Chain} chains and \index{Iteration} iterations.
 
 
 
@@ -437,7 +437,7 @@ To determine the probability that the posterior for beta is larger than zero giv
 mean(df_fit_pupil$beta > 0)
 ```
 
-To generate prior or \index{Posterior predictive distribution} posterior predictive distributions, we can create our own functions in `R` with the `purrr` function `map_dfr()` (or a for-loop) as we did in section  \@ref(sec-trial) with the function `lognormal_model_pred()`. Alternatively, we can use the \index{\texttt{generated quantities}} `generated quantities` block in our model:
+To generate prior or \index{Posterior predictive distribution} posterior predictive distributions, we can create our own functions in R with the `purrr` function `map_dfr()` (or a for-loop) as we did in section  \@ref(sec-trial) with the function `lognormal_model_pred()`. Alternatively, we can use the \index{\texttt{generated quantities}} `generated quantities` block in our model:
 
 ```{r pupilgenstan, echo = FALSE}
 pupil_gen <- system.file("stan_models",
@@ -543,7 +543,7 @@ pupil_int1 <- system.file("stan_models", "pupil_int1.stan", package = "bcogsci")
 ```{stan output.var = "pupilint_stan", code = readLines(pupil_int1),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
 ```
 
-When there are matrices or vectors involved,  `*` indicates matrix multiplication whereas `.*` indicates \index{Element-wise multiplication} element-wise multiplication; in `R`, `%*%` indicates matrix multiplication whereas `*` indicates element-wise multiplication.
+When there are matrices or vectors involved,  `*` indicates matrix multiplication whereas `.*` indicates \index{Element-wise multiplication} element-wise multiplication; in R, `%*%` indicates matrix multiplication whereas `*` indicates element-wise multiplication.
 
 There is, however, an alternative notation that can simplify our code. In the following likelihood, $p\_size$ is a vector of N observations (in this case 41), $X$ is the model matrix with a dimension of $N \times N_{pred}$ (in this case $41 \times 3$), and $\beta$ a vector of $N_{pred}$ (in this case, 3) rows. Assuming that $\beta$ is a vector, we indicate with one line that each parameter $\beta_n$ is sampled from identical prior distributions.
 
@@ -600,7 +600,7 @@ fit_pupil_int <- stan(pupil_int, data = ls_pupil_X)
 print(fit_pupil_int, pars = c("alpha", "beta", "sigma"))
 ```
 
-In Figure \@ref(fig:pupilintbeta), we  plot the 95% CrI of the parameters of interest. We use \index{\texttt{regex\_pars}} `regex_pars`, rather than `pars`, because we want to capture `beta[1]`, `beta[2]`, and `beta[3]`; `regex_pars` use \index{Regular expression} regular expressions to select the parameters (for information about regular expressions in `R`, see https://stat.ethz.ch/R-manual/R-devel/library/base/html/regex.html).
+In Figure \@ref(fig:pupilintbeta), we  plot the 95% CrI of the parameters of interest. We use \index{\texttt{regex\_pars}} `regex_pars`, rather than `pars`, because we want to capture `beta[1]`, `beta[2]`, and `beta[3]`; `regex_pars` use \index{Regular expression} regular expressions to select the parameters (for information about regular expressions in R, see https://stat.ethz.ch/R-manual/R-devel/library/base/html/regex.html).
 
 (ref:pupilintbeta) The means and 95% CrIs of the effect of load, `beta[1]`, the effect of trial, `beta[2]`, and their interaction, `beta[3]`.
 
@@ -712,7 +712,7 @@ mcmc_intervals(df_fit_recall,
   xlab("log-odds") 
 ```
 
-As shown in section \@ref(sec-comlogis), we might want to communicate the posterior in proportions rather than in log-odds (as seen in the parameters `beta`). This can be done in `R` by manipulating the data frame `df_fit_recall`, or by extracting the samples with `extract(fit_recall)`. Another alternative presented here is by using the generated quantities block. To make the code more compact, we declare the type of each variable and store its content in the same line in `recall_prop.stan`.
+As shown in section \@ref(sec-comlogis), we might want to communicate the posterior in proportions rather than in log-odds (as seen in the parameters `beta`). This can be done in R by manipulating the data frame `df_fit_recall`, or by extracting the samples with `extract(fit_recall)`. Another alternative presented here is by using the generated quantities block. To make the code more compact, we declare the type of each variable and store its content in the same line in `recall_prop.stan`.
 
 ```{r recallpropstan, echo = FALSE}
 recall_prop <- system.file("stan_models",
@@ -779,5 +779,5 @@ This chapter introduced basic Stan syntax for fitting some standard linear model
 
 ## Further reading
 
-For further reading on the  Hamiltonian Monte Carlo algorithm, see the rather technical review of @betancourt2017conceptual, or the more conceptual introduction provided by  @monnahanFasterEstimationBayesian2017 or chapter 17 of @lambert2018student. A useful article with example `R` code is @nealMCMCUsingHamiltonian2011. A detailed walk-through on its implementation is also provided in Chapter 41 of @mackay. The Stan documentation [@Stan2023], consisting of a User's Guide and the Language Reference Manual are important starting points for going deeper into Stan programming: https://mc-stan.org/users/documentation/.
+For further reading on the  Hamiltonian Monte Carlo algorithm, see the rather technical review of @betancourt2017conceptual, or the more conceptual introduction provided by  @monnahanFasterEstimationBayesian2017 or chapter 17 of @lambert2018student. A useful article with example R code is @nealMCMCUsingHamiltonian2011. A detailed walk-through on its implementation is also provided in Chapter 41 of @mackay. The Stan documentation [@Stan2023], consisting of a User's Guide and the Language Reference Manual are important starting points for going deeper into Stan programming: https://mc-stan.org/users/documentation/.
 

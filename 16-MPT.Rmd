@@ -500,7 +500,7 @@ head(f_true)
 ```
 
 
-This change in our assumptions entails that the probability of each response changes depending on the item associated with each observation. The  parameters `theta` now have to be a matrix. This is in `R`; in Stan, we will code it as an \index{Array of simplexes} array of simplexes, i.e., an array of non-negative values that sums to 1.
+This change in our assumptions entails that the probability of each response changes depending on the item associated with each observation. The  parameters `theta` now have to be a matrix. This is in R; in Stan, we will code it as an \index{Array of simplexes} array of simplexes, i.e., an array of non-negative values that sums to 1.
 
 We continue with the functions defined in section \@ref(sec-mpt-data), and the same values for `a_true`, `t_true`, and `c_true` as defined in that section. Since most of the equations depend on `f`, and `f` is a vector now, the outcomes are automatically vectors. But this is not the case for `theta_NR_v`, and thus we need to repeat the value.
 
@@ -600,7 +600,7 @@ a_{h,n} &= \text{logit}^{-1}(a_{h,n}')
 
 Where $u_{a,subj[n]}$ is a vector with the same length as the total number of observations. The meaning of this notation was explained in the section \@ref(sec-hierstan).
 
-This is done in `R` as follows:
+This is done in R as follows:
 
 ```{r}
 a_true <- 0.75 # as before

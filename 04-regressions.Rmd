@@ -58,7 +58,7 @@ With this information we can set a \index{Regularizing prior} regularizing prior
 \end{equation}
 
 
-Given that our  predictor load is centered, with the prior for $\alpha$, we are saying that we suspect that the average pupil size  for the average load in the experiment will be in a 95% credible interval limited by approximately $1000 \pm 2 \cdot 500 = [0, 2000]$ units. We can calculate this with more precision in `R`  using the `qnorm()` function:
+Given that our  predictor load is centered, with the prior for $\alpha$, we are saying that we suspect that the average pupil size  for the average load in the experiment will be in a 95% credible interval limited by approximately $1000 \pm 2 \cdot 500 = [0, 2000]$ units. We can calculate this with more precision in R  using the `qnorm()` function:
 
 ```{r qnormalpha}
 qnorm(c(.025, .975), mean = 1000, sd = 500)
@@ -590,12 +590,12 @@ $\theta_n =  \frac{\exp(\eta_n)}{1+\exp(\eta_n)}$.  An example of this calculati
 In order to decide on priors for $\alpha$ and $\beta$, we need to take into account that these parameters do not represent probabilities or proportions, but *log-odds*, the x-axis in Figure \@ref(fig:logisticfun) (right-hand side figure).  As shown in  the figure, the relationship between log-odds and probabilities is not linear. 
 
 
-There are two functions in `R` that implement the logit and inverse logit functions: \index{\texttt{qlogis}} `qlogis(p)` for the logit function and \index{\texttt{plogis}} `plogis(x)` for the inverse logit or logistic function.
+There are two functions in R that implement the logit and inverse logit functions: \index{\texttt{qlogis}} `qlogis(p)` for the logit function and \index{\texttt{plogis}} `plogis(x)` for the inverse logit or logistic function.
 
 Now we need to set priors for $\alpha$ and $\beta$. 
 Given that we centered our predictor, the intercept, $\alpha$, represents the log-odds of correctly recalling one word in a random position for the average set size of five (since $5 = \frac{2+4+6+8}{4}$), which, incidentally, was not presented in the experiment. This is  one case where the intercept doesn't have a clear interpretation if we leave the prediction uncentered: With \index{Non-centered} non-centered set size, the intercept will be the log-odds of recalling one word in a set of *zero* words, which obviously makes no sense. 
 
-The prior for $\alpha$ will depend on how difficult the recall task is. We could assume that the probability of recalling a word for an average set size, $\alpha$, is centered at $0.5$ (a $50/50$ chance) with a great deal of uncertainty. The `R` command `qlogis(0.5)` tells us that $0.5$ corresponds to zero in log-odds space. How do we include a great deal of uncertainty? We could look at Figure \@ref(fig:logisticfun), and decide on  a standard deviation of $4$ in a normal distribution centered at zero:
+The prior for $\alpha$ will depend on how difficult the recall task is. We could assume that the probability of recalling a word for an average set size, $\alpha$, is centered at $0.5$ (a $50/50$ chance) with a great deal of uncertainty. The R command `qlogis(0.5)` tells us that $0.5$ corresponds to zero in log-odds space. How do we include a great deal of uncertainty? We could look at Figure \@ref(fig:logisticfun), and decide on  a standard deviation of $4$ in a normal distribution centered at zero:
 
 \begin{equation}
 \alpha \sim \mathit{Normal}(0, 4) 
@@ -644,7 +644,7 @@ We need to decide now on the prior for $\beta$, the effect in log-odds of increa
 (d) $\beta \sim \mathit{Normal}(0, .01)$
 (e) $\beta \sim \mathit{Normal}(0, .001)$
 
-In principle, we could produce the prior predictive distributions using `brms` with `sample_prior = "only"` and then `predict()`. However, as mentioned before, `brms` also uses Stan's Hamiltonian sampler for sampling from the priors, and this can lead to convergence problems when the priors are too uninformative (as in this case). We solve this issue by  performing prior predictive checks directly in `R` using the `r*` family of functions (e.g., `rnorm()`, `rbinom()`, etc.) together with loops. This method is not as simple as using the convenient functions provided by `brms`, but it is very flexible and can be very powerful. We show the prior predictive distributions in Figure \@ref(fig:priors4beta); for the details on the implementation in `R`, see online section \@ref(app-priorR).
+In principle, we could produce the prior predictive distributions using `brms` with `sample_prior = "only"` and then `predict()`. However, as mentioned before, `brms` also uses Stan's Hamiltonian sampler for sampling from the priors, and this can lead to convergence problems when the priors are too uninformative (as in this case). We solve this issue by  performing prior predictive checks directly in R using the `r*` family of functions (e.g., `rnorm()`, `rbinom()`, etc.) together with loops. This method is not as simple as using the convenient functions provided by `brms`, but it is very flexible and can be very powerful. We show the prior predictive distributions in Figure \@ref(fig:priors4beta); for the details on the implementation in R, see online section \@ref(app-priorR).
 
 
 Figure \@ref(fig:priors4beta) shows that, as expected, the priors are centered on zero. We see that the distribution of possible accuracies for the prior that has a standard deviation of $1$ is problematic: There is too much probability concentrated near $0$ and $1$ for set sizes of $2$ and $8$. It's hard to tell the differences between the other priors, and it might be more useful to look at the predicted differences in accuracy between set sizes in Figure \@ref(fig:priors4beta2). 

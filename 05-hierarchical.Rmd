@@ -459,7 +459,7 @@ To sum up, we are going to use the following priors:
 
 A model such as $M_{cp}$ is sometimes called a \index{Fixed-effects model} *fixed-effects* model: all the parameters are fixed in the sense that do not vary from subject to subject or from item to item. A similar frequentist model  would correspond to fitting a simple linear model using the `lm()` function: `lm(n400 ~ 1 + c_cloze, data = df_eeg)`.
 
-We fit this model in \index{brms} `brms` as follows (the default family is `gaussian()` so we can omit it). As with the `lm()` function in `R`, by default an intercept is fitted and thus `n400 ~ c_cloze` is equivalent to `n400 ~ 1 + c_cloze`:
+We fit this model in \index{brms} `brms` as follows (the default family is `gaussian()` so we can omit it). As with the `lm()` function in R, by default an intercept is fitted and thus `n400 ~ c_cloze` is equivalent to `n400 ~ 1 + c_cloze`:
 
 ```{r, message = FALSE, results = "hide"}
 fit_N400_cp <-
@@ -1078,7 +1078,7 @@ pp_check(fit_N400_sih,
         legend.position.inside = c(.5,.08))
 ```
 
-Figure \@ref(fig:postpreddensbysubj) hints that we might be misfitting some subjects: Some of the by-subject observed distributions of the EEG signal averages look much tighter than their corresponding posterior predictive distributions (e.g., subjects 3, 5, 9, 10, 14), whereas some other by-subject observed distributions look wider (e.g., subjects 25, 26, 27).  Another approach to examine whether we misfit the by-subject noise level is to  plot posterior distributions of the standard deviations and compare them with the observed standard deviation. This is achieved in the following code, which groups the data by subject, and shows the distribution of standard deviations. The result is shown in Figure  \@ref(fig:postpredsumbysubj). It is clear now that, for some subjects, the observed standard deviation lies outside the distribution of predictive standard deviations.
+Figure \@ref(fig:postpreddensbysubj) hints that we might be misfitting some subjects: Some of the by-subject observed distributions of the EEG signal averages look much tighter than their corresponding posterior predictive distributions (e.g., subjects 3, 5, 9, 10, 14), whereas some other by-subject observed distributions look wider (e.g., subjects 25, 26, 27).  Another approach to examine whether we misfit the by-subject noise level is to  plot posterior distributions of the standard deviations and compare them with the observed standard deviation. This is achieved in the following code, which groups the data by subject, and shows the distribution of standard deviations. The result is shown in Figure  \@ref(fig:postpredsumbysubj). It is clear now that, for some subjects, the observed standard deviation lies outside the bulk of the distribution of predictive standard deviations.
 
 
 (ref:postpredsumbysubj) Distribution of posterior predicted standard deviations in gray and observed standard deviation in black lines by subject.

@@ -566,7 +566,7 @@ To avoid \index{Underflow} underflow, that is getting a zero instead of a very s
 
 where $x >0$.
 
-Implement this function in `R` with the same arguments as the `d*` family of functions:  if `log = TRUE` the output is a log density; call this new function `dexp2`.
+Implement this function in R with the same arguments as the `d*` family of functions:  if `log = TRUE` the output is a log density; call this new function `dexp2`.
 
 ```{r}
 dexp2 <- function(x, lambda = 1, log = FALSE) {
@@ -656,7 +656,7 @@ p-1 &= - e^{-\lambda q}\\
 \end{aligned}
 \end{equation}
 
-Write the quantile function (the inverse of the CDF) and the random number generator for the exponential distribution in `R`. To differentiate it from the built-in function in `R`, we will call it `qexp2`:
+Write the quantile function (the inverse of the CDF) and the random number generator for the exponential distribution in R. To differentiate it from the built-in function in R, we will call it `qexp2`:
 
 ```{r}
 qexp2 <- function(p, lambda = 1) {
@@ -669,7 +669,7 @@ rexp2 <- function(n, lambda = 1) {
 ```
 
 
-The functions that we would use in a Stan model are relatively faithful to the `R` code, but follow Stan conventions: The expression `log1m(p)` is more arithmetically stable than `log(1 - .)` for values of `p` close to one, the function `exp_lpdf` stores the sum of the log(PDF) evaluated at each value of x, this would be analogous to doing `sum(dexp2(x, lambda, log = TRUE))`; the function `exp_rng` implements a non-vectorized version of `rexp2` and uses the auxiliary function `exp_icdf` (icdf stands for inverse CDF), which is similar to `qexp2`. 
+The functions that we would use in a Stan model are relatively faithful to the R code, but follow Stan conventions: The expression `log1m(p)` is more arithmetically stable than `log(1 - .)` for values of `p` close to one, the function `exp_lpdf` stores the sum of the log(PDF) evaluated at each value of x, this would be analogous to doing `sum(dexp2(x, lambda, log = TRUE))`; the function `exp_rng` implements a non-vectorized version of `rexp2` and uses the auxiliary function `exp_icdf` (icdf stands for inverse CDF), which is similar to `qexp2`. 
 
 ```{r, echo = FALSE}
 exponential <- system.file("stan_models",

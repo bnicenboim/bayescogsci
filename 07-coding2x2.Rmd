@@ -137,7 +137,7 @@ The results show that the estimates for the main effects have (approximately) do
 
 Now the main effects and interaction can be directly interpreted as differences between averages and as differences between differences. If one wants the interaction term to be on the same scale as the main effects, it would need to be multiplied by 2; however, then its interpretation would not be straightforward any more (i.e., it is no longer "the difference between differences" but a scaled variant of this). Thus, putting the interaction on the same scale as the main effects has the advantage that it ensures that the prior has the same scaling across the different terms. However, it has the disadvantage that the interpretation of the interaction term is not straightforward.
 
-Incidentally, an alternative way to code main effects and interactions is to use the `ifelse` command in `R`. For example, if we want to use $\pm 1/2$ sum contrasts as in the above example, we can specify the contrasts for the main effects as vectors:
+Incidentally, an alternative way to code main effects and interactions is to use the `ifelse` command in R. For example, if we want to use $\pm 1/2$ sum contrasts as in the above example, we can specify the contrasts for the main effects as vectors:
 
 ```{r}
 A <- ifelse(df_contrasts3$F %in% c("F1", "F2"), -1 / 2, 1 / 2)
@@ -155,7 +155,7 @@ AxB <- A * B
 (AxB <- A * B * 2)
 ```
 
-This kind of vector-based contrast coding is convenient for more complex designs, such as $2\times 2\times 2$ factorial designs. However, in such complex designs, the `ifelse()` command can become cumbersome, so a better approach is to use the `merge` function in `R`, as shown below. 
+This kind of vector-based contrast coding is convenient for more complex designs, such as $2\times 2\times 2$ factorial designs. However, in such complex designs, the `ifelse()` command can become cumbersome, so a better approach is to use the `merge` function in R, as shown below. 
 
 First, define a data frame that represents the main effects and interaction contrasts for the four conditions.
 

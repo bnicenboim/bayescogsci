@@ -161,9 +161,9 @@ One way to empirically estimate this probability of success is to carry out a \i
 
 Assume for simplicity that $10$ subjects are asked to complete the above sentence; each subject does this task only once. This gives us $10$ independent trials that are either coded a success ("umbrella" was produced) or as a failure (some other word was produced). We can sum up the number of successes to calculate how many of the $10$ trials had "umbrella" as a response. For example, if $8$ instances of "umbrella" are produced in $10$ trials, we would estimate the cloze probability of producing "umbrella" to be $8/10$.
 
-We can repeatedly generate simulated sequences of the number of successes in `R` (later on we will demonstrate how to generate such random sequences of simulated data). Here is a case where we carry out  $20$ experiments, and each experiment will have $10$ trials.
+We can repeatedly generate simulated sequences of the number of successes in R (later on we will demonstrate how to generate such random sequences of simulated data). Here is a case where we carry out  $20$ experiments, and each experiment will have $10$ trials.
 
-Before we look at the `R` code for generating such simulated data, some notational conventions are needed to avoid confusion. In the function we use below (`rbinom()`) for generating simulated data, `n` refers to the number of experiments, which in the `R` function's terminology is the number of observations. By contrast, `size` is the number of trials. This means that in the example below, `n` refers to the number of experiments conducted; because in `R`-speak these are called observations, we are also going to adopt this terminology. So, if $20$ experiments are done, each with $10$ trials, we will say that we have $20$ observations, each with $10$ trials.
+Before we look at the R code for generating such simulated data, some notational conventions are needed to avoid confusion. In the function we use below (`rbinom()`) for generating simulated data, `n` refers to the number of experiments, which in the R function's terminology is the number of observations. By contrast, `size` is the number of trials. This means that in the example below, `n` refers to the number of experiments conducted; because in R-speak these are called observations, we are also going to adopt this terminology. So, if $20$ experiments are done, each with $10$ trials, we will say that we have $20$ observations, each with $10$ trials.
 
 ```{r}
 ## n=the number of observations (no. of experiments)
@@ -219,7 +219,7 @@ Here, $n$ represents the total number of **trials**,
 and corresponds to `size` in the `rbinom` function; the confusion that can arise here is that in the `rbinom` function `n` is used to represent the number of observations (or the number of experiments). It is important to remember that in the definition of the probability mass function above, $n$ represents the total number of trials in a single observation (or experiment).
 
 The variable $k$ the number of successes (this could range from $0$ to $10$ in our running example), and $\theta$ the probability of success. The term $\binom{n}{k}$, pronounced n-choose-k, represents the number of ways in which one can obtain $k$ successes in an experiment with $n$ trials. For example, $1$ success out of $10$ can occur in $10$ possible ways: the very first observation could be a $1$, or the second observation could be a $1$, etc.
-The term $\binom{n}{k}$ expands to $\frac{n!}{k!(n-k)!}$. In `R`, it is computed using the function `choose(n,k)`, with $n$ and $k$ representing any real number (although of course, the `choose()` function only makes sense for positive integers).
+The term $\binom{n}{k}$ expands to $\frac{n!}{k!(n-k)!}$. In R, it is computed using the function `choose(n,k)`, with $n$ and $k$ representing any real number (although of course, the `choose()` function only makes sense for positive integers).
 
 When we want to express the fact that the data is assumed to be generated from a binomial random variable, we will write $Y \sim \mathit{Binomial}(n,\theta)$. If the data is generated from a random variable that has some other probability distribution $f(\theta)$, we will write $Y\sim f(\theta)$. In this book, we use  $f(\cdot)$ synonymously with $p(\cdot)$ to represent a probability density/mass function.
 
@@ -303,7 +303,7 @@ In Bayesian data analysis, we will constantly be asking the question: what infor
 
 #### Compute the probability of a particular outcome (discrete case only)
 
-The binomial distribution shown in Figure \@ref(fig:binomplot) already shows the probability of each possible event under a different value for $\theta$. In `R`, there is a built-in function that allows us to calculate the probability of $k$ successes out of $n$, given a particular value of $k$ (this number constitutes our data), the number of trials $n$, and given a particular value of $\theta$; this is the `dbinom()` function. For example, the probability of 5 successes out of 10 when $\theta$ is $0.5$ is (note: we are using $k$ to represent the number of successes, but the `dbinom()` function below uses `x` instead):
+The binomial distribution shown in Figure \@ref(fig:binomplot) already shows the probability of each possible event under a different value for $\theta$. In R, there is a built-in function that allows us to calculate the probability of $k$ successes out of $n$, given a particular value of $k$ (this number constitutes our data), the number of trials $n$, and given a particular value of $\theta$; this is the `dbinom()` function. For example, the probability of 5 successes out of 10 when $\theta$ is $0.5$ is (note: we are using $k$ to represent the number of successes, but the `dbinom()` function below uses `x` instead):
 
 ```{r dnormexample1}
 dbinom(x = 5, size = 10, prob = 0.5)
@@ -337,13 +337,13 @@ Mathematically, we could write the above summation as:
 \sum_{k=0}^2 \binom{n}{k} \theta^{k} (1-\theta)^{n-k}
 \end{equation}
 
-An alternative to the cumbersome addition in the `R` code above is this more compact statement, which is identical to the above mathematical expression:
+An alternative to the cumbersome addition in the R code above is this more compact statement, which is identical to the above mathematical expression:
 
 ```{r}
 sum(dbinom(0:2, size = 10, prob = 0.5))
 ```
 
-`R` has a built-in function called `pbinom()` that does this summation for us.  If we want to know the probability of $2$ or fewer than $2$ successes as in the above example, we can write:
+R has a built-in function called `pbinom()` that does this summation for us.  If we want to know the probability of $2$ or fewer than $2$ successes as in the above example, we can write:
 
 ```{r pbinomexample1,echo=TRUE}
 pbinom(2, size = 10, prob = 0.5, lower.tail = TRUE)
@@ -398,7 +398,7 @@ ggplot(invcdf, aes(x = probs, y = q)) +
 
 We can also find out the value of the variable $k$ (the quantile) such that the probability of obtaining $k$ or less than $k$ successes is some specific probability value $p$. If we switch the x and y axes of Figure \@ref(fig:binomcdf)(a), we obtain another very useful function, the inverse of the CDF.
 
-The \index{Inverse of the CDF} inverse of the CDF (known as the \index{Quantile function} quantile function in R because it returns the quantile, the value $k$) is available in `R` as the function `qbinom()`. The usage is as follows: to find out what the value $k$ of the outcome is such that the probability of obtaining $k$ or less successes is $0.37$, type:
+The \index{Inverse of the CDF} inverse of the CDF (known as the \index{Quantile function} quantile function in R because it returns the quantile, the value $k$) is available in R as the function `qbinom()`. The usage is as follows: to find out what the value $k$ of the outcome is such that the probability of obtaining $k$ or less successes is $0.37$, type:
 
 ```{r qbinomexample,echo=TRUE}
 qbinom(p = 0.37, size = 10, prob = 0.5)
@@ -408,7 +408,7 @@ One can visualize the inverse CDF of the binomial as in Figure \@ref(fig:binomcd
 
 #### Generate simulated data from a $\mathit{Binomial}(n,\theta)$ distribution
 
-We can generate \index{Simulate data} simulated data from a binomial distribution by specifying the number of observations or experiments (`n`), the number of trials (`size`), and the probability of success $\theta$. In `R`, we do this as follows:
+We can generate \index{Simulate data} simulated data from a binomial distribution by specifying the number of observations or experiments (`n`), the number of trials (`size`), and the probability of success $\theta$. In R, we do this as follows:
 
 ```{r rbinomexample,echo=TRUE}
 rbinom(n = 1, size = 10, prob = 0.5)
@@ -443,7 +443,7 @@ The \index{Probability density function} probability density function \index{PDF
 \mathit{Normal}(y|\mu,\sigma)=f(y)= \frac{1}{\sqrt{2\pi \sigma^2}} \exp \left(-\frac{(y-\mu)^2}{2\sigma^2} \right)
 \end{equation}
 
-Here, $\mu$ is some true, unknown mean, and $\sigma^2$ is some true, unknown variance of the normal distribution that the reading times have been sampled from. There is a built-in function in `R` that computes the above function once we specify the mean $\mu$ and the standard deviation $\sigma$ (in `R`, this parameter is specified in terms of the standard deviation rather than the variance).
+Here, $\mu$ is some true, unknown mean, and $\sigma^2$ is some true, unknown variance of the normal distribution that the reading times have been sampled from. There is a built-in function in R that computes the above function once we specify the mean $\mu$ and the standard deviation $\sigma$ (in R, this parameter is specified in terms of the standard deviation rather than the variance).
 
 Figure \@ref(fig:normdistrn) visualizes the normal distribution for particular values of $\mu$ and $\sigma$, as a PDF (using `dnorm()`), a CDF (using `pnorm()`), and the inverse CDF (using `qnorm()`). It should be clear from the figure that these are three different ways of looking at the same information.
 
@@ -491,7 +491,7 @@ qnorm(0.975, mean = 500, sd = 100)
 
 The above output says that the quantile value $q$ such that $Prob(X<q)=0.975$ is $q=696$.
 
-* Generate \index{Simulate data} simulated data. Given a vector of $n$ independent and identically distributed data $y$, i.e., given that each data point is being generated independently from  $Y \sim \mathit{Normal}(\mu,\sigma)$ for some values of the parameters, the sample mean and standard deviation^[`R` will compute the standard deviation by dividing by $n-1$, not $n$; this is because dividing by $n$ gives a biased estimate [chapter 10 of @millermiller]. This is not an important detail for our purposes, and in any case for large $n$ it doesn't really matter whether one divides by $n$ or $n-1$.] are:
+* Generate \index{Simulate data} simulated data. Given a vector of $n$ independent and identically distributed data $y$, i.e., given that each data point is being generated independently from  $Y \sim \mathit{Normal}(\mu,\sigma)$ for some values of the parameters, the sample mean and standard deviation^[R will compute the standard deviation by dividing by $n-1$, not $n$; this is because dividing by $n$ gives a biased estimate [chapter 10 of @millermiller]. This is not an important detail for our purposes, and in any case for large $n$ it doesn't really matter whether one divides by $n$ or $n-1$.] are:
 
 \begin{equation}
 \bar{y} =  \frac{\sum_{i=1}^n y_i}{n}
@@ -557,7 +557,7 @@ k \int_{0}^{\infty} f(x)\, \mathrm{d}x = 1
 (\#eq:factork)
 \end{equation}
 
-Clearly, this factor is $k = \frac{1}{\int_{0}^{\infty} f(x)\, \mathrm{d}x}$. For the standard normal, this integral is easy to compute using `R`; we just calculate the complement of the cumulative distribution (CCDF):
+Clearly, this factor is $k = \frac{1}{\int_{0}^{\infty} f(x)\, \mathrm{d}x}$. For the standard normal, this integral is easy to compute using R; we just calculate the complement of the cumulative distribution (CCDF):
 
 ```{r}
 pnorm(0, mean = 0, sd = 1, lower.tail = FALSE)
@@ -573,7 +573,7 @@ Also, if we had truncated the distribution at 0 to the right instead of the left
 k \int_{-\infty}^{0} f(x)\, \mathrm{d}x = 1
 \end{equation}
 
-For the standard normal case, in `R`, this factor would require us to use the CDF:
+For the standard normal case, in R, this factor would require us to use the CDF:
 
 ```{r}
 pnorm(0, mean = 0, sd = 1, lower.tail = TRUE)
@@ -589,7 +589,7 @@ It is also possible to specify distributions with two or more dimensions. Some e
 
 ### Example 1: \index{Discrete bivariate distribution} Discrete bivariate distributions
 
-Starting with the discrete case, consider the discrete \index{Bivariate distribution} bivariate distribution shown below. These are data from an experiment  where, inter alia, in each trial a Likert acceptability rating and a question-response accuracy were recorded [the data are from a study by @AnnaLphd, used with permission here]. Load the data by loading the `R` package `bcogsci`.
+Starting with the discrete case, consider the discrete \index{Bivariate distribution} bivariate distribution shown below. These are data from an experiment  where, inter alia, in each trial a Likert acceptability rating and a question-response accuracy were recorded [the data are from a study by @AnnaLphd, used with permission here]. Load the data by loading the R package `bcogsci`.
 
 ```{r}
 data("df_discreteagrmt")
@@ -950,7 +950,7 @@ One can reassemble the variance-covariance matrix by pre-multiplying and post-mu
 \end{equation}
 
 
-Using `R` (the symbol `%*%` is the matrix multiplication operator in `R`):
+Using R (the symbol `%*%` is the matrix multiplication operator in R):
 
 ```{r}
 ## sds:
@@ -1031,7 +1031,7 @@ p(k=7,n=10) = \int_0^1 \binom{10}{7} \theta^7 (1-\theta)^{3}\,  d\theta
 \end{equation}
 
 
-This statement is computing something similar to what we computed above with the three discrete parameter values, except that the summation is being done over a continuous space ranging from 0 to 1. We say that the parameter $\theta$ has been integrated out, or marginalized. Integrating out a parameter will be a very common operation in this book, but we will never have to do the calculation ourselves. For the above case, we can compute the integral in `R`:
+This statement is computing something similar to what we computed above with the three discrete parameter values, except that the summation is being done over a continuous space ranging from 0 to 1. We say that the parameter $\theta$ has been integrated out, or marginalized. Integrating out a parameter will be a very common operation in this book, but we will never have to do the calculation ourselves. For the above case, we can compute the integral in R:
 
 ```{r}
 BinLik <- function(theta) {
@@ -1059,7 +1059,7 @@ Table: (\#tab:dpqrfunctions) Important R functions relating to random variables.
   Inverse CDF                                 `qbinom()`                     `qnorm()`
   Generate simulated data                     `rbinom()`                     `rnorm()`
 
-Later on, we will use other distributions, such as the uniform, beta, etc., and each of these has their own set of `d-p-q-r` functions in `R`. One can look up these different distributions in, for example, @blitzstein2014introduction.
+Later on, we will use other distributions, such as the uniform, beta, etc., and each of these has their own set of `d-p-q-r` functions in R. One can look up these different distributions in, for example, @blitzstein2014introduction.
 
 ## Summary
 

@@ -148,7 +148,7 @@ As in the binomial and normal distributions that we saw in chapter 1, one can an
 \end{equation}
 
 
-As an example, choosing $a=4$ and $b=4$ would mean that the answer "umbrella" is as likely as a different answer, but we are relatively unsure about this. We could express our uncertainty by computing the region over which we are 95% certain that the value of the parameter lies; this is the \index{Credible interval} *95% credible interval*. For this, we would use the `qbeta()` function in `R`; the parameters $a$ and $b$ are called ```shape1``` and ```shape2``` in `R`.
+As an example, choosing $a=4$ and $b=4$ would mean that the answer "umbrella" is as likely as a different answer, but we are relatively unsure about this. We could express our uncertainty by computing the region over which we are 95% certain that the value of the parameter lies; this is the \index{Credible interval} *95% credible interval*. For this, we would use the `qbeta()` function in R; the parameters $a$ and $b$ are called ```shape1``` and ```shape2``` in R.
 
 ```{r}
 qbeta(c(0.025, 0.975), shape1 = 4, shape2 = 4)
@@ -244,7 +244,7 @@ We can use this integral to figure out what the normalizing constant is. Basical
 k \int_{0}^{1} \theta^{84} (1-\theta)^{24} = 1
 \end{equation}
 
-We know what $\int_{0}^{1} \theta^{84} (1-\theta)^{24}$ is; we just computed that value (called `AUC` in the `R` code above). So, the \index{Normalizing constant} normalizing constant is:
+We know what $\int_{0}^{1} \theta^{84} (1-\theta)^{24}$ is; we just computed that value (called `AUC` in the R code above). So, the \index{Normalizing constant} normalizing constant is:
 
 \begin{equation}
 k  = \frac{1}{\int_{0}^{1} \theta^{84} (1-\theta)^{24}} = \frac{1}{AUC}
