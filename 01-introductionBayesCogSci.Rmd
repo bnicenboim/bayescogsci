@@ -30,7 +30,7 @@ kableExtra::kable(
     Name = c(
       "Sample space",
       "Event space",
-      "Probability function",
+      "Probability fun.",
       "Outcome",
       "Event"
     ),
@@ -46,14 +46,16 @@ kableExtra::kable(
       "All sequences with exactly 1 correct answer, or exactly 9 correct answers, etc.",
       "If each question is answered correctly with probability $\\theta$, $P(\\{ciiiiiiiii\\}) = (1-\\theta)^9\\theta$.",
       "The particular sequence $ciiiiiiiii$.",
-      "A collection of sequences $\\{ciiiiiiiii, iciiiiiiii, iiciiiiiii, iiiciiiiii, \\ldots\\}$."
+      "A collection of sequences $\\{ciiiiiiiii, iciiiiiiii, iiciiiiiii, \\ldots\\}$."
     )
   ),
   caption = "Basic Probability Terminology for the 10-question example.",
    vline= "",
   booktabs = TRUE,
   escape = FALSE
-)
+) %>%
+column_spec(3, width = "3.5cm") %>%
+column_spec(4, width = "5cm")
 ```
 
 The probability axioms refer to the sample space $\Omega$, event space $F$, and probability $P$ as follows:
