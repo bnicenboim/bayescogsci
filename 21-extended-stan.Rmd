@@ -1,8 +1,10 @@
 # Advanced models with Stan - Extended
 
 ```{r load-08, echo = FALSE, message = FALSE, results ="hide", warning = FALSE, fig.keep = "none"}
+if(!knitr::is_html_output()) {
 knitr::purl("08-introstan.Rmd")
 source("08-introstan.R")
+}
 ```
 
 ## What does `target` do in Stan models? {#app-target}
@@ -21,7 +23,7 @@ mu <- extract(fit_score)$mu
 sigma <- extract(fit_score)$sigma
 addmu <- dnorm(x = mu[1], mean = 0, sd = 20, log = TRUE)
 addsigma <- dlnorm(x = sigma[1], mean = 3, sd = 1, log = TRUE)
-addY <- sum(dnorm(Y, mu[1], sigma[1], log = TRUE))
+addY <- sum(dnorm(y, mu[1], sigma[1], log = TRUE))
 curr <- addmu + log(sigma[1])
 h <- addY + log(sigma[1]) + addmu + addsigma
 ```
