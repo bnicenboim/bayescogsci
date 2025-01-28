@@ -108,7 +108,7 @@ The object `normal_mod` is an \index{R6 reference object} R6 reference object (h
 To sample, use the `$sample()` method. The data argument accepts a list (as we used in `stan()` from `rstan`). However, many of the arguments of  `$sample` have different names than the ones used in `stan()` from the  `rstan` package:
 
 ```{r, message = FALSE, results = "hide"}
-lst_score_data <- list(y = Y, N = length(Y))
+lst_score_data <- list(y = y, N = length(y))
 fit_normal_cmd <- normal_mod$sample(data = lst_score_data,
                                     seed = 123,
                                     chains = 4,
