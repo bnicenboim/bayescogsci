@@ -1330,12 +1330,16 @@ ggplot(samples, aes(x = sample, fill = distribution)) +
 Here, the discrepancy evident in Figure \@ref(fig:priorposteriordiscrepancy) is investigated with a sensitivity analysis. We will examine what happens for the following priors for $\beta$. In the models we fit below, all the other parameters have the same priors as in the model `fit_stroop`;  we vary only the priors for $\beta$.
 The different priors are:
 
+\Begin{samepage}
+
 - $\beta \sim \mathit{Normal}(0,0.001)$
 - $\beta \sim \mathit{Normal}(0,0.01)$
 - $\beta \sim \mathit{Normal}(0,0.05)$
 - $\beta \sim \mathit{Normal}(0,0.1)$
 - $\beta \sim \mathit{Normal}(0,1)$
 - $\beta \sim \mathit{Normal}(0,2)$
+
+\End{samepage}
 
 ```{r stroopfits, message = FALSE, results = "hide", eval = !file.exists("dataR/df_beta_stroop.RDS"), echo = FALSE}
 sds <- c(0.001, 0.01, 0.05, 0.1, 1, 2)
