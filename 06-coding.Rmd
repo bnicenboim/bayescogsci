@@ -21,13 +21,13 @@ For this and the next chapter, although knowledge of the matrix formulation of t
 We first consider the simplest case: suppose we want to compare the means of a dependent variable (DV) such as response times between two groups of subjects. A simulated data set is available in the package `bcogsci` as the data set `df_contrasts1`. The simulations assumed longer response times in condition $F1$ ($\mu_1 = 0.8$ sec) than $F2$ ($\mu_2 = 0.4$ sec). The data from the $10$ simulated subjects are aggregated and summary statistics are computed for the two groups.
 
 \Begin{samepage}
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 data("df_contrasts1")
 df_contrasts1
 ```
 \End{samepage}
 
-```{r, echo=FALSE}
+```{r, echo = FALSE}
 table1 <- df_contrasts1 %>% group_by(F) %>% # Table for main effect F
   summarize(N = n(), M = mean(DV), SD = sd(DV), SE = round(SD / sqrt(N), 1))
 table1a <- as.data.frame(table1)
@@ -35,13 +35,13 @@ names(table1a) <- c("Factor", "N data", "Est. means", "Std. dev.", "Std. errors"
 (GM <- mean(table1$M)) # Grand Mean
 ```
 
-```{r cTab1Means, echo=FALSE, results = "asis"}
+```{r cTab1Means, echo = FALSE, results = "asis"}
  kableExtra::kable(table1a %>%
   as.data.frame() %>%
     mutate(across(where(is.integer), ~ paste0("$",.x, "$"))) %>%
   mutate(across(where(is.double), ~ paste0("$",formatC(round(.x, 1),
-                                                       format = "f", digits=1), "$"))), escape = FALSE,align =c("l",rep("r",4)),
- booktabs = TRUE,  vline="",
+                                                       format = "f", digits = 1), "$"))), escape = FALSE,align = c("l",rep("r",4)),
+ booktabs = TRUE,  vline = "",
   caption = "Summary statistics per condition for the simulated data."
 )
 ```
@@ -49,12 +49,12 @@ names(table1a) <- c("Factor", "N data", "Est. means", "Std. dev.", "Std. errors"
 
 (ref:cFig1Means) Means and standard errors of the simulated dependent variable (e.g., response times in seconds) in two conditions $F1$ and $F2$.
 
-```{r cFig1Means, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, fig.width=4, fig.height=2.3, fig.cap = "(ref:cFig1Means)"}
+```{r cFig1Means, fig = TRUE, include = TRUE, echo = FALSE, cache = FALSE, fig.width = 4, fig.height = 2.3, fig.cap = "(ref:cFig1Means)"}
 #(plot1 <- qplot(x = F, y = M, group = 1, data = table1, geom = c("point", "line")) +
 (plot1 <- ggplot(aes(x = F, y = M, group = 1), data = table1) +
   geom_point() + geom_line() +
   geom_errorbar(aes(max = M + SE, min = M - SE), width = 0) +
-  # scale_y_continuous(breaks=c(250,275,300)) +
+  # scale_y_continuous(breaks = c(250,275,300)) +
   scale_y_continuous(breaks = seq(0, 1, .2)) + coord_cartesian(ylim = c(0, 1)) +
   labs(y = "Mean Response Time [sec]", x = "Factor F"))
 ```
@@ -63,7 +63,7 @@ The results, displayed in Figure \@ref(fig:cFig1Means) and in Table \@ref(tab:cT
 
 A simple Bayesian linear model of `DV` on $F$ yields a straightforward estimate of the difference between the group means. We use relatively uninformative priors. The estimates for the population-level effects are presented below using the function `fixef()`:
 
-```{r fitmodel, echo=TRUE, message=FALSE, results="hide"}
+```{r fitmodel, echo = TRUE, message = FALSE, results = "hide"}
 fit_F <- brm(DV ~ F,
              data = df_contrasts1,
              family = gaussian(),
@@ -71,7 +71,7 @@ fit_F <- brm(DV ~ F,
                        prior(normal(0, 2), class = sigma),
                        prior(normal(0, 1), class = b)))
 ```
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 fixef(fit_F)
 ```
 
@@ -91,7 +91,7 @@ The new information is the $95$% credible interval for the difference between th
 
 How does the function `brm()` arrive at these particular values for the intercept and slope? That is, why does the intercept assess the mean of condition $F1$ and how do we know the slope measures the difference in means between $F2$-$F1$? This result is a consequence of the \index{Default contrast coding} default contrast coding of the factor $F$. R assigns treatment contrasts to factors and orders their levels alphabetically. The alphabetically first factor level (here: $F1$) is coded in R by default as $0$ and the second level (here: $F2$) is coded as $1$.^[When using treatment coding, it's important to be aware that the intercept won't be centered. As mentioned in online section \@ref(app-intercept), this means the prior one sets for the intercept in `brms` will actually be for assigned to its centered version. Although this distinction may not have any impact when one uses wide priors, it's still worth keeping in mind.] This becomes clear when we inspect the current contrast attribute of the factor using the \index{\texttt{contrasts}} `contrasts()` command:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 contrasts(df_contrasts1$F)
 ```
 
@@ -154,7 +154,7 @@ The fact that the intercept term formally estimates the mean of condition $F1$ i
 
 In R, factor levels are ordered alphabetically and by default the first level is used as the baseline in treatment contrasts. Obviously, this default mapping will depend on the levels' alphabetical ordering. If a different \index{Baseline condition} baseline condition is desired, it is possible to re-order the levels. Here is one way of re-ordering the levels:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 df_contrasts1$Fb <- factor(df_contrasts1$F, levels = c("F2", "F1"))
 contrasts(df_contrasts1$Fb)
 ```
@@ -162,7 +162,7 @@ contrasts(df_contrasts1$Fb)
 \noindent
 This re-ordering did not change any data associated with the factor, only one of its attributes. With this new contrast attribute, a simple Bayesian model yields the following result.
 
-```{r, echo=TRUE, message=FALSE, results="hide"}
+```{r, echo = TRUE, message = FALSE, results = "hide"}
 fit_Fb <- brm(DV ~ Fb,
               data = df_contrasts1,
               family = gaussian(),
@@ -170,7 +170,7 @@ fit_Fb <- brm(DV ~ Fb,
                         prior(normal(0, 2), class = sigma),
                         prior(normal(0, 1), class = b)))
 ```
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 fixef(fit_Fb)
 ```
 
@@ -184,7 +184,7 @@ Treatment contrasts are only one of many options. It is also possible to use sum
 
 To define this contrast in a linear regression, one way is to use the `contrasts` function (another way is to define a column containing $+0.5$ and $-0.5$ for the corresponding levels of the factor).
 
-```{r, echo=TRUE, message=FALSE, results="hide"}
+```{r, echo = TRUE, message = FALSE, results = "hide"}
 contrasts(df_contrasts1$F) <- c(-0.5, +0.5)
 fit_mSum <- brm(DV ~ F,
                 data = df_contrasts1,
@@ -193,7 +193,7 @@ fit_mSum <- brm(DV ~ F,
                           prior(normal(0, 2), class = sigma),
                           prior(normal(0, 1), class = b)))
 ```
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 fixef(fit_mSum)
 ```
 
@@ -210,7 +210,7 @@ One important difference from the treatment contrast is that the intercept now r
 
 Why does the intercept assess the grand mean and why does the slope estimate the group difference? This is the result of rescaling the sum contrast. The first factor level ($F1$) was coded as $-0.5$, and the second factor level ($F2$) as $+0.5$:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 contrasts(df_contrasts1$F)
 ```
 
@@ -260,14 +260,14 @@ To summarize, treatment contrasts and sum contrasts are two possible ways to par
 
 One alternative option is to use what is called the cell means parameterization (this coding is also called \index{One-hot encoding} "one-hot encoding" in the context of machine learning). In this approach, one does not estimate an intercept term, and then differences between factor levels. Instead, each free parameter is used to simply estimate the mean of one of the factor levels. As a consequence, no comparisons between condition means are estimated, but simply the mean of each experimental condition is estimated. Cell means parameterization is specified by explicitly removing the intercept term (which is added automatically in `brms`) by adding a $-1$ in the regression formula:
 
-```{r, echo=TRUE, message=FALSE, results="hide"}
+```{r, echo = TRUE, message = FALSE, results = "hide"}
 fit_mCM <- brm(DV ~ -1 + F,
                data = df_contrasts1,
                family = gaussian(),
                prior = c(prior(normal(0, 2), class = sigma),
                          prior(normal(0, 2), class = b)))
 ```
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 fixef(fit_mCM)
 ```
 
@@ -305,12 +305,12 @@ Consider an example with the three word classes nouns, verbs, and adjectives. We
 
 Load and display the simulated data.
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 data("df_contrasts2")
 head(df_contrasts2)
 ```
 
-```{r, echo=FALSE}
+```{r, echo = FALSE}
 table.word <- df_contrasts2 %>%
   group_by(F) %>%
   summarise(
@@ -324,12 +324,12 @@ names(table.word1) <- c(
 )
 ```
 
-```{r cTab2Means, echo=FALSE, results = "asis"}
+```{r cTab2Means, echo = FALSE, results = "asis"}
  kableExtra::kable(table.word1 %>%
   as.data.frame() %>%
     mutate(across(where(is.integer), ~ paste0("$",.x, "$"))) %>%
-  mutate(across(where(is.double), ~ paste0("$",formatC(round(.x, 1),format = "f", digits=1), "$"))), escape = FALSE,align =c("l",rep("r",4)),
- booktabs = TRUE,  vline="",
+  mutate(across(where(is.double), ~ paste0("$",formatC(round(.x, 1),format = "f", digits = 1), "$"))), escape = FALSE,align = c("l",rep("r",4)),
+ booktabs = TRUE,  vline = "",
   caption = "Summary statistics per condition for the simulated data."
 )
 ```
@@ -364,8 +364,8 @@ Here, the weights $2/3, -1/3, -1/3$ are informative about how to combine the con
 $\beta_2$ is also rewritten as:
 
 \begin{align}\label{h02}
-\beta_2 =& \mu_2 - \frac{\mu_1+\mu_2+\mu_3}{3} \\
-\Leftrightarrow \beta_2 =& -\frac{1}{3}\mu_1 + \frac{2}{3} \mu_2 - \frac{1}{3} \mu_3
+\beta_2 = & \mu_2 - \frac{\mu_1+\mu_2+\mu_3}{3} \\
+\Leftrightarrow \beta_2 = & -\frac{1}{3}\mu_1 + \frac{2}{3} \mu_2 - \frac{1}{3} \mu_3
 \end{align}
 
 \noindent
@@ -384,7 +384,7 @@ Defining a \index{Custom contrast matrix} custom contrast matrix involves four s
 
 The term hypothesis matrix is used here because contrast coding is often done to carry out an explicit hypothesis test; but one could of course use contrast coding just to compute the estimates of an effect and their uncertainty, without doing a hypothesis test.
 
-Let us apply this four-step procedure to our example of the sum contrast. The first step, writing down the estimated comparisons, as done in section \@ref(sumcontrasts). The second step involves writing down the weights that each comparison gives to condition means. The weights for the first comparison are `wH01=c(+2/3, -1/3, -1/3)`, and the weights for the second comparison are `wH02=c(-1/3, +2/3, -1/3)`.
+Let us apply this four-step procedure to our example of the sum contrast. The first step, writing down the estimated comparisons, as done in section \@ref(sumcontrasts). The second step involves writing down the weights that each comparison gives to condition means. The weights for the first comparison are `wH01 = c(+2/3, -1/3, -1/3)`, and the weights for the second comparison are `wH02 = c(-1/3, +2/3, -1/3)`.
 
 Before writing these into a hypothesis matrix, we also define the estimated quantity for the intercept term. The intercept parameter estimates the mean across all conditions:
 
@@ -396,7 +396,7 @@ Before writing these into a hypothesis matrix, we also define the estimated quan
 This estimate has weights of $1/3$ for all condition means.
 The weights from all three model parameters that were defined are now combined and written into a matrix that we refer to as the *hypothesis matrix* (`Hc`):
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 HcSum <-
   rbind(cH00 = c(adjectives = 1 / 3, nouns = 1 / 3, verbs = 1 / 3),
         cH01 = c(adjectives = 2 / 3, nouns = -1 / 3, verbs = -1 / 3),
@@ -415,7 +415,7 @@ Use the function `ginv2()` from the `bcogsci` package for the next step. It is s
 
 Applying the generalized inverse to the hypothesis matrix results in the new matrix `XcSum`. This is the contrast matrix $X_c$ that estimates exactly those comparisons that were specified earlier:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 (XcSum <- ginv2(HcSum))
 ```
 
@@ -423,13 +423,13 @@ This contrast matrix corresponds exactly to the sum contrasts described above. I
 
 To verify this custom-made contrast matrix, it is compared to the sum contrast matrix as generated by the R function `contr.sum()` in the `stats` package. The resulting contrast matrix is identical to the result when adding the intercept term, a column of ones, to the contrast matrix:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 fractions(cbind(1, contr.sum(3)))
 ```
 
 In order to estimate model parameters, step four in our procedure involves assigning sum contrasts to the factor $F$ in our example data, and fitting a (Bayesian) linear model. This allows us to estimate the regression coefficients associated with each contrast. We compare these to the data shown above (Table \@ref(tab:cTab2Means)) to test whether the regression coefficients actually correspond to the differences of condition means, as intended. To define the contrast, it is necessary to remove the intercept term, as this is automatically added by the modeling function `brm()`.
 
-```{r, echo=TRUE, message=FALSE, results="hide"}
+```{r, echo = TRUE, message = FALSE, results = "hide"}
 contrasts(df_contrasts2$F) <- XcSum[, 2:3]
 fit_Sum <- brm(DV ~ F,
                data = df_contrasts2,
@@ -438,7 +438,7 @@ fit_Sum <- brm(DV ~ F,
                          prior(normal(0, 100), class = sigma),
                          prior(normal(0, 100), class = b)))
 ```
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 fixef(fit_Sum)
 ```
 
@@ -480,7 +480,7 @@ contr.hypothesis(HcSum)
 
 We can assign this contrast to our factor as we did before.
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 contrasts(df_contrasts2$F) <- contr.hypothesis(HcSum)
 ```
 
@@ -490,16 +490,16 @@ The `hypr` package can be used to create contrasts for Bayesian models, where th
 
 ## Other types of contrasts: illustration with a factor of four levels {#sec-4levelFactor}
 
-Here, we introduce repeated difference, Helmert, and polynomial contrasts.^[If one is trying to set a general prior for differences between means, then the function `bayestestR::contr.equalprior()` can be used. The `bayestestR::contr.equalprior()` function can be used when one aims to set equal marginal priors for differences between means across all levels of a factor. This avoids the unequal prior distributions that can result from other contrast methods (e.g., `stats::contr.treatment`) and supports correct Bayes factor estimation in multi-level factors. It is particularly useful for factors with more than two levels, following the orthogonal-normal contrasts described in @rouder2012default[p. 363]. For more information, see https://easystats.github.io/bayestestR/reference/contr.equalprior.html.] 
+Here, we introduce repeated difference, Helmert, and polynomial contrasts.^[If one is trying to set a general prior for differences between means, then the function `bayestestR::contr.equalprior()` can be used. The `bayestestR::contr.equalprior()` function can be used when one aims to set equal marginal priors for differences between means across all levels of a factor. This avoids the unequal prior distributions that can result from other contrast methods (e.g., `stats::contr.treatment()`) and supports correct Bayes factor estimation in multi-level factors. It is particularly useful for factors with more than two levels, following the orthogonal-normal contrasts described in @rouder2012default[p. 363]. For more information, see https://easystats.github.io/bayestestR/reference/contr.equalprior.html.] 
 
 Consider an experiment with one between-subject factor with four levels (the discussion below does not depend on the factor being between-subjects--the same logic will hold for within-subjects designs). We load a corresponding data set, which contains simulated data containing response times with a four-level between-subject factor.
 The sample sizes for each level and the means and standard errors are shown in Table \@ref(tab:cTab3Means), and the means and standard errors are also shown graphically in Figure \@ref(fig:helmertsimdatFig).
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 data("df_contrasts3")
 ```
 
-```{r, echo=FALSE, message=FALSE}
+```{r, echo = FALSE, message = FALSE}
 table3 <- df_contrasts3 %>%
   group_by(F) %>%
   summarize(N = length(DV), M = mean(DV), SD = sd(DV), SE = SD / sqrt(N))
@@ -508,21 +508,21 @@ table3a <- as.data.frame(table3)
 names(table3a) <- c("Factor", "N data", "Est. means", "Std. dev.", "Std. errors")
 ```
 
-```{r helmertsimdatFig, fig=TRUE, include=TRUE, echo=FALSE, cache=FALSE, fig.height=2.2, fig.cap = "The means and error bars (showing standard errors) for a simulated data set with one between-subjects factor with four levels."}
+```{r helmertsimdatFig, fig = TRUE, include = TRUE, echo = FALSE, cache = FALSE, fig.height = 2.2, fig.cap = "The means and error bars (showing standard errors) for a simulated data set with one between-subjects factor with four levels."}
 #(plot2 <- qplot(x = F, y = M, group = 1, data = table3, geom = c("point", "line")) +
 (plot2 <- ggplot(aes(x = F, y = M, group = 1), data = table3) +
   geom_point() + geom_line() +
   geom_errorbar(aes(max = M + SE, min = M - SE), width = 0) +
-  # scale_y_continuous(breaks=c(250,275,300)) +
+  # scale_y_continuous(breaks = c(250,275,300)) +
   labs(y = "Mean DV", x = "Factor F"))
 ```
 
-```{r echo=FALSE,cTab3Means, results = "asis"}
+```{r echo = FALSE,cTab3Means, results = "asis"}
  kableExtra::kable(table3a %>%
   as.data.frame() %>%
     mutate(across(where(is.integer), ~ paste0("$",.x, "$"))) %>%
-  mutate(across(where(is.double), ~ paste0("$",formatC(round(.x, 1),format = "f", digits=1), "$"))), escape = FALSE,align =c("l",rep("r",4)),
- booktabs = TRUE,  vline="",
+  mutate(across(where(is.double), ~ paste0("$",formatC(round(.x, 1),format = "f", digits = 1), "$"))), escape = FALSE,align = c("l",rep("r",4)),
+ booktabs = TRUE,  vline = "",
   caption = "Summary statistics per condition for the simulated data."
 )
 ```
@@ -556,7 +556,7 @@ Here, the $\mu_x$ are the mean response times in condition $x$. Each regression 
 
 We can write these comparisons into `hypr`:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 HcRep <- hypr(c2vs1 = F2 ~ F1,
               c3vs2 = F3 ~ F2,
               c4vs3 = F4 ~ F3,
@@ -566,14 +566,14 @@ HcRep
 
 The hypothesis matrix shows exactly the weights that we had written down above. Moreover, we see the contrast matrix. In the case of the repeated contrast, the contrast matrix again looks very different from the hypothesis matrix. In this case, the contrast matrix looks a lot less intuitive than the hypothesis matrix, and if one did not know the associated hypothesis matrix, it seems unclear what the contrast matrix would actually test. To verify this custom-made contrast matrix, we compare it to the repeated contrast matrix as generated by the R function `contr.sdif()` in the `MASS` package [@R-MASS]. The resulting contrast matrix is identical to our result:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 fractions(contr.sdif(4))
 ```
 
 We can thus use either approach (`hypr()` or \index{\texttt{contr.sdif}} `contr.sdif()`) to obtain the contrast matrix in this case.
 Next, we apply the repeated contrasts to the factor $F$ in the example data and run a linear model. This allows us to estimate the regression coefficients associated with each contrast. These are compared to the data in Figure\ \@ref(fig:helmertsimdatFig) to test whether the regression coefficients actually correspond to the differences between successive condition means, as intended.
 
-```{r, echo=TRUE, message=FALSE, results="hide"}
+```{r, echo = TRUE, message = FALSE, results = "hide"}
 contrasts(df_contrasts3$F) <- contr.hypothesis(HcRep)
 fit_Rep <- brm(DV ~ F,
                data = df_contrasts3,
@@ -582,7 +582,7 @@ fit_Rep <- brm(DV ~ F,
                          prior(normal(0, 50), class = sigma),
                          prior(normal(0, 50), class = b)))
 ```
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 fixef(fit_Rep)
 ```
 
@@ -608,7 +608,7 @@ contr.helmert(4)
 
 These contrasts are scaled versions of our custom Helmert contrast. I.e., the first column of our custom Helmert contrast has to be multiplied by 2 to get the classical version, the second column has to be multiplied by 3, and the fourth column has to be multiplied by 4 to get to our custom Helmert contrast.  In our opinion, the custom Helmert contrast defined using the `hypr` function is more appropriate and intuitive to use. Probably the only reason the classical Helmert contrast uses these scaled differences is that the rescaling yields an easier contrast matrix, which consists of integers rather than fractions.  The estimates from our custom Helmert contrast seem much more relevant in Bayesian approaches today. This is because in our custom Helmert contrast, the coefficients estimate the differences between (groups of) conditions (rather than scaled versions of these differences). That means that we can set the priors intuitively (as priors on differences between (groups of) conditions - rather than on scaled differences) and that we can accordingly interpret the posterior much more straightforwardly. We apply the custom Helmert contrast here:
 
-```{r, echo=TRUE, message=FALSE}
+```{r, echo = TRUE, message = FALSE}
 contrasts(df_contrasts3$F) <- contr.hypothesis(HcHel)
 fit_Hel <- brm(DV ~ F,
                data = df_contrasts3,
@@ -617,11 +617,11 @@ fit_Hel <- brm(DV ~ F,
                          prior(normal(0, 50), class = sigma),
                          prior(normal(0, 50), class = b)))
 ```
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 fixef(fit_Hel)
 ```
 
-When we fit the Bayesian model using our custom Helmert contrast, we can see that the estimates reflect the comparisons outlined above. The first estimate `Fb1` has a value of roughly $10$, reflecting the difference between conditions $F1$ and $F2$. The second estimate `Fb2` has a value of $5$, which reflects the difference between condition $F3$ ($10$) and the average of the first two conditions ($(10+20)/2=15$). The estimate `Fb3` reflects the difference between $F4$ ($40$) minus the average of the first three, which is $(10+20+10)/3=13.3$, and is thus $40-13.3=26.7$.
+When we fit the Bayesian model using our custom Helmert contrast, we can see that the estimates reflect the comparisons outlined above. The first estimate `Fb1` has a value of roughly $10$, reflecting the difference between conditions $F1$ and $F2$. The second estimate `Fb2` has a value of $5$, which reflects the difference between condition $F3$ ($10$) and the average of the first two conditions ($(10+20)/2 = 15$). The estimate `Fb3` reflects the difference between $F4$ ($40$) minus the average of the first three, which is $(10+20+10)/3 = 13.3$, and is thus $40-13.3 = 26.7$.
 
 Here, we can see that the generalized matrix inverse can be used to create contrasts that are not exactly equivalent to the ones provided by R per default (i.e., here `contr.helmert()`). Another example for this is discussed in online section \@ref(app-cTreatGM), which implements a treatment contrast, where the intercept captures the grand mean.
 
@@ -630,7 +630,7 @@ Here, we can see that the generalized matrix inverse can be used to create contr
 We have discussed how different contrasts are created from the hypothesis matrix. What we have not treated in detail is how exactly contrasts are used in a linear model. Here, we will see that the contrasts for a factor in a linear model are just the same thing as continuous \index{Numeric predictor} numeric predictors (i.e., \index{Covariate} covariates) in a linear/multiple regression analysis. That is, contrasts are the way to encode \index{Discrete factor levels} discrete factor levels into numeric predictor variables to use in linear/multiple regression analysis, by encoding which differences between factor levels are estimated.
 The contrast matrix $X_c$ that we have looked at so far has one entry (row) for each experimental condition. For use in a linear model, the contrast matrix is coded into a design or model matrix $X$, where each individual data point has one row. The \index{Design matrix} design matrix $X$ can be extracted using the function \index{\texttt{model.matrix}} `model.matrix()`:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 # contrast matrix:
 (contrasts(df_contrasts3$F) <- contr.hypothesis(HcRep))
 # design/model matrix:
@@ -642,13 +642,13 @@ For each of the $20$ subjects, four numbers are stored in this model matrix. The
 
 To further illustrate this, the covariates are extracted from this design matrix and stored separately as numeric predictor variables in the data frame:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 df_contrasts3[, c("Fc2vs1", "Fc3vs2", "Fc4vs3")] <- covars[, 2:4]
 ```
 
 They are now used as numeric predictor variables in a multiple regression analysis:
 
-```{r, echo=TRUE, message=FALSE, results="hide"}
+```{r, echo = TRUE, message = FALSE, results = "hide"}
 fit_m3 <- brm(DV ~ Fc2vs1 + Fc3vs2 + Fc4vs3,
               data = df_contrasts3,
               family = gaussian(),
@@ -656,7 +656,7 @@ fit_m3 <- brm(DV ~ Fc2vs1 + Fc3vs2 + Fc4vs3,
                         prior(normal(0, 50), class = sigma),
                         prior(normal(0, 50), class = b)))
 ```
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 fixef(fit_m3)
 ```
 
@@ -668,11 +668,11 @@ Polynomial contrasts are another option for analyzing factors. Suppose that we e
 
 Here is an example for how to code polynomial contrasts for a four-level factor. In this case, one can estimate a linear (`F.L`), a quadratic (`F.Q`), and a cubic (`F.C`) trend. If more factor levels are present, then higher order trends can be estimated.
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 Xpol <- contr.poly(4)
 (contrasts(df_contrasts3$F) <- Xpol)
 ```
-```{r, echo=TRUE, message=FALSE, results="hide"}
+```{r, echo = TRUE, message = FALSE, results = "hide"}
 fit_Pol <- brm(DV ~ F,
                data = df_contrasts3,
                family = gaussian(),
@@ -680,7 +680,7 @@ fit_Pol <- brm(DV ~ F,
                          prior(normal(0, 50), class = sigma),
                          prior(normal(0, 50), class = b)))
 ```
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 fixef(fit_Pol)
 ```
 
@@ -688,20 +688,20 @@ In this example, condition means increase across factor levels in a linear fashi
 
 However, one difficulty with the `contr.poly()` function is that the scaling of the predictor variables is not very clear, making it difficult to define priors. Therefore, an alternative can be to use custom polynomial contrasts:
 
-```{r, echo=TRUE}
-Xpol2           <- data.frame(linear=c(F1=-3,F2=-1,F3= 1,F4= 3)/2)
+```{r, echo = TRUE}
+Xpol2           <- data.frame(linear = c(F1 = -3,F2 = -1,F3 = 1,F4 = 3)/2)
 Xpol2$quadratic <- Xpol2$linear^2 - mean(Xpol2$linear^2)
 Xpol2$cubic     <- Xpol2$linear^3 - mean(Xpol2$linear^3)
 ```
 
 Because the linear and cubic trends are highly correlated, we orthogonalize the two:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 Xpol2$cubic <- resid(lm(cubic ~ linear, Xpol2))
 (contrasts(df_contrasts3$F) <- as.matrix(Xpol2))
 ```
 
-```{r, echo=TRUE, message=FALSE, results="hide"}
+```{r, echo = TRUE, message = FALSE, results = "hide"}
 fit_Pol2 <- brm(DV ~ F,
                data = df_contrasts3,
                family = gaussian(),
@@ -709,7 +709,7 @@ fit_Pol2 <- brm(DV ~ F,
                          prior(normal(0, 50), class = sigma),
                          prior(normal(0, 50), class = b)))
 ```
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 fixef(fit_Pol2)
 ```
 
@@ -719,9 +719,9 @@ The effects are now on interpretable scales.
 
 An alternative to specifying contrasts to estimate specific comparisons between factor levels is monotonic effects [https://paul-buerkner.github.io/brms/articles/brms_monotonic.html; @burkner2020modelling]. This simply assumes that the dependent variable increases (or decreases) in a monotonic fashion across levels of an ordered factor. In this kind of analysis, one does not define contrasts specifying differences between (groups of) factor levels. Instead, one estimates one parameter which captures the average increase (or decrease) in the dependent variable associated with two neighboring factor levels. Moreover, one estimates the percentages of the overall increase (or decrease) that is associated with each of the differences between neighboring factor levels (i.e., similar to simple difference contrasts, but measured in percentage increase, and assuming monotonicity, i.e., that the same increase or decrease is present for all simple differences).
 
-To implement a monotonic analysis, we first code the factor $F$ as being an ordered factor (i.e.,`ordered=TRUE`; remember that the default ordering is alphabetical and may need to be changed). Then, we specify that we want to estimate a monotonic effect of $F$ using the notation `mo(F)` in our call to `brms`:
+To implement a monotonic analysis, we first code the factor $F$ as being an ordered factor (i.e.,`ordered = TRUE`; remember that the default ordering is alphabetical and may need to be changed). Then, we specify that we want to estimate a monotonic effect of $F$ using the notation `mo(F)` in our call to `brms`:
 
-```{r, echo=TRUE, message=FALSE, results="hide"}
+```{r, echo = TRUE, message = FALSE, results = "hide"}
 df_contrasts3$F <- factor(df_contrasts3$F, ordered = TRUE)
 fit_mo <- brm(DV ~ 1 + mo(F),
               data = df_contrasts3,
@@ -740,18 +740,18 @@ short_summary(fit_mo)
 
 The results show that there is an overall positive population-level effect of the factor $F$ with an estimate (`moF`) of $`r round(fixef(fit_mo)[2,1],2)`$, reflecting an average increase in the dependent variables of  $`r round(fixef(fit_mo)[2,1],2)`$ with each level of $F$. The model summary shows estimates for the simplex parameters, which represent the ratios of the overall increase associated with $F$ that can be attributed to each of the differences between neighboring factor levels. The results show that most of the increase is associated with `moF1[3]`, i.e., with the last difference, reflecting the difference between $F3$ and $F4$, whereas the other two differences (`moF1[1]`, reflecting the difference between $F1$ and $F2$, and `moF1[2]`, reflecting the difference between $F2$ and $F3$) are smaller. Comparing conditional effects (i.e., the condition means estimated by the model) between a model using polynomial contrasts and a model assuming monotonic effects makes it clear that the current model "forces" the effects to increase in a monotonic fashion; see Figure \@ref(fig:condmopol). \index{\texttt{conditional\_effects}}
 
-```{r condmopol, out.width='48%', fig.show = "hold", fig.cap = "Conditional effects using the polynomial contrasts on the left side vs. assuming monotonic effects on the right side.", tidy = FALSE, fig.width = 2.2, fig.height =2.2, warning = FALSE, message = FALSE}
+```{r condmopol, out.width = '48%', fig.show = "hold", fig.cap = "Conditional effects using the polynomial contrasts on the left side vs. assuming monotonic effects on the right side.", tidy = FALSE, fig.width = 2.2, fig.height = 2.2, warning = FALSE, message = FALSE}
 ppoly <- conditional_effects(fit_Pol)
 pmon  <- conditional_effects(fit_mo)
-plot(ppoly, plot=FALSE)[[1]] + ggtitle("Polynomial contrasts")
-plot(pmon, plot=FALSE)[[1]] + ggtitle("Monotonic effects")
+plot(ppoly, plot = FALSE)[[1]] + ggtitle("Polynomial contrasts")
+plot(pmon, plot = FALSE)[[1]] + ggtitle("Monotonic effects")
 ```
 
 This is regardless of the information provided in the data; see the posterior predictive checks in Figure \@ref(fig:checkmopol).
 
 \index{Posterior predictive distribution}
 
-```{r checkmopol, out.width='48%', fig.show = "hold", fig.cap = "Posterior predictive distributions by condition using the polynomial contrasts on the left side vs. assuming monotonic effects on the right side.", tidy = FALSE, fig.width = 2.2, fig.height =2.7, message = FALSE, warning = FALSE, fold = TRUE}
+```{r checkmopol, out.width = '48%', fig.show = "hold", fig.cap = "Posterior predictive distributions by condition using the polynomial contrasts on the left side vs. assuming monotonic effects on the right side.", tidy = FALSE, fig.width = 2.2, fig.height = 2.7, message = FALSE, warning = FALSE, fold = TRUE}
 pp_check(fit_Pol, type = "violin_grouped",
          group = "F", y_draw = "points") +
   theme(legend.position = "bottom")+
@@ -781,16 +781,16 @@ There are (at least) three criteria to decide what a good contrast is. First, *o
 
 ### \index{Centered contrasts} Centered contrasts
 
-Contrasts are often constrained to be centered, such that the individual contrast coefficients $c_i$ for different factor levels $i$ sum to $0$: $\sum_{i=1}^I c_i = 0$. This has advantages when estimating interactions with other factors or covariates (we discuss interactions between factors in the next chapter).
+Contrasts are often constrained to be centered, such that the individual contrast coefficients $c_i$ for different factor levels $i$ sum to $0$: $\sum_{i = 1}^I c_i = 0$. This has advantages when estimating interactions with other factors or covariates (we discuss interactions between factors in the next chapter).
 All contrasts discussed here are centered except for the treatment contrast, in which the contrast coefficients for each contrast do not sum to zero:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 colSums(contr.treatment(4))
 ```
 
 Other contrasts, such as repeated contrasts, are centered and the contrast coefficients for each contrast sum to $0$:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 colSums(contr.sdif(4))
 ```
 
@@ -803,14 +803,14 @@ An important question concerns whether (or when) the intercept needs to be consi
 Two centered contrasts $c_1$ and $c_2$ are orthogonal to each other if the following condition applies. Here, $i$ is the $i$-th cell of the vector representing the contrast.
 
 \begin{equation}
-\sum_{i=1}^I c_{1,i} \cdot c_{2,i} = 0
+\sum_{i = 1}^I c_{1,i} \cdot c_{2,i} = 0
 \end{equation}
 
 Whether contrasts are orthogonal can often be determined easily by computing the correlation between two contrasts. Orthogonal contrasts have a correlation of $0$.
 
 For example, coding two factors in a $2 \times 2$ design (we return to this case in a section on designs with two factors below) using sum contrasts, these \index{Sum contrasts} sum contrasts and their \index{Interaction} interaction are orthogonal to each other:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 (Xsum <- cbind(F1 = c(1, 1, -1, -1),
                F2 = c(1, -1, 1, -1),
                F1xF2 = c(1, -1, -1, 1)))
@@ -820,14 +820,14 @@ cor(Xsum)
 \noindent
 The correlations between the different contrasts (i.e., the off-diagonals) are exactly $0$. Notice that sum contrasts coding one multi-level factor are not orthogonal to each other:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 cor(contr.sum(4))
 ```
 
 \noindent
 Here, the correlations between individual contrasts, which appear in the off-diagonals, deviate from $0$, indicating non-orthogonality. The same is also true for treatment and repeated contrasts:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 cor(contr.sdif(4))
 cor(contr.treatment(4))
 ```
@@ -871,14 +871,14 @@ As mentioned earlier, one advantage of Bayesian modeling is that based on the po
 
 Importantly, posterior samples for the condition means can also be obtained after fitting a model with contrasts. We illustrate this here for the case of sum contrasts. Let's use our above example of a design where we assess response times (in milliseconds, `DV`) for three different word classes adjectives, nouns, and verbs, that is, for a 3-level factor $F$. In the above example, factor $F$ was coded using a sum contrast, where the first contrast coded the difference of adjectives from the grand mean, and the second contrast coded the difference of nouns from the grand mean. This was the corresponding contrast matrix:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 contrasts(df_contrasts2$F) <- contr.hypothesis(HcSum)
 contrasts(df_contrasts2$F)
 ```
 
 We had estimated a `brms` model for this data. The posterior estimates show results for the intercept (which is estimated to be $450$ ms) and for our two coded comparisons. The effect `FcH01` codes our first comparison that response times for adjectives differ from the grand mean, and show an estimate that response times for adjectives are about $50$ ms shorter than the grand mean. Moreover, the effect `FcH02` codes our second comparison that response times for nouns differ from the grand mean, and show the estimate that response times for nouns are $50$ ms longer than the grand mean.
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 fixef(fit_Sum)
 ```
 
@@ -892,7 +892,7 @@ df_postSamp_Sum <- as_draws_df(fit_Sum)
 
 We can see the samples for our first contrast (`b_FcH01`) and for our second contrast (`b_FcH02`). How can we now compute the posterior samples for each of the condition means, i.e., for adjectives, nouns, and verbs? For this, we need to take another look at the contrast matrix.
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 contrasts(df_contrasts2$F)
 ```
 
@@ -922,7 +922,7 @@ This yields posterior samples for the mean response times for verbs.
 
 We can now look at the posterior means and 95\% credible intervals for adjectives, nouns, and verbs by computing the means and quantiles across all computed samples.
 
-```{r, results="hide", message=FALSE}
+```{r, results = "hide", message = FALSE}
 postTab <- df_postSamp_Sum %>%
   # remove the meta-data:
   as.data.frame() %>%
@@ -936,7 +936,7 @@ postTab <- df_postSamp_Sum %>%
             `2.5%` = quantile(samp, p = 0.025),
             `97.5%` = quantile(samp, p = 0.975))
 ```
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 postTab
 ```
 
@@ -950,13 +950,13 @@ conditional_effects(fit_Sum, robust = FALSE)[]
 
 The same function allows us to visualize the effects, as shown in Figure \@ref(fig:cFigCond).
 
-```{r cFigCond, fig=TRUE, include=TRUE, echo=TRUE, cache=FALSE, fig.height=2.2, fig.cap = "Estimated condition means, computed from a `brms` model fitted with a sum contrast."}
+```{r cFigCond, fig = TRUE, include = TRUE, echo = TRUE, cache = FALSE, fig.height = 2.2, fig.cap = "Estimated condition means, computed from a `brms` model fitted with a sum contrast."}
 conditional_effects(fit_Sum, robust = FALSE)
 ```
 
 Coming back to our hand-crafted computations, the posterior samples can be used to compute additional comparisons. For example, we might be interested in how much response times for verbs differ from the grand mean. This can be computed based on the samples for the condition means: we first compute the grand mean from the three condition means,  and then we compare this to the estimate for verbs.
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 df_postSamp_Sum <- df_postSamp_Sum %>%
   mutate(GM = (b_adjectives + b_nouns + b_verbs) / 3,
          b_FcH03 = b_verbs - GM)
@@ -970,26 +970,26 @@ The key message here is that based on the contrast matrix, it is possible to com
 
 We briefly show how to compute posterior samples for condition means for one more example contrast, namely for repeated contrasts. Here, the contrast matrix is:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 contrasts(df_contrasts3$F) <- contr.hypothesis(HcRep)
 contrasts(df_contrasts3$F)
 ```
 
 The model estimates were:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 fixef(fit_Rep)
 ```
 
 We first obtain the posterior samples for the contrasts:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 df_postSamp_Rep <- as.data.frame(fit_Rep)
 ```
 
 Then we compute the posterior samples for condition $F1$. First, we have to add the intercept. Then, we can see in the contrast matrix that to compute the condition mean for $F1$, we have to add up all contrasts, using the weights `c(-3/4, -1/2, -1/4)` for each of the three contrasts (see first row of the contrast matrix). Thus, the posterior samples are computed as follows:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 df_postSamp_Rep <- df_postSamp_Rep %>%
   mutate(b_F1 = b_Intercept +
            -3 / 4 * b_Fc2vs1 +
@@ -999,7 +999,7 @@ df_postSamp_Rep <- df_postSamp_Rep %>%
 
 The other condition means are computed correspondingly:
 
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 df_postSamp_Rep <- df_postSamp_Rep %>%
   mutate(b_F2 = b_Intercept +
            1 / 4 * b_Fc2vs1 +
@@ -1017,7 +1017,7 @@ df_postSamp_Rep <- df_postSamp_Rep %>%
 
 Now we can look at the posterior means and credible intervals:
 
-```{r, results="hide", message=FALSE}
+```{r, results = "hide", message = FALSE}
 postTab <- df_postSamp_Rep %>%
   select(b_F1, b_F2, b_F3, b_F4) %>%
   pivot_longer(cols = everything(),
@@ -1028,7 +1028,7 @@ postTab <- df_postSamp_Rep %>%
             `2.5%` = round(quantile(samp, p = 0.025)),
             `97.5%` = round(quantile(samp, p = 0.975)))
 ```
-```{r, echo=TRUE}
+```{r, echo = TRUE}
 print(postTab, n = 4)
 ```
 
