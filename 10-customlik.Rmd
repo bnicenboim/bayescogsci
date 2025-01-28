@@ -119,7 +119,7 @@ We obtain the log likelihood based on all the $N$ observations  by summing the l
 \end{equation}
 
 
-In Stan, this summing up is done as follows. The function `normal_lpdf` applied to a vector already returns the sum of the individual log-probability densities. The Jacobian adjustment `2*log(RT)`, which returns a vector of values, has to be summed up and added in manually (the term therefore becomes `-sum(2*log(RT))`).
+In Stan, this summing up is done as follows. The function `normal_lpdf()` applied to a vector already returns the sum of the individual log-probability densities. The Jacobian adjustment `2*log(RT)`, which returns a vector of values, has to be summed up and added in manually (the term therefore becomes `-sum(2*log(RT))`).
 
 ```
 target += normal_lpdf(1 ./ RT | mu, sigma) 
@@ -599,7 +599,7 @@ In this case, the quantile function (the \index{Inverse of the CDF} inverse of t
 - \log(1-p)/\lambda
 \end{equation}
 
-Here is how one can derive this inverse of the CDF. First, consider the fact that the CDF of the exponential distribution is as follows. The term $q$ is some quantile of the distribution:
+Here is how one can derive this CDF and its inverse if they were not available to us. First, consider the fact that the CDF of the exponential distribution is as follows. The term $q$ is some quantile of the distribution:
 
 \begin{equation}
 F(q) = \int_0^q \lambda \exp(-\lambda x)\, \mathrm{d}x
@@ -669,7 +669,7 @@ rexp2 <- function(n, lambda = 1) {
 ```
 
 
-The functions that we would use in a Stan model are relatively faithful to the R code, but follow Stan conventions: The expression `log1m(p)` is more arithmetically stable than `log(1 - .)` for values of `p` close to one, the function `exp_lpdf` stores the sum of the log(PDF) evaluated at each value of x, this would be analogous to doing `sum(dexp2(x, lambda, log = TRUE))`; the function `exp_rng` implements a non-vectorized version of `rexp2` and uses the auxiliary function `exp_icdf` (icdf stands for inverse CDF), which is similar to `qexp2`. 
+The functions that we would use in a Stan model are relatively faithful to the R code, but follow Stan conventions: The expression `log1m(p)` is more arithmetically stable than `log(1 - .)` for values of `p` close to one, the function `exp_lpdf()` stores the sum of the log(PDF) evaluated at each value of x, this would be analogous to doing `sum(dexp2(x, lambda, log = TRUE))`; the function `exp_rng()` implements a non-vectorized version of `rexp2()` and uses the auxiliary function `exp_icdf()` (icdf stands for inverse CDF), which is similar to `qexp2()`. 
 
 ```{r, echo = FALSE}
 exponential <- system.file("stan_models",

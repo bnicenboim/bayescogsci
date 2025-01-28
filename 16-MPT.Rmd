@@ -58,7 +58,7 @@ rbern(5, prob = 0.5)
 rbinom(5, size = 1, prob = 0.5)
 ```
 
-Thus, what the Bernoulli is to the binomial, the categorical is to the multinomial. For example, one can simulate five observations, each of which will give one of the three responses with the given probabilities. We do this with \index{\texttt{rcat}} `rcat` from the \index{\texttt{extraDistr}} `extraDistr` package.
+Thus, what the Bernoulli is to the binomial, the categorical is to the multinomial. For example, one can simulate five observations, each of which will give one of the three responses with the given probabilities. We do this with \index{\texttt{rcat}} `rcat()` from the \index{\texttt{extraDistr}} `extraDistr` package.
 
 ```{r}
 rcat(5, prob = c(0.1, 0.1, 0.8), labels = c("yes", "no", "dontknow"))
@@ -815,7 +815,7 @@ is of course identical for each subject (up to sampling variability) and do not 
 
 
 
-```{r pMPT, fig.height=8, fig.cap= "Individual subjects in the non-hierarchical MPT model (mpt_cat.stan).", fig.pos = "H"}
+```{r pMPT, fig.height=8, fig.cap= "Individual subjects in the non-hierarchical MPT model (`mpt_cat.stan`).", fig.pos = "H"}
 ppc_bars_grouped(sim_list_h$w_ans, gen_data_sMPT, group = subj) +
   ggtitle ("By-subject plot for the non-hierarchical model")
 ```

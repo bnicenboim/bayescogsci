@@ -647,19 +647,19 @@ The dependent variable, `correct`, is an array of integers rather than a vector;
 target += bernoulli_logit_lpmf(correct | alpha + X * beta);
 ```
 
-We might want to use  \index{\texttt{bernoulli\_logit\_lpmf}} `bernoulli_logit_lpmf` if we want to define a non-linear  relationship between the predictors that are outside the generalized linear model framework. One example would be the following:
+We might want to use  \index{\texttt{bernoulli\_logit\_lpmf}} `bernoulli_logit_lpmf()` if we want to define a non-linear  relationship between the predictors that are outside the generalized linear model framework. One example would be the following:
 
 ```
 target += bernoulli_logit_lpmf(correct| alpha + exp(X * beta));
 ```
 
-Another more flexible possibility when we want to indicate a Bernoulli likelihood is to use \index{\texttt{bernoulli\_lpmf}} `bernoulli_lpmf` and add the link manually. The last statement of `recall.stan` would become the following:
+Another more flexible possibility when we want to indicate a Bernoulli likelihood is to use \index{\texttt{bernoulli\_lpmf}} `bernoulli_lpmf()` and add the link manually. The last statement of `recall.stan` would become the following:
 
 ```
 target += bernoulli_lpmf(correct| inv_logit(alpha + X * beta));
 ```
 
-The function `bernoulli_lpmf` can be useful if one wants to try other link functions; see online exercise \@ref(exr:linkfunction).
+The function `bernoulli_lpmf()` can be useful if one wants to try other link functions; see online exercise \@ref(exr:linkfunction).
 
 Finally, the most transparent form (but less efficient) would be the following for-loop:
 

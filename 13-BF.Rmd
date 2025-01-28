@@ -1312,14 +1312,14 @@ One can check that the prior on the slope parameter amounts to assigning a prior
 high <- 1
 low <- -1
 # mean:
-exp( 6 + ( - 0.03) * high ) - 
-  exp( 6 + ( - 0.03) * low )
+exp(6 + (- 0.03) * high) - 
+  exp(6 + (- 0.03) * low)
 # confidence bounds on log scale:
 lower <- - 0.03 - 2 * 0.009
 upper <- - 0.03 + 2 * 0.009
 # confidence bounds on ms scale:
-exp( 6 + lower * high  ) - exp( 6 + lower * low )
-exp( 6 + upper * high ) - exp( 6 + upper * low  )
+exp(6 + lower * high) - exp(6 + lower * low)
+exp(6 + upper * high) - exp(6 + upper * low)
 ```
 
 For the other model parameters, we use \index{Principled prior} principled priors.
@@ -1623,7 +1623,7 @@ The @wang2002simulation approach is as follows.   We have adapted the procedure 
 2. Choose a criterion that counts as a threshold for a decision. This can be a Bayes factor of, say, 10 [@jeffreys1939theory].^[The Bayes factor is just one of many possible performance criteria; see @wang2002simulation for some other alternatives.]
 3. Then do the following for increasing sample sizes $n$:
     1. Simulate prior predictive data $niter$ times (say, $niter=100$) for sample size $n$; use informative priors [these are referred to as sampling priors in @wang2002simulation].
-    2. Fit the model to the simulated data using uninformative priors [these are called fitting priors in @wang2002simulation], and derive the posterior distribution each time, and compute the Bayes factor using a null model that assumes a zero effect for the parameter of interest.
+    2. Fit the model to the simulated data using regularizing (or principled) priors [these are called fitting priors in @wang2002simulation], and derive the posterior distribution each time, and compute the Bayes factor using a null model that assumes a zero effect for the parameter of interest.
     3. Display, in one plot, the $niter$ posterior distributions and the Bayes factors. If the chosen decision criterion is met reasonably well under repeated sampling for a given sample size, choose that sample size.
 
 
@@ -1639,7 +1639,7 @@ One topic that was not discussed in detail in this chapter is data aggregation. 
 
 ## Further reading
 
-A detailed explanation on how bridge sampling works can be found in @gronauTutorialBridgeSampling2017, and more details about the bridgesampling package can be found in @gronauBridgesamplingPackageEstimating2017. @wagenmakers2010BayesianHypothesisTesting provides a complete tutorial and the mathematical proof of the Savage--Dickey method; also see @kendall2004 and https://statproofbook.github.io/P/bf-sddr.html. Some limitations of the Savage--Dickey approach under certain conditions are discussed in @heck2019caveat. The package `bayestestr` [@makowski2019bayestestr] can also be used for Bayes factor computations using the Savage--Dickey method. For a Bayes Factor Test calibrated to investigate  replication success, see @verhagenBayesianTestsQuantify2014. A special issue on hierarchical modeling and Bayes factors appears in the journal Computational Brain and Behavior in response to an article by @van2021bayes. @kruschke2018bayesian discuss alternatives to Bayes factors for hypothesis testing. An argument against null hypothesis testing with Bayes Factors appears in this blog post by Andrew Gelman: https://statmodeling.stat.columbia.edu/2019/09/10/i-hate-bayes-factors-when-theyre-used-for-null-hypothesis-significance-testing/.
+A detailed explanation on how bridge sampling works can be found in @gronauTutorialBridgeSampling2017, and more details about the bridgesampling package can be found in @gronauBridgesamplingPackageEstimating2017. @wagenmakers2010BayesianHypothesisTesting provides a complete tutorial and the mathematical proof of the Savage--Dickey method; also see @kendall2004 and https://statproofbook.github.io/P/bf-sddr.html. Some limitations of the Savage--Dickey approach under certain conditions are discussed in @heck2019caveat. A comparison between Bayes factor  approximation methods is discussed in @Aust2024. The package `bayestestr` [@makowski2019bayestestr] can also be used for Bayes factor computations using the Savage--Dickey method. For a Bayes Factor Test calibrated to investigate  replication success, see @verhagenBayesianTestsQuantify2014. A special issue on hierarchical modeling and Bayes factors appears in the journal Computational Brain and Behavior in response to an article by @van2021bayes. @kruschke2018bayesian discuss alternatives to Bayes factors for hypothesis testing. An argument against null hypothesis testing with Bayes Factors appears in this blog post by Andrew Gelman: https://statmodeling.stat.columbia.edu/2019/09/10/i-hate-bayes-factors-when-theyre-used-for-null-hypothesis-significance-testing/.
 An argument in favor of null hypothesis testing with Bayes Factor as an approximation (but assuming realistic effects) appears in: https://statmodeling.stat.columbia.edu/2018/03/10/incorporating-bayes-factor-understanding-scientific-information-replication-crisis/.
 A visualization of the distinction between Bayes factor and k-fold cross-validation is in a blog post by Fabian Dablander, https://tinyurl.com/47n5cte4. Decision theory, which was only mentioned in passing in this chapter, is discussed in @parmigiani2009decision.
 Hypothesis testing in its different flavors is discussed in @robert202250.

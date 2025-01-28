@@ -496,7 +496,7 @@ Of course, the conclusion here cannot be that there is no association between PC
 
 #### The Stan version of the measurement error model  {#sec-stanme}
 
-As it happened when we carried out the meta-analysis, the main difficulty for modeling measurement error models directly in Stan is that we need to reparameterize the models to avoid correlations between samples of different parameters.
+As it happened when we carried out the meta-analysis, the main difficulty for modeling measurement error models directly in Stan is that we need to reparameterize the models to avoid dependencies between samples of different parameters.
 The two changes that we need to do to the parameterization of our model presented in Equation \@ref(eq:me) are the following.
 
 1. Sample from an auxiliary parameter $z_n$ rather than directly from $x_{n,TRUE}$, as we did in Equation \@ref(eq:ma1):

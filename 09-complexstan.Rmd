@@ -205,14 +205,18 @@ hierarchical_corr2 <- system.file("stan_models", "hierarchical_corr2.stan", pack
 hierarchical_corr_by <- system.file("stan_models", "hierarchical_corr_by.stan", package = "bcogsci")
 ```
 
+\Begin{samepage}
+
 ```{stan output.var = "hierarchical1_stan", code = readLines(hierarchical1),  tidy = TRUE, comment="", eval = FALSE, cache = FALSE, cache.lazy = FALSE} 
 ```
+
+\End{samepage}
 
 In the Stan code above, we use 
 
 `array [N] int<lower = 1, upper = N_subj> subj;` 
 
-to define a one-dimensional \index{\texttt{array}} *array* of `N` elements that contains integers (bounded between 1 and `N_subj`). As explained in online section \@ref(app-stancontainers), the difference between vectors and one-dimensional arrays is that vectors can only contain real numbers and can be used with matrix algebra functions, and arrays can contain any type but can't be used with matrix algebra functions. We use `normal_lpdf` rather than `normal_glm_lpdf` since at the moment there is no  efficient likelihood implementation of hierarchical generalized linear models.
+to define a one-dimensional \index{\texttt{array}} *array* of `N` elements that contains integers (bounded between 1 and `N_subj`). As explained in online section \@ref(app-stancontainers), the difference between vectors and one-dimensional arrays is that vectors can only contain real numbers and can be used with matrix algebra functions, and arrays can contain any type but can't be used with matrix algebra functions. We use `normal_lpdf()` rather than `normal_glm_lpdf()` since at the moment there is no  efficient likelihood implementation of hierarchical generalized linear models.
 
 The following code centers the predictor cloze and stores the data required by the Stan model in a list. Because we are using `subj` as a vector of indices, we need to be careful to have integers starting from `1` and ending in `N_subj` without skipping any number (but the order of the subject ids won't matter).^[It often happens that the subject ids are not in sequence in a given data frame. This can happen when, for example, one has lost some subjects due to incomplete data or for some other reason. In such situations, we can re-number the subjects sequentially as follows: type   `as.numeric(as.factor(df_eeg$subj))` to transform a vector where some numbers are skipped into a vector with consecutive numbers. For example, both `as.numeric(as.factor(c(1, 3, 4, 7, 9)))` and `as.numeric(as.factor(paste0("subj", c(1, 3, 4, 7, 9))))` will give as output `1 2 3 4 5`.]
 
@@ -326,7 +330,7 @@ Compare with `tau_u[1]` plotted against the by-subject adjustments to the interc
 pairs(fit_eeg2, pars = c("tau_u[1]", "u[1,1]", "u[2,1]", "u[3,1]"))
 ```
 
-In contrast to Figure \@ref(fig:pairsblobs), Figure \@ref(fig:pairsfunnel) shows a relatively strong dependency between the samples of some of the parameters of the model, in particular $\tau_2$ and the samples of $u_{i,2}$: If we see small values in the samples for $\tau_2$, then the values for the samples of $u_i$ are very close to zero (and they are larger if values of samples of $\tau_2$ are larger). This strong dependency is hindering the exploration of the sampler leading to the warnings we saw in Stan. However, the problem that the sampler faces is, in fact, more serious than what our initial plots show. Stan samples in an \index{Unconstrained space} *unconstrained* space where all the parameters can range from minus infinity to plus infinity, and then transforms back the parameters to the constrained space that we specified where, for example, a standard deviation parameter is restricted to be positive. This means that Stan is actually sampling from a transformed parameter equivalent to `log(tau_u[2])` rather than from `tau_u[2]`. We can use \index{\texttt{mcmc\_pairs}} `mcmc_pairs` to see the actual funnel; see Figure \@ref(fig:scatterpairs).
+In contrast to Figure \@ref(fig:pairsblobs), Figure \@ref(fig:pairsfunnel) shows a relatively strong dependency between the samples of some of the parameters of the model, in particular $\tau_2$ and the samples of $u_{i,2}$: If we see small values in the samples for $\tau_2$, then the values for the samples of $u_i$ are very close to zero (and they are larger if values of samples of $\tau_2$ are larger). This strong dependency is hindering the exploration of the sampler leading to the warnings we saw in Stan. However, the problem that the sampler faces is, in fact, more serious than what our initial plots show. Stan samples in an \index{Unconstrained space} *unconstrained* space where all the parameters can range from minus infinity to plus infinity, and then transforms back the parameters to the constrained space that we specified where, for example, a standard deviation parameter is restricted to be positive. This means that Stan is actually sampling from a transformed parameter equivalent to `log(tau_u[2])` rather than from `tau_u[2]`. We can use \index{\texttt{mcmc\_pairs}} `mcmc_pairs()` to see the actual funnel; see Figure \@ref(fig:scatterpairs).
 
 (ref:scatterpairs) Pair plots showing a strong dependency (funnel-shaped clouds of samples) between the samples of $\tau_2$ and one of the by-subject adjustments to the intercept ($u_{1,2}$).
 

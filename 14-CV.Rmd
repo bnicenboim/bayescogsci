@@ -23,21 +23,21 @@ u( \mathcal{M}_1, y_{pred}) = \log p(y_{pred}| y, \mathcal{M}_1)
 Unlike the Bayes factor, the prior is absent from Equation  \@ref(eq:lscore). However, the prior does have a role here: The posterior predictive distribution is based on the posterior distribution $p(\Theta\mid y)$ (where $\Theta$ is a vector of all the parameters of the model), which, according to Bayes' rule, depends on both priors and likelihood together. Recall Equation \@ref(eq:postpp) in section \@ref(sec-ppd),  repeated here for convenience:
 
 \begin{equation}
-p(y_{pred}\mid y )=\int_\Theta p(y_{pred}\mid \Theta) p(\Theta\mid y)\, d\Theta
+p(y_{pred}\mid y )=\int_\Theta p(y_{pred}\mid \Theta) p(\Theta\mid y)\, \mathrm{d}\Theta
 (\#eq:postpp3)
 \end{equation}
 
 In Equation \@ref(eq:postpp3), we are implicitly conditioning on the model under consideration:
 
 \begin{equation}
-p(y_{pred}\mid y,  \mathcal{M}_1)=\int_\Theta p(y_{pred}\mid \Theta, \mathcal{M}_1) p(\Theta\mid y, \mathcal{M}_1)\, d\Theta
+p(y_{pred}\mid y,  \mathcal{M}_1)=\int_\Theta p(y_{pred}\mid \Theta, \mathcal{M}_1) p(\Theta\mid y, \mathcal{M}_1)\, \mathrm{d}\Theta
 (\#eq:postpp2)
 \end{equation}
 
 The predicted data, $y_{pred}$, are unknown to the utility function, so the utility function as presented in Equation \@ref(eq:lscore) cannot be evaluated. For this reason, we marginalize over *all possible future data* (calculating  $E[\log p(y_{pred}| y, \mathcal{M}_1)]$); this expression is called the \index{Expected log predictive density} expected log predictive density of model $\mathcal{M}_1$:
 
 \begin{equation}
-elpd = u(\mathcal{M}_1) = \int_{y_{pred}} p_t(y_{pred}) \log p(y_{pred} \mid y, \mathcal{M}_1) \, dy_{pred}
+elpd = u(\mathcal{M}_1) = \int_{y_{pred}} p_t(y_{pred}) \log p(y_{pred} \mid y, \mathcal{M}_1) \, \mathrm{d} y_{pred}
 (\#eq:elpd)
 \end{equation}
 
@@ -71,7 +71,7 @@ y_n \in D_k (\#eq:approxelpd)
 
 In Equation \@ref(eq:approxelpd), each observation, $y_n$, belongs to a certain \index{Validation fold} "validation" fold, $D_k$, and the predictive accuracy of $y_n$ is evaluated based on a posterior predictive model trained on the set, $D_{-k}$, which is the complete data set excluding the validation fold that contains the $n$-th observation. This means that the posterior predictive distribution used to evaluate $y_{n}$ was derived without having information from that $y_n$-th observation (in other words, the model was trained without that observation in the subset of the data, $D_{-k}$).
 
-In K-fold-CV, several observations are held out in same (validation) fold. This means that the held-out observations are split among K folds, and $D_{-k}$,  the data used to derive the posterior predictive distribution, contain only a proportion of the observations; this proportion is $(1 - 1/K)$. By contrast, in leave-one-out cross-validation, the held-out data set includes only one observation. That is, $D_{-k}$ contains the entire data set except for one data point, $y_n$, with $n=1,\dots,N$, that is $D_{-n}$. Online section \@ref(app-CV-alg) explains the algorithm in detail.
+In K-fold-CV, several observations are held out in the same (validation) fold. This means that the held-out observations are split among K folds, and $D_{-k}$,  the data used to derive the posterior predictive distribution, contain only a proportion of the observations; this proportion is $(1 - 1/K)$. By contrast, in leave-one-out cross-validation, the held-out data set includes only one observation. That is, $D_{-k}$ contains the entire data set except for one data point, $y_n$, with $n=1,\dots,N$, that is $D_{-n}$. Online section \@ref(app-CV-alg) explains the algorithm in detail.
 
 For the general case of K-fold-CV, @vehtariPracticalBayesianModel2017 define the \index{Expected log pointwise predictive density} expected log *pointwise* predictive density of the observation $y_n$ as follows:
 
@@ -79,7 +79,7 @@ For the general case of K-fold-CV, @vehtariPracticalBayesianModel2017 define the
 \widehat{elpd}_{n} =  \log  p(y_n| D_{- k} , \mathcal{M}_1) \text{ with } y_n \in D_k
 \end{equation}
 
-This quantity indicates the predictive accuracy of the model $\mathcal{M}_1$ for a single observation, and it  is reported in the package \index{\texttt{loo}} `loo` and also in \index{brms} `brms`. In addition, the `loo` package uses the sum of the expected log pointwise predictive density, $\sum \widehat{elpd}_n$ (Equation \@ref(eq:approxelpd) without $\frac{1}{N}$) as a measure of predictive accuracy (this is referred to as \index{\texttt{elpd\_loo}} `elpd_loo` or \index{\texttt{elpd\_kfold}} `elpd_kfold` in the packages `loo` and `brms`). For model comparison, the difference between the $\sum \widehat{elpd}_n$  of competing models can be computed, including the standard deviation of the sampling distribution of the difference. It's important to notice that we are calculating an approximation to the expectation $elpd$ that we actually want to compute, and thus we always need to consider its inherent randomness (due to having a limited amount of data), which is quantified by the standard error [@vehtariLimitationsLimitationsBayesian2019].
+This quantity indicates the predictive accuracy of the model $\mathcal{M}_1$ for a single observation, and it is reported in the package \index{\texttt{loo}} `loo`, which also \index{brms} `brms` relies on. In addition, the `loo` package uses the sum of the expected log pointwise predictive density, $\sum \widehat{elpd}_n$ (Equation \@ref(eq:approxelpd) without $\frac{1}{N}$) as a measure of predictive accuracy (this is referred to as \index{\texttt{elpd\_loo}} `elpd_loo` or \index{\texttt{elpd\_kfold}} `elpd_kfold` in the packages `loo` and `brms`). For model comparison, the difference between the $\sum \widehat{elpd}_n$  of competing models can be computed, including the standard deviation of the sampling distribution of the difference. It's important to notice that we are calculating an approximation to the expectation $elpd$ that we actually want to compute, and thus we always need to consider its inherent randomness (due to having a limited amount of data), which is quantified by the standard error [@vehtariLimitationsLimitationsBayesian2019].
 
 Unlike what is common with information criterion methods (such as the \index{Akaike Information Criterion} Akaike Information Criterion, AIC, and the \index{Deviance Information Criterion} Deviance Information Criterion, \index{DIC} DIC), a higher \index{$elpd$} $\widehat{elpd}$ means higher predictive accuracy. An alternative to using $\widehat{elpd}$ is to examine $-2\times \widehat{elpd}$, which is equivalent to deviance, and is called the \index{LOO Information Criterion} LOO Information Criterion \index{LOOIC} (LOOIC) [see section 22 of @FAQCV].
 
