@@ -6,7 +6,7 @@ As mentioned in chapter \@ref(ch-mixture), the most popular class of cognitive-p
 
 This model belongs to the subclass of \index{Race model} *race models*, where the evidence for each response
 grows gradually in time in separate \index{Racing accumulator} racing accumulators, until a threshold is reached. A
-response is made when one of these \index{Accumulator} accumulators first reaches the threshold, and wins the race against the other accumulators. This model is sometimes referred as \index{Deterministic model} deterministic (or \index{Non-stochastic model} non-stochastic, and \index{Ballistic model} ballistic), since the noise only affects the rate of accumulation of evidence before each race starts, but once the accumulator starts accumulating evidence, the rate is fixed. This means that a given accumulator can be faster or slower in different trials (or between choices) but its rate of accumulation will be fixed during a trial (or within choices). @brown2005ballistic claim that even though it is clear that a range of factors might cause within-choice noise, the behavioral effects might sometimes be small enough to ignore (this is in contrast to models such as the drift diffusion model, where both types of noise are present).
+response is made when one of these \index{Accumulator} accumulators first reaches the threshold and wins the race against the other accumulators. This model is sometimes referred as \index{Deterministic model} deterministic (or \index{Non-stochastic model} non-stochastic, and \index{Ballistic model} ballistic), since the noise only affects the rate of accumulation of evidence before each race starts, but once the accumulator starts accumulating evidence, the rate is fixed. This means that a given accumulator can be faster or slower in different trials (or between choices) but its rate of accumulation will be fixed during a trial (or within choices). @brown2005ballistic claim that even though it is clear that a range of factors might cause within-choice noise, the behavioral effects might sometimes be small enough to ignore (this is in contrast to models such as the drift diffusion model, where both types of noise are present).
 
 The two main advantages of the log-normal race model in comparison with other sequential sampling models are that: (i) the log-normal race model is very simple, making it easy to extend hierarchically; (ii) it is relatively easy to avoid convergence issues; and (iii) it is straightforward to model more than two choices. This specific model is presented next for pedagogical purposes because it is relatively easy to derive its likelihood given some reasonable assumptions. However, even though the log-normal race is a "legitimate" cognitive model (see Further Reading for examples), the majority of the literature fits choice response times with the linear ballistic accumulator and/or the drift diffusion model, which provide more flexibility to the modeler.
 
@@ -58,7 +58,7 @@ df_blp
 ```
 
 
-The following code chunk adds $0.01$ to the frequency column. A frequency of $0.01$ corresponds to a word that appears only once in the corpus; $0.01$ is added in order to avoid word frequencies of zero. The frequencies are then log-transformed to compress their range of values [see @BrysbaertEtAl2018 for a more in-depth treatment of word frequencies] and centered them. It also creates a new variable that sum-codes the lexicality of the each given string (either a word, $0.5$, or a non-word, $-0.5$).
+The following code chunk adds $0.01$ to the frequency column. A frequency of $0.01$ corresponds to a word that appears only once in the corpus; $0.01$ is added in order to avoid word frequencies of zero. The frequencies are then log-transformed to compress their range of values [see @BrysbaertEtAl2018 for a more in-depth treatment of word frequencies] and centered. It also creates a new variable that sum-codes the lexicality of the each given string (either a word, $0.5$, or a non-word, $-0.5$).
 
 ```{r}
 df_blp <- df_blp %>%
@@ -684,7 +684,7 @@ T_0 &\sim \mathit{Normal}(150, 100) \text{ with } 0 < T_0 < min(rt_n)\\
 where $\boldsymbol{\alpha}$ is a vector $\langle \alpha'_{n}, \alpha'_{nw} \ \rangle$, and $\boldsymbol{\beta}$ is a vector of all the $\beta$ used in the likelihoods.
 
 
-To translate the model into Stan, we need a normal distribution truncated so that the values lie between zero and $min(\mathbf{rt})$ for the prior  of `T_0`. This means dividing the original distribution by the \index{Difference of the CDFs} difference of the CDFs evaluated at these two points; see online section \@ref(app-truncation). In log-space, this is a difference between the log-transformed original distribution and the logarithm of the difference of the CDFs. The function `log_diff_exp` is a more stable version of this last operation [i.e., less prone to underflow/overflow, \index{Underflow} \index{Overflow} see @BlanchardEtAl2020]. What \index{\texttt{log\_diff\_exp}} `log_diff_exp`  does is to take the log of the difference of the exponent of two functions. In this case the functions are two log-CDFs.
+To translate the model into Stan, we need a normal distribution truncated so that the values lie between zero and $min(\mathbf{rt})$ for the prior  of `T_0`. This means dividing the original distribution by the \index{Difference of the CDFs} difference of the CDFs evaluated at these two points; see online section \@ref(app-truncation). In log-space, this is a difference between the log-transformed original distribution and the logarithm of the difference of the CDFs. The function `log_diff_exp()` is a more stable version of this last operation [i.e., less prone to underflow/overflow, \index{Underflow} \index{Overflow} see @BlanchardEtAl2020]. What \index{\texttt{log\_diff\_exp}} `log_diff_exp()`  does is to take the log of the difference of the exponent of two functions. In this case the functions are two log-CDFs.
 
 ```{stan, output.var = "none", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
 target += normal_lpdf(T_0 | 150, 100)
@@ -843,7 +843,7 @@ A simple hierarchical version of the previous model assumes that all the paramet
 \end{equation}
 
 
-Similarly to the \index{Hierarchical implementation} hierarchical implementation of the fast-guess model in section \@ref(sec-fastguessh), assume that $\boldsymbol{u}$ is a matrix with as many rows as  subjects and six columns. Also assume that $u$  follows a \index{Multivariate normal distribution} multivariate normal distribution centered at zero. For lack of more information, we assume the same (weakly informative) prior distribution for the six variance components $\tau_{u_{1}}, \tau_{u_{2}}, \ldots, \tau_{u_{6}}$ with a somewhat smaller effect than we assumed for the prior of $\sigma$. As with previous hierarchical models, we assign a regularizing \index{LKJ prior} LKJ prior for the correlations between the adjustments:^[There are 15 correlations since there are 15 ways to choose 2 variables out of 6 for specifying the pairwise correlations, where order doesn't matter. This is calculated with ${6 \choose 2}$ which is `choose(6, 2)` in R.]
+Similarly to the \index{Hierarchical implementation} hierarchical implementation of the fast-guess model in section \@ref(sec-fastguessh), assume that $\boldsymbol{u}$ is a matrix with as many rows as  subjects and six columns. Also assume that $\boldsymbol{u}$  follows a \index{Multivariate normal distribution} multivariate normal distribution centered at zero. For lack of more information, we assume the same (weakly informative) prior distribution for the six variance components $\tau_{u_{1}}, \tau_{u_{2}}, \ldots, \tau_{u_{6}}$ with a somewhat smaller effect than we assumed for the prior of $\sigma$. As with previous hierarchical models, we assign a regularizing \index{LKJ prior} LKJ prior for the correlations between the adjustments:^[There are 15 correlations since there are 15 ways to choose 2 variables out of 6 for specifying the pairwise correlations, where order doesn't matter. This is calculated with ${6 \choose 2}$ which is `choose(6, 2)` in R.]
 
 \begin{equation}
 \begin{aligned}
@@ -1053,7 +1053,7 @@ print(fit_blp_h, pars = c("alpha",
                           "tau_u"))
 ```
 
-Even though the model converged, the posterior summary shows a clear problem with the model: The estimate for the \index{Non-decision time} non-decision time, $T_0$ is less than $12$ milliseconds! This is just not possible; physiological research [@clark1994identification] shows that the eye-to-brain lag, the time it takes for the visual features on the  screen until they are propagated from the retina to the brain is at least $50$ milliseconds. Besides identifying the stimuli, the subjects also need to initiate a motor response which takes at least $100$ milliseconds. Then how is it possible that we obtained this extremely fast non-decision time? The reason is that the parameter `T_0` is constrained to be between zero and the shortest response time.
+Even though the model converged, the posterior summary shows a clear problem with the model: The estimate for the \index{Non-decision time} non-decision time, $T_0$ is less than $12$ milliseconds! This is just not possible; physiological research [@clark1994identification] shows that the eye-to-brain lag, the time it takes for the visual features on the  screen until they are propagated from the retina to the brain, is at least $50$ milliseconds. Besides identifying the stimuli, the subjects also need to initiate a motor response which takes at least $100$ milliseconds. Then how is it possible that we obtained this extremely fast non-decision time? The reason is that the parameter `T_0` is only constrained to be between zero and the shortest response time.
 
 Verify what is the shortest response time in the data set and how many observations are below 150 milliseconds.
 
@@ -1158,7 +1158,7 @@ ggplot(data = tibble(T_0 = c(0, 1000)), aes(T_0)) +
 
 
 
-Finally, we want to be able to account for response times that are actually faster than the non-decision time. If the observed response time, `rt` is smaller than the non-decision time, `T_0`, we can be sure that the observation belongs to the contaminant distribution, because otherwise the decision time `T` should be negative. This means that in this case, the log-normal race likelihood is $0$ (and its logarithm is negative infinity). When $T<0$, the log-likelihood of our model is $log(\theta_c \cdot \mathit{Uniform}(rt_{n} | min, max) \cdot 0.5 + (1-\theta_c) \cdot p_{lnrace})$ with $p_{lnrace} =0$. This means that  we only use the following code:
+Finally, we want to be able to account for response times that are actually faster than the non-decision time. If the observed response time, `rt` is smaller than the non-decision time, `T_0`, we can be sure that the observation belongs to the contaminant distribution, because otherwise the decision time `T` should be negative. This means that in this case, the log-normal race likelihood is $0$ (and its logarithm is negative infinity). When $T_n<0$, that is $rt_n < T_0$, the log-likelihood of our model is $log(\theta_c \cdot \mathit{Uniform}(rt_{n} | min, max) \cdot 0.5 + (1-\theta_c) \cdot p_{lnrace})$ with $p_{lnrace} =0$, and we only use the following code:
 
 ```{stan, output.var = "none", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
    target += log(theta_c) + uniform_lpdf(rt[n] | min_rt, max_rt) +
@@ -1172,7 +1172,7 @@ This also means that we need to relax the constraints on `T_0`; it doesn't need 
   real<lower = 0> T_0;
 ```
 
-When $T>0$, the likelihood is a mixture of the contaminant distribution and the log-normal race model as defined in Equation \@ref(eq:lnracecont). We use \index{\texttt{log\_sum\_exp}} `log_sum_exp` exactly as we did in sections \@ref(sec-simplefastguess) and \@ref(sec-multmix) for the fast-guess model.
+When $T_n>0$, that is $rt_n > T_0$, the likelihood is a mixture of the contaminant distribution and the log-normal race model as defined in Equation \@ref(eq:lnracecont). We use \index{\texttt{log\_sum\_exp}} `log_sum_exp()` exactly as we did in sections \@ref(sec-simplefastguess) and \@ref(sec-multmix) for the fast-guess model.
 We fit a mixture distribution between a contaminant distribution and the log-normal race model.
 
 ```{stan, output.var = "none", eval = FALSE, cache = FALSE, cache.lazy = FALSE}
