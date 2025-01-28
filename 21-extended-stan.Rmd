@@ -2,8 +2,10 @@
 
 ```{r load-08, echo = FALSE, message = FALSE, results ="hide", warning = FALSE, fig.keep = "none"}
 if(!knitr::is_html_output()) {
-knitr::purl("08-introstan.Rmd")
-source("08-introstan.R")
+  options(knitr.duplicate.label = "allow")
+  knitr::purl("08-introstan.Rmd")
+  source("08-introstan.R")
+  options(knitr.duplicate.label = NULL)
 }
 ```
 
