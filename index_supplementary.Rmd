@@ -1,5 +1,5 @@
 ---
-title: "Supplementary material for an Introduction to Bayesian Data Analysis for Cognitive Science"
+title: "Supplementary material: Introduction to Bayesian Data Analysis for Cognitive Science"
 author: "Bruno Nicenboim, Daniel J. Schad, and Shravan Vasishth"
 date: "`r Sys.Date()`"
 knit: "bookdown::render_book"
