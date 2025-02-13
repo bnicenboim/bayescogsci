@@ -92,6 +92,6 @@
 <text x='198.93' y='195.64' text-anchor='middle' style='font-size: 8.80px;fill: #4D4D4D; font-family: "Arimo";' textLength='22.38px' lengthAdjust='spacingAndGlyphs'>1000</text>
 <text x='122.59' y='208.23' text-anchor='middle' style='font-size: 11.00px; font-family: "Arimo";' textLength='24.60px' lengthAdjust='spacingAndGlyphs'>rank</text>
 <text transform='translate(13.50,103.81) rotate(-90)' text-anchor='middle' style='font-size: 11.00px; font-family: "Arimo";' textLength='31.03px' lengthAdjust='spacingAndGlyphs'>count</text>
-<text x='34.65' y='15.10' style='font-size: 13.20px; font-family: "Arimo";' textLength='8.37px' lengthAdjust='spacingAndGlyphs'>b</text>
+<text x='34.65' y='15.10' style='font-size: 13.20px; font-family: "Arimo";' textLength='126.88px' lengthAdjust='spacingAndGlyphs'>(b) Rank histogram</text>
 </g>
 </svg>

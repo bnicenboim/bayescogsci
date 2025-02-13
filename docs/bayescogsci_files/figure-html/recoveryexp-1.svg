@@ -98,6 +98,6 @@
 <text x='127.29' y='195.64' text-anchor='middle' style='font-size: 8.80px;fill: #4D4D4D; font-family: "Arimo";' textLength='30.77px' lengthAdjust='spacingAndGlyphs'>0.0052</text>
 <text x='183.61' y='195.64' text-anchor='middle' style='font-size: 8.80px;fill: #4D4D4D; font-family: "Arimo";' textLength='30.77px' lengthAdjust='spacingAndGlyphs'>0.0056</text>
 <text x='109.37' y='208.23' text-anchor='middle' style='font-size: 11.00px; font-family: "Arimo";' textLength='34.24px' lengthAdjust='spacingAndGlyphs'>lamda</text>
-<text x='8.22' y='15.10' style='font-size: 13.20px; font-family: "Arimo";' textLength='8.09px' lengthAdjust='spacingAndGlyphs'>a</text>
+<text x='8.22' y='15.10' style='font-size: 13.20px; font-family: "Arimo";' textLength='160.21px' lengthAdjust='spacingAndGlyphs'>(a) Posterior distribution</text>
 </g>
 </svg>
