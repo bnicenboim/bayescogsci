@@ -1531,8 +1531,11 @@ p1 <- ggplot() +
   labs(x = "Bayes factor [BF10]", y="count")
 # gridExtra::grid.arrange(p1, p2, layout_matrix=lay)
 
+fix.tmp <- posterior_samples(m1_lagoE1, "b_x") %>% summarize(Estimate=mean(b_x), Q2.5=quantile(b_x,0.025), Q97.5=quantile(b_x,0.975)) %>% as.numeric()
+
 datTp <- datT[, c("Study", "Estimate", "Q2.5", "Q97.5")]
-datTp <- rbind(c(0, fixef(m1_lagoE1)[2, c("Estimate", "Q2.5", "Q97.5")]), datTp)
+#datTp <- rbind(c(0, fixef(m1_lagoE1)[2, c("Estimate", "Q2.5", "Q97.5")]), datTp)
+datTp <- rbind(c(0, fix.tmp), datTp)
 datTp$data <- ifelse(datTp$Study == 0, "Empirical data", "Simulated data")
 idx <- order(datTp$Estimate)
 datTp <- datTp[idx, ]
