@@ -671,7 +671,7 @@ Next, define the following model; we omit the steps with $f'$ and $a'$ and direc
 \alpha_a, \alpha_f &\sim \mathit{Normal}(0, 1.5)\\
 \beta_f &\sim \mathit{Normal}(0, 1)\\
 t,c &\sim \mathit{Beta}(2, 2)\\
-\tau_u &\sim \mathit{Normal}(0, 1)\\
+\tau_u &\sim \mathit{Normal}_+(0, 1)\\
 u_a &\sim \mathit{Normal}(0, \tau_{u_a})\\
 a_n &= logit^{-1}(\alpha_a + u_{a,subj[n]})\\
 f_n &= logit^{-1}(\alpha_f + complexity_n \cdot \beta_f)\\
