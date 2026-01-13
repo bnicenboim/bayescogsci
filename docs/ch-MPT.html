@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel J. Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2025-02-12" />
+<meta name="date" content="2026-01-13" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -375,15 +375,18 @@ window.initializeCodeFolding = function(show) {
     $(this).before(div);
     $(this).detach().appendTo(div);
 
-    // add a show code button right above
-    var showCodeText = $('<span>' + (show ? 'Hide' : 'Code') + '</span>');
+    // CRITICAL FIX: Create button with aria-hidden text that won't be copied
     var showCodeButton = $('<button type="button" class="btn btn-default btn-xs code-folding-btn pull-right"></button>');
-    showCodeButton.append(showCodeText);
     showCodeButton
         .attr('data-toggle', 'collapse')
         .attr('data-target', '#' + id)
         .attr('aria-expanded', show)
-        .attr('aria-controls', id);
+        .attr('aria-controls', id)
+        .attr('aria-label', show ? 'Hide code' : 'Show code');
+    
+    // Use aria-hidden to prevent screen readers and copy from seeing text
+    var showCodeText = $('<span aria-hidden="true" style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; pointer-events: none;">' + (show ? 'Hide' : 'Code') + '</span>');
+    showCodeButton.append(showCodeText);
 
     var buttonRow = $('<div class="row"></div>');
     var buttonCol = $('<div class="col-md-12"></div>');
@@ -393,16 +396,18 @@ window.initializeCodeFolding = function(show) {
 
     div.before(buttonRow);
 
-    // hack: return show to false, otherwise all next codeBlocks will be shown!
-    show = false;
-
-    // update state of button on show/hide
-    div.on('hidden.bs.collapse', function () {
+    // update the text of the button when it's clicked
+    div.on('hide.bs.collapse', function () {
       showCodeText.text('Code');
+      showCodeButton.attr('aria-label', 'Show code');
     });
     div.on('show.bs.collapse', function () {
       showCodeText.text('Hide');
+      showCodeButton.attr('aria-label', 'Hide code');
     });
+
+    // hack: return show to false, otherwise all next codeBlocks will be shown!
+    show = false;
   });
 
 }
@@ -793,6 +798,78 @@ $(document).ready(function () {
 });
 </script>
 
+<!-- NUCLEAR OPTION: Intercept ALL copy events and strip button text -->
+<script>
+$(document).ready(function() {
+  
+  // Method 1: Make button spans completely invisible to selection
+  function protectButtons() {
+    $('.code-folding-btn span').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+      this.style.setProperty('pointer-events', 'none', 'important');
+      $(this).attr('unselectable', 'on');
+      $(this).attr('aria-hidden', 'true');
+    });
+    
+    $('.code-folding-btn').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+    });
+  }
+  
+  protectButtons();
+  setTimeout(protectButtons, 100);
+  setTimeout(protectButtons, 500);
+  setTimeout(protectButtons, 1000);
+  
+  // Method 2: Aggressive copy event interception
+  document.addEventListener('copy', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    // Remove "Hide" or "Code" from the start
+    if (selectedText) {
+      var cleanedText = selectedText
+        .replace(/^(Hide|Code)\s*/gm, '')  // Remove from start of any line
+        .replace(/\s+(Hide|Code)\s*$/gm, '');  // Remove from end
+      
+      if (cleanedText !== selectedText) {
+        e.preventDefault();
+        
+        if (e.clipboardData) {
+          e.clipboardData.setData('text/plain', cleanedText);
+        } else if (window.clipboardData) {
+          window.clipboardData.setData('Text', cleanedText);
+        }
+      }
+    }
+  }, true);  // Use capture phase
+  
+  // Method 3: Override native copy for code blocks
+  $('body').on('copy', 'pre, pre.sourceCode, .sourceCode, code', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    if (selectedText && (selectedText.startsWith('Hide') || selectedText.startsWith('Code'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      var cleanedText = selectedText.replace(/^(Hide|Code)\s*/, '');
+      
+      if (e.originalEvent.clipboardData) {
+        e.originalEvent.clipboardData.setData('text/plain', cleanedText);
+      } else if (window.clipboardData) {
+        window.clipboardData.setData('Text', cleanedText);
+      }
+    }
+  });
+});
+</script>
 
 <script data-goatcounter="https://bayescogsci.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
@@ -1436,6 +1513,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
+<div class="book-banner">
+  <div class="banner-content">
+    📚 Get the print version of the book from 
+    <a href="https://www.taylorfrancis.com/books/mono/10.1201/9780429342646/introduction-bayesian-data-analysis-cognitive-science-shravan-vasishth-bruno-nicenboim-daniel-schad" target="_blank" rel="noopener">CRC Press</a> or your favorite store.
+    <button class="banner-close" onclick="this.parentElement.parentElement.style.display='none';" aria-label="Close banner">&times;</button>
+  </div>
+</div>
 <div id="ch-MPT" class="section level1 hasAnchor" number="16">
 <h1><span class="header-section-number">Chapter 16</span> Multinomial processing trees<a href="ch-MPT.html#ch-MPT" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <p>In this chapter, we introduce a widely-used class of cognitive models that can be implemented in Stan, the  multinomial processing tree. This model is useful in situations where the behavioral response from the subject is one of several possible  categorical outcomes. As an example, we will look into a word production task, where we ask individuals with  aphasia <span class="citation">(a  language impairment that is usually due to a cerebrovascular accident or head trauma, Damasio <a href="#ref-damasio1992aphasia" role="doc-biblioref">1992</a>)</span>, to name the object shown in a picture, e.g., a picture of a cat. The participant (hereafter, subject) could produce the correct name (“cat”), a semantically and phonologically related but incorrect name (“rat”), a semantically unrelated but phonologically related word (“hat”), or a non-word (“cag”). The researcher may have a theory about how each possible outcome ends up being probabilistically produced. Such a theoretical process model can be expressed as a multinomial processing tree. Before we dive into multinomial processing trees, we discuss the distributions that generalize the binomial and Bernoulli distribution for modeling more than two possible outcomes.</p>
@@ -1444,10 +1528,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>One way to model  categorical responses is using multinomial or categorical distributions.
 The categorical responses could be “yes” or “no”; “blue”, “red” or “yellow”; “true”, “false”, or “I don’t know”; or more complicated categories. Crucially, the response of each observation can be coded as belonging to only one of several possible categories. The multinomial and the categorical distribution represent two ways of characterizing the underlying  generative process for such data.</p>
 <p>The  <em>multinomial distribution</em> is the generalization of the  binomial distribution for more than two possible outcomes. Recall that the binomial works like this: in order to randomly generate the number of successes in an observation consisting of <span class="math inline">\(10\)</span> trials, with the probability of success of <span class="math inline">\(0.5\)</span>, one can type:</p>
-<div class="sourceCode" id="cb840"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb840-1"><a href="ch-MPT.html#cb840-1" aria-hidden="true"></a><span class="kw">rbinom</span>(<span class="dv">1</span>, <span class="dt">size =</span> <span class="dv">10</span>, <span class="dt">prob =</span> <span class="fl">0.5</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb841"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb841-1"><a href="ch-MPT.html#cb841-1" aria-hidden="true"></a><span class="kw">rbinom</span>(<span class="dv">1</span>, <span class="dt">size =</span> <span class="dv">10</span>, <span class="dt">prob =</span> <span class="fl">0.5</span>)</span></code></pre></div>
 <pre><code>## [1] 4</code></pre>
 <p>It is possible to repeatedly generate multiple observations as follows. Suppose five simulated observations are needed, each with <span class="math inline">\(10\)</span> trials:</p>
-<div class="sourceCode" id="cb842"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb842-1"><a href="ch-MPT.html#cb842-1" aria-hidden="true"></a><span class="kw">rbinom</span>(<span class="dv">5</span>, <span class="dt">size =</span> <span class="dv">10</span>, <span class="dt">prob =</span> <span class="fl">0.5</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb843"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb843-1"><a href="ch-MPT.html#cb843-1" aria-hidden="true"></a><span class="kw">rbinom</span>(<span class="dv">5</span>, <span class="dt">size =</span> <span class="dv">10</span>, <span class="dt">prob =</span> <span class="fl">0.5</span>)</span></code></pre></div>
 <pre><code>## [1] 6 5 7 7 2</code></pre>
 <p>Now, suppose that there are N=3 possible answers to a question (yes, no, don’t know), and suppose that the probabilities of producing each answer are:</p>
 <ul>
@@ -1456,30 +1540,30 @@ The categorical responses could be “yes” or “no”; “blue”, “red” 
 <li><span class="math inline">\(P(\)</span>don’t know<span class="math inline">\()=0.8\)</span></li>
 </ul>
 <p>The probabilities must sum to <span class="math inline">\(1\)</span>, because those are the only three possible outcomes. Given such a situation, it is possible to simulate a single experiment with <span class="math inline">\(10\)</span> trials, where each of the three possibilities appears a certain number of times. We do this with  <code>rmultinom()</code>:</p>
-<div class="sourceCode" id="cb844"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb844-1"><a href="ch-MPT.html#cb844-1" aria-hidden="true"></a>(random_sample &lt;-<span class="st"> </span><span class="kw">rmultinom</span>(<span class="dv">1</span>, <span class="dt">size =</span> <span class="dv">10</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.8</span>)))</span></code></pre></div>
+<div class="sourceCode" id="cb845"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb845-1"><a href="ch-MPT.html#cb845-1" aria-hidden="true"></a>(random_sample &lt;-<span class="st"> </span><span class="kw">rmultinom</span>(<span class="dv">1</span>, <span class="dt">size =</span> <span class="dv">10</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.8</span>)))</span></code></pre></div>
 <pre><code>##      [,1]
 ## [1,]    0
 ## [2,]    2
 ## [3,]    8</code></pre>
 <p>The above call returns the result of the random sample: <span class="math inline">\(0\)</span> cases of the first answer type, <span class="math inline">\(2\)</span> cases of the second; and <span class="math inline">\(8\)</span> cases of the third.</p>
 <p>Analogously to the binomial function shown above, five observations can be simulated, each having 10 trials:</p>
-<div class="sourceCode" id="cb846"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb846-1"><a href="ch-MPT.html#cb846-1" aria-hidden="true"></a><span class="kw">rmultinom</span>(<span class="dv">5</span>, <span class="dt">size =</span> <span class="dv">10</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.8</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb847"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb847-1"><a href="ch-MPT.html#cb847-1" aria-hidden="true"></a><span class="kw">rmultinom</span>(<span class="dv">5</span>, <span class="dt">size =</span> <span class="dv">10</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.8</span>))</span></code></pre></div>
 <pre><code>##      [,1] [,2] [,3] [,4] [,5]
 ## [1,]    1    3    1    1    3
 ## [2,]    2    0    2    1    1
 ## [3,]    7    7    7    8    6</code></pre>
 <p>The  <em>categorical distribution</em> is the generalization of the  Bernoulli distribution for more than two possible outcomes, and it is the special case of the multinomial distribution when we have only one trial. Recall that the Bernoulli distribution can be used as follows. If we carry out a coin toss (each coin toss counts as a single trial), we will either get a heads or a tails:</p>
-<div class="sourceCode" id="cb848"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb848-1"><a href="ch-MPT.html#cb848-1" aria-hidden="true"></a><span class="kw">rbern</span>(<span class="dv">5</span>, <span class="dt">prob =</span> <span class="fl">0.5</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb849"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb849-1"><a href="ch-MPT.html#cb849-1" aria-hidden="true"></a><span class="kw">rbern</span>(<span class="dv">5</span>, <span class="dt">prob =</span> <span class="fl">0.5</span>)</span></code></pre></div>
 <pre><code>## [1] 0 0 1 0 1</code></pre>
-<div class="sourceCode" id="cb850"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb850-1"><a href="ch-MPT.html#cb850-1" aria-hidden="true"></a><span class="co">## equivalent rbinom command:</span></span>
-<span id="cb850-2"><a href="ch-MPT.html#cb850-2" aria-hidden="true"></a><span class="kw">rbinom</span>(<span class="dv">5</span>, <span class="dt">size =</span> <span class="dv">1</span>, <span class="dt">prob =</span> <span class="fl">0.5</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb851"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb851-1"><a href="ch-MPT.html#cb851-1" aria-hidden="true"></a><span class="co">## equivalent rbinom command:</span></span>
+<span id="cb851-2"><a href="ch-MPT.html#cb851-2" aria-hidden="true"></a><span class="kw">rbinom</span>(<span class="dv">5</span>, <span class="dt">size =</span> <span class="dv">1</span>, <span class="dt">prob =</span> <span class="fl">0.5</span>)</span></code></pre></div>
 <pre><code>## [1] 0 0 1 1 1</code></pre>
 <p>Thus, what the Bernoulli is to the binomial, the categorical is to the multinomial. For example, one can simulate five observations, each of which will give one of the three responses with the given probabilities. We do this with  <code>rcat()</code> from the  <code>extraDistr</code> package.</p>
-<div class="sourceCode" id="cb852"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb852-1"><a href="ch-MPT.html#cb852-1" aria-hidden="true"></a><span class="kw">rcat</span>(<span class="dv">5</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.8</span>), <span class="dt">labels =</span> <span class="kw">c</span>(<span class="st">&quot;yes&quot;</span>, <span class="st">&quot;no&quot;</span>, <span class="st">&quot;dontknow&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb853"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb853-1"><a href="ch-MPT.html#cb853-1" aria-hidden="true"></a><span class="kw">rcat</span>(<span class="dv">5</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.8</span>), <span class="dt">labels =</span> <span class="kw">c</span>(<span class="st">&quot;yes&quot;</span>, <span class="st">&quot;no&quot;</span>, <span class="st">&quot;dontknow&quot;</span>))</span></code></pre></div>
 <pre><code>## [1] dontknow yes      dontknow dontknow dontknow
 ## Levels: yes no dontknow</code></pre>
 <p>The above is analogous to using the multinomial with <code>size = 1</code> (a single trial in each experiment). In the output below, the <code>rmultinom()</code> function shows which of the three categories is produced.</p>
-<div class="sourceCode" id="cb854"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb854-1"><a href="ch-MPT.html#cb854-1" aria-hidden="true"></a><span class="kw">rmultinom</span>(<span class="dv">5</span>, <span class="dt">size =</span> <span class="dv">1</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.8</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb855"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb855-1"><a href="ch-MPT.html#cb855-1" aria-hidden="true"></a><span class="kw">rmultinom</span>(<span class="dv">5</span>, <span class="dt">size =</span> <span class="dv">1</span>, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.8</span>))</span></code></pre></div>
 <pre><code>##      [,1] [,2] [,3] [,4] [,5]
 ## [1,]    0    0    1    0    0
 ## [2,]    0    1    0    0    0
@@ -1532,22 +1616,22 @@ The categorical responses could be “yes” or “no”; “blue”, “red” 
 </tbody>
 </table>
 <p>First, generate data assuming a multinomial distribution. The outcomes will be determined by a vector <span class="math inline">\(\boldsymbol{\theta}\)</span> (called <code>true_theta</code> below in the R code) that indicates the probability of each outcome:</p>
-<div class="sourceCode" id="cb856"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb856-1"><a href="ch-MPT.html#cb856-1" aria-hidden="true"></a>(true_theta &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">theta_NR =</span> <span class="fl">0.2</span>,</span>
-<span id="cb856-2"><a href="ch-MPT.html#cb856-2" aria-hidden="true"></a>                     <span class="dt">theta_Neologism =</span> <span class="fl">0.1</span>,</span>
-<span id="cb856-3"><a href="ch-MPT.html#cb856-3" aria-hidden="true"></a>                     <span class="dt">theta_Formal =</span> <span class="fl">0.2</span>,</span>
-<span id="cb856-4"><a href="ch-MPT.html#cb856-4" aria-hidden="true"></a>                     <span class="dt">theta_Mixed =</span> <span class="fl">0.08</span>,</span>
-<span id="cb856-5"><a href="ch-MPT.html#cb856-5" aria-hidden="true"></a>                     <span class="dt">theta_Correct =</span>  <span class="dv">1</span> <span class="op">-</span></span>
-<span id="cb856-6"><a href="ch-MPT.html#cb856-6" aria-hidden="true"></a><span class="st">  </span>(theta_NR <span class="op">+</span><span class="st"> </span>theta_Neologism <span class="op">+</span><span class="st"> </span>theta_Formal <span class="op">+</span><span class="st"> </span>theta_Mixed)))</span></code></pre></div>
+<div class="sourceCode" id="cb857"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb857-1"><a href="ch-MPT.html#cb857-1" aria-hidden="true"></a>(true_theta &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">theta_NR =</span> <span class="fl">0.2</span>,</span>
+<span id="cb857-2"><a href="ch-MPT.html#cb857-2" aria-hidden="true"></a>                     <span class="dt">theta_Neologism =</span> <span class="fl">0.1</span>,</span>
+<span id="cb857-3"><a href="ch-MPT.html#cb857-3" aria-hidden="true"></a>                     <span class="dt">theta_Formal =</span> <span class="fl">0.2</span>,</span>
+<span id="cb857-4"><a href="ch-MPT.html#cb857-4" aria-hidden="true"></a>                     <span class="dt">theta_Mixed =</span> <span class="fl">0.08</span>,</span>
+<span id="cb857-5"><a href="ch-MPT.html#cb857-5" aria-hidden="true"></a>                     <span class="dt">theta_Correct =</span>  <span class="dv">1</span> <span class="op">-</span></span>
+<span id="cb857-6"><a href="ch-MPT.html#cb857-6" aria-hidden="true"></a><span class="st">  </span>(theta_NR <span class="op">+</span><span class="st"> </span>theta_Neologism <span class="op">+</span><span class="st"> </span>theta_Formal <span class="op">+</span><span class="st"> </span>theta_Mixed)))</span></code></pre></div>
 <pre><code>## # A tibble: 1 × 5
 ##   theta_NR theta_Neologism theta_Formal theta_Mixed theta_Correct
 ##      &lt;dbl&gt;           &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;         &lt;dbl&gt;
 ## 1      0.2             0.1          0.2        0.08          0.42</code></pre>
-<div class="sourceCode" id="cb858"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb858-1"><a href="ch-MPT.html#cb858-1" aria-hidden="true"></a><span class="co">## The probabilities must sum to 1:</span></span>
-<span id="cb858-2"><a href="ch-MPT.html#cb858-2" aria-hidden="true"></a><span class="kw">sum</span>(true_theta)</span></code></pre></div>
+<div class="sourceCode" id="cb859"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb859-1"><a href="ch-MPT.html#cb859-1" aria-hidden="true"></a><span class="co">## The probabilities must sum to 1:</span></span>
+<span id="cb859-2"><a href="ch-MPT.html#cb859-2" aria-hidden="true"></a><span class="kw">sum</span>(true_theta)</span></code></pre></div>
 <pre><code>## [1] 1</code></pre>
 <p>Given this vector of probabilities <span class="math inline">\(\boldsymbol{\theta}\)</span>, generate values assuming a multinomial distribution of responses in 100 trials:</p>
-<div class="sourceCode" id="cb860"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb860-1"><a href="ch-MPT.html#cb860-1" aria-hidden="true"></a>N_trials &lt;-<span class="st"> </span><span class="dv">100</span></span>
-<span id="cb860-2"><a href="ch-MPT.html#cb860-2" aria-hidden="true"></a>(ans_mn &lt;-<span class="st"> </span><span class="kw">rmultinom</span>(<span class="dv">1</span>, N_trials, true_theta))</span></code></pre></div>
+<div class="sourceCode" id="cb861"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb861-1"><a href="ch-MPT.html#cb861-1" aria-hidden="true"></a>N_trials &lt;-<span class="st"> </span><span class="dv">100</span></span>
+<span id="cb861-2"><a href="ch-MPT.html#cb861-2" aria-hidden="true"></a>(ans_mn &lt;-<span class="st"> </span><span class="kw">rmultinom</span>(<span class="dv">1</span>, N_trials, true_theta))</span></code></pre></div>
 <pre><code>##                 [,1]
 ## theta_NR          23
 ## theta_Neologism    7
@@ -1581,17 +1665,17 @@ generated quantities{
 }
 </code></pre>
 <p>Fit the model:</p>
-<div class="sourceCode" id="cb863"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb863-1"><a href="ch-MPT.html#cb863-1" aria-hidden="true"></a><span class="co"># Create a list:</span></span>
-<span id="cb863-2"><a href="ch-MPT.html#cb863-2" aria-hidden="true"></a><span class="co"># c(ans_mn) makes a vector out of the matrix ans_mn</span></span>
-<span id="cb863-3"><a href="ch-MPT.html#cb863-3" aria-hidden="true"></a>data_mn &lt;-<span class="st">  </span><span class="kw">list</span>(<span class="dt">N_trials =</span> N_trials,</span>
-<span id="cb863-4"><a href="ch-MPT.html#cb863-4" aria-hidden="true"></a>                 <span class="dt">ans =</span> <span class="kw">c</span>(ans_mn))</span>
-<span id="cb863-5"><a href="ch-MPT.html#cb863-5" aria-hidden="true"></a><span class="kw">str</span>(data_mn)</span></code></pre></div>
-<div class="sourceCode" id="cb864"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb864-1"><a href="ch-MPT.html#cb864-1" aria-hidden="true"></a>multinom &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
-<span id="cb864-2"><a href="ch-MPT.html#cb864-2" aria-hidden="true"></a>                        <span class="st">&quot;multinom.stan&quot;</span>,</span>
-<span id="cb864-3"><a href="ch-MPT.html#cb864-3" aria-hidden="true"></a>                        <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
-<span id="cb864-4"><a href="ch-MPT.html#cb864-4" aria-hidden="true"></a>fit_mn &lt;-<span class="st"> </span><span class="kw">stan</span>(multinom, <span class="dt">data =</span> data_mn)</span></code></pre></div>
+<div class="sourceCode" id="cb864"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb864-1"><a href="ch-MPT.html#cb864-1" aria-hidden="true"></a><span class="co"># Create a list:</span></span>
+<span id="cb864-2"><a href="ch-MPT.html#cb864-2" aria-hidden="true"></a><span class="co"># c(ans_mn) makes a vector out of the matrix ans_mn</span></span>
+<span id="cb864-3"><a href="ch-MPT.html#cb864-3" aria-hidden="true"></a>data_mn &lt;-<span class="st">  </span><span class="kw">list</span>(<span class="dt">N_trials =</span> N_trials,</span>
+<span id="cb864-4"><a href="ch-MPT.html#cb864-4" aria-hidden="true"></a>                 <span class="dt">ans =</span> <span class="kw">c</span>(ans_mn))</span>
+<span id="cb864-5"><a href="ch-MPT.html#cb864-5" aria-hidden="true"></a><span class="kw">str</span>(data_mn)</span></code></pre></div>
+<div class="sourceCode" id="cb865"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb865-1"><a href="ch-MPT.html#cb865-1" aria-hidden="true"></a>multinom &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
+<span id="cb865-2"><a href="ch-MPT.html#cb865-2" aria-hidden="true"></a>                        <span class="st">&quot;multinom.stan&quot;</span>,</span>
+<span id="cb865-3"><a href="ch-MPT.html#cb865-3" aria-hidden="true"></a>                        <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
+<span id="cb865-4"><a href="ch-MPT.html#cb865-4" aria-hidden="true"></a>fit_mn &lt;-<span class="st"> </span><span class="kw">stan</span>(multinom, <span class="dt">data =</span> data_mn)</span></code></pre></div>
 <p>Print the posteriors:</p>
-<div class="sourceCode" id="cb865"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb865-1"><a href="ch-MPT.html#cb865-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mn, <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;theta&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb866"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb866-1"><a href="ch-MPT.html#cb866-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mn, <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;theta&quot;</span>))</span></code></pre></div>
 <pre><code>##          mean 2.5% 97.5% n_eff Rhat
 ## theta[1] 0.23 0.15  0.31  4282    1
 ## theta[2] 0.08 0.04  0.14  4262    1
@@ -1600,10 +1684,10 @@ generated quantities{
 ## theta[5] 0.44 0.35  0.53  4346    1</code></pre>
 <p>Next, use  <code>mcmc_recover_hist()</code> in the code below to confirm that the posterior distributions of the elements of <span class="math inline">\(\boldsymbol{\theta}\)</span> are close to the true point values that were set up when simulating the data. See Figure <a href="ch-MPT.html#fig:multin-posterior">16.1</a>.</p>
 
-<div class="sourceCode" id="cb867"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb867-1"><a href="ch-MPT.html#cb867-1" aria-hidden="true"></a><span class="kw">as.data.frame</span>(fit_mn) <span class="op">%&gt;%</span></span>
-<span id="cb867-2"><a href="ch-MPT.html#cb867-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">select</span>(<span class="kw">starts_with</span>(<span class="st">&quot;theta&quot;</span>)) <span class="op">%&gt;%</span></span>
-<span id="cb867-3"><a href="ch-MPT.html#cb867-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">mcmc_recover_hist</span>(<span class="dt">true =</span> <span class="kw">unlist</span>(true_theta)) <span class="op">+</span></span>
-<span id="cb867-4"><a href="ch-MPT.html#cb867-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">coord_cartesian</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb868"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb868-1"><a href="ch-MPT.html#cb868-1" aria-hidden="true"></a><span class="kw">as.data.frame</span>(fit_mn) <span class="op">%&gt;%</span></span>
+<span id="cb868-2"><a href="ch-MPT.html#cb868-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">select</span>(<span class="kw">starts_with</span>(<span class="st">&quot;theta&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb868-3"><a href="ch-MPT.html#cb868-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">mcmc_recover_hist</span>(<span class="dt">true =</span> <span class="kw">unlist</span>(true_theta)) <span class="op">+</span></span>
+<span id="cb868-4"><a href="ch-MPT.html#cb868-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">coord_cartesian</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>))</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:multin-posterior"></span>
 <img src="bayescogsci_files/figure-html/multin-posterior-1.svg" alt="Posterior distributions and true means of theta for the multinomial model defined in multinom.stan." width="672" />
 <p class="caption">
@@ -1635,21 +1719,21 @@ generated quantities{
 }
 </code></pre>
 <p>Given the same set of probabilities <span class="math inline">\(\boldsymbol{\theta}\)</span> as above, generate <span class="math inline">\(100\)</span> individual observations using <code>rcat()</code> from the <code>extraDistr</code> package:</p>
-<div class="sourceCode" id="cb869"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb869-1"><a href="ch-MPT.html#cb869-1" aria-hidden="true"></a>N_obs &lt;-<span class="st"> </span><span class="dv">100</span></span>
-<span id="cb869-2"><a href="ch-MPT.html#cb869-2" aria-hidden="true"></a>ans_cat &lt;-<span class="st"> </span><span class="kw">rcat</span>(N_obs, <span class="dt">prob =</span> <span class="kw">as.matrix</span>(true_theta))</span></code></pre></div>
+<div class="sourceCode" id="cb870"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb870-1"><a href="ch-MPT.html#cb870-1" aria-hidden="true"></a>N_obs &lt;-<span class="st"> </span><span class="dv">100</span></span>
+<span id="cb870-2"><a href="ch-MPT.html#cb870-2" aria-hidden="true"></a>ans_cat &lt;-<span class="st"> </span><span class="kw">rcat</span>(N_obs, <span class="dt">prob =</span> <span class="kw">as.matrix</span>(true_theta))</span></code></pre></div>
 <p>The above output is how Stan expects to see the data. The data fed into the Stan model is defined as a list as usual:</p>
-<div class="sourceCode" id="cb870"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb870-1"><a href="ch-MPT.html#cb870-1" aria-hidden="true"></a>data_cat &lt;-<span class="st">  </span><span class="kw">list</span>(<span class="dt">N_obs =</span> N_obs,</span>
-<span id="cb870-2"><a href="ch-MPT.html#cb870-2" aria-hidden="true"></a>                  <span class="dt">w_ans =</span> ans_cat)</span>
-<span id="cb870-3"><a href="ch-MPT.html#cb870-3" aria-hidden="true"></a><span class="kw">str</span>(data_cat)</span></code></pre></div>
+<div class="sourceCode" id="cb871"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb871-1"><a href="ch-MPT.html#cb871-1" aria-hidden="true"></a>data_cat &lt;-<span class="st">  </span><span class="kw">list</span>(<span class="dt">N_obs =</span> N_obs,</span>
+<span id="cb871-2"><a href="ch-MPT.html#cb871-2" aria-hidden="true"></a>                  <span class="dt">w_ans =</span> ans_cat)</span>
+<span id="cb871-3"><a href="ch-MPT.html#cb871-3" aria-hidden="true"></a><span class="kw">str</span>(data_cat)</span></code></pre></div>
 <pre><code>## List of 2
 ##  $ N_obs: num 100
 ##  $ w_ans: num [1:100] 1 3 3 3 1 1 2 3 2 5 ...</code></pre>
 <p>Fitting the Stan model (<code>categorical.stan</code>) should yield approximately the same <span class="math inline">\(\boldsymbol{\theta}\)</span> as with the multinomial likelihood defined in the model <code>multinom.stan</code>.</p>
-<div class="sourceCode" id="cb872"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb872-1"><a href="ch-MPT.html#cb872-1" aria-hidden="true"></a>categorical &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
-<span id="cb872-2"><a href="ch-MPT.html#cb872-2" aria-hidden="true"></a>                           <span class="st">&quot;categorical.stan&quot;</span>,</span>
-<span id="cb872-3"><a href="ch-MPT.html#cb872-3" aria-hidden="true"></a>                           <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
-<span id="cb872-4"><a href="ch-MPT.html#cb872-4" aria-hidden="true"></a>fit_cat &lt;-<span class="st"> </span><span class="kw">stan</span>(categorical, <span class="dt">data =</span> data_cat)</span></code></pre></div>
-<div class="sourceCode" id="cb873"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb873-1"><a href="ch-MPT.html#cb873-1" aria-hidden="true"></a><span class="kw">print</span>(fit_cat, <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;theta&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb873"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb873-1"><a href="ch-MPT.html#cb873-1" aria-hidden="true"></a>categorical &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
+<span id="cb873-2"><a href="ch-MPT.html#cb873-2" aria-hidden="true"></a>                           <span class="st">&quot;categorical.stan&quot;</span>,</span>
+<span id="cb873-3"><a href="ch-MPT.html#cb873-3" aria-hidden="true"></a>                           <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
+<span id="cb873-4"><a href="ch-MPT.html#cb873-4" aria-hidden="true"></a>fit_cat &lt;-<span class="st"> </span><span class="kw">stan</span>(categorical, <span class="dt">data =</span> data_cat)</span></code></pre></div>
+<div class="sourceCode" id="cb874"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb874-1"><a href="ch-MPT.html#cb874-1" aria-hidden="true"></a><span class="kw">print</span>(fit_cat, <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;theta&quot;</span>))</span></code></pre></div>
 <pre><code>##          mean 2.5% 97.5% n_eff Rhat
 ## theta[1] 0.19 0.12  0.27  4359    1
 ## theta[2] 0.08 0.04  0.14  4838    1
@@ -1726,31 +1810,31 @@ P(\mathit{Mixed}| a,t,f,c) + P(\mathit{Correct}| a,t,f,c) = 1
 <div id="sec-mpt-data" class="section level3 hasAnchor" number="16.2.2">
 <h3><span class="header-section-number">16.2.2</span> A simple MPT model<a href="ch-MPT.html#sec-mpt-data" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>First, simulate 200 trials assuming no variability between items and subjects. It is convenient to define functions to compute each outcome’s probability, based on the previous MPT. One needs to assign “true values” to the underlying parameters of the MPT; these point values are only for illustration. Ideally, one should simulate data using parameter values that are realistic; that is, one should use values based on the literature, including the uncertainty of these parameters.</p>
-<div class="sourceCode" id="cb875"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb875-1"><a href="ch-MPT.html#cb875-1" aria-hidden="true"></a><span class="co"># The probabilities of the different answers:</span></span>
-<span id="cb875-2"><a href="ch-MPT.html#cb875-2" aria-hidden="true"></a>Pr_NR &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
-<span id="cb875-3"><a href="ch-MPT.html#cb875-3" aria-hidden="true"></a>    <span class="dv">1</span> <span class="op">-</span><span class="st"> </span>a</span>
-<span id="cb875-4"><a href="ch-MPT.html#cb875-4" aria-hidden="true"></a>Pr_Neologism &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
-<span id="cb875-5"><a href="ch-MPT.html#cb875-5" aria-hidden="true"></a>    a <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>t) <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f) <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>c) <span class="op">+</span><span class="st"> </span>a <span class="op">*</span><span class="st"> </span>t <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f) <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>c)</span>
-<span id="cb875-6"><a href="ch-MPT.html#cb875-6" aria-hidden="true"></a>Pr_Formal &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
-<span id="cb875-7"><a href="ch-MPT.html#cb875-7" aria-hidden="true"></a>    a <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>t) <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f) <span class="op">*</span><span class="st"> </span>c <span class="op">+</span><span class="st">  </span>a <span class="op">*</span><span class="st"> </span>t <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f) <span class="op">*</span><span class="st"> </span>c</span>
-<span id="cb875-8"><a href="ch-MPT.html#cb875-8" aria-hidden="true"></a>Pr_Mixed &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
-<span id="cb875-9"><a href="ch-MPT.html#cb875-9" aria-hidden="true"></a>    a <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>t) <span class="op">*</span><span class="st"> </span>f</span>
-<span id="cb875-10"><a href="ch-MPT.html#cb875-10" aria-hidden="true"></a>Pr_Correct &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
-<span id="cb875-11"><a href="ch-MPT.html#cb875-11" aria-hidden="true"></a>    a <span class="op">*</span><span class="st"> </span>t <span class="op">*</span><span class="st"> </span>f</span>
-<span id="cb875-12"><a href="ch-MPT.html#cb875-12" aria-hidden="true"></a><span class="co"># The true underlying values for simulated data:</span></span>
-<span id="cb875-13"><a href="ch-MPT.html#cb875-13" aria-hidden="true"></a>a_true &lt;-<span class="st"> </span><span class="fl">0.75</span></span>
-<span id="cb875-14"><a href="ch-MPT.html#cb875-14" aria-hidden="true"></a>t_true &lt;-<span class="st"> </span><span class="fl">0.9</span></span>
-<span id="cb875-15"><a href="ch-MPT.html#cb875-15" aria-hidden="true"></a>f_true &lt;-<span class="st"> </span><span class="fl">0.8</span></span>
-<span id="cb875-16"><a href="ch-MPT.html#cb875-16" aria-hidden="true"></a>c_true &lt;-<span class="st"> </span><span class="fl">0.1</span></span>
-<span id="cb875-17"><a href="ch-MPT.html#cb875-17" aria-hidden="true"></a><span class="co"># The probability of the different answers:</span></span>
-<span id="cb875-18"><a href="ch-MPT.html#cb875-18" aria-hidden="true"></a>Theta &lt;-</span>
-<span id="cb875-19"><a href="ch-MPT.html#cb875-19" aria-hidden="true"></a><span class="st">  </span><span class="kw">tibble</span>(<span class="dt">NR =</span> <span class="kw">Pr_NR</span>(a_true, t_true, f_true, c_true),</span>
-<span id="cb875-20"><a href="ch-MPT.html#cb875-20" aria-hidden="true"></a>         <span class="dt">Neologism =</span> <span class="kw">Pr_Neologism</span>(a_true, t_true, f_true, c_true),</span>
-<span id="cb875-21"><a href="ch-MPT.html#cb875-21" aria-hidden="true"></a>         <span class="dt">Formal =</span> <span class="kw">Pr_Formal</span>(a_true, t_true, f_true, c_true),</span>
-<span id="cb875-22"><a href="ch-MPT.html#cb875-22" aria-hidden="true"></a>         <span class="dt">Mixed =</span> <span class="kw">Pr_Mixed</span>(a_true, t_true, f_true, c_true),</span>
-<span id="cb875-23"><a href="ch-MPT.html#cb875-23" aria-hidden="true"></a>         <span class="dt">Correct =</span> <span class="kw">Pr_Correct</span>(a_true, t_true, f_true, c_true))</span>
-<span id="cb875-24"><a href="ch-MPT.html#cb875-24" aria-hidden="true"></a>N_trials &lt;-<span class="st"> </span><span class="dv">200</span></span>
-<span id="cb875-25"><a href="ch-MPT.html#cb875-25" aria-hidden="true"></a>(ans &lt;-<span class="st"> </span><span class="kw">rmultinom</span>(<span class="dv">1</span>, N_trials, <span class="kw">c</span>(Theta)))</span></code></pre></div>
+<div class="sourceCode" id="cb876"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb876-1"><a href="ch-MPT.html#cb876-1" aria-hidden="true"></a><span class="co"># The probabilities of the different answers:</span></span>
+<span id="cb876-2"><a href="ch-MPT.html#cb876-2" aria-hidden="true"></a>Pr_NR &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
+<span id="cb876-3"><a href="ch-MPT.html#cb876-3" aria-hidden="true"></a>    <span class="dv">1</span> <span class="op">-</span><span class="st"> </span>a</span>
+<span id="cb876-4"><a href="ch-MPT.html#cb876-4" aria-hidden="true"></a>Pr_Neologism &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
+<span id="cb876-5"><a href="ch-MPT.html#cb876-5" aria-hidden="true"></a>    a <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>t) <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f) <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>c) <span class="op">+</span><span class="st"> </span>a <span class="op">*</span><span class="st"> </span>t <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f) <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>c)</span>
+<span id="cb876-6"><a href="ch-MPT.html#cb876-6" aria-hidden="true"></a>Pr_Formal &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
+<span id="cb876-7"><a href="ch-MPT.html#cb876-7" aria-hidden="true"></a>    a <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>t) <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f) <span class="op">*</span><span class="st"> </span>c <span class="op">+</span><span class="st">  </span>a <span class="op">*</span><span class="st"> </span>t <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f) <span class="op">*</span><span class="st"> </span>c</span>
+<span id="cb876-8"><a href="ch-MPT.html#cb876-8" aria-hidden="true"></a>Pr_Mixed &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
+<span id="cb876-9"><a href="ch-MPT.html#cb876-9" aria-hidden="true"></a>    a <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>t) <span class="op">*</span><span class="st"> </span>f</span>
+<span id="cb876-10"><a href="ch-MPT.html#cb876-10" aria-hidden="true"></a>Pr_Correct &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
+<span id="cb876-11"><a href="ch-MPT.html#cb876-11" aria-hidden="true"></a>    a <span class="op">*</span><span class="st"> </span>t <span class="op">*</span><span class="st"> </span>f</span>
+<span id="cb876-12"><a href="ch-MPT.html#cb876-12" aria-hidden="true"></a><span class="co"># The true underlying values for simulated data:</span></span>
+<span id="cb876-13"><a href="ch-MPT.html#cb876-13" aria-hidden="true"></a>a_true &lt;-<span class="st"> </span><span class="fl">0.75</span></span>
+<span id="cb876-14"><a href="ch-MPT.html#cb876-14" aria-hidden="true"></a>t_true &lt;-<span class="st"> </span><span class="fl">0.9</span></span>
+<span id="cb876-15"><a href="ch-MPT.html#cb876-15" aria-hidden="true"></a>f_true &lt;-<span class="st"> </span><span class="fl">0.8</span></span>
+<span id="cb876-16"><a href="ch-MPT.html#cb876-16" aria-hidden="true"></a>c_true &lt;-<span class="st"> </span><span class="fl">0.1</span></span>
+<span id="cb876-17"><a href="ch-MPT.html#cb876-17" aria-hidden="true"></a><span class="co"># The probability of the different answers:</span></span>
+<span id="cb876-18"><a href="ch-MPT.html#cb876-18" aria-hidden="true"></a>Theta &lt;-</span>
+<span id="cb876-19"><a href="ch-MPT.html#cb876-19" aria-hidden="true"></a><span class="st">  </span><span class="kw">tibble</span>(<span class="dt">NR =</span> <span class="kw">Pr_NR</span>(a_true, t_true, f_true, c_true),</span>
+<span id="cb876-20"><a href="ch-MPT.html#cb876-20" aria-hidden="true"></a>         <span class="dt">Neologism =</span> <span class="kw">Pr_Neologism</span>(a_true, t_true, f_true, c_true),</span>
+<span id="cb876-21"><a href="ch-MPT.html#cb876-21" aria-hidden="true"></a>         <span class="dt">Formal =</span> <span class="kw">Pr_Formal</span>(a_true, t_true, f_true, c_true),</span>
+<span id="cb876-22"><a href="ch-MPT.html#cb876-22" aria-hidden="true"></a>         <span class="dt">Mixed =</span> <span class="kw">Pr_Mixed</span>(a_true, t_true, f_true, c_true),</span>
+<span id="cb876-23"><a href="ch-MPT.html#cb876-23" aria-hidden="true"></a>         <span class="dt">Correct =</span> <span class="kw">Pr_Correct</span>(a_true, t_true, f_true, c_true))</span>
+<span id="cb876-24"><a href="ch-MPT.html#cb876-24" aria-hidden="true"></a>N_trials &lt;-<span class="st"> </span><span class="dv">200</span></span>
+<span id="cb876-25"><a href="ch-MPT.html#cb876-25" aria-hidden="true"></a>(ans &lt;-<span class="st"> </span><span class="kw">rmultinom</span>(<span class="dv">1</span>, N_trials, <span class="kw">c</span>(Theta)))</span></code></pre></div>
 <pre><code>##           [,1]
 ## NR          49
 ## Neologism   26
@@ -1804,14 +1888,14 @@ generated quantities{
   pred_ans = multinomial_rng(theta, N_trials);
 }</code></pre>
 <p>Fit the model:</p>
-<div class="sourceCode" id="cb878"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb878-1"><a href="ch-MPT.html#cb878-1" aria-hidden="true"></a>data_sMPT &lt;-<span class="st">  </span><span class="kw">list</span>(<span class="dt">N_trials =</span> N_trials,</span>
-<span id="cb878-2"><a href="ch-MPT.html#cb878-2" aria-hidden="true"></a>                   <span class="dt">ans =</span> <span class="kw">c</span>(ans))</span></code></pre></div>
-<div class="sourceCode" id="cb879"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb879-1"><a href="ch-MPT.html#cb879-1" aria-hidden="true"></a>mpt_mnm &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
-<span id="cb879-2"><a href="ch-MPT.html#cb879-2" aria-hidden="true"></a>                       <span class="st">&quot;mpt_mnm.stan&quot;</span>,</span>
-<span id="cb879-3"><a href="ch-MPT.html#cb879-3" aria-hidden="true"></a>                       <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
-<span id="cb879-4"><a href="ch-MPT.html#cb879-4" aria-hidden="true"></a>fit_sMPT &lt;-<span class="st"> </span><span class="kw">stan</span>(mpt_mnm, <span class="dt">data =</span> data_sMPT)</span></code></pre></div>
+<div class="sourceCode" id="cb879"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb879-1"><a href="ch-MPT.html#cb879-1" aria-hidden="true"></a>data_sMPT &lt;-<span class="st">  </span><span class="kw">list</span>(<span class="dt">N_trials =</span> N_trials,</span>
+<span id="cb879-2"><a href="ch-MPT.html#cb879-2" aria-hidden="true"></a>                   <span class="dt">ans =</span> <span class="kw">c</span>(ans))</span></code></pre></div>
+<div class="sourceCode" id="cb880"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb880-1"><a href="ch-MPT.html#cb880-1" aria-hidden="true"></a>mpt_mnm &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
+<span id="cb880-2"><a href="ch-MPT.html#cb880-2" aria-hidden="true"></a>                       <span class="st">&quot;mpt_mnm.stan&quot;</span>,</span>
+<span id="cb880-3"><a href="ch-MPT.html#cb880-3" aria-hidden="true"></a>                       <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
+<span id="cb880-4"><a href="ch-MPT.html#cb880-4" aria-hidden="true"></a>fit_sMPT &lt;-<span class="st"> </span><span class="kw">stan</span>(mpt_mnm, <span class="dt">data =</span> data_sMPT)</span></code></pre></div>
 <p>Print out a summary of the posterior of the parameter of interest:</p>
-<div class="sourceCode" id="cb880"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb880-1"><a href="ch-MPT.html#cb880-1" aria-hidden="true"></a><span class="kw">print</span>(fit_sMPT, <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;a&quot;</span>, <span class="st">&quot;t&quot;</span>, <span class="st">&quot;f&quot;</span>, <span class="st">&quot;c&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb881"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb881-1"><a href="ch-MPT.html#cb881-1" aria-hidden="true"></a><span class="kw">print</span>(fit_sMPT, <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;a&quot;</span>, <span class="st">&quot;t&quot;</span>, <span class="st">&quot;f&quot;</span>, <span class="st">&quot;c&quot;</span>))</span></code></pre></div>
 <pre><code>##   mean 2.5% 97.5% n_eff Rhat
 ## a 0.75 0.69  0.81  4422    1
 ## t 0.85 0.78  0.90  4486    1
@@ -1819,10 +1903,10 @@ generated quantities{
 ## c 0.20 0.09  0.35  4188    1</code></pre>
 <p>What the model gives us is posterior distributions of each of the parameters <code>a</code>, <code>t</code>, <code>f</code>, <code>c</code>. From these we can derive the probabilities of producing the different observed responses, and the posterior predictive distributions, which could be used for model evaluation.</p>
 <p>An important sanity check in modeling is checking whether the model can in principle recover the true parameters that generated the data; see Figure <a href="ch-MPT.html#fig:sMPT-posterior">16.3</a>.</p>
-<div class="sourceCode" id="cb882"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb882-1"><a href="ch-MPT.html#cb882-1" aria-hidden="true"></a><span class="kw">as.data.frame</span>(fit_sMPT) <span class="op">%&gt;%</span></span>
-<span id="cb882-2"><a href="ch-MPT.html#cb882-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">select</span>(<span class="kw">c</span>(<span class="st">&quot;a&quot;</span>,<span class="st">&quot;t&quot;</span>,<span class="st">&quot;f&quot;</span>,<span class="st">&quot;c&quot;</span>)) <span class="op">%&gt;%</span></span>
-<span id="cb882-3"><a href="ch-MPT.html#cb882-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">mcmc_recover_hist</span>(<span class="dt">true =</span> <span class="kw">c</span>(a_true, t_true, f_true, c_true)) <span class="op">+</span></span>
-<span id="cb882-4"><a href="ch-MPT.html#cb882-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">coord_cartesian</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb883"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb883-1"><a href="ch-MPT.html#cb883-1" aria-hidden="true"></a><span class="kw">as.data.frame</span>(fit_sMPT) <span class="op">%&gt;%</span></span>
+<span id="cb883-2"><a href="ch-MPT.html#cb883-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">select</span>(<span class="kw">c</span>(<span class="st">&quot;a&quot;</span>,<span class="st">&quot;t&quot;</span>,<span class="st">&quot;f&quot;</span>,<span class="st">&quot;c&quot;</span>)) <span class="op">%&gt;%</span></span>
+<span id="cb883-3"><a href="ch-MPT.html#cb883-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">mcmc_recover_hist</span>(<span class="dt">true =</span> <span class="kw">c</span>(a_true, t_true, f_true, c_true)) <span class="op">+</span></span>
+<span id="cb883-4"><a href="ch-MPT.html#cb883-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">coord_cartesian</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>))</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:sMPT-posterior"></span>
 <img src="bayescogsci_files/figure-html/sMPT-posterior-1.svg" alt="Posterior distributions and true point values of the parameters of the simple MPT model (`mpt_mnm.stan`)." width="672" />
 <p class="caption">
@@ -1831,7 +1915,7 @@ FIGURE 16.3: Posterior distributions and true point values of the parameters of 
 </div>
 <p>The above figure shows that the model can indeed recover the true parameters fairly accurately.</p>
 <p>The posterior distributions of the <span class="math inline">\(\boldsymbol{\theta}\)</span> parameters can also be summarized:</p>
-<div class="sourceCode" id="cb883"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb883-1"><a href="ch-MPT.html#cb883-1" aria-hidden="true"></a><span class="kw">print</span>(fit_sMPT, <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;theta&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb884"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb884-1"><a href="ch-MPT.html#cb884-1" aria-hidden="true"></a><span class="kw">print</span>(fit_sMPT, <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;theta&quot;</span>))</span></code></pre></div>
 <pre><code>##          mean 2.5% 97.5% n_eff Rhat
 ## theta[1] 0.25 0.19  0.31  4422    1
 ## theta[2] 0.13 0.09  0.18  3875    1
@@ -1860,46 +1944,46 @@ The MPT that we present here is just  reparameterizing the vector <span class="m
 p_j = \frac{\exp(\mu_j)}{1+\exp(\mu_j)} = \frac{1}{1+\exp(-\mu_j)}
 \end{equation}\]</span></p>
 <p>The above is the logistic or inverse logit function: it takes as input <span class="math inline">\(\mu_j\)</span> and returns the corresponding probability <span class="math inline">\(p_j\)</span>. The  <code>plogis()</code> function in R carries out the calculation shown above.</p>
-<div class="sourceCode" id="cb885"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb885-1"><a href="ch-MPT.html#cb885-1" aria-hidden="true"></a>N_obs &lt;-<span class="st"> </span><span class="dv">50</span></span>
-<span id="cb885-2"><a href="ch-MPT.html#cb885-2" aria-hidden="true"></a>complexity &lt;-<span class="st"> </span><span class="kw">rnorm</span>(N_obs) <span class="co"># by default mean = 0, sd = 1</span></span>
-<span id="cb885-3"><a href="ch-MPT.html#cb885-3" aria-hidden="true"></a><span class="co">## choose some hypothetical values:</span></span>
-<span id="cb885-4"><a href="ch-MPT.html#cb885-4" aria-hidden="true"></a>alpha_f &lt;-<span class="st"> </span><span class="fl">0.3</span></span>
-<span id="cb885-5"><a href="ch-MPT.html#cb885-5" aria-hidden="true"></a><span class="co"># the negative sign indicates that</span></span>
-<span id="cb885-6"><a href="ch-MPT.html#cb885-6" aria-hidden="true"></a><span class="co"># increased complexity will lead to a reduced value of f:</span></span>
-<span id="cb885-7"><a href="ch-MPT.html#cb885-7" aria-hidden="true"></a>beta_f &lt;-<span class="st"> </span><span class="fl">-0.3</span></span>
-<span id="cb885-8"><a href="ch-MPT.html#cb885-8" aria-hidden="true"></a><span class="co"># f&#39; as a linear function of complexity:</span></span>
-<span id="cb885-9"><a href="ch-MPT.html#cb885-9" aria-hidden="true"></a>f_prime &lt;-<span class="st"> </span>alpha_f <span class="op">+</span><span class="st"> </span>complexity <span class="op">*</span><span class="st"> </span>beta_f</span>
-<span id="cb885-10"><a href="ch-MPT.html#cb885-10" aria-hidden="true"></a><span class="kw">head</span>(f_prime)</span></code></pre></div>
+<div class="sourceCode" id="cb886"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb886-1"><a href="ch-MPT.html#cb886-1" aria-hidden="true"></a>N_obs &lt;-<span class="st"> </span><span class="dv">50</span></span>
+<span id="cb886-2"><a href="ch-MPT.html#cb886-2" aria-hidden="true"></a>complexity &lt;-<span class="st"> </span><span class="kw">rnorm</span>(N_obs) <span class="co"># by default mean = 0, sd = 1</span></span>
+<span id="cb886-3"><a href="ch-MPT.html#cb886-3" aria-hidden="true"></a><span class="co">## choose some hypothetical values:</span></span>
+<span id="cb886-4"><a href="ch-MPT.html#cb886-4" aria-hidden="true"></a>alpha_f &lt;-<span class="st"> </span><span class="fl">0.3</span></span>
+<span id="cb886-5"><a href="ch-MPT.html#cb886-5" aria-hidden="true"></a><span class="co"># the negative sign indicates that</span></span>
+<span id="cb886-6"><a href="ch-MPT.html#cb886-6" aria-hidden="true"></a><span class="co"># increased complexity will lead to a reduced value of f:</span></span>
+<span id="cb886-7"><a href="ch-MPT.html#cb886-7" aria-hidden="true"></a>beta_f &lt;-<span class="st"> </span><span class="fl">-0.3</span></span>
+<span id="cb886-8"><a href="ch-MPT.html#cb886-8" aria-hidden="true"></a><span class="co"># f&#39; as a linear function of complexity:</span></span>
+<span id="cb886-9"><a href="ch-MPT.html#cb886-9" aria-hidden="true"></a>f_prime &lt;-<span class="st"> </span>alpha_f <span class="op">+</span><span class="st"> </span>complexity <span class="op">*</span><span class="st"> </span>beta_f</span>
+<span id="cb886-10"><a href="ch-MPT.html#cb886-10" aria-hidden="true"></a><span class="kw">head</span>(f_prime)</span></code></pre></div>
 <pre><code>## [1]  0.468  0.369 -0.168  0.279  0.261 -0.215</code></pre>
-<div class="sourceCode" id="cb887"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb887-1"><a href="ch-MPT.html#cb887-1" aria-hidden="true"></a><span class="co">## probabilities f for each item:</span></span>
-<span id="cb887-2"><a href="ch-MPT.html#cb887-2" aria-hidden="true"></a>f_true &lt;-<span class="st"> </span><span class="kw">plogis</span>(f_prime)</span>
-<span id="cb887-3"><a href="ch-MPT.html#cb887-3" aria-hidden="true"></a><span class="kw">head</span>(f_true)</span></code></pre></div>
+<div class="sourceCode" id="cb888"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb888-1"><a href="ch-MPT.html#cb888-1" aria-hidden="true"></a><span class="co">## probabilities f for each item:</span></span>
+<span id="cb888-2"><a href="ch-MPT.html#cb888-2" aria-hidden="true"></a>f_true &lt;-<span class="st"> </span><span class="kw">plogis</span>(f_prime)</span>
+<span id="cb888-3"><a href="ch-MPT.html#cb888-3" aria-hidden="true"></a><span class="kw">head</span>(f_true)</span></code></pre></div>
 <pre><code>## [1] 0.615 0.591 0.458 0.569 0.565 0.447</code></pre>
 <p>This change in our assumptions entails that the probability of each response changes depending on the item associated with each observation. The parameters <code>theta</code> now have to be a matrix. This is in R; in Stan, we will code it as an  array of simplexes, i.e., an array of non-negative values that sums to 1.</p>
 <p>We continue with the functions defined in section <a href="ch-MPT.html#sec-mpt-data">16.2.2</a>, and the same values for <code>a_true</code>, <code>t_true</code>, and <code>c_true</code> as defined in that section. Since most of the equations depend on <code>f</code>, and <code>f</code> is a vector now, the outcomes are automatically vectors. But this is not the case for <code>theta_NR_v</code>, and thus we need to repeat the value.</p>
-<div class="sourceCode" id="cb889"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb889-1"><a href="ch-MPT.html#cb889-1" aria-hidden="true"></a>theta_NR_v &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="kw">Pr_NR</span>(a_true, t_true, f_true, c_true), N_obs)</span>
-<span id="cb889-2"><a href="ch-MPT.html#cb889-2" aria-hidden="true"></a>theta_Neologism_v &lt;-<span class="st"> </span><span class="kw">Pr_Neologism</span>(a_true, t_true, f_true, c_true)</span>
-<span id="cb889-3"><a href="ch-MPT.html#cb889-3" aria-hidden="true"></a>theta_Formal_v &lt;-<span class="st"> </span><span class="kw">Pr_Formal</span>(a_true, t_true, f_true, c_true)</span>
-<span id="cb889-4"><a href="ch-MPT.html#cb889-4" aria-hidden="true"></a>theta_Mixed_v &lt;-<span class="st"> </span><span class="kw">Pr_Mixed</span>(a_true, t_true, f_true, c_true)</span>
-<span id="cb889-5"><a href="ch-MPT.html#cb889-5" aria-hidden="true"></a>theta_Correct_v &lt;-<span class="st"> </span><span class="kw">Pr_Correct</span>(a_true, t_true, f_true, c_true)</span>
-<span id="cb889-6"><a href="ch-MPT.html#cb889-6" aria-hidden="true"></a>theta_item &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(theta_NR_v,</span>
-<span id="cb889-7"><a href="ch-MPT.html#cb889-7" aria-hidden="true"></a>                       theta_Neologism_v,</span>
-<span id="cb889-8"><a href="ch-MPT.html#cb889-8" aria-hidden="true"></a>                       theta_Formal_v,</span>
-<span id="cb889-9"><a href="ch-MPT.html#cb889-9" aria-hidden="true"></a>                       theta_Mixed_v,</span>
-<span id="cb889-10"><a href="ch-MPT.html#cb889-10" aria-hidden="true"></a>                       theta_Correct_v),</span>
-<span id="cb889-11"><a href="ch-MPT.html#cb889-11" aria-hidden="true"></a>                     <span class="dt">ncol =</span> <span class="dv">5</span>)</span>
-<span id="cb889-12"><a href="ch-MPT.html#cb889-12" aria-hidden="true"></a><span class="kw">dim</span>(theta_item)</span></code></pre></div>
+<div class="sourceCode" id="cb890"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb890-1"><a href="ch-MPT.html#cb890-1" aria-hidden="true"></a>theta_NR_v &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="kw">Pr_NR</span>(a_true, t_true, f_true, c_true), N_obs)</span>
+<span id="cb890-2"><a href="ch-MPT.html#cb890-2" aria-hidden="true"></a>theta_Neologism_v &lt;-<span class="st"> </span><span class="kw">Pr_Neologism</span>(a_true, t_true, f_true, c_true)</span>
+<span id="cb890-3"><a href="ch-MPT.html#cb890-3" aria-hidden="true"></a>theta_Formal_v &lt;-<span class="st"> </span><span class="kw">Pr_Formal</span>(a_true, t_true, f_true, c_true)</span>
+<span id="cb890-4"><a href="ch-MPT.html#cb890-4" aria-hidden="true"></a>theta_Mixed_v &lt;-<span class="st"> </span><span class="kw">Pr_Mixed</span>(a_true, t_true, f_true, c_true)</span>
+<span id="cb890-5"><a href="ch-MPT.html#cb890-5" aria-hidden="true"></a>theta_Correct_v &lt;-<span class="st"> </span><span class="kw">Pr_Correct</span>(a_true, t_true, f_true, c_true)</span>
+<span id="cb890-6"><a href="ch-MPT.html#cb890-6" aria-hidden="true"></a>theta_item &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(theta_NR_v,</span>
+<span id="cb890-7"><a href="ch-MPT.html#cb890-7" aria-hidden="true"></a>                       theta_Neologism_v,</span>
+<span id="cb890-8"><a href="ch-MPT.html#cb890-8" aria-hidden="true"></a>                       theta_Formal_v,</span>
+<span id="cb890-9"><a href="ch-MPT.html#cb890-9" aria-hidden="true"></a>                       theta_Mixed_v,</span>
+<span id="cb890-10"><a href="ch-MPT.html#cb890-10" aria-hidden="true"></a>                       theta_Correct_v),</span>
+<span id="cb890-11"><a href="ch-MPT.html#cb890-11" aria-hidden="true"></a>                     <span class="dt">ncol =</span> <span class="dv">5</span>)</span>
+<span id="cb890-12"><a href="ch-MPT.html#cb890-12" aria-hidden="true"></a><span class="kw">dim</span>(theta_item)</span></code></pre></div>
 <pre><code>## [1] 50  5</code></pre>
-<div class="sourceCode" id="cb891"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb891-1"><a href="ch-MPT.html#cb891-1" aria-hidden="true"></a><span class="kw">head</span>(theta_item,<span class="dt">n =</span> <span class="dv">3</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb892"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb892-1"><a href="ch-MPT.html#cb892-1" aria-hidden="true"></a><span class="kw">head</span>(theta_item,<span class="dt">n =</span> <span class="dv">3</span>)</span></code></pre></div>
 <pre><code>##      [,1]  [,2]   [,3]   [,4]  [,5]
 ## [1,] 0.25 0.260 0.0289 0.0461 0.415
 ## [2,] 0.25 0.276 0.0307 0.0443 0.399
 ## [3,] 0.25 0.366 0.0406 0.0344 0.309</code></pre>
 <p>Store this in a data frame:</p>
-<div class="sourceCode" id="cb893"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb893-1"><a href="ch-MPT.html#cb893-1" aria-hidden="true"></a>sim_data_cx &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">item =</span> <span class="dv">1</span><span class="op">:</span>N_obs,</span>
-<span id="cb893-2"><a href="ch-MPT.html#cb893-2" aria-hidden="true"></a>                      <span class="dt">complexity =</span> complexity,</span>
-<span id="cb893-3"><a href="ch-MPT.html#cb893-3" aria-hidden="true"></a>                      <span class="dt">w_ans =</span> <span class="kw">c</span>(<span class="kw">rcat</span>(N_obs,theta_item)))</span>
-<span id="cb893-4"><a href="ch-MPT.html#cb893-4" aria-hidden="true"></a>sim_data_cx</span></code></pre></div>
+<div class="sourceCode" id="cb894"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb894-1"><a href="ch-MPT.html#cb894-1" aria-hidden="true"></a>sim_data_cx &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">item =</span> <span class="dv">1</span><span class="op">:</span>N_obs,</span>
+<span id="cb894-2"><a href="ch-MPT.html#cb894-2" aria-hidden="true"></a>                      <span class="dt">complexity =</span> complexity,</span>
+<span id="cb894-3"><a href="ch-MPT.html#cb894-3" aria-hidden="true"></a>                      <span class="dt">w_ans =</span> <span class="kw">c</span>(<span class="kw">rcat</span>(N_obs,theta_item)))</span>
+<span id="cb894-4"><a href="ch-MPT.html#cb894-4" aria-hidden="true"></a>sim_data_cx</span></code></pre></div>
 <pre><code>## # A tibble: 50 × 3
 ##    item complexity w_ans
 ##   &lt;int&gt;      &lt;dbl&gt; &lt;dbl&gt;
@@ -1956,18 +2040,18 @@ generated quantities{
 <p>The previous model doesn’t take into account that subjects might vary (and neither does the modification to this model that is suggested in online exercise <a href="exercises.html#exr:edit-mpt-cat">G.16.3</a>). Let’s focus on taking into account the differences between subjects.</p>
 <p>Different subjects might not be equally motivated to do the task. This can be accounted for by adding  hierarchical structure to the parameter <code>a</code>, the probability of initiating an attempt. Begin by simulating some data that incorporates  by-subject variability.</p>
 <p>First, define the number of items and subjects, and the number of observations:</p>
-<div class="sourceCode" id="cb896"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb896-1"><a href="ch-MPT.html#cb896-1" aria-hidden="true"></a>N_item &lt;-<span class="st"> </span><span class="dv">20</span></span>
-<span id="cb896-2"><a href="ch-MPT.html#cb896-2" aria-hidden="true"></a>N_subj &lt;-<span class="st"> </span><span class="dv">30</span></span>
-<span id="cb896-3"><a href="ch-MPT.html#cb896-3" aria-hidden="true"></a>N_obs &lt;-<span class="st"> </span>N_item <span class="op">*</span><span class="st"> </span>N_subj</span></code></pre></div>
+<div class="sourceCode" id="cb897"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb897-1"><a href="ch-MPT.html#cb897-1" aria-hidden="true"></a>N_item &lt;-<span class="st"> </span><span class="dv">20</span></span>
+<span id="cb897-2"><a href="ch-MPT.html#cb897-2" aria-hidden="true"></a>N_subj &lt;-<span class="st"> </span><span class="dv">30</span></span>
+<span id="cb897-3"><a href="ch-MPT.html#cb897-3" aria-hidden="true"></a>N_obs &lt;-<span class="st"> </span>N_item <span class="op">*</span><span class="st"> </span>N_subj</span></code></pre></div>
 <p>Then, generate a vector for subjects and for items. Assume here that each subject sees each item.</p>
-<div class="sourceCode" id="cb897"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb897-1"><a href="ch-MPT.html#cb897-1" aria-hidden="true"></a>subj &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">1</span><span class="op">:</span>N_subj, <span class="dt">each =</span> N_item)</span>
-<span id="cb897-2"><a href="ch-MPT.html#cb897-2" aria-hidden="true"></a>item &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">1</span><span class="op">:</span>N_item, <span class="dt">time =</span> N_subj)</span></code></pre></div>
+<div class="sourceCode" id="cb898"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb898-1"><a href="ch-MPT.html#cb898-1" aria-hidden="true"></a>subj &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">1</span><span class="op">:</span>N_subj, <span class="dt">each =</span> N_item)</span>
+<span id="cb898-2"><a href="ch-MPT.html#cb898-2" aria-hidden="true"></a>item &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">1</span><span class="op">:</span>N_item, <span class="dt">time =</span> N_subj)</span></code></pre></div>
 <p>A vector representing complexity is created for the number of items we have, and this vector is repeated as many times as there are subjects:</p>
-<div class="sourceCode" id="cb898"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb898-1"><a href="ch-MPT.html#cb898-1" aria-hidden="true"></a>complexity &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="kw">rnorm</span>(N_item), <span class="dt">times =</span> N_subj)</span></code></pre></div>
+<div class="sourceCode" id="cb899"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb899-1"><a href="ch-MPT.html#cb899-1" aria-hidden="true"></a>complexity &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="kw">rnorm</span>(N_item), <span class="dt">times =</span> N_subj)</span></code></pre></div>
 <p>Next, create a data frame with all the above information:</p>
-<div class="sourceCode" id="cb899"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb899-1"><a href="ch-MPT.html#cb899-1" aria-hidden="true"></a>(exp_sim &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">subj =</span> subj,</span>
-<span id="cb899-2"><a href="ch-MPT.html#cb899-2" aria-hidden="true"></a>                  <span class="dt">item =</span> item,</span>
-<span id="cb899-3"><a href="ch-MPT.html#cb899-3" aria-hidden="true"></a>                  <span class="dt">complexity =</span> complexity))</span></code></pre></div>
+<div class="sourceCode" id="cb900"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb900-1"><a href="ch-MPT.html#cb900-1" aria-hidden="true"></a>(exp_sim &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">subj =</span> subj,</span>
+<span id="cb900-2"><a href="ch-MPT.html#cb900-2" aria-hidden="true"></a>                  <span class="dt">item =</span> item,</span>
+<span id="cb900-3"><a href="ch-MPT.html#cb900-3" aria-hidden="true"></a>                  <span class="dt">complexity =</span> complexity))</span></code></pre></div>
 <pre><code>## # A tibble: 600 × 3
 ##    subj  item complexity
 ##   &lt;int&gt; &lt;int&gt;      &lt;dbl&gt;
@@ -1976,11 +2060,11 @@ generated quantities{
 ## 3     1     3      1.56 
 ## # ℹ 597 more rows</code></pre>
 <p>To create subject-level variability in the data, a between-subject standard deviation needs to be defined. This standard deviation represents the deviations of subjects about the grand mean. We are defining this adjustment in log-odds space.</p>
-<div class="sourceCode" id="cb901"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb901-1"><a href="ch-MPT.html#cb901-1" aria-hidden="true"></a><span class="co"># New parameters, in log-odds space:</span></span>
-<span id="cb901-2"><a href="ch-MPT.html#cb901-2" aria-hidden="true"></a>tau_u_a &lt;-<span class="st"> </span><span class="fl">1.1</span></span>
-<span id="cb901-3"><a href="ch-MPT.html#cb901-3" aria-hidden="true"></a><span class="co">## generate subject adjustments in log-odds space:</span></span>
-<span id="cb901-4"><a href="ch-MPT.html#cb901-4" aria-hidden="true"></a>u_a &lt;-<span class="st"> </span><span class="kw">rnorm</span>(N_subj, <span class="dv">0</span>, tau_u_a)</span>
-<span id="cb901-5"><a href="ch-MPT.html#cb901-5" aria-hidden="true"></a><span class="kw">str</span>(u_a)</span></code></pre></div>
+<div class="sourceCode" id="cb902"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb902-1"><a href="ch-MPT.html#cb902-1" aria-hidden="true"></a><span class="co"># New parameters, in log-odds space:</span></span>
+<span id="cb902-2"><a href="ch-MPT.html#cb902-2" aria-hidden="true"></a>tau_u_a &lt;-<span class="st"> </span><span class="fl">1.1</span></span>
+<span id="cb902-3"><a href="ch-MPT.html#cb902-3" aria-hidden="true"></a><span class="co">## generate subject adjustments in log-odds space:</span></span>
+<span id="cb902-4"><a href="ch-MPT.html#cb902-4" aria-hidden="true"></a>u_a &lt;-<span class="st"> </span><span class="kw">rnorm</span>(N_subj, <span class="dv">0</span>, tau_u_a)</span>
+<span id="cb902-5"><a href="ch-MPT.html#cb902-5" aria-hidden="true"></a><span class="kw">str</span>(u_a)</span></code></pre></div>
 <pre><code>##  num [1:30] -1.175 -0.24 -1.129 -0.802 -0.688 ...</code></pre>
 <p>Given the fixed <code>a_true</code> probability value of 0.75, the subject-level values for individual <code>a_true</code> can be derived by (a) first converting the overall <code>a_true</code> value to  log-odds space, (b) adding the by-subject adjustment to this converted overall value, and (c) then converting back to  probability space using the logistic or inverse logit  (<code>plogis()</code>) function. Essentially we generate data assuming the following:</p>
 <p><span class="math display">\[\begin{equation}
@@ -1991,49 +2075,49 @@ a_{h,n} &amp;= \text{logit}^{-1}(a_{h,n}&#39;)
 \end{equation}\]</span></p>
 <p>Where <span class="math inline">\(u_{a,subj[n]}\)</span> is a vector with the same length as the total number of observations. The meaning of this notation was explained in the section <a href="ch-complexstan.html#sec-hierstan">9.1</a>.</p>
 <p>This is done in R as follows:</p>
-<div class="sourceCode" id="cb903"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb903-1"><a href="ch-MPT.html#cb903-1" aria-hidden="true"></a>a_true &lt;-<span class="st"> </span><span class="fl">0.75</span> <span class="co"># as before</span></span>
-<span id="cb903-2"><a href="ch-MPT.html#cb903-2" aria-hidden="true"></a><span class="co">## convert the intercept to log-odds space:</span></span>
-<span id="cb903-3"><a href="ch-MPT.html#cb903-3" aria-hidden="true"></a>alpha_a &lt;-<span class="st"> </span><span class="kw">qlogis</span>(a_true)</span>
-<span id="cb903-4"><a href="ch-MPT.html#cb903-4" aria-hidden="true"></a><span class="co">## a_h&#39; in log-odds space:</span></span>
-<span id="cb903-5"><a href="ch-MPT.html#cb903-5" aria-hidden="true"></a>a_h_prime &lt;-<span class="st">  </span>alpha_a <span class="op">+</span><span class="st"> </span>u_a[subj]</span>
-<span id="cb903-6"><a href="ch-MPT.html#cb903-6" aria-hidden="true"></a><span class="co">## convert back to probability space</span></span>
-<span id="cb903-7"><a href="ch-MPT.html#cb903-7" aria-hidden="true"></a>a_true_h &lt;-<span class="st"> </span><span class="kw">plogis</span>(a_h_prime)</span>
-<span id="cb903-8"><a href="ch-MPT.html#cb903-8" aria-hidden="true"></a><span class="kw">str</span>(a_true_h)</span></code></pre></div>
+<div class="sourceCode" id="cb904"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb904-1"><a href="ch-MPT.html#cb904-1" aria-hidden="true"></a>a_true &lt;-<span class="st"> </span><span class="fl">0.75</span> <span class="co"># as before</span></span>
+<span id="cb904-2"><a href="ch-MPT.html#cb904-2" aria-hidden="true"></a><span class="co">## convert the intercept to log-odds space:</span></span>
+<span id="cb904-3"><a href="ch-MPT.html#cb904-3" aria-hidden="true"></a>alpha_a &lt;-<span class="st"> </span><span class="kw">qlogis</span>(a_true)</span>
+<span id="cb904-4"><a href="ch-MPT.html#cb904-4" aria-hidden="true"></a><span class="co">## a_h&#39; in log-odds space:</span></span>
+<span id="cb904-5"><a href="ch-MPT.html#cb904-5" aria-hidden="true"></a>a_h_prime &lt;-<span class="st">  </span>alpha_a <span class="op">+</span><span class="st"> </span>u_a[subj]</span>
+<span id="cb904-6"><a href="ch-MPT.html#cb904-6" aria-hidden="true"></a><span class="co">## convert back to probability space</span></span>
+<span id="cb904-7"><a href="ch-MPT.html#cb904-7" aria-hidden="true"></a>a_true_h &lt;-<span class="st"> </span><span class="kw">plogis</span>(a_h_prime)</span>
+<span id="cb904-8"><a href="ch-MPT.html#cb904-8" aria-hidden="true"></a><span class="kw">str</span>(a_true_h)</span></code></pre></div>
 <pre><code>##  num [1:600] 0.481 0.481 0.481 0.481 0.481 ...</code></pre>
 <p>What this achieves mathematically is adding varying intercepts by subjects to <code>alpha_a</code>, and then the values adjusted by subject are saved in probability space.</p>
 <p>As before, <code>f_true</code> is computed as a function of complexity:</p>
-<div class="sourceCode" id="cb905"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb905-1"><a href="ch-MPT.html#cb905-1" aria-hidden="true"></a>alpha_f &lt;-<span class="st"> </span><span class="fl">0.3</span>; beta_f &lt;-<span class="st"> </span><span class="fl">-0.3</span></span>
-<span id="cb905-2"><a href="ch-MPT.html#cb905-2" aria-hidden="true"></a>f_true &lt;-<span class="st"> </span><span class="kw">plogis</span>(alpha_f <span class="op">+</span><span class="st"> </span>complexity <span class="op">*</span><span class="st"> </span>beta_f)</span></code></pre></div>
+<div class="sourceCode" id="cb906"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb906-1"><a href="ch-MPT.html#cb906-1" aria-hidden="true"></a>alpha_f &lt;-<span class="st"> </span><span class="fl">0.3</span>; beta_f &lt;-<span class="st"> </span><span class="fl">-0.3</span></span>
+<span id="cb906-2"><a href="ch-MPT.html#cb906-2" aria-hidden="true"></a>f_true &lt;-<span class="st"> </span><span class="kw">plogis</span>(alpha_f <span class="op">+</span><span class="st"> </span>complexity <span class="op">*</span><span class="st"> </span>beta_f)</span></code></pre></div>
 <p>We continue with the same probability functions and the rest of the true point values remain the same as well.</p>
-<div class="sourceCode" id="cb906"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb906-1"><a href="ch-MPT.html#cb906-1" aria-hidden="true"></a>t_true &lt;-<span class="st"> </span><span class="fl">0.9</span>; c_true &lt;-<span class="st"> </span><span class="fl">0.1</span></span>
-<span id="cb906-2"><a href="ch-MPT.html#cb906-2" aria-hidden="true"></a>Pr_NR &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
-<span id="cb906-3"><a href="ch-MPT.html#cb906-3" aria-hidden="true"></a>    <span class="dv">1</span> <span class="op">-</span><span class="st"> </span>a</span>
-<span id="cb906-4"><a href="ch-MPT.html#cb906-4" aria-hidden="true"></a>Pr_Neologism &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
-<span id="cb906-5"><a href="ch-MPT.html#cb906-5" aria-hidden="true"></a>    a <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>t) <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f) <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>c) <span class="op">+</span><span class="st"> </span>a <span class="op">*</span><span class="st"> </span>t <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f) <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>c)</span>
-<span id="cb906-6"><a href="ch-MPT.html#cb906-6" aria-hidden="true"></a>Pr_Formal &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
-<span id="cb906-7"><a href="ch-MPT.html#cb906-7" aria-hidden="true"></a>    a <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>t) <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f) <span class="op">*</span><span class="st"> </span>c <span class="op">+</span><span class="st">  </span>a <span class="op">*</span><span class="st"> </span>t <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f) <span class="op">*</span><span class="st"> </span>c</span>
-<span id="cb906-8"><a href="ch-MPT.html#cb906-8" aria-hidden="true"></a>Pr_Mixed &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
-<span id="cb906-9"><a href="ch-MPT.html#cb906-9" aria-hidden="true"></a>    a <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>t) <span class="op">*</span><span class="st"> </span>f</span>
-<span id="cb906-10"><a href="ch-MPT.html#cb906-10" aria-hidden="true"></a>Pr_Correct &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
-<span id="cb906-11"><a href="ch-MPT.html#cb906-11" aria-hidden="true"></a>    a <span class="op">*</span><span class="st"> </span>t <span class="op">*</span><span class="st"> </span>f</span></code></pre></div>
+<div class="sourceCode" id="cb907"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb907-1"><a href="ch-MPT.html#cb907-1" aria-hidden="true"></a>t_true &lt;-<span class="st"> </span><span class="fl">0.9</span>; c_true &lt;-<span class="st"> </span><span class="fl">0.1</span></span>
+<span id="cb907-2"><a href="ch-MPT.html#cb907-2" aria-hidden="true"></a>Pr_NR &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
+<span id="cb907-3"><a href="ch-MPT.html#cb907-3" aria-hidden="true"></a>    <span class="dv">1</span> <span class="op">-</span><span class="st"> </span>a</span>
+<span id="cb907-4"><a href="ch-MPT.html#cb907-4" aria-hidden="true"></a>Pr_Neologism &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
+<span id="cb907-5"><a href="ch-MPT.html#cb907-5" aria-hidden="true"></a>    a <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>t) <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f) <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>c) <span class="op">+</span><span class="st"> </span>a <span class="op">*</span><span class="st"> </span>t <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f) <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>c)</span>
+<span id="cb907-6"><a href="ch-MPT.html#cb907-6" aria-hidden="true"></a>Pr_Formal &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
+<span id="cb907-7"><a href="ch-MPT.html#cb907-7" aria-hidden="true"></a>    a <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>t) <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f) <span class="op">*</span><span class="st"> </span>c <span class="op">+</span><span class="st">  </span>a <span class="op">*</span><span class="st"> </span>t <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f) <span class="op">*</span><span class="st"> </span>c</span>
+<span id="cb907-8"><a href="ch-MPT.html#cb907-8" aria-hidden="true"></a>Pr_Mixed &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
+<span id="cb907-9"><a href="ch-MPT.html#cb907-9" aria-hidden="true"></a>    a <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>t) <span class="op">*</span><span class="st"> </span>f</span>
+<span id="cb907-10"><a href="ch-MPT.html#cb907-10" aria-hidden="true"></a>Pr_Correct &lt;-<span class="st"> </span><span class="cf">function</span>(a, t, f, c)</span>
+<span id="cb907-11"><a href="ch-MPT.html#cb907-11" aria-hidden="true"></a>    a <span class="op">*</span><span class="st"> </span>t <span class="op">*</span><span class="st"> </span>f</span></code></pre></div>
 <p>Now, we can define the probabilities of different outcomes:</p>
-<div class="sourceCode" id="cb907"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb907-1"><a href="ch-MPT.html#cb907-1" aria-hidden="true"></a><span class="co"># Aux. parameters that define the probabilities:</span></span>
-<span id="cb907-2"><a href="ch-MPT.html#cb907-2" aria-hidden="true"></a>theta_NR_v_h &lt;-<span class="st"> </span><span class="kw">Pr_NR</span>(a_true_h, t_true, f_true, c_true)</span>
-<span id="cb907-3"><a href="ch-MPT.html#cb907-3" aria-hidden="true"></a>theta_Neologism_v_h &lt;-<span class="st"> </span><span class="kw">Pr_Neologism</span>(a_true_h, t_true, f_true, c_true)</span>
-<span id="cb907-4"><a href="ch-MPT.html#cb907-4" aria-hidden="true"></a>theta_Formal_v_h &lt;-<span class="st"> </span><span class="kw">Pr_Formal</span>(a_true_h, t_true, f_true, c_true)</span>
-<span id="cb907-5"><a href="ch-MPT.html#cb907-5" aria-hidden="true"></a>theta_Mixed_v_h &lt;-<span class="st"> </span><span class="kw">Pr_Mixed</span>(a_true_h, t_true, f_true, c_true)</span>
-<span id="cb907-6"><a href="ch-MPT.html#cb907-6" aria-hidden="true"></a>theta_Correct_v_h &lt;-<span class="st"> </span><span class="kw">Pr_Correct</span>(a_true_h, t_true, f_true, c_true)</span>
-<span id="cb907-7"><a href="ch-MPT.html#cb907-7" aria-hidden="true"></a>theta_h &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(theta_NR_v_h,</span>
-<span id="cb907-8"><a href="ch-MPT.html#cb907-8" aria-hidden="true"></a>                    theta_Neologism_v_h,</span>
-<span id="cb907-9"><a href="ch-MPT.html#cb907-9" aria-hidden="true"></a>                    theta_Formal_v_h,</span>
-<span id="cb907-10"><a href="ch-MPT.html#cb907-10" aria-hidden="true"></a>                    theta_Mixed_v_h,</span>
-<span id="cb907-11"><a href="ch-MPT.html#cb907-11" aria-hidden="true"></a>                    theta_Correct_v_h),</span>
-<span id="cb907-12"><a href="ch-MPT.html#cb907-12" aria-hidden="true"></a>                  <span class="dt">ncol =</span> <span class="dv">5</span>)</span>
-<span id="cb907-13"><a href="ch-MPT.html#cb907-13" aria-hidden="true"></a><span class="kw">dim</span>(theta_h)</span></code></pre></div>
+<div class="sourceCode" id="cb908"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb908-1"><a href="ch-MPT.html#cb908-1" aria-hidden="true"></a><span class="co"># Aux. parameters that define the probabilities:</span></span>
+<span id="cb908-2"><a href="ch-MPT.html#cb908-2" aria-hidden="true"></a>theta_NR_v_h &lt;-<span class="st"> </span><span class="kw">Pr_NR</span>(a_true_h, t_true, f_true, c_true)</span>
+<span id="cb908-3"><a href="ch-MPT.html#cb908-3" aria-hidden="true"></a>theta_Neologism_v_h &lt;-<span class="st"> </span><span class="kw">Pr_Neologism</span>(a_true_h, t_true, f_true, c_true)</span>
+<span id="cb908-4"><a href="ch-MPT.html#cb908-4" aria-hidden="true"></a>theta_Formal_v_h &lt;-<span class="st"> </span><span class="kw">Pr_Formal</span>(a_true_h, t_true, f_true, c_true)</span>
+<span id="cb908-5"><a href="ch-MPT.html#cb908-5" aria-hidden="true"></a>theta_Mixed_v_h &lt;-<span class="st"> </span><span class="kw">Pr_Mixed</span>(a_true_h, t_true, f_true, c_true)</span>
+<span id="cb908-6"><a href="ch-MPT.html#cb908-6" aria-hidden="true"></a>theta_Correct_v_h &lt;-<span class="st"> </span><span class="kw">Pr_Correct</span>(a_true_h, t_true, f_true, c_true)</span>
+<span id="cb908-7"><a href="ch-MPT.html#cb908-7" aria-hidden="true"></a>theta_h &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(theta_NR_v_h,</span>
+<span id="cb908-8"><a href="ch-MPT.html#cb908-8" aria-hidden="true"></a>                    theta_Neologism_v_h,</span>
+<span id="cb908-9"><a href="ch-MPT.html#cb908-9" aria-hidden="true"></a>                    theta_Formal_v_h,</span>
+<span id="cb908-10"><a href="ch-MPT.html#cb908-10" aria-hidden="true"></a>                    theta_Mixed_v_h,</span>
+<span id="cb908-11"><a href="ch-MPT.html#cb908-11" aria-hidden="true"></a>                    theta_Correct_v_h),</span>
+<span id="cb908-12"><a href="ch-MPT.html#cb908-12" aria-hidden="true"></a>                  <span class="dt">ncol =</span> <span class="dv">5</span>)</span>
+<span id="cb908-13"><a href="ch-MPT.html#cb908-13" aria-hidden="true"></a><span class="kw">dim</span>(theta_h)</span></code></pre></div>
 <pre><code>## [1] 600   5</code></pre>
 <p>The probability specifications shown above can now generate the simulated data:</p>
-<div class="sourceCode" id="cb909"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb909-1"><a href="ch-MPT.html#cb909-1" aria-hidden="true"></a>(sim_data_h &lt;-<span class="st"> </span><span class="kw">mutate</span>(exp_sim,</span>
-<span id="cb909-2"><a href="ch-MPT.html#cb909-2" aria-hidden="true"></a>                      <span class="dt">w_ans =</span> <span class="kw">rcat</span>(N_obs,theta_h)))</span></code></pre></div>
+<div class="sourceCode" id="cb910"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb910-1"><a href="ch-MPT.html#cb910-1" aria-hidden="true"></a>(sim_data_h &lt;-<span class="st"> </span><span class="kw">mutate</span>(exp_sim,</span>
+<span id="cb910-2"><a href="ch-MPT.html#cb910-2" aria-hidden="true"></a>                      <span class="dt">w_ans =</span> <span class="kw">rcat</span>(N_obs,theta_h)))</span></code></pre></div>
 <pre><code>## # A tibble: 600 × 4
 ##    subj  item complexity w_ans
 ##   &lt;int&gt; &lt;int&gt;      &lt;dbl&gt; &lt;dbl&gt;
@@ -2047,7 +2131,7 @@ a_{h,n} &amp;= \text{logit}^{-1}(a_{h,n}&#39;)
 \alpha_a, \alpha_f &amp;\sim \mathit{Normal}(0, 1.5)\\
 \beta_f &amp;\sim \mathit{Normal}(0, 1)\\
 t,c &amp;\sim \mathit{Beta}(2, 2)\\
-\tau_u &amp;\sim \mathit{Normal}(0, 1)\\
+\tau_u &amp;\sim \mathit{Normal}_+(0, 1)\\
 u_a &amp;\sim \mathit{Normal}(0, \tau_{u_a})\\
 a_n &amp;= logit^{-1}(\alpha_a + u_{a,subj[n]})\\
 f_n &amp;= logit^{-1}(\alpha_f + complexity_n \cdot \beta_f)\\
@@ -2114,18 +2198,18 @@ generated quantities{
 }</code></pre>
 <p>For ease of exposition, we are not using the non-centered parameterization discussed previously in section <a href="ch-complexstan.html#sec-uncorrstan">9.1.2</a>. We could also apply it here; that will speed up and improve the convergence of the model. See online exercise <a href="exercises.html#exr:mpt">G.16.4</a>.</p>
 <p>It would be a good idea to plot prior predictive distributions for this model, but we skip this step here. Next, fit the model to the simulated data, by first defining the data as a list:</p>
-<div class="sourceCode" id="cb912"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb912-1"><a href="ch-MPT.html#cb912-1" aria-hidden="true"></a>sim_list_h &lt;-<span class="st">  </span><span class="kw">list</span>(<span class="dt">N_obs =</span> <span class="kw">nrow</span>(sim_data_h),</span>
-<span id="cb912-2"><a href="ch-MPT.html#cb912-2" aria-hidden="true"></a>                    <span class="dt">w_ans =</span> sim_data_h<span class="op">$</span>w_ans,</span>
-<span id="cb912-3"><a href="ch-MPT.html#cb912-3" aria-hidden="true"></a>                    <span class="dt">N_subj =</span> <span class="kw">max</span>(sim_data_h<span class="op">$</span>subj),</span>
-<span id="cb912-4"><a href="ch-MPT.html#cb912-4" aria-hidden="true"></a>                    <span class="dt">subj =</span> sim_data_h<span class="op">$</span>subj,</span>
-<span id="cb912-5"><a href="ch-MPT.html#cb912-5" aria-hidden="true"></a>                    <span class="dt">complexity =</span> sim_data_h<span class="op">$</span>complexity)</span></code></pre></div>
-<div class="sourceCode" id="cb913"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb913-1"><a href="ch-MPT.html#cb913-1" aria-hidden="true"></a>mpt_h &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
-<span id="cb913-2"><a href="ch-MPT.html#cb913-2" aria-hidden="true"></a>                     <span class="st">&quot;mpt_h.stan&quot;</span>,</span>
-<span id="cb913-3"><a href="ch-MPT.html#cb913-3" aria-hidden="true"></a>                     <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
-<span id="cb913-4"><a href="ch-MPT.html#cb913-4" aria-hidden="true"></a>fit_mpt_h &lt;-<span class="st"> </span><span class="kw">stan</span>(mpt_h, <span class="dt">data =</span> sim_list_h)</span></code></pre></div>
+<div class="sourceCode" id="cb913"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb913-1"><a href="ch-MPT.html#cb913-1" aria-hidden="true"></a>sim_list_h &lt;-<span class="st">  </span><span class="kw">list</span>(<span class="dt">N_obs =</span> <span class="kw">nrow</span>(sim_data_h),</span>
+<span id="cb913-2"><a href="ch-MPT.html#cb913-2" aria-hidden="true"></a>                    <span class="dt">w_ans =</span> sim_data_h<span class="op">$</span>w_ans,</span>
+<span id="cb913-3"><a href="ch-MPT.html#cb913-3" aria-hidden="true"></a>                    <span class="dt">N_subj =</span> <span class="kw">max</span>(sim_data_h<span class="op">$</span>subj),</span>
+<span id="cb913-4"><a href="ch-MPT.html#cb913-4" aria-hidden="true"></a>                    <span class="dt">subj =</span> sim_data_h<span class="op">$</span>subj,</span>
+<span id="cb913-5"><a href="ch-MPT.html#cb913-5" aria-hidden="true"></a>                    <span class="dt">complexity =</span> sim_data_h<span class="op">$</span>complexity)</span></code></pre></div>
+<div class="sourceCode" id="cb914"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb914-1"><a href="ch-MPT.html#cb914-1" aria-hidden="true"></a>mpt_h &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
+<span id="cb914-2"><a href="ch-MPT.html#cb914-2" aria-hidden="true"></a>                     <span class="st">&quot;mpt_h.stan&quot;</span>,</span>
+<span id="cb914-3"><a href="ch-MPT.html#cb914-3" aria-hidden="true"></a>                     <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
+<span id="cb914-4"><a href="ch-MPT.html#cb914-4" aria-hidden="true"></a>fit_mpt_h &lt;-<span class="st"> </span><span class="kw">stan</span>(mpt_h, <span class="dt">data =</span> sim_list_h)</span></code></pre></div>
 <p>Print out a summary of the posterior:</p>
-<div class="sourceCode" id="cb914"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb914-1"><a href="ch-MPT.html#cb914-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mpt_h,</span>
-<span id="cb914-2"><a href="ch-MPT.html#cb914-2" aria-hidden="true"></a>      <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;t&quot;</span>, <span class="st">&quot;c&quot;</span>, <span class="st">&quot;tau_u_a&quot;</span>, <span class="st">&quot;alpha_a&quot;</span>, <span class="st">&quot;alpha_f&quot;</span>, <span class="st">&quot;beta_f&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb915"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb915-1"><a href="ch-MPT.html#cb915-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mpt_h,</span>
+<span id="cb915-2"><a href="ch-MPT.html#cb915-2" aria-hidden="true"></a>      <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;t&quot;</span>, <span class="st">&quot;c&quot;</span>, <span class="st">&quot;tau_u_a&quot;</span>, <span class="st">&quot;alpha_a&quot;</span>, <span class="st">&quot;alpha_f&quot;</span>, <span class="st">&quot;beta_f&quot;</span>))</span></code></pre></div>
 <pre><code>##          mean  2.5% 97.5% n_eff Rhat
 ## t        0.91  0.87  0.94  5039    1
 ## c        0.11  0.07  0.16  4970    1
@@ -2139,25 +2223,25 @@ generated quantities{
 <li><p>given the posterior distribution of <code>tau_u_a</code>, there is a great deal of variation in the subjects’ probability of initiating an attempt at each trial. Furthermore, if we had some expectation about <span class="math inline">\(t\)</span> and <span class="math inline">\(c\)</span> based on previous research, we could conclude that our results are in line (or not) with previous findings.</p></li>
 </ol>
 <p>One could inspect how one unit of complexity is affecting the probability of retrieving the correct phoneme (<span class="math inline">\(f\)</span>). We first derive the value of <code>f</code> for an item of zero complexity (that is <span class="math inline">\(\alpha_{f} + 0 \times \beta_{f}\)</span>) and then the value of <code>f</code> for an item with a complexity of one (<span class="math inline">\(\alpha_{f} + 1 \times \beta_{f}\)</span>). We are interested in summarizing the difference between the two:</p>
-<div class="sourceCode" id="cb916"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb916-1"><a href="ch-MPT.html#cb916-1" aria-hidden="true"></a><span class="kw">as.data.frame</span>(fit_mpt_h) <span class="op">%&gt;%</span></span>
-<span id="cb916-2"><a href="ch-MPT.html#cb916-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">select</span>(alpha_f, beta_f) <span class="op">%&gt;%</span></span>
-<span id="cb916-3"><a href="ch-MPT.html#cb916-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">f_0 =</span> <span class="kw">plogis</span>(alpha_f),</span>
-<span id="cb916-4"><a href="ch-MPT.html#cb916-4" aria-hidden="true"></a>         <span class="dt">f_1 =</span> <span class="kw">plogis</span>(alpha_f <span class="op">+</span><span class="st"> </span>beta_f),</span>
-<span id="cb916-5"><a href="ch-MPT.html#cb916-5" aria-hidden="true"></a>         <span class="dt">diff_f =</span> f_<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f_<span class="dv">0</span>) <span class="op">%&gt;%</span></span>
-<span id="cb916-6"><a href="ch-MPT.html#cb916-6" aria-hidden="true"></a><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">Estimate =</span> <span class="kw">mean</span>(diff_f),</span>
-<span id="cb916-7"><a href="ch-MPT.html#cb916-7" aria-hidden="true"></a>          <span class="st">`</span><span class="dt">2.5%</span><span class="st">`</span> =<span class="st"> </span><span class="kw">quantile</span>(diff_f, <span class="fl">0.025</span>),</span>
-<span id="cb916-8"><a href="ch-MPT.html#cb916-8" aria-hidden="true"></a>          <span class="st">`</span><span class="dt">97.5%</span><span class="st">`</span> =<span class="st"> </span><span class="kw">quantile</span>(diff_f, <span class="fl">0.975</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb917"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb917-1"><a href="ch-MPT.html#cb917-1" aria-hidden="true"></a><span class="kw">as.data.frame</span>(fit_mpt_h) <span class="op">%&gt;%</span></span>
+<span id="cb917-2"><a href="ch-MPT.html#cb917-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">select</span>(alpha_f, beta_f) <span class="op">%&gt;%</span></span>
+<span id="cb917-3"><a href="ch-MPT.html#cb917-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">f_0 =</span> <span class="kw">plogis</span>(alpha_f),</span>
+<span id="cb917-4"><a href="ch-MPT.html#cb917-4" aria-hidden="true"></a>         <span class="dt">f_1 =</span> <span class="kw">plogis</span>(alpha_f <span class="op">+</span><span class="st"> </span>beta_f),</span>
+<span id="cb917-5"><a href="ch-MPT.html#cb917-5" aria-hidden="true"></a>         <span class="dt">diff_f =</span> f_<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>f_<span class="dv">0</span>) <span class="op">%&gt;%</span></span>
+<span id="cb917-6"><a href="ch-MPT.html#cb917-6" aria-hidden="true"></a><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">Estimate =</span> <span class="kw">mean</span>(diff_f),</span>
+<span id="cb917-7"><a href="ch-MPT.html#cb917-7" aria-hidden="true"></a>          <span class="st">`</span><span class="dt">2.5%</span><span class="st">`</span> =<span class="st"> </span><span class="kw">quantile</span>(diff_f, <span class="fl">0.025</span>),</span>
+<span id="cb917-8"><a href="ch-MPT.html#cb917-8" aria-hidden="true"></a>          <span class="st">`</span><span class="dt">97.5%</span><span class="st">`</span> =<span class="st"> </span><span class="kw">quantile</span>(diff_f, <span class="fl">0.975</span>))</span></code></pre></div>
 <pre><code>##   Estimate   2.5%   97.5%
 ## 1   -0.054 -0.103 -0.0053</code></pre>
 <p>It is worth highlighting that MPT models (like other cognitive models) should be experimentally validated before interpreting the parameters as measures of cognitive processes. Particularly powerful are tests of selective influence, where one demonstrates that each of the parameters can be selectively influenced as theoretically predicted, while all other parameters remain unaffected <span class="citation">(Schmidt, Erdfelder, and Heck <a href="#ref-SchmidtEtAl2023Howdeveloptest" role="doc-biblioref">2023</a>)</span>.</p>
 <p>One further interesting step could be to develop a competing model that assumes a different latent process, and then comparing the performance of the MPT with this competing model, using Bayes factors or K-fold-CV (or both).</p>
 <p>Since we generated the data based on known latent parameters, we also plot the posteriors together with the true point values of the parameters in Figure <a href="ch-MPT.html#fig:mpt-h">16.4</a>. This is something that we can only do with simulated data.</p>
-<div class="sourceCode" id="cb918"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb918-1"><a href="ch-MPT.html#cb918-1" aria-hidden="true"></a><span class="kw">as.data.frame</span>(fit_mpt_h) <span class="op">%&gt;%</span></span>
-<span id="cb918-2"><a href="ch-MPT.html#cb918-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">select</span>(tau_u_a, alpha_a, t, alpha_f, beta_f, c) <span class="op">%&gt;%</span></span>
-<span id="cb918-3"><a href="ch-MPT.html#cb918-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">mcmc_recover_hist</span>(<span class="dt">true =</span> <span class="kw">c</span>(tau_u_a,</span>
-<span id="cb918-4"><a href="ch-MPT.html#cb918-4" aria-hidden="true"></a>                             <span class="kw">qlogis</span>(a_true),</span>
-<span id="cb918-5"><a href="ch-MPT.html#cb918-5" aria-hidden="true"></a>                             t_true, alpha_f,</span>
-<span id="cb918-6"><a href="ch-MPT.html#cb918-6" aria-hidden="true"></a>                             beta_f, c_true))</span></code></pre></div>
+<div class="sourceCode" id="cb919"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb919-1"><a href="ch-MPT.html#cb919-1" aria-hidden="true"></a><span class="kw">as.data.frame</span>(fit_mpt_h) <span class="op">%&gt;%</span></span>
+<span id="cb919-2"><a href="ch-MPT.html#cb919-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">select</span>(tau_u_a, alpha_a, t, alpha_f, beta_f, c) <span class="op">%&gt;%</span></span>
+<span id="cb919-3"><a href="ch-MPT.html#cb919-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">mcmc_recover_hist</span>(<span class="dt">true =</span> <span class="kw">c</span>(tau_u_a,</span>
+<span id="cb919-4"><a href="ch-MPT.html#cb919-4" aria-hidden="true"></a>                             <span class="kw">qlogis</span>(a_true),</span>
+<span id="cb919-5"><a href="ch-MPT.html#cb919-5" aria-hidden="true"></a>                             t_true, alpha_f,</span>
+<span id="cb919-6"><a href="ch-MPT.html#cb919-6" aria-hidden="true"></a>                             beta_f, c_true))</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:mpt-h"></span>
 <img src="bayescogsci_files/figure-html/mpt-h-1.svg" alt="Posterior of the hierarchical MPT with true point values as vertical lines (model `mpt_h.stan`)." width="672" />
 <p class="caption">
@@ -2165,9 +2249,9 @@ FIGURE 16.4: Posterior of the hierarchical MPT with true point values as vertica
 </p>
 </div>
 <p>If everything is correctly defined in the model, we should be able to generate posterior predictive data based on our estimates that looks quite similar to the simulated data; see Figure <a href="ch-MPT.html#fig:aggMPT-h">16.5</a>. The error bars in <span class="math inline">\(y_{rep}\)</span> include 90% of the probability mass of the predictive distribution (this is a default of <code>ppc_bars()</code>). In a well-calibrated model, the data (<span class="math inline">\(y\)</span>, here the proportion of answers of each type) should be inside the error bars in 90% of the cases.</p>
-<div class="sourceCode" id="cb919"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb919-1"><a href="ch-MPT.html#cb919-1" aria-hidden="true"></a>gen_data &lt;-<span class="st"> </span>rstan<span class="op">::</span><span class="kw">extract</span>(fit_mpt_h)<span class="op">$</span>pred_w_ans</span>
-<span id="cb919-2"><a href="ch-MPT.html#cb919-2" aria-hidden="true"></a><span class="kw">ppc_bars</span>(sim_list_h<span class="op">$</span>w_ans, gen_data) <span class="op">+</span></span>
-<span id="cb919-3"><a href="ch-MPT.html#cb919-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">ggtitle</span> (<span class="st">&quot;Hierarchical model&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb920"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb920-1"><a href="ch-MPT.html#cb920-1" aria-hidden="true"></a>gen_data &lt;-<span class="st"> </span>rstan<span class="op">::</span><span class="kw">extract</span>(fit_mpt_h)<span class="op">$</span>pred_w_ans</span>
+<span id="cb920-2"><a href="ch-MPT.html#cb920-2" aria-hidden="true"></a><span class="kw">ppc_bars</span>(sim_list_h<span class="op">$</span>w_ans, gen_data) <span class="op">+</span></span>
+<span id="cb920-3"><a href="ch-MPT.html#cb920-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">ggtitle</span> (<span class="st">&quot;Hierarchical model&quot;</span>)</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:aggMPT-h"></span>
 <img src="bayescogsci_files/figure-html/aggMPT-h-1.svg" alt="A posterior predictive check for aggregated data in the hierarchical MPT model." width="672" />
 <p class="caption">
@@ -2175,9 +2259,9 @@ FIGURE 16.5: A posterior predictive check for aggregated data in the hierarchica
 </p>
 </div>
 <p>It is also useful to look at the individual subjects’ posteriors; these are shown in Figure <a href="ch-MPT.html#fig:pMPT-h">16.6</a>.</p>
-<div class="sourceCode" id="cb920"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb920-1"><a href="ch-MPT.html#cb920-1" aria-hidden="true"></a><span class="kw">ppc_bars_grouped</span>(sim_list_h<span class="op">$</span>w_ans,</span>
-<span id="cb920-2"><a href="ch-MPT.html#cb920-2" aria-hidden="true"></a>                 gen_data, <span class="dt">group =</span> subj) <span class="op">+</span></span>
-<span id="cb920-3"><a href="ch-MPT.html#cb920-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">ggtitle</span> (<span class="st">&quot;By-subject plot for the hierarchical model&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb921"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb921-1"><a href="ch-MPT.html#cb921-1" aria-hidden="true"></a><span class="kw">ppc_bars_grouped</span>(sim_list_h<span class="op">$</span>w_ans,</span>
+<span id="cb921-2"><a href="ch-MPT.html#cb921-2" aria-hidden="true"></a>                 gen_data, <span class="dt">group =</span> subj) <span class="op">+</span></span>
+<span id="cb921-3"><a href="ch-MPT.html#cb921-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">ggtitle</span> (<span class="st">&quot;By-subject plot for the hierarchical model&quot;</span>)</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:pMPT-h"></span>
 <img src="bayescogsci_files/figure-html/pMPT-h-1.svg" alt="Individual subjects in the hierarchical MPT model." width="672" />
 <p class="caption">
@@ -2185,14 +2269,14 @@ FIGURE 16.6: Individual subjects in the hierarchical MPT model.
 </p>
 </div>
 <p>But what about the first <em>non-hierarchical</em> MPT model (<code>mpt_cat.stan</code>)?</p>
-<div class="sourceCode" id="cb921"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb921-1"><a href="ch-MPT.html#cb921-1" aria-hidden="true"></a>mpt_cat &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
-<span id="cb921-2"><a href="ch-MPT.html#cb921-2" aria-hidden="true"></a>                       <span class="st">&quot;mpt_cat.stan&quot;</span>,</span>
-<span id="cb921-3"><a href="ch-MPT.html#cb921-3" aria-hidden="true"></a>                       <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
-<span id="cb921-4"><a href="ch-MPT.html#cb921-4" aria-hidden="true"></a>fit_sh &lt;-<span class="st"> </span><span class="kw">stan</span>(mpt_cat, <span class="dt">data =</span> sim_list_h)</span></code></pre></div>
+<div class="sourceCode" id="cb922"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb922-1"><a href="ch-MPT.html#cb922-1" aria-hidden="true"></a>mpt_cat &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
+<span id="cb922-2"><a href="ch-MPT.html#cb922-2" aria-hidden="true"></a>                       <span class="st">&quot;mpt_cat.stan&quot;</span>,</span>
+<span id="cb922-3"><a href="ch-MPT.html#cb922-3" aria-hidden="true"></a>                       <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
+<span id="cb922-4"><a href="ch-MPT.html#cb922-4" aria-hidden="true"></a>fit_sh &lt;-<span class="st"> </span><span class="kw">stan</span>(mpt_cat, <span class="dt">data =</span> sim_list_h)</span></code></pre></div>
 <p>The aggregated data looks great (Figure <a href="ch-MPT.html#fig:aggMPT-nh">16.7</a>).</p>
-<div class="sourceCode" id="cb922"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb922-1"><a href="ch-MPT.html#cb922-1" aria-hidden="true"></a>gen_data_sMPT &lt;-<span class="st"> </span>rstan<span class="op">::</span><span class="kw">extract</span>(fit_sh)<span class="op">$</span>pred_w_ans</span>
-<span id="cb922-2"><a href="ch-MPT.html#cb922-2" aria-hidden="true"></a><span class="kw">ppc_bars</span>(sim_list_h<span class="op">$</span>w_ans, gen_data_sMPT) <span class="op">+</span></span>
-<span id="cb922-3"><a href="ch-MPT.html#cb922-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">ggtitle</span> (<span class="st">&quot;Non-hierarchical model&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb923"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb923-1"><a href="ch-MPT.html#cb923-1" aria-hidden="true"></a>gen_data_sMPT &lt;-<span class="st"> </span>rstan<span class="op">::</span><span class="kw">extract</span>(fit_sh)<span class="op">$</span>pred_w_ans</span>
+<span id="cb923-2"><a href="ch-MPT.html#cb923-2" aria-hidden="true"></a><span class="kw">ppc_bars</span>(sim_list_h<span class="op">$</span>w_ans, gen_data_sMPT) <span class="op">+</span></span>
+<span id="cb923-3"><a href="ch-MPT.html#cb923-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">ggtitle</span> (<span class="st">&quot;Non-hierarchical model&quot;</span>)</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:aggMPT-nh"></span>
 <img src="bayescogsci_files/figure-html/aggMPT-nh-1.svg" alt="Posterior predictive check for aggregated data in a non-hierarchical MPT model (`mpt_cat.stan`)." width="672" />
 <p class="caption">
@@ -2201,8 +2285,8 @@ FIGURE 16.7: Posterior predictive check for aggregated data in a non-hierarchica
 </div>
 <p>However, in the non-hierarchical model, the fit to individual subjects is not as good (Figure <a href="ch-MPT.html#fig:pMPT">16.8</a>): The error bars of the predicted distribution
 is of course identical for each subject (up to sampling variability) and do not include the observed proportion of answers for many of the subjects.</p>
-<div class="sourceCode" id="cb923"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb923-1"><a href="ch-MPT.html#cb923-1" aria-hidden="true"></a><span class="kw">ppc_bars_grouped</span>(sim_list_h<span class="op">$</span>w_ans, gen_data_sMPT, <span class="dt">group =</span> subj) <span class="op">+</span></span>
-<span id="cb923-2"><a href="ch-MPT.html#cb923-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">ggtitle</span> (<span class="st">&quot;By-subject plot for the non-hierarchical model&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb924"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb924-1"><a href="ch-MPT.html#cb924-1" aria-hidden="true"></a><span class="kw">ppc_bars_grouped</span>(sim_list_h<span class="op">$</span>w_ans, gen_data_sMPT, <span class="dt">group =</span> subj) <span class="op">+</span></span>
+<span id="cb924-2"><a href="ch-MPT.html#cb924-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">ggtitle</span> (<span class="st">&quot;By-subject plot for the non-hierarchical model&quot;</span>)</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:pMPT"></span>
 <img src="bayescogsci_files/figure-html/pMPT-1.svg" alt="Individual subjects in the non-hierarchical MPT model (`mpt_cat.stan`)." width="672" />
 <p class="caption">

@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel J. Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2025-02-12" />
+<meta name="date" content="2026-01-13" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -375,15 +375,18 @@ window.initializeCodeFolding = function(show) {
     $(this).before(div);
     $(this).detach().appendTo(div);
 
-    // add a show code button right above
-    var showCodeText = $('<span>' + (show ? 'Hide' : 'Code') + '</span>');
+    // CRITICAL FIX: Create button with aria-hidden text that won't be copied
     var showCodeButton = $('<button type="button" class="btn btn-default btn-xs code-folding-btn pull-right"></button>');
-    showCodeButton.append(showCodeText);
     showCodeButton
         .attr('data-toggle', 'collapse')
         .attr('data-target', '#' + id)
         .attr('aria-expanded', show)
-        .attr('aria-controls', id);
+        .attr('aria-controls', id)
+        .attr('aria-label', show ? 'Hide code' : 'Show code');
+    
+    // Use aria-hidden to prevent screen readers and copy from seeing text
+    var showCodeText = $('<span aria-hidden="true" style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; pointer-events: none;">' + (show ? 'Hide' : 'Code') + '</span>');
+    showCodeButton.append(showCodeText);
 
     var buttonRow = $('<div class="row"></div>');
     var buttonCol = $('<div class="col-md-12"></div>');
@@ -393,16 +396,18 @@ window.initializeCodeFolding = function(show) {
 
     div.before(buttonRow);
 
-    // hack: return show to false, otherwise all next codeBlocks will be shown!
-    show = false;
-
-    // update state of button on show/hide
-    div.on('hidden.bs.collapse', function () {
+    // update the text of the button when it's clicked
+    div.on('hide.bs.collapse', function () {
       showCodeText.text('Code');
+      showCodeButton.attr('aria-label', 'Show code');
     });
     div.on('show.bs.collapse', function () {
       showCodeText.text('Hide');
+      showCodeButton.attr('aria-label', 'Hide code');
     });
+
+    // hack: return show to false, otherwise all next codeBlocks will be shown!
+    show = false;
   });
 
 }
@@ -793,6 +798,78 @@ $(document).ready(function () {
 });
 </script>
 
+<!-- NUCLEAR OPTION: Intercept ALL copy events and strip button text -->
+<script>
+$(document).ready(function() {
+  
+  // Method 1: Make button spans completely invisible to selection
+  function protectButtons() {
+    $('.code-folding-btn span').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+      this.style.setProperty('pointer-events', 'none', 'important');
+      $(this).attr('unselectable', 'on');
+      $(this).attr('aria-hidden', 'true');
+    });
+    
+    $('.code-folding-btn').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+    });
+  }
+  
+  protectButtons();
+  setTimeout(protectButtons, 100);
+  setTimeout(protectButtons, 500);
+  setTimeout(protectButtons, 1000);
+  
+  // Method 2: Aggressive copy event interception
+  document.addEventListener('copy', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    // Remove "Hide" or "Code" from the start
+    if (selectedText) {
+      var cleanedText = selectedText
+        .replace(/^(Hide|Code)\s*/gm, '')  // Remove from start of any line
+        .replace(/\s+(Hide|Code)\s*$/gm, '');  // Remove from end
+      
+      if (cleanedText !== selectedText) {
+        e.preventDefault();
+        
+        if (e.clipboardData) {
+          e.clipboardData.setData('text/plain', cleanedText);
+        } else if (window.clipboardData) {
+          window.clipboardData.setData('Text', cleanedText);
+        }
+      }
+    }
+  }, true);  // Use capture phase
+  
+  // Method 3: Override native copy for code blocks
+  $('body').on('copy', 'pre, pre.sourceCode, .sourceCode, code', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    if (selectedText && (selectedText.startsWith('Hide') || selectedText.startsWith('Code'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      var cleanedText = selectedText.replace(/^(Hide|Code)\s*/, '');
+      
+      if (e.originalEvent.clipboardData) {
+        e.originalEvent.clipboardData.setData('text/plain', cleanedText);
+      } else if (window.clipboardData) {
+        window.clipboardData.setData('Text', cleanedText);
+      }
+    }
+  });
+});
+</script>
 
 <script data-goatcounter="https://bayescogsci.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
@@ -1436,6 +1513,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
+<div class="book-banner">
+  <div class="banner-content">
+    📚 Get the print version of the book from 
+    <a href="https://www.taylorfrancis.com/books/mono/10.1201/9780429342646/introduction-bayesian-data-analysis-cognitive-science-shravan-vasishth-bruno-nicenboim-daniel-schad" target="_blank" rel="noopener">CRC Press</a> or your favorite store.
+    <button class="banner-close" onclick="this.parentElement.parentElement.style.display='none';" aria-label="Close banner">&times;</button>
+  </div>
+</div>
 <div id="ch-bf" class="section level1 hasAnchor" number="13">
 <h1><span class="header-section-number">Chapter 13</span> Bayes factors<a href="ch-bf.html#ch-bf" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <p>This chapter is based on a longer manuscript available on arXiv: <span class="citation">Schad et al. (<a href="#ref-SchadEtAlBF" role="doc-biblioref">2021</a>)</span>; our terminology used here is based on the conventions used in that paper. A published version of the arXiv article appears in Schad, D. J., Nicenboim, B., Bürkner, P. C., Betancourt, M., and Vasishth, S. (2022). Workflow techniques for the robust use of Bayes factors. Psychological Methods. In this chapter, whenever we refer to the published version of the arXiv paper, we mean this article.</p>
@@ -2110,6 +2194,8 @@ For each of these data sets, we can proceed in exactly the same way as we did fo
 <h4><span class="header-section-number">13.5.2.6</span> Visualize distribution of Bayes factors<a href="ch-bf.html#visualize-distribution-of-bayes-factors" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p>We can now visualize the distribution of Bayes factors (<span class="math inline">\(BF_{10}\)</span>) across the simulated data by plotting a histogram.
 In this histogram, values greater than one support the alternative model (M1) that there are agreement attraction effects (i.e., the sentence type effect differs from zero), and values of the Bayes factor less than one support the null model (M0), which states that there is no agreement attraction effect (i.e., there is no difference in reading times between experimental conditions).</p>
+<pre><code> ## Warning: Method &#39;posterior_samples&#39; is deprecated.
+ ## Please see ?as_draws for recommended alternatives. </code></pre>
 <div class="figure"><span style="display:block;" id="fig:plotBFdistrn"></span>
 <img src="bayescogsci_files/figure-html/plotBFdistrn-1.svg" alt="Estimates of the retrieval interference facilitatory effect and the 95% credible intervals for all simulations (solid lines) and the empirically observed data (dashed line) are shown in the left panel. An illustration of the alternative model's Bayes factors (BF10) over the null model in 50 simulated data sets is shown in the right panel. The horizontal error bar displays 95% of all Bayes factors, the dashed line displays the Bayes factor calculated from the empirical data, and the vertical solid black line displays equal evidence for both hypotheses." width="672" />
 <p class="caption">

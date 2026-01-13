@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel J. Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2025-02-12" />
+<meta name="date" content="2026-01-13" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -375,15 +375,18 @@ window.initializeCodeFolding = function(show) {
     $(this).before(div);
     $(this).detach().appendTo(div);
 
-    // add a show code button right above
-    var showCodeText = $('<span>' + (show ? 'Hide' : 'Code') + '</span>');
+    // CRITICAL FIX: Create button with aria-hidden text that won't be copied
     var showCodeButton = $('<button type="button" class="btn btn-default btn-xs code-folding-btn pull-right"></button>');
-    showCodeButton.append(showCodeText);
     showCodeButton
         .attr('data-toggle', 'collapse')
         .attr('data-target', '#' + id)
         .attr('aria-expanded', show)
-        .attr('aria-controls', id);
+        .attr('aria-controls', id)
+        .attr('aria-label', show ? 'Hide code' : 'Show code');
+    
+    // Use aria-hidden to prevent screen readers and copy from seeing text
+    var showCodeText = $('<span aria-hidden="true" style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; pointer-events: none;">' + (show ? 'Hide' : 'Code') + '</span>');
+    showCodeButton.append(showCodeText);
 
     var buttonRow = $('<div class="row"></div>');
     var buttonCol = $('<div class="col-md-12"></div>');
@@ -393,16 +396,18 @@ window.initializeCodeFolding = function(show) {
 
     div.before(buttonRow);
 
-    // hack: return show to false, otherwise all next codeBlocks will be shown!
-    show = false;
-
-    // update state of button on show/hide
-    div.on('hidden.bs.collapse', function () {
+    // update the text of the button when it's clicked
+    div.on('hide.bs.collapse', function () {
       showCodeText.text('Code');
+      showCodeButton.attr('aria-label', 'Show code');
     });
     div.on('show.bs.collapse', function () {
       showCodeText.text('Hide');
+      showCodeButton.attr('aria-label', 'Hide code');
     });
+
+    // hack: return show to false, otherwise all next codeBlocks will be shown!
+    show = false;
   });
 
 }
@@ -793,6 +798,78 @@ $(document).ready(function () {
 });
 </script>
 
+<!-- NUCLEAR OPTION: Intercept ALL copy events and strip button text -->
+<script>
+$(document).ready(function() {
+  
+  // Method 1: Make button spans completely invisible to selection
+  function protectButtons() {
+    $('.code-folding-btn span').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+      this.style.setProperty('pointer-events', 'none', 'important');
+      $(this).attr('unselectable', 'on');
+      $(this).attr('aria-hidden', 'true');
+    });
+    
+    $('.code-folding-btn').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+    });
+  }
+  
+  protectButtons();
+  setTimeout(protectButtons, 100);
+  setTimeout(protectButtons, 500);
+  setTimeout(protectButtons, 1000);
+  
+  // Method 2: Aggressive copy event interception
+  document.addEventListener('copy', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    // Remove "Hide" or "Code" from the start
+    if (selectedText) {
+      var cleanedText = selectedText
+        .replace(/^(Hide|Code)\s*/gm, '')  // Remove from start of any line
+        .replace(/\s+(Hide|Code)\s*$/gm, '');  // Remove from end
+      
+      if (cleanedText !== selectedText) {
+        e.preventDefault();
+        
+        if (e.clipboardData) {
+          e.clipboardData.setData('text/plain', cleanedText);
+        } else if (window.clipboardData) {
+          window.clipboardData.setData('Text', cleanedText);
+        }
+      }
+    }
+  }, true);  // Use capture phase
+  
+  // Method 3: Override native copy for code blocks
+  $('body').on('copy', 'pre, pre.sourceCode, .sourceCode, code', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    if (selectedText && (selectedText.startsWith('Hide') || selectedText.startsWith('Code'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      var cleanedText = selectedText.replace(/^(Hide|Code)\s*/, '');
+      
+      if (e.originalEvent.clipboardData) {
+        e.originalEvent.clipboardData.setData('text/plain', cleanedText);
+      } else if (window.clipboardData) {
+        window.clipboardData.setData('Text', cleanedText);
+      }
+    }
+  });
+});
+</script>
 
 <script data-goatcounter="https://bayescogsci.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
@@ -1436,6 +1513,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
+<div class="book-banner">
+  <div class="banner-content">
+    📚 Get the print version of the book from 
+    <a href="https://www.taylorfrancis.com/books/mono/10.1201/9780429342646/introduction-bayesian-data-analysis-cognitive-science-shravan-vasishth-bruno-nicenboim-daniel-schad" target="_blank" rel="noopener">CRC Press</a> or your favorite store.
+    <button class="banner-close" onclick="this.parentElement.parentElement.style.display='none';" aria-label="Close banner">&times;</button>
+  </div>
+</div>
 <div id="ch-reg" class="section level1 hasAnchor" number="4">
 <h1><span class="header-section-number">Chapter 4</span> Bayesian regression models<a href="ch-reg.html#ch-reg" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <p>We generally run experiments because we are interested in the relationship between two or more variables. A regression will tell us how our  <em>dependent variable</em>, also called the <em>response</em> or  <em>outcome variable</em> (e.g., pupil size, response times, accuracy, etc.) is affected by one or many  <em>independent variables</em>, <em>predictors</em>, or  <em>explanatory variables</em>. Predictors can be categorical (e.g., male or female), ordinal (first, second, third, etc.), or continuous (e.g., age). In this chapter we focus on simple regression models with different likelihood functions.</p>
@@ -1538,22 +1622,22 @@ FIGURE 4.2: The posterior distributions of the parameters in the <code>brms</cod
 <pre><code>## ...
 ## Population-Level Effects: 
 ##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept   702.30     19.92   664.39   741.46 1.00     3737     2987
-## c_load       33.74     11.40    11.74    56.71 1.00     3672     2808
+## Intercept   701.50     20.19   661.31   740.95 1.00     3552     2311
+## c_load       33.76     12.12     9.80    57.46 1.00     3706     2712
 ## 
 ## Family Specific Parameters: 
 ##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sigma   128.34     14.75   103.13   160.52 1.00     3881     2903
+## sigma   129.21     15.08   104.03   161.83 1.00     3287     2575
 ## 
 ## ...</code></pre>
 <p>In the next section, we discuss how one can communicate the relevant information from the model.</p>
 </div>
 <div id="how-to-communicate-the-results" class="section level3 hasAnchor" number="4.1.3">
 <h3><span class="header-section-number">4.1.3</span> How to communicate the results?<a href="ch-reg.html#how-to-communicate-the-results" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p>We want to answer the research question “What is the effect of attentional load on the subject’s pupil size?” To answer this question, we’ll need to examine what happens with the posterior distribution of <span class="math inline">\(\beta\)</span>, which is printed out as <code>c_load</code> in the summary of <code>brms</code>. The summary of the  posterior tells us that the most likely values of <span class="math inline">\(\beta\)</span> will be around the mean of the posterior, 33.74, and we can be 95% certain that the value of <span class="math inline">\(\beta\)</span>, given the model and the data, lies between 11.74 and 56.71.</p>
+<p>We want to answer the research question “What is the effect of attentional load on the subject’s pupil size?” To answer this question, we’ll need to examine what happens with the posterior distribution of <span class="math inline">\(\beta\)</span>, which is printed out as <code>c_load</code> in the summary of <code>brms</code>. The summary of the  posterior tells us that the most likely values of <span class="math inline">\(\beta\)</span> will be around the mean of the posterior, 33.76, and we can be 95% certain that the value of <span class="math inline">\(\beta\)</span>, given the model and the data, lies between 9.8 and 57.46.</p>
 <p>The model tells us that as attentional load increases, the pupil size of the subject becomes larger. If we want to determine the probability that the pupil size increases rather than decreases, we can compute the proportion of samples that lie above zero. (The intercept and the slopes are always preceded by <code>b_</code> in <code>brms</code>. One can see all the names of parameters being estimated with <code>variables()</code>.)</p>
 <div class="sourceCode" id="cb164"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb164-1"><a href="ch-reg.html#cb164-1" aria-hidden="true"></a><span class="kw">mean</span>(<span class="kw">as_draws_df</span>(fit_pupil)<span class="op">$</span>b_c_load <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)</span></code></pre></div>
-<pre><code>## [1] 0.998</code></pre>
+<pre><code>## [1] 0.997</code></pre>
 <p><strong>This high probability does not mean that the effect of load is non-zero.</strong> It means instead that it’s much more probable that the effect is positive rather than negative. In order to claim that the effect is probably non-zero, we would have to compare the model with an alternative model in which the model assumes that the effect of load is assumed to be <span class="math inline">\(0\)</span>. We’ll come back to this issue when we discuss model comparison in chapter <a href="ch-comparison.html#ch-comparison">12</a>.</p>
 </div>
 <div id="sec-pupiladq" class="section level3 hasAnchor" number="4.1.4">
@@ -1684,10 +1768,10 @@ FIGURE 4.6: The prior predictive distribution of the median difference in finger
 <span id="cb172-2"><a href="ch-reg.html#cb172-2" aria-hidden="true"></a>                  <span class="dt">variable =</span> <span class="kw">c</span>(<span class="st">&quot;b_Intercept&quot;</span>,</span>
 <span id="cb172-3"><a href="ch-reg.html#cb172-3" aria-hidden="true"></a>                               <span class="st">&quot;b_c_trial&quot;</span>,</span>
 <span id="cb172-4"><a href="ch-reg.html#cb172-4" aria-hidden="true"></a>                               <span class="st">&quot;sigma&quot;</span>))</span></code></pre></div>
-<pre><code>##             Estimate Est.Error     Q2.5    Q97.5
-## b_Intercept 5.118340 0.0064256 5.105460 5.130953
-## b_c_trial   0.000524 0.0000616 0.000399 0.000646
-## sigma       0.123360 0.0046777 0.114539 0.132888</code></pre>
+<pre><code>##             Estimate Est.Error   Q2.5    Q97.5
+## b_Intercept 5.118323 0.0064226 5.1054 5.130765
+## b_c_trial   0.000524 0.0000637 0.0004 0.000649
+## sigma       0.123262 0.0046246 0.1146 0.133082</code></pre>
 <p>The posterior distributions can be plotted to obtain a graphical summary of all the parameters in the model (Figure <a href="ch-reg.html#fig:posteriorsfitpresstrial">4.7</a>):</p>
 <div class="sourceCode" id="cb174"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb174-1"><a href="ch-reg.html#cb174-1" aria-hidden="true"></a><span class="kw">plot</span>(fit_press_trial)</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:posteriorsfitpresstrial"></span>
@@ -1712,7 +1796,7 @@ FIGURE 4.7: Posterior distributions of the model of the effect of trial on butto
 <span id="cb175-7"><a href="ch-reg.html#cb175-7" aria-hidden="true"></a><span class="kw">c</span>(<span class="dt">mean =</span> <span class="kw">mean</span>(effect_middle_ms),</span>
 <span id="cb175-8"><a href="ch-reg.html#cb175-8" aria-hidden="true"></a>  <span class="kw">quantile</span>(effect_middle_ms, <span class="kw">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>)))</span></code></pre></div>
 <pre><code>##   mean   2.5%  97.5% 
-## 0.0875 0.0668 0.1075</code></pre>
+## 0.0875 0.0671 0.1083</code></pre>
 <p>We will obtain a different estimate if we consider the difference between the second and the first trial:</p>
 <div class="sourceCode" id="cb177"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb177-1"><a href="ch-reg.html#cb177-1" aria-hidden="true"></a>first_trial &lt;-<span class="st"> </span><span class="kw">min</span>(df_spacebar<span class="op">$</span>c_trial)</span>
 <span id="cb177-2"><a href="ch-reg.html#cb177-2" aria-hidden="true"></a>second_trial &lt;-<span class="st"> </span><span class="kw">min</span>(df_spacebar<span class="op">$</span>c_trial) <span class="op">+</span><span class="st"> </span><span class="dv">1</span></span>
@@ -1723,7 +1807,7 @@ FIGURE 4.7: Posterior distributions of the model of the effect of trial on butto
 <span id="cb177-7"><a href="ch-reg.html#cb177-7" aria-hidden="true"></a><span class="kw">c</span>(<span class="dt">mean =</span> <span class="kw">mean</span>(effect_beginning_ms),</span>
 <span id="cb177-8"><a href="ch-reg.html#cb177-8" aria-hidden="true"></a>  <span class="kw">quantile</span>(effect_beginning_ms, <span class="kw">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>)))</span></code></pre></div>
 <pre><code>##   mean   2.5%  97.5% 
-## 0.0796 0.0622 0.0958</code></pre>
+## 0.0795 0.0623 0.0964</code></pre>
 <p>So far; we converted the estimates to obtain median effects, that’s why we used <span class="math inline">\(exp(\cdot)\)</span>. If we want to obtain mean effects, we need to take into account <span class="math inline">\(\sigma\)</span>, since we need to calculate <span class="math inline">\(exp(\cdot + \sigma^2/2)\)</span>. However, we can also use the built-in function  <code>fitted()</code> which calculates mean effects. Consider again the difference between the second and the first trial this time using <code>fitted()</code>.</p>
 <p>First, define for which observations we want to obtain the fitted values in millisecond scale. If we are interested in the difference between the second and first trial, create a data frame with their centered versions.</p>
 <div class="sourceCode" id="cb179"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb179-1"><a href="ch-reg.html#cb179-1" aria-hidden="true"></a>newdata_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">c_trial =</span> <span class="kw">c</span>(first_trial, second_trial))</span></code></pre></div>
@@ -1733,15 +1817,15 @@ FIGURE 4.7: Posterior distributions of the model of the effect of trial on butto
 <span id="cb180-3"><a href="ch-reg.html#cb180-3" aria-hidden="true"></a>                 <span class="dt">summary =</span> <span class="ot">FALSE</span>)</span>
 <span id="cb180-4"><a href="ch-reg.html#cb180-4" aria-hidden="true"></a><span class="kw">head</span>(beginning, <span class="dv">3</span>)</span></code></pre></div>
 <pre><code>##      [,1] [,2]
-## [1,]  157  157
-## [2,]  153  153
-## [3,]  153  153</code></pre>
+## [1,]  148  148
+## [2,]  148  149
+## [3,]  156  156</code></pre>
 <p>The final step is to calculate the difference between trials, and report the mean and the 95% credible interval.</p>
 <div class="sourceCode" id="cb182"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb182-1"><a href="ch-reg.html#cb182-1" aria-hidden="true"></a>effect_beginning_ms &lt;-<span class="st"> </span>beginning[, <span class="dv">2</span>] <span class="op">-</span><span class="st"> </span>beginning[,<span class="dv">1</span>]</span>
 <span id="cb182-2"><a href="ch-reg.html#cb182-2" aria-hidden="true"></a><span class="kw">c</span>(<span class="dt">mean =</span> <span class="kw">mean</span>(effect_beginning_ms),</span>
 <span id="cb182-3"><a href="ch-reg.html#cb182-3" aria-hidden="true"></a>  <span class="kw">quantile</span>(effect_beginning_ms, <span class="kw">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>)))</span></code></pre></div>
 <pre><code>##   mean   2.5%  97.5% 
-## 0.0802 0.0626 0.0966</code></pre>
+## 0.0802 0.0628 0.0972</code></pre>
 <p>Given that <span class="math inline">\(\sigma\)</span> is much smaller than <span class="math inline">\(\mu\)</span>, <span class="math inline">\(\sigma\)</span> doesn’t have a large influence on the mean effects, and the mean and 95% CrI of the mean and median effects are quite similar.</p>
 <p>We see that no matter how we calculate the trial effect, there is a slowdown. When reporting the results of these analyses, one should present the posterior mean and a credible interval, and then reason about whether the observed estimates are consistent with the prediction from the theory being investigated. The 95% credible interval used here is just a convention adopted from standard practice in psychology and related areas, where the 95% confidence interval is the default. One could, for example, have used an 80% CrI.</p>
 <p>The practical relevance of the effect for the research question can be important too. For example, only after <span class="math inline">\(100\)</span> button presses do we see a barely noticeable slowdown:</p>
@@ -1751,7 +1835,7 @@ FIGURE 4.7: Posterior distributions of the model of the effect of trial on butto
 <span id="cb184-4"><a href="ch-reg.html#cb184-4" aria-hidden="true"></a><span class="kw">c</span>(<span class="dt">mean =</span> <span class="kw">mean</span>(effect_<span class="dv">100</span>),</span>
 <span id="cb184-5"><a href="ch-reg.html#cb184-5" aria-hidden="true"></a>  <span class="kw">quantile</span>(effect_<span class="dv">100</span>, <span class="kw">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>)))</span></code></pre></div>
 <pre><code>##  mean  2.5% 97.5% 
-##  8.99  6.81 11.11</code></pre>
+##  8.99  6.85 11.19</code></pre>
 <p>We need to consider whether our uncertainty of this estimate, and the estimated mean effect have any scientific relevance. Such relevance can be established by considering the previous literature, predictions from a quantitative model, or other expert domain knowledge. Sometimes, a quantitative meta-analysis is helpful; for examples, see <span class="citation">Bürki, Alario, and Vasishth (<a href="#ref-Buerki2022" role="doc-biblioref">2023</a>)</span>, <span class="citation">Cox et al. (<a href="#ref-cox2022bayesian" role="doc-biblioref">2022</a>)</span>, <span class="citation">Bürki et al. (<a href="#ref-BuerkiEtAl2020" role="doc-biblioref">2020</a>)</span>, <span class="citation">Jäger, Engelmann, and Vasishth (<a href="#ref-JaegerEngelmannVasishth2017" role="doc-biblioref">2017</a>)</span>, <span class="citation">Mahowald et al. (<a href="#ref-mahowald2016meta" role="doc-biblioref">2016</a>)</span>, <span class="citation">Nicenboim, Roettger, and Vasishth (<a href="#ref-NicenboimRoettgeretal" role="doc-biblioref">2018</a>)</span>, and <span class="citation">Vasishth et al. (<a href="#ref-VasishthetalPLoSOne2013" role="doc-biblioref">2013</a>)</span>. We will discuss meta-analysis later in the book, in chapter <a href="ch-remame.html#ch-remame">11</a>.</p>
 <p>Sometimes, researchers are only interested in establishing that an effect is present or absent; the magnitude and uncertainty of the estimate is of secondary interest. Here, the goal is to argue that there is <strong>evidence</strong> of a slowdown. The word evidence has a special meaning in statistics <span class="citation">(Royall <a href="#ref-Royall" role="doc-biblioref">1997</a>)</span>, and in null hypothesis significance testing, a likelihood ratio test is the standard way to argue that one has evidence for an effect. In the Bayesian data analysis context, in order to answer such a question, a Bayes factor analysis must be carried out. We’ll come back to this issue in the model comparison chapters <a href="ch-comparison.html#ch-comparison">12</a>-<a href="ch-cv.html#ch-cv">14</a>.</p>
 </div>
@@ -1818,7 +1902,7 @@ FIGURE 4.9: The flow of events in a trial with memory set size 4 and free recall
 <h3><span class="header-section-number">4.3.1</span> The likelihood for the logistic regression model<a href="ch-reg.html#the-likelihood-for-the-logistic-regression-model" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Recall that the  Bernoulli likelihood generates a <span class="math inline">\(0\)</span> or <span class="math inline">\(1\)</span> response with a particular probability <span class="math inline">\(\theta\)</span>. For example, one can generate simulated data for <span class="math inline">\(10\)</span> observations, with a <span class="math inline">\(50\)</span>% probability of getting a <span class="math inline">\(1\)</span> using <code>rbern()</code> from the package <code>extraDistr</code>.</p>
 <div class="sourceCode" id="cb193"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb193-1"><a href="ch-reg.html#cb193-1" aria-hidden="true"></a><span class="kw">rbern</span>(<span class="dv">10</span>, <span class="dt">prob =</span> <span class="fl">0.5</span>)</span></code></pre></div>
-<pre><code>##  [1] 0 1 1 1 0 0 1 0 0 1</code></pre>
+<pre><code>##  [1] 0 0 0 1 1 0 0 0 1 0</code></pre>
 <p>We can therefore define each dependent value <code>correct_n</code> in the data as being generated from a Bernoulli random variable with probability of success <span class="math inline">\(\theta_n\)</span>.
 Here, <span class="math inline">\(n = 1, \ldots, N\)</span> indexes the observation, <span class="math inline">\(correct_n\)</span> is the dependent variable (<span class="math inline">\(0\)</span> indicates an incorrect recall and <span class="math inline">\(1\)</span> a correct recall), and <span class="math inline">\(\theta_n\)</span> is the probability of correctly recalling a probe in a given observation <span class="math inline">\(n\)</span>.</p>
 <p><span class="math display" id="eq:bernoullilik">\[\begin{equation}
@@ -1936,8 +2020,8 @@ FIGURE 4.14: The prior predictive distributions of differences in mean accuracy 
 <div class="sourceCode" id="cb197"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb197-1"><a href="ch-reg.html#cb197-1" aria-hidden="true"></a><span class="kw">posterior_summary</span>(fit_recall,</span>
 <span id="cb197-2"><a href="ch-reg.html#cb197-2" aria-hidden="true"></a>                  <span class="dt">variable =</span> <span class="kw">c</span>(<span class="st">&quot;b_Intercept&quot;</span>, <span class="st">&quot;b_c_set_size&quot;</span>))</span></code></pre></div>
 <pre><code>##              Estimate Est.Error   Q2.5   Q97.5
-## b_Intercept     1.934    0.3145  1.345  2.5808
-## b_c_set_size   -0.188    0.0852 -0.353 -0.0205</code></pre>
+## b_Intercept     1.919    0.3165  1.332  2.5856
+## b_c_set_size   -0.182    0.0805 -0.344 -0.0297</code></pre>
 <p>Inspecting <code>b_c_set_size</code>, we see that increasing the set size has a detrimental effect on recall, as we suspected.</p>
 <p>Plot the posteriors as well (Figure <a href="ch-reg.html#fig:posteriorsfitrecall">4.15</a>):</p>
 
@@ -1952,13 +2036,13 @@ FIGURE 4.15: The posterior distributions of the parameters in the <code>brms</co
 </div>
 <div id="sec-comlogis" class="section level3 hasAnchor" number="4.3.4">
 <h3><span class="header-section-number">4.3.4</span> How to communicate the results?<a href="ch-reg.html#sec-comlogis" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p>Here, we are in a situation analogous to the one we saw earlier with the log-normal model. If we want to talk about the effect estimated by the model in log-odds space, we summarize the  posterior of <span class="math inline">\(\beta\)</span> in the following way: <span class="math inline">\(\hat\beta = -0.188\)</span>, 95% CrI = <span class="math inline">\([ -0.353 , -0.021 ]\)</span>.</p>
+<p>Here, we are in a situation analogous to the one we saw earlier with the log-normal model. If we want to talk about the effect estimated by the model in log-odds space, we summarize the  posterior of <span class="math inline">\(\beta\)</span> in the following way: <span class="math inline">\(\hat\beta = -0.182\)</span>, 95% CrI = <span class="math inline">\([ -0.344 , -0.03 ]\)</span>.</p>
 <p>However, the effect is easier to understand in proportions rather than in log-odds. Let’s look at the average accuracy for the task first:</p>
 <div class="sourceCode" id="cb200"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb200-1"><a href="ch-reg.html#cb200-1" aria-hidden="true"></a>alpha_samples &lt;-<span class="st"> </span><span class="kw">as_draws_df</span>(fit_recall)<span class="op">$</span>b_Intercept</span>
 <span id="cb200-2"><a href="ch-reg.html#cb200-2" aria-hidden="true"></a>av_accuracy &lt;-<span class="st"> </span><span class="kw">plogis</span>(alpha_samples)</span>
 <span id="cb200-3"><a href="ch-reg.html#cb200-3" aria-hidden="true"></a><span class="kw">c</span>(<span class="dt">mean =</span> <span class="kw">mean</span>(av_accuracy), <span class="kw">quantile</span>(av_accuracy, <span class="kw">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>)))</span></code></pre></div>
 <pre><code>##  mean  2.5% 97.5% 
-## 0.870 0.793 0.930</code></pre>
+## 0.868 0.791 0.930</code></pre>
 <p>As before, to transform the effect of our manipulation to an easier to interpret scale (i.e., proportions), we need to take into account that the scale is not linear, and that the effect of increasing the set size depends on the average accuracy, and the set size that we start from.</p>
 <p>We can do the following calculation, similar to what we did for the trial effects experiment, to find out the decrease in accuracy in proportions or probability scale:</p>
 <div class="sourceCode" id="cb202"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb202-1"><a href="ch-reg.html#cb202-1" aria-hidden="true"></a>beta_samples &lt;-<span class="st"> </span><span class="kw">as_draws_df</span>(fit_recall)<span class="op">$</span>b_c_set_size</span>
@@ -1967,8 +2051,8 @@ FIGURE 4.15: The posterior distributions of the parameters in the <code>brms</co
 <span id="cb202-4"><a href="ch-reg.html#cb202-4" aria-hidden="true"></a><span class="kw">c</span>(<span class="dt">mean =</span> <span class="kw">mean</span>(effect_middle),</span>
 <span id="cb202-5"><a href="ch-reg.html#cb202-5" aria-hidden="true"></a>  <span class="kw">quantile</span>(effect_middle, <span class="kw">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>)))</span></code></pre></div>
 <pre><code>##     mean     2.5%    97.5% 
-## -0.01910 -0.03746 -0.00236</code></pre>
-<p>Notice the interpretation here, if we increase the set size from the average set size minus one to the average set size, we get a reduction in the accuracy of recall of <span class="math inline">\(-0.019\)</span>, 95% CrI = <span class="math inline">\([ -0.037 , -0.002 ]\)</span>. Recall that the average set size, 5, was not presented to the subject! We could alternatively look at the decrease in accuracy from a set size of <span class="math inline">\(2\)</span> to <span class="math inline">\(4\)</span>:</p>
+## -0.01871 -0.03580 -0.00319</code></pre>
+<p>Notice the interpretation here, if we increase the set size from the average set size minus one to the average set size, we get a reduction in the accuracy of recall of <span class="math inline">\(-0.019\)</span>, 95% CrI = <span class="math inline">\([ -0.036 , -0.003 ]\)</span>. Recall that the average set size, 5, was not presented to the subject! We could alternatively look at the decrease in accuracy from a set size of <span class="math inline">\(2\)</span> to <span class="math inline">\(4\)</span>:</p>
 <div class="sourceCode" id="cb204"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb204-1"><a href="ch-reg.html#cb204-1" aria-hidden="true"></a>four &lt;-<span class="st"> </span><span class="dv">4</span> <span class="op">-</span><span class="st"> </span><span class="kw">mean</span>(df_recall<span class="op">$</span>set_size)</span>
 <span id="cb204-2"><a href="ch-reg.html#cb204-2" aria-hidden="true"></a>two &lt;-<span class="st"> </span><span class="dv">2</span> <span class="op">-</span><span class="st"> </span><span class="kw">mean</span>(df_recall<span class="op">$</span>set_size)</span>
 <span id="cb204-3"><a href="ch-reg.html#cb204-3" aria-hidden="true"></a>effect_4m2 &lt;-</span>
@@ -1977,14 +2061,14 @@ FIGURE 4.15: The posterior distributions of the parameters in the <code>brms</co
 <span id="cb204-6"><a href="ch-reg.html#cb204-6" aria-hidden="true"></a><span class="kw">c</span>(<span class="dt">mean =</span> <span class="kw">mean</span>(effect_4m2), </span>
 <span id="cb204-7"><a href="ch-reg.html#cb204-7" aria-hidden="true"></a>  <span class="kw">quantile</span>(effect_4m2, <span class="kw">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>)))</span></code></pre></div>
 <pre><code>##     mean     2.5%    97.5% 
-## -0.02963 -0.05429 -0.00461</code></pre>
+## -0.02935 -0.05241 -0.00615</code></pre>
 <p>We can also back-transform to probability scale using the function <code>fitted()</code> rather than using <code>plogis()</code>. One advantage is that this will work regardless of the type of link function; in this section we only discussed the logit link, but other link functions are possible to use in generalized linear models <span class="citation">(e.g., the probit link; see Dobson and Barnett <a href="#ref-dobson2011introduction" role="doc-biblioref">2011</a>)</span>.</p>
 <p>Since set size is the only predictor and it is centered, for estimating the average accuracy, we can consider an imaginary observation where the <code>c_set_size</code> is zero, which corresponds to an average set size. (If there were more centered predictors, we would need to set all of them to zero). Now we can use the <code>summary</code> argument provided by  <code>fitted()</code>.</p>
 <div class="sourceCode" id="cb206"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb206-1"><a href="ch-reg.html#cb206-1" aria-hidden="true"></a><span class="kw">fitted</span>(fit_recall,</span>
 <span id="cb206-2"><a href="ch-reg.html#cb206-2" aria-hidden="true"></a>       <span class="dt">newdata =</span> <span class="kw">data.frame</span>(<span class="dt">c_set_size =</span> <span class="dv">0</span>),</span>
 <span id="cb206-3"><a href="ch-reg.html#cb206-3" aria-hidden="true"></a>       <span class="dt">summary =</span> <span class="ot">TRUE</span>)[,<span class="kw">c</span>(<span class="st">&quot;Estimate&quot;</span>, <span class="st">&quot;Q2.5&quot;</span>,<span class="st">&quot;Q97.5&quot;</span>)]</span></code></pre></div>
 <pre><code>## Estimate     Q2.5    Q97.5 
-##    0.870    0.793    0.930</code></pre>
+##    0.868    0.791    0.930</code></pre>
 <p>For estimating the difference in accuracy from the average set size minus one to the average set size, and from a set size of two to four, first, define <code>newdata</code> with these set sizes.</p>
 <div class="sourceCode" id="cb208"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb208-1"><a href="ch-reg.html#cb208-1" aria-hidden="true"></a>new_sets &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">c_set_size =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">-1</span>, four, two))</span>
 <span id="cb208-2"><a href="ch-reg.html#cb208-2" aria-hidden="true"></a>set_sizes &lt;-<span class="st"> </span><span class="kw">fitted</span>(fit_recall,</span>
@@ -1997,11 +2081,11 @@ FIGURE 4.15: The posterior distributions of the parameters in the <code>brms</co
 <div class="sourceCode" id="cb210"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb210-1"><a href="ch-reg.html#cb210-1" aria-hidden="true"></a><span class="kw">c</span>(<span class="dt">mean =</span> <span class="kw">mean</span>(effect_middle), <span class="kw">quantile</span>(effect_middle, </span>
 <span id="cb210-2"><a href="ch-reg.html#cb210-2" aria-hidden="true"></a>                                       <span class="kw">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>)))</span></code></pre></div>
 <pre><code>##     mean     2.5%    97.5% 
-## -0.01910 -0.03746 -0.00236</code></pre>
+## -0.01871 -0.03580 -0.00319</code></pre>
 <div class="sourceCode" id="cb212"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb212-1"><a href="ch-reg.html#cb212-1" aria-hidden="true"></a><span class="kw">c</span>(<span class="dt">mean =</span> <span class="kw">mean</span>(effect_4m2), <span class="kw">quantile</span>(effect_4m2, </span>
 <span id="cb212-2"><a href="ch-reg.html#cb212-2" aria-hidden="true"></a>                                       <span class="kw">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>)))</span></code></pre></div>
 <pre><code>##     mean     2.5%    97.5% 
-## -0.02963 -0.05429 -0.00461</code></pre>
+## -0.02935 -0.05241 -0.00615</code></pre>
 <p>As expected, we get exactly the same values with <code>fitted()</code> as when we calculate them “by hand.”</p>
 </div>
 <div id="descriptive-adequacy-1" class="section level3 hasAnchor" number="4.3.5">

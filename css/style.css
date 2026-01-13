@@ -82,3 +82,110 @@ h2, h3, h4, h5, h6 {
     border: solid 5px #488214;
 }
 
+
+
+/* Banner for book purchase - Simple, light background with black text */
+.book-banner {
+  background: #f0f4f8;  /* Light blue-gray background */
+  color: #000;  /* Black text */
+  padding: 12px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  font-size: 15px;
+  line-height: 1.6;
+  border-bottom: 1px solid #d0d7de;
+}
+
+.banner-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Simple black text links with underline */
+.book-banner a {
+  color: #000;  /* Black text */
+  text-decoration: underline;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.book-banner a:hover {
+  opacity: 0.7;
+}
+
+.banner-close {
+  background: transparent;
+  border: 1px solid #999;
+  color: #000;
+  font-size: 20px;
+  line-height: 1;
+  padding: 2px 8px;
+  cursor: pointer;
+  border-radius: 3px;
+  margin-left: 12px;
+  transition: all 0.2s;
+}
+
+.banner-close:hover {
+  background: #e0e0e0;
+  border-color: #666;
+}
+
+/* Fix for code copy button to exclude fold button text */
+.sourceCode {
+  position: relative;
+}
+
+/* Ensure code folding buttons don't interfere with copying */
+pre.sourceCode::before,
+pre.sourceCode::after {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.fold-hide, .fold-show {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Style for code fold buttons */
+.sourceCode .fold-hide::before,
+.sourceCode .fold-show::before {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Make code folding button text completely non-selectable */
+.code-folding-btn,
+.code-folding-btn span,
+.code-folding-btn * {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Ensure code content IS selectable */
+.sourceCode code,
+pre code,
+.hljs {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}

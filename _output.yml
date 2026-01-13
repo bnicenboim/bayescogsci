@@ -15,8 +15,8 @@ bookdown::gitbook:
       facebook: no
   includes:
     in_header: html/preamble_code.html
+    before_body: html/banner.html
 bookdown::html_chapters:
-  code_fold: show
   md_extensions: +fenced_divs
 bookdown::pdf_book:
   includes:

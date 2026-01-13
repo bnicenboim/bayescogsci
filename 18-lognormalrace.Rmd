@@ -399,13 +399,13 @@ The location $\mu_{v_w}$ of the distribution of rates of accumulation of evidenc
 This assumption can be modeled with a linear regression over $\mu_{v_w}$, with parameters that represent the bias to categorize a string as a word, $\alpha_{w}$, the effect of lexicality, $\beta_{lex_{w}}$, and the effect of log-frequency $\beta_{\mathit{lfreq}_{w}}$.
 
 \begin{equation}
-mu_{v_{w,n}} = \alpha_w + \mathit{lex}_n \cdot \beta_{lex_{w}} + \mathit{\mathit{lfreq}}_n \cdot \beta_{\mathit{lfreq}_{w}}
+\mu_{v_{w,n}} = \alpha_w + \mathit{lex}_n \cdot \beta_{lex_{w}} + \mathit{\mathit{lfreq}}_n \cdot \beta_{\mathit{lfreq}_{w}}
 \end{equation}
 
 For the non-word accumulator, the location for the rate of accumulation of evidence is defined similarly:
 
 \begin{equation}
-mu_{v_{nw,n}}= \alpha_{nw} + \mathit{lex}_n \cdot \beta_{lex_{nw}} + \mathit{lfreq}_n \cdot \beta_{\mathit{lfreq}_{nw}}
+\mu_{v_{nw,n}}= \alpha_{nw} + \mathit{lex}_n \cdot \beta_{lex_{nw}} + \mathit{lfreq}_n \cdot \beta_{\mathit{lfreq}_{nw}}
 \end{equation}
 
 

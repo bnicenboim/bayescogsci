@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel J. Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2025-02-12" />
+<meta name="date" content="2026-01-13" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -375,15 +375,18 @@ window.initializeCodeFolding = function(show) {
     $(this).before(div);
     $(this).detach().appendTo(div);
 
-    // add a show code button right above
-    var showCodeText = $('<span>' + (show ? 'Hide' : 'Code') + '</span>');
+    // CRITICAL FIX: Create button with aria-hidden text that won't be copied
     var showCodeButton = $('<button type="button" class="btn btn-default btn-xs code-folding-btn pull-right"></button>');
-    showCodeButton.append(showCodeText);
     showCodeButton
         .attr('data-toggle', 'collapse')
         .attr('data-target', '#' + id)
         .attr('aria-expanded', show)
-        .attr('aria-controls', id);
+        .attr('aria-controls', id)
+        .attr('aria-label', show ? 'Hide code' : 'Show code');
+    
+    // Use aria-hidden to prevent screen readers and copy from seeing text
+    var showCodeText = $('<span aria-hidden="true" style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; pointer-events: none;">' + (show ? 'Hide' : 'Code') + '</span>');
+    showCodeButton.append(showCodeText);
 
     var buttonRow = $('<div class="row"></div>');
     var buttonCol = $('<div class="col-md-12"></div>');
@@ -393,16 +396,18 @@ window.initializeCodeFolding = function(show) {
 
     div.before(buttonRow);
 
-    // hack: return show to false, otherwise all next codeBlocks will be shown!
-    show = false;
-
-    // update state of button on show/hide
-    div.on('hidden.bs.collapse', function () {
+    // update the text of the button when it's clicked
+    div.on('hide.bs.collapse', function () {
       showCodeText.text('Code');
+      showCodeButton.attr('aria-label', 'Show code');
     });
     div.on('show.bs.collapse', function () {
       showCodeText.text('Hide');
+      showCodeButton.attr('aria-label', 'Hide code');
     });
+
+    // hack: return show to false, otherwise all next codeBlocks will be shown!
+    show = false;
   });
 
 }
@@ -793,6 +798,78 @@ $(document).ready(function () {
 });
 </script>
 
+<!-- NUCLEAR OPTION: Intercept ALL copy events and strip button text -->
+<script>
+$(document).ready(function() {
+  
+  // Method 1: Make button spans completely invisible to selection
+  function protectButtons() {
+    $('.code-folding-btn span').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+      this.style.setProperty('pointer-events', 'none', 'important');
+      $(this).attr('unselectable', 'on');
+      $(this).attr('aria-hidden', 'true');
+    });
+    
+    $('.code-folding-btn').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+    });
+  }
+  
+  protectButtons();
+  setTimeout(protectButtons, 100);
+  setTimeout(protectButtons, 500);
+  setTimeout(protectButtons, 1000);
+  
+  // Method 2: Aggressive copy event interception
+  document.addEventListener('copy', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    // Remove "Hide" or "Code" from the start
+    if (selectedText) {
+      var cleanedText = selectedText
+        .replace(/^(Hide|Code)\s*/gm, '')  // Remove from start of any line
+        .replace(/\s+(Hide|Code)\s*$/gm, '');  // Remove from end
+      
+      if (cleanedText !== selectedText) {
+        e.preventDefault();
+        
+        if (e.clipboardData) {
+          e.clipboardData.setData('text/plain', cleanedText);
+        } else if (window.clipboardData) {
+          window.clipboardData.setData('Text', cleanedText);
+        }
+      }
+    }
+  }, true);  // Use capture phase
+  
+  // Method 3: Override native copy for code blocks
+  $('body').on('copy', 'pre, pre.sourceCode, .sourceCode, code', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    if (selectedText && (selectedText.startsWith('Hide') || selectedText.startsWith('Code'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      var cleanedText = selectedText.replace(/^(Hide|Code)\s*/, '');
+      
+      if (e.originalEvent.clipboardData) {
+        e.originalEvent.clipboardData.setData('text/plain', cleanedText);
+      } else if (window.clipboardData) {
+        window.clipboardData.setData('Text', cleanedText);
+      }
+    }
+  });
+});
+</script>
 
 <script data-goatcounter="https://bayescogsci.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
@@ -1436,6 +1513,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
+<div class="book-banner">
+  <div class="banner-content">
+    📚 Get the print version of the book from 
+    <a href="https://www.taylorfrancis.com/books/mono/10.1201/9780429342646/introduction-bayesian-data-analysis-cognitive-science-shravan-vasishth-bruno-nicenboim-daniel-schad" target="_blank" rel="noopener">CRC Press</a> or your favorite store.
+    <button class="banner-close" onclick="this.parentElement.parentElement.style.display='none';" aria-label="Close banner">&times;</button>
+  </div>
+</div>
 <div id="ch-mixture" class="section level1 hasAnchor" number="17">
 <h1><span class="header-section-number">Chapter 17</span> Mixture models<a href="ch-mixture.html#ch-mixture" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <p> Mixture models integrate  multiple data generating processes into a single model. This is especially useful in cases where the data alone don’t allow us to fully identify which observations belong to which process.
@@ -1480,8 +1564,8 @@ FIGURE 17.1: Three levels of difficulty of the global motion detection task. The
 <h4><span class="header-section-number">17.1.1.1</span> The data set<a href="ch-mixture.html#the-data-set" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p>We implement the assumptions behind Ollman’s fast-guess model and examine its fit to data of a global motion detection task from <span class="citation">Dutilh et al. (<a href="#ref-Dutilh2019quality" role="doc-biblioref">2019</a>)</span>.</p>
 <p>The data set from <span class="citation">Dutilh et al. (<a href="#ref-Dutilh2019quality" role="doc-biblioref">2019</a>)</span> contains approximately 2800 trials of each of the 20 subjects participating in a global motion detection task and can be found in <code>df_dots</code> in the <code>bcogsci</code> package. There were two level of coherence, yielding hard and easy trials (<code>diff</code>), and the trials where done under instructions that emphasized either accuracy or speed (<code>emphasis</code>). More information about the data set can be found by accessing the documentation for the data set (by typing <code>?df_dots</code> on the R command line, assuming that the <code>bcogsci</code> package is installed).</p>
-<div class="sourceCode" id="cb924"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb924-1"><a href="ch-mixture.html#cb924-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_dots&quot;</span>)</span>
-<span id="cb924-2"><a href="ch-mixture.html#cb924-2" aria-hidden="true"></a>df_dots</span></code></pre></div>
+<div class="sourceCode" id="cb925"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb925-1"><a href="ch-mixture.html#cb925-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_dots&quot;</span>)</span>
+<span id="cb925-2"><a href="ch-mixture.html#cb925-2" aria-hidden="true"></a>df_dots</span></code></pre></div>
 <pre><code>## # A tibble: 56,097 × 12
 ##    subj diff  emphasis    rt   acc fix_dur stim  resp  trial block
 ##   &lt;int&gt; &lt;chr&gt; &lt;chr&gt;    &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; &lt;int&gt; &lt;int&gt;
@@ -1496,9 +1580,9 @@ FIGURE 17.1: Three levels of difficulty of the global motion detection task. The
 ## # ℹ 56,094 more rows</code></pre>
 <p>We might think that if the fast-guess model were true, we would see a  bimodal distribution, when we plot a histogram of the data. Unfortunately, when two similar distributions are mixed, we won’t necessarily see any apparent bimodality; see Figure <a href="ch-mixture.html#fig:dfdots">17.2</a>.</p>
 
-<div class="sourceCode" id="cb926"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb926-1"><a href="ch-mixture.html#cb926-1" aria-hidden="true"></a></span>
-<span id="cb926-2"><a href="ch-mixture.html#cb926-2" aria-hidden="true"></a><span class="kw">ggplot</span>(df_dots, <span class="kw">aes</span>(rt)) <span class="op">+</span></span>
-<span id="cb926-3"><a href="ch-mixture.html#cb926-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_histogram</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb927"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb927-1"><a href="ch-mixture.html#cb927-1" aria-hidden="true"></a></span>
+<span id="cb927-2"><a href="ch-mixture.html#cb927-2" aria-hidden="true"></a><span class="kw">ggplot</span>(df_dots, <span class="kw">aes</span>(rt)) <span class="op">+</span></span>
+<span id="cb927-3"><a href="ch-mixture.html#cb927-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_histogram</span>()</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:dfdots"></span>
 <img src="bayescogsci_files/figure-html/dfdots-1.svg" alt="Distribution of response times in the data of the global motion detection task in Dutilh et al. (2019)." width="672" />
 <p class="caption">
@@ -1507,13 +1591,13 @@ FIGURE 17.2: Distribution of response times in the data of the global motion det
 </div>
 <p>However, Figure <a href="ch-mixture.html#fig:dfaccrt">17.3</a> reveals that incorrect responses were generally faster, and this was especially true when the instructions emphasized accuracy.</p>
 
-<div class="sourceCode" id="cb927"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb927-1"><a href="ch-mixture.html#cb927-1" aria-hidden="true"></a></span>
-<span id="cb927-2"><a href="ch-mixture.html#cb927-2" aria-hidden="true"></a><span class="kw">ggplot</span>(df_dots, <span class="kw">aes</span>(<span class="dt">x =</span> <span class="kw">factor</span>(acc), <span class="dt">y =</span> rt)) <span class="op">+</span></span>
-<span id="cb927-3"><a href="ch-mixture.html#cb927-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">position =</span> <span class="kw">position_jitter</span>(<span class="dt">width =</span> <span class="fl">.4</span>, <span class="dt">height =</span> <span class="dv">0</span>),</span>
-<span id="cb927-4"><a href="ch-mixture.html#cb927-4" aria-hidden="true"></a>             <span class="dt">alpha =</span> <span class="fl">0.5</span>) <span class="op">+</span></span>
-<span id="cb927-5"><a href="ch-mixture.html#cb927-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">facet_wrap</span>(diff <span class="op">~</span><span class="st"> </span>emphasis) <span class="op">+</span></span>
-<span id="cb927-6"><a href="ch-mixture.html#cb927-6" aria-hidden="true"></a><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Accuracy&quot;</span>) <span class="op">+</span></span>
-<span id="cb927-7"><a href="ch-mixture.html#cb927-7" aria-hidden="true"></a><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Response time&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb928"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb928-1"><a href="ch-mixture.html#cb928-1" aria-hidden="true"></a></span>
+<span id="cb928-2"><a href="ch-mixture.html#cb928-2" aria-hidden="true"></a><span class="kw">ggplot</span>(df_dots, <span class="kw">aes</span>(<span class="dt">x =</span> <span class="kw">factor</span>(acc), <span class="dt">y =</span> rt)) <span class="op">+</span></span>
+<span id="cb928-3"><a href="ch-mixture.html#cb928-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">position =</span> <span class="kw">position_jitter</span>(<span class="dt">width =</span> <span class="fl">.4</span>, <span class="dt">height =</span> <span class="dv">0</span>),</span>
+<span id="cb928-4"><a href="ch-mixture.html#cb928-4" aria-hidden="true"></a>             <span class="dt">alpha =</span> <span class="fl">0.5</span>) <span class="op">+</span></span>
+<span id="cb928-5"><a href="ch-mixture.html#cb928-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">facet_wrap</span>(diff <span class="op">~</span><span class="st"> </span>emphasis) <span class="op">+</span></span>
+<span id="cb928-6"><a href="ch-mixture.html#cb928-6" aria-hidden="true"></a><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Accuracy&quot;</span>) <span class="op">+</span></span>
+<span id="cb928-7"><a href="ch-mixture.html#cb928-7" aria-hidden="true"></a><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Response time&quot;</span>)</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:dfaccrt"></span>
 <img src="bayescogsci_files/figure-html/dfaccrt-1.svg" alt="The distribution of response times by accuracy in the data of the global motion detection task in Dutilh et al. (2019)." width="672" />
 <p class="caption">
@@ -1568,34 +1652,34 @@ p_{task} \sim \mathit{Beta}(1, 1)
 <p>This represents a flat,  uninformative prior over the probability parameter <span class="math inline">\(p_{task}\)</span>.</p>
 <p>Before we fit our model to the real data, we generate  synthetic data to make sure that our model is working as expected.</p>
 <p>We first define the number of observations, predictors, and fixed point values for each of the parameters. We assume <span class="math inline">\(1000\)</span> observations and two levels of difficulty, <span class="math inline">\(x\)</span>, coded <span class="math inline">\(-0.5\)</span> (easy) and <span class="math inline">\(0.5\)</span> (hard). The point values chosen for the parameters are relatively realistic (based on our previous experience on response time experiments). Although in the priors we try to encode the range of possible values for the parameters, in this simulation we assume only one instance of this possible range:</p>
-<div class="sourceCode" id="cb928"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb928-1"><a href="ch-mixture.html#cb928-1" aria-hidden="true"></a>N &lt;-<span class="st"> </span><span class="dv">1000</span></span>
-<span id="cb928-2"><a href="ch-mixture.html#cb928-2" aria-hidden="true"></a><span class="co"># level of difficulty:</span></span>
-<span id="cb928-3"><a href="ch-mixture.html#cb928-3" aria-hidden="true"></a>x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">rep</span>(<span class="op">-</span><span class="fl">0.5</span>, N<span class="op">/</span><span class="dv">2</span>), <span class="kw">rep</span>(<span class="fl">0.5</span>, N<span class="op">/</span><span class="dv">2</span>))</span>
-<span id="cb928-4"><a href="ch-mixture.html#cb928-4" aria-hidden="true"></a><span class="co"># Parameters true point values:</span></span>
-<span id="cb928-5"><a href="ch-mixture.html#cb928-5" aria-hidden="true"></a>alpha &lt;-<span class="st"> </span><span class="fl">5.8</span></span>
-<span id="cb928-6"><a href="ch-mixture.html#cb928-6" aria-hidden="true"></a>beta &lt;-<span class="st"> </span><span class="fl">0.05</span></span>
-<span id="cb928-7"><a href="ch-mixture.html#cb928-7" aria-hidden="true"></a>sigma &lt;-<span class="st"> </span><span class="fl">0.4</span></span>
-<span id="cb928-8"><a href="ch-mixture.html#cb928-8" aria-hidden="true"></a>sigma2 &lt;-<span class="st"> </span><span class="fl">0.5</span></span>
-<span id="cb928-9"><a href="ch-mixture.html#cb928-9" aria-hidden="true"></a>gamma &lt;-<span class="st"> </span><span class="fl">5.2</span></span>
-<span id="cb928-10"><a href="ch-mixture.html#cb928-10" aria-hidden="true"></a>p_task &lt;-<span class="st"> </span><span class="fl">0.8</span></span>
-<span id="cb928-11"><a href="ch-mixture.html#cb928-11" aria-hidden="true"></a><span class="co"># Median time</span></span>
-<span id="cb928-12"><a href="ch-mixture.html#cb928-12" aria-hidden="true"></a><span class="kw">c</span>(<span class="st">&quot;engaged&quot;</span> =<span class="st"> </span><span class="kw">exp</span>(alpha), <span class="st">&quot;guessing&quot;</span> =<span class="st"> </span><span class="kw">exp</span>(gamma))</span></code></pre></div>
+<div class="sourceCode" id="cb929"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb929-1"><a href="ch-mixture.html#cb929-1" aria-hidden="true"></a>N &lt;-<span class="st"> </span><span class="dv">1000</span></span>
+<span id="cb929-2"><a href="ch-mixture.html#cb929-2" aria-hidden="true"></a><span class="co"># level of difficulty:</span></span>
+<span id="cb929-3"><a href="ch-mixture.html#cb929-3" aria-hidden="true"></a>x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">rep</span>(<span class="op">-</span><span class="fl">0.5</span>, N<span class="op">/</span><span class="dv">2</span>), <span class="kw">rep</span>(<span class="fl">0.5</span>, N<span class="op">/</span><span class="dv">2</span>))</span>
+<span id="cb929-4"><a href="ch-mixture.html#cb929-4" aria-hidden="true"></a><span class="co"># Parameters true point values:</span></span>
+<span id="cb929-5"><a href="ch-mixture.html#cb929-5" aria-hidden="true"></a>alpha &lt;-<span class="st"> </span><span class="fl">5.8</span></span>
+<span id="cb929-6"><a href="ch-mixture.html#cb929-6" aria-hidden="true"></a>beta &lt;-<span class="st"> </span><span class="fl">0.05</span></span>
+<span id="cb929-7"><a href="ch-mixture.html#cb929-7" aria-hidden="true"></a>sigma &lt;-<span class="st"> </span><span class="fl">0.4</span></span>
+<span id="cb929-8"><a href="ch-mixture.html#cb929-8" aria-hidden="true"></a>sigma2 &lt;-<span class="st"> </span><span class="fl">0.5</span></span>
+<span id="cb929-9"><a href="ch-mixture.html#cb929-9" aria-hidden="true"></a>gamma &lt;-<span class="st"> </span><span class="fl">5.2</span></span>
+<span id="cb929-10"><a href="ch-mixture.html#cb929-10" aria-hidden="true"></a>p_task &lt;-<span class="st"> </span><span class="fl">0.8</span></span>
+<span id="cb929-11"><a href="ch-mixture.html#cb929-11" aria-hidden="true"></a><span class="co"># Median time</span></span>
+<span id="cb929-12"><a href="ch-mixture.html#cb929-12" aria-hidden="true"></a><span class="kw">c</span>(<span class="st">&quot;engaged&quot;</span> =<span class="st"> </span><span class="kw">exp</span>(alpha), <span class="st">&quot;guessing&quot;</span> =<span class="st"> </span><span class="kw">exp</span>(gamma))</span></code></pre></div>
 <pre><code>##  engaged guessing 
 ##      330      181</code></pre>
 <p>For generating a mixture of response times, we use the indicator of a latent class, <code>z</code>.</p>
-<div class="sourceCode" id="cb930"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb930-1"><a href="ch-mixture.html#cb930-1" aria-hidden="true"></a>z &lt;-<span class="st"> </span><span class="kw">rbern</span>(<span class="dt">n =</span> N, <span class="dt">prob =</span> p_task)</span>
-<span id="cb930-2"><a href="ch-mixture.html#cb930-2" aria-hidden="true"></a>rt &lt;-<span class="st"> </span><span class="kw">if_else</span>(z <span class="op">==</span><span class="st"> </span><span class="dv">1</span>,</span>
-<span id="cb930-3"><a href="ch-mixture.html#cb930-3" aria-hidden="true"></a>             <span class="kw">rlnorm</span>(N,</span>
-<span id="cb930-4"><a href="ch-mixture.html#cb930-4" aria-hidden="true"></a>                    <span class="dt">meanlog =</span> alpha <span class="op">+</span><span class="st"> </span>beta <span class="op">*</span><span class="st"> </span>x,</span>
-<span id="cb930-5"><a href="ch-mixture.html#cb930-5" aria-hidden="true"></a>                    <span class="dt">sdlog =</span> sigma),</span>
-<span id="cb930-6"><a href="ch-mixture.html#cb930-6" aria-hidden="true"></a>             <span class="kw">rlnorm</span>(N,</span>
-<span id="cb930-7"><a href="ch-mixture.html#cb930-7" aria-hidden="true"></a>                    <span class="dt">meanlog =</span> gamma,</span>
-<span id="cb930-8"><a href="ch-mixture.html#cb930-8" aria-hidden="true"></a>                    <span class="dt">sdlog =</span> sigma2))</span>
-<span id="cb930-9"><a href="ch-mixture.html#cb930-9" aria-hidden="true"></a>df_dots_simdata1 &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">trial =</span> <span class="dv">1</span><span class="op">:</span>N, <span class="dt">x =</span> x, <span class="dt">rt =</span> rt)</span></code></pre></div>
+<div class="sourceCode" id="cb931"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb931-1"><a href="ch-mixture.html#cb931-1" aria-hidden="true"></a>z &lt;-<span class="st"> </span><span class="kw">rbern</span>(<span class="dt">n =</span> N, <span class="dt">prob =</span> p_task)</span>
+<span id="cb931-2"><a href="ch-mixture.html#cb931-2" aria-hidden="true"></a>rt &lt;-<span class="st"> </span><span class="kw">if_else</span>(z <span class="op">==</span><span class="st"> </span><span class="dv">1</span>,</span>
+<span id="cb931-3"><a href="ch-mixture.html#cb931-3" aria-hidden="true"></a>             <span class="kw">rlnorm</span>(N,</span>
+<span id="cb931-4"><a href="ch-mixture.html#cb931-4" aria-hidden="true"></a>                    <span class="dt">meanlog =</span> alpha <span class="op">+</span><span class="st"> </span>beta <span class="op">*</span><span class="st"> </span>x,</span>
+<span id="cb931-5"><a href="ch-mixture.html#cb931-5" aria-hidden="true"></a>                    <span class="dt">sdlog =</span> sigma),</span>
+<span id="cb931-6"><a href="ch-mixture.html#cb931-6" aria-hidden="true"></a>             <span class="kw">rlnorm</span>(N,</span>
+<span id="cb931-7"><a href="ch-mixture.html#cb931-7" aria-hidden="true"></a>                    <span class="dt">meanlog =</span> gamma,</span>
+<span id="cb931-8"><a href="ch-mixture.html#cb931-8" aria-hidden="true"></a>                    <span class="dt">sdlog =</span> sigma2))</span>
+<span id="cb931-9"><a href="ch-mixture.html#cb931-9" aria-hidden="true"></a>df_dots_simdata1 &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">trial =</span> <span class="dv">1</span><span class="op">:</span>N, <span class="dt">x =</span> x, <span class="dt">rt =</span> rt)</span></code></pre></div>
 <p>We verify that our simulated data is realistic, that is, it’s in the same range as the original data; see Figure <a href="ch-mixture.html#fig:simmix">17.4</a>.</p>
 
-<div class="sourceCode" id="cb931"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb931-1"><a href="ch-mixture.html#cb931-1" aria-hidden="true"></a><span class="kw">ggplot</span>(df_dots_simdata1, <span class="kw">aes</span>(rt)) <span class="op">+</span></span>
-<span id="cb931-2"><a href="ch-mixture.html#cb931-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_histogram</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb932"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb932-1"><a href="ch-mixture.html#cb932-1" aria-hidden="true"></a><span class="kw">ggplot</span>(df_dots_simdata1, <span class="kw">aes</span>(rt)) <span class="op">+</span></span>
+<span id="cb932-2"><a href="ch-mixture.html#cb932-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_histogram</span>()</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:simmix"></span>
 <img src="bayescogsci_files/figure-html/simmix-1.svg" alt="Response times in the simulated data (df_dots_simdata1) that follows the fast-guess model." width="672" />
 <p class="caption">
@@ -1665,12 +1749,12 @@ model {
                   lognormal_lpdf(rt[n] | gamma, sigma2));
 }</code></pre>
 <p>Call the Stan model <code>mixture_rt.stan</code>, and fit it to the simulated data. First, we set up the simulated data as a list structure:</p>
-<div class="sourceCode" id="cb936"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb936-1"><a href="ch-mixture.html#cb936-1" aria-hidden="true"></a>ls_dots_simdata &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">N =</span> N, <span class="dt">rt =</span> rt, <span class="dt">x =</span> x)</span></code></pre></div>
+<div class="sourceCode" id="cb937"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb937-1"><a href="ch-mixture.html#cb937-1" aria-hidden="true"></a>ls_dots_simdata &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">N =</span> N, <span class="dt">rt =</span> rt, <span class="dt">x =</span> x)</span></code></pre></div>
 <p>Then fit the model:</p>
-<div class="sourceCode" id="cb937"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb937-1"><a href="ch-mixture.html#cb937-1" aria-hidden="true"></a>mixture_rt &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
-<span id="cb937-2"><a href="ch-mixture.html#cb937-2" aria-hidden="true"></a>                          <span class="st">&quot;mixture_rt.stan&quot;</span>,</span>
-<span id="cb937-3"><a href="ch-mixture.html#cb937-3" aria-hidden="true"></a>                          <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
-<span id="cb937-4"><a href="ch-mixture.html#cb937-4" aria-hidden="true"></a>fit_mix_rt &lt;-<span class="st"> </span><span class="kw">stan</span>(mixture_rt, <span class="dt">data =</span> ls_dots_simdata)</span></code></pre></div>
+<div class="sourceCode" id="cb938"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb938-1"><a href="ch-mixture.html#cb938-1" aria-hidden="true"></a>mixture_rt &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
+<span id="cb938-2"><a href="ch-mixture.html#cb938-2" aria-hidden="true"></a>                          <span class="st">&quot;mixture_rt.stan&quot;</span>,</span>
+<span id="cb938-3"><a href="ch-mixture.html#cb938-3" aria-hidden="true"></a>                          <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
+<span id="cb938-4"><a href="ch-mixture.html#cb938-4" aria-hidden="true"></a>fit_mix_rt &lt;-<span class="st"> </span><span class="kw">stan</span>(mixture_rt, <span class="dt">data =</span> ls_dots_simdata)</span></code></pre></div>
 <pre><code>## Warning: The largest R-hat is 1.74, indicating chains have not mixed.
 ## Running the chains for more iterations may help. See
 ## https://mc-stan.org/misc/warnings.html#r-hat
@@ -1685,7 +1769,7 @@ model {
 ## chains for more iterations may help. See
 ## https://mc-stan.org/misc/warnings.html#tail-ess</code></pre>
 <p>There are a lot of warnings, the Rhats are too large, and number of effective samples is too low:</p>
-<div class="sourceCode" id="cb939"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb939-1"><a href="ch-mixture.html#cb939-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mix_rt)</span></code></pre></div>
+<div class="sourceCode" id="cb940"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb940-1"><a href="ch-mixture.html#cb940-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mix_rt)</span></code></pre></div>
 <pre><code>##            mean     2.5%    97.5% n_eff Rhat
 ## alpha      5.80     5.09     6.02     2 2.47
 ## beta       0.06    -0.09     0.19     5 1.30
@@ -1696,8 +1780,8 @@ model {
 ## lp__   -6385.68 -6390.09 -6382.78    15 1.09</code></pre>
 <p>The traceplots show clearly that the chains aren’t mixing; see Figure <a href="ch-mixture.html#fig:traceplotsmix1">17.5</a>.</p>
 
-<div class="sourceCode" id="cb941"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb941-1"><a href="ch-mixture.html#cb941-1" aria-hidden="true"></a><span class="kw">traceplot</span>(fit_mix_rt) <span class="op">+</span></span>
-<span id="cb941-2"><a href="ch-mixture.html#cb941-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="ot">NULL</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb942"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb942-1"><a href="ch-mixture.html#cb942-1" aria-hidden="true"></a><span class="kw">traceplot</span>(fit_mix_rt) <span class="op">+</span></span>
+<span id="cb942-2"><a href="ch-mixture.html#cb942-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="ot">NULL</span>)</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:traceplotsmix1"></span>
 <img src="bayescogsci_files/figure-html/traceplotsmix1-1.svg" alt="Traceplots from the model mixture_rt.stan fit to simulated data." width="672" />
 <p class="caption">
@@ -1716,8 +1800,8 @@ p_{task} \sim \mathit{Beta}(8, 2)
 \end{equation}\]</span></p>
 <p>Plotting this prior confirms where most of the probability mass lies; see Figure <a href="ch-mixture.html#fig:dbeta">17.6</a>.</p>
 
-<div class="sourceCode" id="cb942"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb942-1"><a href="ch-mixture.html#cb942-1" aria-hidden="true"></a></span>
-<span id="cb942-2"><a href="ch-mixture.html#cb942-2" aria-hidden="true"></a><span class="kw">plot</span>(<span class="cf">function</span>(x) <span class="kw">dbeta</span>(x, <span class="dv">8</span>, <span class="dv">2</span>), <span class="dt">ylab =</span> <span class="st">&quot;density&quot;</span> , <span class="dt">xlab=</span> <span class="st">&quot;probability&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb943"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb943-1"><a href="ch-mixture.html#cb943-1" aria-hidden="true"></a></span>
+<span id="cb943-2"><a href="ch-mixture.html#cb943-2" aria-hidden="true"></a><span class="kw">plot</span>(<span class="cf">function</span>(x) <span class="kw">dbeta</span>(x, <span class="dv">8</span>, <span class="dv">2</span>), <span class="dt">ylab =</span> <span class="st">&quot;density&quot;</span> , <span class="dt">xlab=</span> <span class="st">&quot;probability&quot;</span>)</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:dbeta"></span>
 <img src="bayescogsci_files/figure-html/dbeta-1.svg" alt="A density plot for the \(\mathit{Beta}(8,2)\) prior on \(p_{task}\)." width="672" />
 <p class="caption">
@@ -1759,13 +1843,13 @@ model {
 <pre><code>  target += normal_lpdf(gamma | 6, 1) -
     normal_lcdf(alpha | 6, 1);</code></pre>
 <p>Fit this model (call it <code>mixture_rt2.stan</code>) to the same simulated data set that we used before:</p>
-<div class="sourceCode" id="cb945"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb945-1"><a href="ch-mixture.html#cb945-1" aria-hidden="true"></a>mixture_rt2 &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
-<span id="cb945-2"><a href="ch-mixture.html#cb945-2" aria-hidden="true"></a>                           <span class="st">&quot;mixture_rt2.stan&quot;</span>,</span>
-<span id="cb945-3"><a href="ch-mixture.html#cb945-3" aria-hidden="true"></a>                           <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
-<span id="cb945-4"><a href="ch-mixture.html#cb945-4" aria-hidden="true"></a>fit_mix_rt2 &lt;-<span class="st"> </span><span class="kw">stan</span>(mixture_rt2, <span class="dt">data =</span> ls_dots_simdata)</span></code></pre></div>
+<div class="sourceCode" id="cb946"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb946-1"><a href="ch-mixture.html#cb946-1" aria-hidden="true"></a>mixture_rt2 &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
+<span id="cb946-2"><a href="ch-mixture.html#cb946-2" aria-hidden="true"></a>                           <span class="st">&quot;mixture_rt2.stan&quot;</span>,</span>
+<span id="cb946-3"><a href="ch-mixture.html#cb946-3" aria-hidden="true"></a>                           <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
+<span id="cb946-4"><a href="ch-mixture.html#cb946-4" aria-hidden="true"></a>fit_mix_rt2 &lt;-<span class="st"> </span><span class="kw">stan</span>(mixture_rt2, <span class="dt">data =</span> ls_dots_simdata)</span></code></pre></div>
 <p>Now the summaries and traceplots look fine; see Figure <a href="ch-mixture.html#fig:traceplotsmix2">17.7</a>.</p>
 
-<div class="sourceCode" id="cb946"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb946-1"><a href="ch-mixture.html#cb946-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mix_rt2)</span></code></pre></div>
+<div class="sourceCode" id="cb947"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb947-1"><a href="ch-mixture.html#cb947-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mix_rt2)</span></code></pre></div>
 <pre><code>##            mean     2.5%    97.5% n_eff Rhat
 ## alpha      5.84     5.75     5.94  1283    1
 ## beta       0.05    -0.03     0.13  2096    1
@@ -1774,8 +1858,8 @@ model {
 ## sigma2     0.47     0.35     0.58  1233    1
 ## p_task     0.70     0.37     0.90  1026    1
 ## lp__   -6387.25 -6391.88 -6384.61  1260    1</code></pre>
-<div class="sourceCode" id="cb948"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb948-1"><a href="ch-mixture.html#cb948-1" aria-hidden="true"></a><span class="kw">traceplot</span>(fit_mix_rt2) <span class="op">+</span></span>
-<span id="cb948-2"><a href="ch-mixture.html#cb948-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="ot">NULL</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb949"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb949-1"><a href="ch-mixture.html#cb949-1" aria-hidden="true"></a><span class="kw">traceplot</span>(fit_mix_rt2) <span class="op">+</span></span>
+<span id="cb949-2"><a href="ch-mixture.html#cb949-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="ot">NULL</span>)</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:traceplotsmix2"></span>
 <img src="bayescogsci_files/figure-html/traceplotsmix2-1.svg" alt="Traceplots from the model mixture_rt2.stan fit to simulated data." width="672" />
 <p class="caption">
@@ -1815,39 +1899,39 @@ p_{correct} \sim \mathit{Beta}(995, 5)
 \end{equation}\]</span></p>
 <p>In our simulated data, we assume that the global motion detection task is done by a very accurate subject, with an accuracy of 99.9%.</p>
 <p>First, simulate response times, as done earlier:</p>
-<div class="sourceCode" id="cb949"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb949-1"><a href="ch-mixture.html#cb949-1" aria-hidden="true"></a>N &lt;-<span class="st"> </span><span class="dv">1000</span></span>
-<span id="cb949-2"><a href="ch-mixture.html#cb949-2" aria-hidden="true"></a>x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">rep</span>(<span class="op">-</span><span class="fl">0.5</span>, N<span class="op">/</span><span class="dv">2</span>), <span class="kw">rep</span>(<span class="fl">0.5</span>, N<span class="op">/</span><span class="dv">2</span>)) <span class="co"># difficulty</span></span>
-<span id="cb949-3"><a href="ch-mixture.html#cb949-3" aria-hidden="true"></a>alpha &lt;-<span class="st"> </span><span class="fl">5.8</span></span>
-<span id="cb949-4"><a href="ch-mixture.html#cb949-4" aria-hidden="true"></a>beta &lt;-<span class="st"> </span><span class="fl">0.05</span></span>
-<span id="cb949-5"><a href="ch-mixture.html#cb949-5" aria-hidden="true"></a>sigma &lt;-<span class="st"> </span><span class="fl">0.4</span></span>
-<span id="cb949-6"><a href="ch-mixture.html#cb949-6" aria-hidden="true"></a>sigma2 &lt;-<span class="st"> </span><span class="fl">0.5</span></span>
-<span id="cb949-7"><a href="ch-mixture.html#cb949-7" aria-hidden="true"></a>gamma &lt;-<span class="st"> </span><span class="fl">5.2</span> <span class="co"># fast guess location</span></span>
-<span id="cb949-8"><a href="ch-mixture.html#cb949-8" aria-hidden="true"></a>p_task &lt;-<span class="st"> </span><span class="fl">0.8</span> <span class="co"># prob of being on task</span></span>
-<span id="cb949-9"><a href="ch-mixture.html#cb949-9" aria-hidden="true"></a>z &lt;-<span class="st"> </span><span class="kw">rbern</span>(<span class="dt">n =</span> N, <span class="dt">prob =</span> p_task)</span>
-<span id="cb949-10"><a href="ch-mixture.html#cb949-10" aria-hidden="true"></a>rt &lt;-<span class="st"> </span><span class="kw">if_else</span>(z <span class="op">==</span><span class="st"> </span><span class="dv">1</span>,</span>
-<span id="cb949-11"><a href="ch-mixture.html#cb949-11" aria-hidden="true"></a>             <span class="kw">rlnorm</span>(N,</span>
-<span id="cb949-12"><a href="ch-mixture.html#cb949-12" aria-hidden="true"></a>                    <span class="dt">meanlog =</span> alpha <span class="op">+</span><span class="st"> </span>beta <span class="op">*</span><span class="st"> </span>x,</span>
-<span id="cb949-13"><a href="ch-mixture.html#cb949-13" aria-hidden="true"></a>                    <span class="dt">sdlog =</span> sigma),</span>
-<span id="cb949-14"><a href="ch-mixture.html#cb949-14" aria-hidden="true"></a>             <span class="kw">rlnorm</span>(N,</span>
-<span id="cb949-15"><a href="ch-mixture.html#cb949-15" aria-hidden="true"></a>                    <span class="dt">meanlog =</span> gamma,</span>
-<span id="cb949-16"><a href="ch-mixture.html#cb949-16" aria-hidden="true"></a>                    <span class="dt">sdlog =</span> sigma2))</span></code></pre></div>
+<div class="sourceCode" id="cb950"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb950-1"><a href="ch-mixture.html#cb950-1" aria-hidden="true"></a>N &lt;-<span class="st"> </span><span class="dv">1000</span></span>
+<span id="cb950-2"><a href="ch-mixture.html#cb950-2" aria-hidden="true"></a>x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">rep</span>(<span class="op">-</span><span class="fl">0.5</span>, N<span class="op">/</span><span class="dv">2</span>), <span class="kw">rep</span>(<span class="fl">0.5</span>, N<span class="op">/</span><span class="dv">2</span>)) <span class="co"># difficulty</span></span>
+<span id="cb950-3"><a href="ch-mixture.html#cb950-3" aria-hidden="true"></a>alpha &lt;-<span class="st"> </span><span class="fl">5.8</span></span>
+<span id="cb950-4"><a href="ch-mixture.html#cb950-4" aria-hidden="true"></a>beta &lt;-<span class="st"> </span><span class="fl">0.05</span></span>
+<span id="cb950-5"><a href="ch-mixture.html#cb950-5" aria-hidden="true"></a>sigma &lt;-<span class="st"> </span><span class="fl">0.4</span></span>
+<span id="cb950-6"><a href="ch-mixture.html#cb950-6" aria-hidden="true"></a>sigma2 &lt;-<span class="st"> </span><span class="fl">0.5</span></span>
+<span id="cb950-7"><a href="ch-mixture.html#cb950-7" aria-hidden="true"></a>gamma &lt;-<span class="st"> </span><span class="fl">5.2</span> <span class="co"># fast guess location</span></span>
+<span id="cb950-8"><a href="ch-mixture.html#cb950-8" aria-hidden="true"></a>p_task &lt;-<span class="st"> </span><span class="fl">0.8</span> <span class="co"># prob of being on task</span></span>
+<span id="cb950-9"><a href="ch-mixture.html#cb950-9" aria-hidden="true"></a>z &lt;-<span class="st"> </span><span class="kw">rbern</span>(<span class="dt">n =</span> N, <span class="dt">prob =</span> p_task)</span>
+<span id="cb950-10"><a href="ch-mixture.html#cb950-10" aria-hidden="true"></a>rt &lt;-<span class="st"> </span><span class="kw">if_else</span>(z <span class="op">==</span><span class="st"> </span><span class="dv">1</span>,</span>
+<span id="cb950-11"><a href="ch-mixture.html#cb950-11" aria-hidden="true"></a>             <span class="kw">rlnorm</span>(N,</span>
+<span id="cb950-12"><a href="ch-mixture.html#cb950-12" aria-hidden="true"></a>                    <span class="dt">meanlog =</span> alpha <span class="op">+</span><span class="st"> </span>beta <span class="op">*</span><span class="st"> </span>x,</span>
+<span id="cb950-13"><a href="ch-mixture.html#cb950-13" aria-hidden="true"></a>                    <span class="dt">sdlog =</span> sigma),</span>
+<span id="cb950-14"><a href="ch-mixture.html#cb950-14" aria-hidden="true"></a>             <span class="kw">rlnorm</span>(N,</span>
+<span id="cb950-15"><a href="ch-mixture.html#cb950-15" aria-hidden="true"></a>                    <span class="dt">meanlog =</span> gamma,</span>
+<span id="cb950-16"><a href="ch-mixture.html#cb950-16" aria-hidden="true"></a>                    <span class="dt">sdlog =</span> sigma2))</span></code></pre></div>
 <p>Simulate  accuracy and include both response times and accuracy in the simulated data set:</p>
-<div class="sourceCode" id="cb950"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb950-1"><a href="ch-mixture.html#cb950-1" aria-hidden="true"></a>p_correct &lt;-<span class="st"> </span><span class="fl">0.999</span></span>
-<span id="cb950-2"><a href="ch-mixture.html#cb950-2" aria-hidden="true"></a>acc &lt;-<span class="st"> </span><span class="kw">ifelse</span>(z, <span class="kw">rbern</span>(<span class="dt">n =</span> N, p_correct),</span>
-<span id="cb950-3"><a href="ch-mixture.html#cb950-3" aria-hidden="true"></a>                  <span class="kw">rbern</span>(<span class="dt">n =</span> N, <span class="fl">0.5</span>))</span>
-<span id="cb950-4"><a href="ch-mixture.html#cb950-4" aria-hidden="true"></a>df_dots_simdata3 &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">trial =</span> <span class="dv">1</span><span class="op">:</span>N,</span>
-<span id="cb950-5"><a href="ch-mixture.html#cb950-5" aria-hidden="true"></a>                           <span class="dt">x =</span> x,</span>
-<span id="cb950-6"><a href="ch-mixture.html#cb950-6" aria-hidden="true"></a>                           <span class="dt">rt =</span> rt,</span>
-<span id="cb950-7"><a href="ch-mixture.html#cb950-7" aria-hidden="true"></a>                           <span class="dt">acc =</span> acc) <span class="op">%&gt;%</span></span>
-<span id="cb950-8"><a href="ch-mixture.html#cb950-8" aria-hidden="true"></a><span class="st">                    </span><span class="kw">mutate</span>(<span class="dt">diff =</span> <span class="kw">if_else</span>(x <span class="op">==</span><span class="st"> </span><span class="fl">0.5</span>, <span class="st">&quot;hard&quot;</span>, <span class="st">&quot;easy&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb951"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb951-1"><a href="ch-mixture.html#cb951-1" aria-hidden="true"></a>p_correct &lt;-<span class="st"> </span><span class="fl">0.999</span></span>
+<span id="cb951-2"><a href="ch-mixture.html#cb951-2" aria-hidden="true"></a>acc &lt;-<span class="st"> </span><span class="kw">ifelse</span>(z, <span class="kw">rbern</span>(<span class="dt">n =</span> N, p_correct),</span>
+<span id="cb951-3"><a href="ch-mixture.html#cb951-3" aria-hidden="true"></a>                  <span class="kw">rbern</span>(<span class="dt">n =</span> N, <span class="fl">0.5</span>))</span>
+<span id="cb951-4"><a href="ch-mixture.html#cb951-4" aria-hidden="true"></a>df_dots_simdata3 &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">trial =</span> <span class="dv">1</span><span class="op">:</span>N,</span>
+<span id="cb951-5"><a href="ch-mixture.html#cb951-5" aria-hidden="true"></a>                           <span class="dt">x =</span> x,</span>
+<span id="cb951-6"><a href="ch-mixture.html#cb951-6" aria-hidden="true"></a>                           <span class="dt">rt =</span> rt,</span>
+<span id="cb951-7"><a href="ch-mixture.html#cb951-7" aria-hidden="true"></a>                           <span class="dt">acc =</span> acc) <span class="op">%&gt;%</span></span>
+<span id="cb951-8"><a href="ch-mixture.html#cb951-8" aria-hidden="true"></a><span class="st">                    </span><span class="kw">mutate</span>(<span class="dt">diff =</span> <span class="kw">if_else</span>(x <span class="op">==</span><span class="st"> </span><span class="fl">0.5</span>, <span class="st">&quot;hard&quot;</span>, <span class="st">&quot;easy&quot;</span>))</span></code></pre></div>
 <p>Plot the simulated data in Figure <a href="ch-mixture.html#fig:simdata3">17.8</a>. This time we can see the effect of task difficulty on the simulated response times and accuracy:</p>
 
-<div class="sourceCode" id="cb951"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb951-1"><a href="ch-mixture.html#cb951-1" aria-hidden="true"></a><span class="kw">ggplot</span>(df_dots_simdata3, <span class="kw">aes</span>(<span class="dt">x =</span> <span class="kw">factor</span>(acc), <span class="dt">y =</span> rt)) <span class="op">+</span></span>
-<span id="cb951-2"><a href="ch-mixture.html#cb951-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">position =</span> <span class="kw">position_jitter</span>(<span class="dt">width =</span> <span class="fl">0.4</span>, <span class="dt">height =</span> <span class="dv">0</span>),</span>
-<span id="cb951-3"><a href="ch-mixture.html#cb951-3" aria-hidden="true"></a>             <span class="dt">alpha =</span> <span class="fl">0.5</span>) <span class="op">+</span></span>
-<span id="cb951-4"><a href="ch-mixture.html#cb951-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">facet_wrap</span>(diff <span class="op">~</span><span class="st"> </span>.) <span class="op">+</span></span>
-<span id="cb951-5"><a href="ch-mixture.html#cb951-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Accuracy&quot;</span>) <span class="op">+</span></span>
-<span id="cb951-6"><a href="ch-mixture.html#cb951-6" aria-hidden="true"></a><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Response time&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb952"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb952-1"><a href="ch-mixture.html#cb952-1" aria-hidden="true"></a><span class="kw">ggplot</span>(df_dots_simdata3, <span class="kw">aes</span>(<span class="dt">x =</span> <span class="kw">factor</span>(acc), <span class="dt">y =</span> rt)) <span class="op">+</span></span>
+<span id="cb952-2"><a href="ch-mixture.html#cb952-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">position =</span> <span class="kw">position_jitter</span>(<span class="dt">width =</span> <span class="fl">0.4</span>, <span class="dt">height =</span> <span class="dv">0</span>),</span>
+<span id="cb952-3"><a href="ch-mixture.html#cb952-3" aria-hidden="true"></a>             <span class="dt">alpha =</span> <span class="fl">0.5</span>) <span class="op">+</span></span>
+<span id="cb952-4"><a href="ch-mixture.html#cb952-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">facet_wrap</span>(diff <span class="op">~</span><span class="st"> </span>.) <span class="op">+</span></span>
+<span id="cb952-5"><a href="ch-mixture.html#cb952-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Accuracy&quot;</span>) <span class="op">+</span></span>
+<span id="cb952-6"><a href="ch-mixture.html#cb952-6" aria-hidden="true"></a><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Response time&quot;</span>)</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:simdata3"></span>
 <img src="bayescogsci_files/figure-html/simdata3-1.svg" alt="Response times by accuracy, accounting for task difficulty in the simulated data (df_dots_simdata3) that follows the fast-guess model." width="672" />
 <p class="caption">
@@ -1919,17 +2003,17 @@ model {
   }
 }</code></pre>
 <p>Next, set up the data in list format:</p>
-<div class="sourceCode" id="cb953"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb953-1"><a href="ch-mixture.html#cb953-1" aria-hidden="true"></a>ls_dots_simdata &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">N =</span> N,</span>
-<span id="cb953-2"><a href="ch-mixture.html#cb953-2" aria-hidden="true"></a>                        <span class="dt">rt =</span> rt,</span>
-<span id="cb953-3"><a href="ch-mixture.html#cb953-3" aria-hidden="true"></a>                        <span class="dt">x =</span> x,</span>
-<span id="cb953-4"><a href="ch-mixture.html#cb953-4" aria-hidden="true"></a>                        <span class="dt">acc =</span> acc)</span></code></pre></div>
+<div class="sourceCode" id="cb954"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb954-1"><a href="ch-mixture.html#cb954-1" aria-hidden="true"></a>ls_dots_simdata &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">N =</span> N,</span>
+<span id="cb954-2"><a href="ch-mixture.html#cb954-2" aria-hidden="true"></a>                        <span class="dt">rt =</span> rt,</span>
+<span id="cb954-3"><a href="ch-mixture.html#cb954-3" aria-hidden="true"></a>                        <span class="dt">x =</span> x,</span>
+<span id="cb954-4"><a href="ch-mixture.html#cb954-4" aria-hidden="true"></a>                        <span class="dt">acc =</span> acc)</span></code></pre></div>
 <p>Then fit the model:</p>
-<div class="sourceCode" id="cb954"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb954-1"><a href="ch-mixture.html#cb954-1" aria-hidden="true"></a>mixture_rtacc &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
-<span id="cb954-2"><a href="ch-mixture.html#cb954-2" aria-hidden="true"></a>                             <span class="st">&quot;mixture_rtacc.stan&quot;</span>,</span>
-<span id="cb954-3"><a href="ch-mixture.html#cb954-3" aria-hidden="true"></a>                             <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
-<span id="cb954-4"><a href="ch-mixture.html#cb954-4" aria-hidden="true"></a>fit_mix_rtacc &lt;-<span class="st"> </span><span class="kw">stan</span>(mixture_rtacc, <span class="dt">data =</span> ls_dots_simdata)</span></code></pre></div>
+<div class="sourceCode" id="cb955"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb955-1"><a href="ch-mixture.html#cb955-1" aria-hidden="true"></a>mixture_rtacc &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
+<span id="cb955-2"><a href="ch-mixture.html#cb955-2" aria-hidden="true"></a>                             <span class="st">&quot;mixture_rtacc.stan&quot;</span>,</span>
+<span id="cb955-3"><a href="ch-mixture.html#cb955-3" aria-hidden="true"></a>                             <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
+<span id="cb955-4"><a href="ch-mixture.html#cb955-4" aria-hidden="true"></a>fit_mix_rtacc &lt;-<span class="st"> </span><span class="kw">stan</span>(mixture_rtacc, <span class="dt">data =</span> ls_dots_simdata)</span></code></pre></div>
 <p>We see that our model can be fit to both response times and accuracy, and its parameters estimates have sensible values (given the fixed parameters we used to generate our simulated data).</p>
-<div class="sourceCode" id="cb955"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb955-1"><a href="ch-mixture.html#cb955-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mix_rtacc)</span></code></pre></div>
+<div class="sourceCode" id="cb956"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb956-1"><a href="ch-mixture.html#cb956-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mix_rtacc)</span></code></pre></div>
 <pre><code>##               mean     2.5%    97.5% n_eff Rhat
 ## alpha         5.80     5.77     5.83  4126    1
 ## beta          0.08     0.02     0.13  6376    1
@@ -1986,19 +2070,19 @@ acc_n \sim
 \end{aligned}
 \end{equation}\]</span></p>
 <p>To verify that our priors make sense, in Figure <a href="ch-mixture.html#fig:emphasis">17.9</a> we plot the difference in prior predicted probability of being engaged in the task under the two emphasis conditions:</p>
-<div class="sourceCode" id="cb957"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb957-1"><a href="ch-mixture.html#cb957-1" aria-hidden="true"></a>Ns &lt;-<span class="st"> </span><span class="dv">1000</span> <span class="co"># number of samples for the plot</span></span>
-<span id="cb957-2"><a href="ch-mixture.html#cb957-2" aria-hidden="true"></a><span class="co"># Priors</span></span>
-<span id="cb957-3"><a href="ch-mixture.html#cb957-3" aria-hidden="true"></a>p_btask &lt;-<span class="st"> </span><span class="kw">rbeta</span>(<span class="dt">n =</span> Ns, <span class="dt">shape1 =</span> <span class="dv">8</span>, <span class="dt">shape2 =</span> <span class="dv">2</span>)</span>
-<span id="cb957-4"><a href="ch-mixture.html#cb957-4" aria-hidden="true"></a>beta_task &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dt">n =</span> Ns, <span class="dt">mean =</span> <span class="dv">0</span>, <span class="dt">sd =</span> <span class="dv">1</span>)</span>
-<span id="cb957-5"><a href="ch-mixture.html#cb957-5" aria-hidden="true"></a><span class="co"># Predicted probability of being engaged</span></span>
-<span id="cb957-6"><a href="ch-mixture.html#cb957-6" aria-hidden="true"></a>p_task_easy &lt;-<span class="st"> </span><span class="kw">plogis</span>(<span class="kw">qlogis</span>(p_btask) <span class="op">+</span><span class="st"> </span><span class="fl">0.5</span> <span class="op">*</span><span class="st"> </span>beta_task)</span>
-<span id="cb957-7"><a href="ch-mixture.html#cb957-7" aria-hidden="true"></a>p_task_hard &lt;-<span class="st"> </span><span class="kw">plogis</span>(<span class="kw">qlogis</span>(p_btask) <span class="op">+</span><span class="st"> </span><span class="fl">-0.5</span> <span class="op">*</span><span class="st"> </span>beta_task)</span>
-<span id="cb957-8"><a href="ch-mixture.html#cb957-8" aria-hidden="true"></a><span class="co"># Predicted difference</span></span>
-<span id="cb957-9"><a href="ch-mixture.html#cb957-9" aria-hidden="true"></a>diff_p_pred &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">diff =</span> p_task_easy <span class="op">-</span><span class="st"> </span>p_task_hard)</span></code></pre></div>
+<div class="sourceCode" id="cb958"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb958-1"><a href="ch-mixture.html#cb958-1" aria-hidden="true"></a>Ns &lt;-<span class="st"> </span><span class="dv">1000</span> <span class="co"># number of samples for the plot</span></span>
+<span id="cb958-2"><a href="ch-mixture.html#cb958-2" aria-hidden="true"></a><span class="co"># Priors</span></span>
+<span id="cb958-3"><a href="ch-mixture.html#cb958-3" aria-hidden="true"></a>p_btask &lt;-<span class="st"> </span><span class="kw">rbeta</span>(<span class="dt">n =</span> Ns, <span class="dt">shape1 =</span> <span class="dv">8</span>, <span class="dt">shape2 =</span> <span class="dv">2</span>)</span>
+<span id="cb958-4"><a href="ch-mixture.html#cb958-4" aria-hidden="true"></a>beta_task &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dt">n =</span> Ns, <span class="dt">mean =</span> <span class="dv">0</span>, <span class="dt">sd =</span> <span class="dv">1</span>)</span>
+<span id="cb958-5"><a href="ch-mixture.html#cb958-5" aria-hidden="true"></a><span class="co"># Predicted probability of being engaged</span></span>
+<span id="cb958-6"><a href="ch-mixture.html#cb958-6" aria-hidden="true"></a>p_task_easy &lt;-<span class="st"> </span><span class="kw">plogis</span>(<span class="kw">qlogis</span>(p_btask) <span class="op">+</span><span class="st"> </span><span class="fl">0.5</span> <span class="op">*</span><span class="st"> </span>beta_task)</span>
+<span id="cb958-7"><a href="ch-mixture.html#cb958-7" aria-hidden="true"></a>p_task_hard &lt;-<span class="st"> </span><span class="kw">plogis</span>(<span class="kw">qlogis</span>(p_btask) <span class="op">+</span><span class="st"> </span><span class="fl">-0.5</span> <span class="op">*</span><span class="st"> </span>beta_task)</span>
+<span id="cb958-8"><a href="ch-mixture.html#cb958-8" aria-hidden="true"></a><span class="co"># Predicted difference</span></span>
+<span id="cb958-9"><a href="ch-mixture.html#cb958-9" aria-hidden="true"></a>diff_p_pred &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">diff =</span> p_task_easy <span class="op">-</span><span class="st"> </span>p_task_hard)</span></code></pre></div>
 
-<div class="sourceCode" id="cb958"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb958-1"><a href="ch-mixture.html#cb958-1" aria-hidden="true"></a>diff_p_pred <span class="op">%&gt;%</span></span>
-<span id="cb958-2"><a href="ch-mixture.html#cb958-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(diff)) <span class="op">+</span></span>
-<span id="cb958-3"><a href="ch-mixture.html#cb958-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_histogram</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb959"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb959-1"><a href="ch-mixture.html#cb959-1" aria-hidden="true"></a>diff_p_pred <span class="op">%&gt;%</span></span>
+<span id="cb959-2"><a href="ch-mixture.html#cb959-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(diff)) <span class="op">+</span></span>
+<span id="cb959-3"><a href="ch-mixture.html#cb959-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_histogram</span>()</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:emphasis"></span>
 <img src="bayescogsci_files/figure-html/emphasis-1.svg" alt="The difference in prior predicted probability of being engaged in the task under the two emphasis conditions for the simulated data (diff_p_pred) that follows the fast-guess model." width="672" />
 <p class="caption">
@@ -2007,49 +2091,49 @@ FIGURE 17.9: The difference in prior predicted probability of being engaged in t
 </div>
 <p>Figure <a href="ch-mixture.html#fig:emphasis">17.9</a> shows that we are predicting a priori that the difference in <span class="math inline">\(p_{task}\)</span> will tend to be smaller than <span class="math inline">\(\pm 0.3\)</span>, which seems to make sense intuitively. If we had more information about the likely range of variation, we could of course have adapted the prior to reflect that belief.</p>
 <p>We are ready to generate a new data set, by deciding on some fixed values for <span class="math inline">\(\beta_{task}\)</span> and <span class="math inline">\(p_{btask}\)</span>:</p>
-<div class="sourceCode" id="cb959"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb959-1"><a href="ch-mixture.html#cb959-1" aria-hidden="true"></a>N &lt;-<span class="st"> </span><span class="dv">1000</span></span>
-<span id="cb959-2"><a href="ch-mixture.html#cb959-2" aria-hidden="true"></a>x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">rep</span>(<span class="op">-</span><span class="fl">0.5</span>, N<span class="op">/</span><span class="dv">2</span>), <span class="kw">rep</span>(<span class="fl">0.5</span>, N<span class="op">/</span><span class="dv">2</span>)) <span class="co"># difficulty</span></span>
-<span id="cb959-3"><a href="ch-mixture.html#cb959-3" aria-hidden="true"></a>x2 &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="kw">c</span>(<span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>), N<span class="op">/</span><span class="dv">2</span>) <span class="co"># instructions</span></span>
-<span id="cb959-4"><a href="ch-mixture.html#cb959-4" aria-hidden="true"></a><span class="co"># Verify that the predictors are crossed in a 2x2 design :</span></span>
-<span id="cb959-5"><a href="ch-mixture.html#cb959-5" aria-hidden="true"></a>predictors &lt;-<span class="st"> </span><span class="kw">tibble</span>(x, x2)</span>
-<span id="cb959-6"><a href="ch-mixture.html#cb959-6" aria-hidden="true"></a><span class="kw">xtabs</span>(<span class="op">~</span><span class="st"> </span>x <span class="op">+</span><span class="st"> </span>x2, predictors)</span></code></pre></div>
+<div class="sourceCode" id="cb960"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb960-1"><a href="ch-mixture.html#cb960-1" aria-hidden="true"></a>N &lt;-<span class="st"> </span><span class="dv">1000</span></span>
+<span id="cb960-2"><a href="ch-mixture.html#cb960-2" aria-hidden="true"></a>x &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">rep</span>(<span class="op">-</span><span class="fl">0.5</span>, N<span class="op">/</span><span class="dv">2</span>), <span class="kw">rep</span>(<span class="fl">0.5</span>, N<span class="op">/</span><span class="dv">2</span>)) <span class="co"># difficulty</span></span>
+<span id="cb960-3"><a href="ch-mixture.html#cb960-3" aria-hidden="true"></a>x2 &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="kw">c</span>(<span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>), N<span class="op">/</span><span class="dv">2</span>) <span class="co"># instructions</span></span>
+<span id="cb960-4"><a href="ch-mixture.html#cb960-4" aria-hidden="true"></a><span class="co"># Verify that the predictors are crossed in a 2x2 design :</span></span>
+<span id="cb960-5"><a href="ch-mixture.html#cb960-5" aria-hidden="true"></a>predictors &lt;-<span class="st"> </span><span class="kw">tibble</span>(x, x2)</span>
+<span id="cb960-6"><a href="ch-mixture.html#cb960-6" aria-hidden="true"></a><span class="kw">xtabs</span>(<span class="op">~</span><span class="st"> </span>x <span class="op">+</span><span class="st"> </span>x2, predictors)</span></code></pre></div>
 <pre><code>##       x2
 ## x      -0.5 0.5
 ##   -0.5  250 250
 ##   0.5   250 250</code></pre>
-<div class="sourceCode" id="cb961"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb961-1"><a href="ch-mixture.html#cb961-1" aria-hidden="true"></a>alpha &lt;-<span class="st"> </span><span class="fl">5.8</span></span>
-<span id="cb961-2"><a href="ch-mixture.html#cb961-2" aria-hidden="true"></a>beta &lt;-<span class="st"> </span><span class="fl">0.05</span></span>
-<span id="cb961-3"><a href="ch-mixture.html#cb961-3" aria-hidden="true"></a>sigma &lt;-<span class="st"> </span><span class="fl">0.4</span></span>
-<span id="cb961-4"><a href="ch-mixture.html#cb961-4" aria-hidden="true"></a>sigma2 &lt;-<span class="st"> </span><span class="fl">0.5</span></span>
-<span id="cb961-5"><a href="ch-mixture.html#cb961-5" aria-hidden="true"></a>gamma &lt;-<span class="st"> </span><span class="fl">5.2</span></span>
-<span id="cb961-6"><a href="ch-mixture.html#cb961-6" aria-hidden="true"></a>p_correct &lt;-<span class="st"> </span><span class="fl">0.999</span></span>
-<span id="cb961-7"><a href="ch-mixture.html#cb961-7" aria-hidden="true"></a><span class="co"># New true point values:</span></span>
-<span id="cb961-8"><a href="ch-mixture.html#cb961-8" aria-hidden="true"></a>p_btask &lt;-<span class="st"> </span><span class="fl">0.85</span></span>
-<span id="cb961-9"><a href="ch-mixture.html#cb961-9" aria-hidden="true"></a>beta_task &lt;-<span class="st"> </span><span class="fl">0.5</span></span>
-<span id="cb961-10"><a href="ch-mixture.html#cb961-10" aria-hidden="true"></a><span class="co"># Generate data:</span></span>
-<span id="cb961-11"><a href="ch-mixture.html#cb961-11" aria-hidden="true"></a>alpha_task &lt;-<span class="st"> </span><span class="kw">qlogis</span>(p_btask)</span>
-<span id="cb961-12"><a href="ch-mixture.html#cb961-12" aria-hidden="true"></a>p_task &lt;-<span class="st"> </span><span class="kw">plogis</span>(alpha_task <span class="op">+</span><span class="st"> </span>x2 <span class="op">*</span><span class="st"> </span>beta_task)</span>
-<span id="cb961-13"><a href="ch-mixture.html#cb961-13" aria-hidden="true"></a>z &lt;-<span class="st"> </span><span class="kw">rbern</span>(N, <span class="dt">prob =</span> p_task)</span>
-<span id="cb961-14"><a href="ch-mixture.html#cb961-14" aria-hidden="true"></a>rt &lt;-<span class="st"> </span><span class="kw">ifelse</span>(z,</span>
-<span id="cb961-15"><a href="ch-mixture.html#cb961-15" aria-hidden="true"></a>             <span class="kw">rlnorm</span>(N, <span class="dt">meanlog =</span> alpha <span class="op">+</span><span class="st"> </span>beta <span class="op">*</span><span class="st"> </span>x, <span class="dt">sdlog =</span> sigma),</span>
-<span id="cb961-16"><a href="ch-mixture.html#cb961-16" aria-hidden="true"></a>             <span class="kw">rlnorm</span>(N, <span class="dt">meanlog =</span> gamma, <span class="dt">sdlog =</span> sigma2))</span>
-<span id="cb961-17"><a href="ch-mixture.html#cb961-17" aria-hidden="true"></a>acc &lt;-<span class="st"> </span><span class="kw">ifelse</span>(z, <span class="kw">rbern</span>(N, p_correct),</span>
-<span id="cb961-18"><a href="ch-mixture.html#cb961-18" aria-hidden="true"></a>                 <span class="kw">rbern</span>(N, <span class="fl">0.5</span>))</span>
-<span id="cb961-19"><a href="ch-mixture.html#cb961-19" aria-hidden="true"></a>df_dots_simdata4 &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">trial =</span> <span class="dv">1</span><span class="op">:</span>N,</span>
-<span id="cb961-20"><a href="ch-mixture.html#cb961-20" aria-hidden="true"></a>                           <span class="dt">x =</span> x,</span>
-<span id="cb961-21"><a href="ch-mixture.html#cb961-21" aria-hidden="true"></a>                           <span class="dt">rt =</span> rt,</span>
-<span id="cb961-22"><a href="ch-mixture.html#cb961-22" aria-hidden="true"></a>                           <span class="dt">acc =</span> acc,</span>
-<span id="cb961-23"><a href="ch-mixture.html#cb961-23" aria-hidden="true"></a>                           <span class="dt">x2 =</span> x2) <span class="op">%&gt;%</span></span>
-<span id="cb961-24"><a href="ch-mixture.html#cb961-24" aria-hidden="true"></a><span class="st">          </span><span class="kw">mutate</span>(<span class="dt">diff =</span> <span class="kw">if_else</span>(x <span class="op">==</span><span class="st"> </span><span class="fl">0.5</span>, <span class="st">&quot;hard&quot;</span>, <span class="st">&quot;easy&quot;</span>),</span>
-<span id="cb961-25"><a href="ch-mixture.html#cb961-25" aria-hidden="true"></a>                 <span class="dt">emphasis =</span> <span class="kw">ifelse</span>(x2 <span class="op">==</span><span class="st"> </span><span class="fl">0.5</span>, <span class="st">&quot;accuracy&quot;</span>, <span class="st">&quot;speed&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb962"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb962-1"><a href="ch-mixture.html#cb962-1" aria-hidden="true"></a>alpha &lt;-<span class="st"> </span><span class="fl">5.8</span></span>
+<span id="cb962-2"><a href="ch-mixture.html#cb962-2" aria-hidden="true"></a>beta &lt;-<span class="st"> </span><span class="fl">0.05</span></span>
+<span id="cb962-3"><a href="ch-mixture.html#cb962-3" aria-hidden="true"></a>sigma &lt;-<span class="st"> </span><span class="fl">0.4</span></span>
+<span id="cb962-4"><a href="ch-mixture.html#cb962-4" aria-hidden="true"></a>sigma2 &lt;-<span class="st"> </span><span class="fl">0.5</span></span>
+<span id="cb962-5"><a href="ch-mixture.html#cb962-5" aria-hidden="true"></a>gamma &lt;-<span class="st"> </span><span class="fl">5.2</span></span>
+<span id="cb962-6"><a href="ch-mixture.html#cb962-6" aria-hidden="true"></a>p_correct &lt;-<span class="st"> </span><span class="fl">0.999</span></span>
+<span id="cb962-7"><a href="ch-mixture.html#cb962-7" aria-hidden="true"></a><span class="co"># New true point values:</span></span>
+<span id="cb962-8"><a href="ch-mixture.html#cb962-8" aria-hidden="true"></a>p_btask &lt;-<span class="st"> </span><span class="fl">0.85</span></span>
+<span id="cb962-9"><a href="ch-mixture.html#cb962-9" aria-hidden="true"></a>beta_task &lt;-<span class="st"> </span><span class="fl">0.5</span></span>
+<span id="cb962-10"><a href="ch-mixture.html#cb962-10" aria-hidden="true"></a><span class="co"># Generate data:</span></span>
+<span id="cb962-11"><a href="ch-mixture.html#cb962-11" aria-hidden="true"></a>alpha_task &lt;-<span class="st"> </span><span class="kw">qlogis</span>(p_btask)</span>
+<span id="cb962-12"><a href="ch-mixture.html#cb962-12" aria-hidden="true"></a>p_task &lt;-<span class="st"> </span><span class="kw">plogis</span>(alpha_task <span class="op">+</span><span class="st"> </span>x2 <span class="op">*</span><span class="st"> </span>beta_task)</span>
+<span id="cb962-13"><a href="ch-mixture.html#cb962-13" aria-hidden="true"></a>z &lt;-<span class="st"> </span><span class="kw">rbern</span>(N, <span class="dt">prob =</span> p_task)</span>
+<span id="cb962-14"><a href="ch-mixture.html#cb962-14" aria-hidden="true"></a>rt &lt;-<span class="st"> </span><span class="kw">ifelse</span>(z,</span>
+<span id="cb962-15"><a href="ch-mixture.html#cb962-15" aria-hidden="true"></a>             <span class="kw">rlnorm</span>(N, <span class="dt">meanlog =</span> alpha <span class="op">+</span><span class="st"> </span>beta <span class="op">*</span><span class="st"> </span>x, <span class="dt">sdlog =</span> sigma),</span>
+<span id="cb962-16"><a href="ch-mixture.html#cb962-16" aria-hidden="true"></a>             <span class="kw">rlnorm</span>(N, <span class="dt">meanlog =</span> gamma, <span class="dt">sdlog =</span> sigma2))</span>
+<span id="cb962-17"><a href="ch-mixture.html#cb962-17" aria-hidden="true"></a>acc &lt;-<span class="st"> </span><span class="kw">ifelse</span>(z, <span class="kw">rbern</span>(N, p_correct),</span>
+<span id="cb962-18"><a href="ch-mixture.html#cb962-18" aria-hidden="true"></a>                 <span class="kw">rbern</span>(N, <span class="fl">0.5</span>))</span>
+<span id="cb962-19"><a href="ch-mixture.html#cb962-19" aria-hidden="true"></a>df_dots_simdata4 &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">trial =</span> <span class="dv">1</span><span class="op">:</span>N,</span>
+<span id="cb962-20"><a href="ch-mixture.html#cb962-20" aria-hidden="true"></a>                           <span class="dt">x =</span> x,</span>
+<span id="cb962-21"><a href="ch-mixture.html#cb962-21" aria-hidden="true"></a>                           <span class="dt">rt =</span> rt,</span>
+<span id="cb962-22"><a href="ch-mixture.html#cb962-22" aria-hidden="true"></a>                           <span class="dt">acc =</span> acc,</span>
+<span id="cb962-23"><a href="ch-mixture.html#cb962-23" aria-hidden="true"></a>                           <span class="dt">x2 =</span> x2) <span class="op">%&gt;%</span></span>
+<span id="cb962-24"><a href="ch-mixture.html#cb962-24" aria-hidden="true"></a><span class="st">          </span><span class="kw">mutate</span>(<span class="dt">diff =</span> <span class="kw">if_else</span>(x <span class="op">==</span><span class="st"> </span><span class="fl">0.5</span>, <span class="st">&quot;hard&quot;</span>, <span class="st">&quot;easy&quot;</span>),</span>
+<span id="cb962-25"><a href="ch-mixture.html#cb962-25" aria-hidden="true"></a>                 <span class="dt">emphasis =</span> <span class="kw">ifelse</span>(x2 <span class="op">==</span><span class="st"> </span><span class="fl">0.5</span>, <span class="st">&quot;accuracy&quot;</span>, <span class="st">&quot;speed&quot;</span>))</span></code></pre></div>
 <p>We can generate a plot now where both the difficulty of the task and the instructions are manipulated; see Figure <a href="ch-mixture.html#fig:taskinstr">17.10</a>.</p>
 
-<div class="sourceCode" id="cb962"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb962-1"><a href="ch-mixture.html#cb962-1" aria-hidden="true"></a><span class="kw">ggplot</span>(df_dots_simdata4, <span class="kw">aes</span>(<span class="dt">x =</span> <span class="kw">factor</span>(acc), <span class="dt">y =</span> rt)) <span class="op">+</span></span>
-<span id="cb962-2"><a href="ch-mixture.html#cb962-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">position =</span> <span class="kw">position_jitter</span>(<span class="dt">width =</span> <span class="fl">.4</span>, <span class="dt">height =</span> <span class="dv">0</span>),</span>
-<span id="cb962-3"><a href="ch-mixture.html#cb962-3" aria-hidden="true"></a>             <span class="dt">alpha =</span> <span class="fl">0.5</span>) <span class="op">+</span></span>
-<span id="cb962-4"><a href="ch-mixture.html#cb962-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">facet_wrap</span>(diff <span class="op">~</span><span class="st"> </span>emphasis) <span class="op">+</span></span>
-<span id="cb962-5"><a href="ch-mixture.html#cb962-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Accuracy&quot;</span>) <span class="op">+</span></span>
-<span id="cb962-6"><a href="ch-mixture.html#cb962-6" aria-hidden="true"></a><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Response time&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb963"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb963-1"><a href="ch-mixture.html#cb963-1" aria-hidden="true"></a><span class="kw">ggplot</span>(df_dots_simdata4, <span class="kw">aes</span>(<span class="dt">x =</span> <span class="kw">factor</span>(acc), <span class="dt">y =</span> rt)) <span class="op">+</span></span>
+<span id="cb963-2"><a href="ch-mixture.html#cb963-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">position =</span> <span class="kw">position_jitter</span>(<span class="dt">width =</span> <span class="fl">.4</span>, <span class="dt">height =</span> <span class="dv">0</span>),</span>
+<span id="cb963-3"><a href="ch-mixture.html#cb963-3" aria-hidden="true"></a>             <span class="dt">alpha =</span> <span class="fl">0.5</span>) <span class="op">+</span></span>
+<span id="cb963-4"><a href="ch-mixture.html#cb963-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">facet_wrap</span>(diff <span class="op">~</span><span class="st"> </span>emphasis) <span class="op">+</span></span>
+<span id="cb963-5"><a href="ch-mixture.html#cb963-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Accuracy&quot;</span>) <span class="op">+</span></span>
+<span id="cb963-6"><a href="ch-mixture.html#cb963-6" aria-hidden="true"></a><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Response time&quot;</span>)</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:taskinstr"></span>
 <img src="bayescogsci_files/figure-html/taskinstr-1.svg" alt="Response times and accuracy by the difficulty of the task and the instructions type for the simulated data (df_dots_simdata4) that follows the fast-guess model." width="672" />
 <p class="caption">
@@ -2126,28 +2210,28 @@ generated quantities {
 <div id="prior-predictive-checks" class="section level4 hasAnchor" number="17.1.4.1">
 <h4><span class="header-section-number">17.1.4.1</span> Prior predictive checks<a href="ch-mixture.html#prior-predictive-checks" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p>Generate prior predictive distributions, by setting <code>onlyprior</code> to <code>1</code>.</p>
-<div class="sourceCode" id="cb966"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb966-1"><a href="ch-mixture.html#cb966-1" aria-hidden="true"></a>ls_dots_simdata &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">N =</span> N,</span>
-<span id="cb966-2"><a href="ch-mixture.html#cb966-2" aria-hidden="true"></a>                        <span class="dt">rt =</span> rt,</span>
-<span id="cb966-3"><a href="ch-mixture.html#cb966-3" aria-hidden="true"></a>                        <span class="dt">x =</span> x,</span>
-<span id="cb966-4"><a href="ch-mixture.html#cb966-4" aria-hidden="true"></a>                        <span class="dt">x2 =</span> x2,</span>
-<span id="cb966-5"><a href="ch-mixture.html#cb966-5" aria-hidden="true"></a>                        <span class="dt">acc =</span> acc,</span>
-<span id="cb966-6"><a href="ch-mixture.html#cb966-6" aria-hidden="true"></a>                        <span class="dt">onlyprior =</span> <span class="dv">1</span>)</span>
-<span id="cb966-7"><a href="ch-mixture.html#cb966-7" aria-hidden="true"></a>mixture_rtacc2 &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
-<span id="cb966-8"><a href="ch-mixture.html#cb966-8" aria-hidden="true"></a>                              <span class="st">&quot;mixture_rtacc2.stan&quot;</span>,</span>
-<span id="cb966-9"><a href="ch-mixture.html#cb966-9" aria-hidden="true"></a>                              <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span></code></pre></div>
-<div class="sourceCode" id="cb967"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb967-1"><a href="ch-mixture.html#cb967-1" aria-hidden="true"></a>fit_mix_rtacc2_priors &lt;-<span class="st"> </span><span class="kw">stan</span>(mixture_rtacc2,</span>
-<span id="cb967-2"><a href="ch-mixture.html#cb967-2" aria-hidden="true"></a>                              <span class="dt">data =</span> ls_dots_simdata)</span></code></pre></div>
+<div class="sourceCode" id="cb967"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb967-1"><a href="ch-mixture.html#cb967-1" aria-hidden="true"></a>ls_dots_simdata &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">N =</span> N,</span>
+<span id="cb967-2"><a href="ch-mixture.html#cb967-2" aria-hidden="true"></a>                        <span class="dt">rt =</span> rt,</span>
+<span id="cb967-3"><a href="ch-mixture.html#cb967-3" aria-hidden="true"></a>                        <span class="dt">x =</span> x,</span>
+<span id="cb967-4"><a href="ch-mixture.html#cb967-4" aria-hidden="true"></a>                        <span class="dt">x2 =</span> x2,</span>
+<span id="cb967-5"><a href="ch-mixture.html#cb967-5" aria-hidden="true"></a>                        <span class="dt">acc =</span> acc,</span>
+<span id="cb967-6"><a href="ch-mixture.html#cb967-6" aria-hidden="true"></a>                        <span class="dt">onlyprior =</span> <span class="dv">1</span>)</span>
+<span id="cb967-7"><a href="ch-mixture.html#cb967-7" aria-hidden="true"></a>mixture_rtacc2 &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
+<span id="cb967-8"><a href="ch-mixture.html#cb967-8" aria-hidden="true"></a>                              <span class="st">&quot;mixture_rtacc2.stan&quot;</span>,</span>
+<span id="cb967-9"><a href="ch-mixture.html#cb967-9" aria-hidden="true"></a>                              <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb968"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb968-1"><a href="ch-mixture.html#cb968-1" aria-hidden="true"></a>fit_mix_rtacc2_priors &lt;-<span class="st"> </span><span class="kw">stan</span>(mixture_rtacc2,</span>
+<span id="cb968-2"><a href="ch-mixture.html#cb968-2" aria-hidden="true"></a>                              <span class="dt">data =</span> ls_dots_simdata)</span></code></pre></div>
 <p>We plot prior predictive distributions of response times as follows in Figure <a href="ch-mixture.html#fig:ppdiff-ppcmix4">17.11</a>(a), by setting <code>y = rt</code> using <code>ppd_dens_overlay()</code>.</p>
-<div class="sourceCode" id="cb968"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb968-1"><a href="ch-mixture.html#cb968-1" aria-hidden="true"></a>rt_pred &lt;-<span class="st"> </span><span class="kw">extract</span>(fit_mix_rtacc2_priors)<span class="op">$</span>rt_pred</span>
-<span id="cb968-2"><a href="ch-mixture.html#cb968-2" aria-hidden="true"></a><span class="kw">ppd_dens_overlay</span>(rt_pred[<span class="dv">1</span><span class="op">:</span><span class="dv">100</span>,]) <span class="op">+</span></span>
-<span id="cb968-3"><a href="ch-mixture.html#cb968-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">coord_cartesian</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">2000</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb969"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb969-1"><a href="ch-mixture.html#cb969-1" aria-hidden="true"></a>rt_pred &lt;-<span class="st"> </span><span class="kw">extract</span>(fit_mix_rtacc2_priors)<span class="op">$</span>rt_pred</span>
+<span id="cb969-2"><a href="ch-mixture.html#cb969-2" aria-hidden="true"></a><span class="kw">ppd_dens_overlay</span>(rt_pred[<span class="dv">1</span><span class="op">:</span><span class="dv">100</span>,]) <span class="op">+</span></span>
+<span id="cb969-3"><a href="ch-mixture.html#cb969-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">coord_cartesian</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">2000</span>))</span></code></pre></div>
 <p>Some of the predictive data sets contain responses that are too large, and some of them have too much probability mass close to zero, but there is nothing clearly wrong in the prior predictive distributions (considering that the model hasn’t “seen” the data yet).</p>
 <p>If we want to plot the prior predicted distribution of differences in response time conditioning on task difficulty, we need to define a new function. Then we use the <code>bayesplot</code> function <code>ppc_stat()</code> that takes as an argument of <code>stat</code> any summary function; see Figure <a href="ch-mixture.html#fig:ppdiff-ppcmix4">17.11</a>(a).</p>
-<div class="sourceCode" id="cb969"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb969-1"><a href="ch-mixture.html#cb969-1" aria-hidden="true"></a>meanrt_diff &lt;-<span class="st"> </span><span class="cf">function</span>(rt){</span>
-<span id="cb969-2"><a href="ch-mixture.html#cb969-2" aria-hidden="true"></a>  <span class="kw">mean</span>(rt[x <span class="op">==</span><span class="st"> </span><span class="fl">0.5</span>]) <span class="op">-</span></span>
-<span id="cb969-3"><a href="ch-mixture.html#cb969-3" aria-hidden="true"></a><span class="st">    </span><span class="kw">mean</span>(rt[x <span class="op">==</span><span class="st"> </span><span class="fl">-0.5</span>])</span>
-<span id="cb969-4"><a href="ch-mixture.html#cb969-4" aria-hidden="true"></a>}</span>
-<span id="cb969-5"><a href="ch-mixture.html#cb969-5" aria-hidden="true"></a><span class="kw">ppd_stat</span>(rt_pred, <span class="dt">stat =</span> meanrt_diff)</span></code></pre></div>
+<div class="sourceCode" id="cb970"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb970-1"><a href="ch-mixture.html#cb970-1" aria-hidden="true"></a>meanrt_diff &lt;-<span class="st"> </span><span class="cf">function</span>(rt){</span>
+<span id="cb970-2"><a href="ch-mixture.html#cb970-2" aria-hidden="true"></a>  <span class="kw">mean</span>(rt[x <span class="op">==</span><span class="st"> </span><span class="fl">0.5</span>]) <span class="op">-</span></span>
+<span id="cb970-3"><a href="ch-mixture.html#cb970-3" aria-hidden="true"></a><span class="st">    </span><span class="kw">mean</span>(rt[x <span class="op">==</span><span class="st"> </span><span class="fl">-0.5</span>])</span>
+<span id="cb970-4"><a href="ch-mixture.html#cb970-4" aria-hidden="true"></a>}</span>
+<span id="cb970-5"><a href="ch-mixture.html#cb970-5" aria-hidden="true"></a><span class="kw">ppd_stat</span>(rt_pred, <span class="dt">stat =</span> meanrt_diff)</span></code></pre></div>
 
 <div class="figure"><span style="display:block;" id="fig:ppdiff-ppcmix4"></span>
 <img src="bayescogsci_files/figure-html/ppdiff-ppcmix4-1.svg" alt="(a) Prior predictive distributions of response times from the fast-guess model (mixture_rtacc2.stan). (b) Prior predictive distribution of response time differences, using the same model and prior settings, conditioned on task difficulty." width="49%" /><img src="bayescogsci_files/figure-html/ppdiff-ppcmix4-2.svg" alt="(a) Prior predictive distributions of response times from the fast-guess model (mixture_rtacc2.stan). (b) Prior predictive distribution of response time differences, using the same model and prior settings, conditioned on task difficulty." width="49%" />
@@ -2160,16 +2244,16 @@ FIGURE 17.11: (a) Prior predictive distributions of response times from the fast
 <div id="fit-to-simulated-data" class="section level4 hasAnchor" number="17.1.4.2">
 <h4><span class="header-section-number">17.1.4.2</span> Fit to simulated data<a href="ch-mixture.html#fit-to-simulated-data" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p>Fit the model to data, by setting <code>onlyprior = 0</code>:</p>
-<div class="sourceCode" id="cb970"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb970-1"><a href="ch-mixture.html#cb970-1" aria-hidden="true"></a>ls_dots_simdata &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">N =</span> N,</span>
-<span id="cb970-2"><a href="ch-mixture.html#cb970-2" aria-hidden="true"></a>                        <span class="dt">rt =</span> rt,</span>
-<span id="cb970-3"><a href="ch-mixture.html#cb970-3" aria-hidden="true"></a>                        <span class="dt">x =</span> x,</span>
-<span id="cb970-4"><a href="ch-mixture.html#cb970-4" aria-hidden="true"></a>                        <span class="dt">x2 =</span> x2,</span>
-<span id="cb970-5"><a href="ch-mixture.html#cb970-5" aria-hidden="true"></a>                        <span class="dt">acc =</span> acc,</span>
-<span id="cb970-6"><a href="ch-mixture.html#cb970-6" aria-hidden="true"></a>                        <span class="dt">onlyprior =</span> <span class="dv">0</span>)</span></code></pre></div>
-<div class="sourceCode" id="cb971"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb971-1"><a href="ch-mixture.html#cb971-1" aria-hidden="true"></a>fit_mix_rtacc2 &lt;-<span class="st"> </span><span class="kw">stan</span>(mixture_rtacc2, <span class="dt">data =</span> ls_dots_simdata)</span></code></pre></div>
-<div class="sourceCode" id="cb972"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb972-1"><a href="ch-mixture.html#cb972-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mix_rtacc2,</span>
-<span id="cb972-2"><a href="ch-mixture.html#cb972-2" aria-hidden="true"></a>      <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;alpha&quot;</span>, <span class="st">&quot;beta&quot;</span>, <span class="st">&quot;sigma&quot;</span>, <span class="st">&quot;gamma&quot;</span>, <span class="st">&quot;sigma2&quot;</span>,</span>
-<span id="cb972-3"><a href="ch-mixture.html#cb972-3" aria-hidden="true"></a>               <span class="st">&quot;p_correct&quot;</span>, <span class="st">&quot;p_btask&quot;</span>, <span class="st">&quot;beta_task&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb971"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb971-1"><a href="ch-mixture.html#cb971-1" aria-hidden="true"></a>ls_dots_simdata &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">N =</span> N,</span>
+<span id="cb971-2"><a href="ch-mixture.html#cb971-2" aria-hidden="true"></a>                        <span class="dt">rt =</span> rt,</span>
+<span id="cb971-3"><a href="ch-mixture.html#cb971-3" aria-hidden="true"></a>                        <span class="dt">x =</span> x,</span>
+<span id="cb971-4"><a href="ch-mixture.html#cb971-4" aria-hidden="true"></a>                        <span class="dt">x2 =</span> x2,</span>
+<span id="cb971-5"><a href="ch-mixture.html#cb971-5" aria-hidden="true"></a>                        <span class="dt">acc =</span> acc,</span>
+<span id="cb971-6"><a href="ch-mixture.html#cb971-6" aria-hidden="true"></a>                        <span class="dt">onlyprior =</span> <span class="dv">0</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb972"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb972-1"><a href="ch-mixture.html#cb972-1" aria-hidden="true"></a>fit_mix_rtacc2 &lt;-<span class="st"> </span><span class="kw">stan</span>(mixture_rtacc2, <span class="dt">data =</span> ls_dots_simdata)</span></code></pre></div>
+<div class="sourceCode" id="cb973"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb973-1"><a href="ch-mixture.html#cb973-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mix_rtacc2,</span>
+<span id="cb973-2"><a href="ch-mixture.html#cb973-2" aria-hidden="true"></a>      <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;alpha&quot;</span>, <span class="st">&quot;beta&quot;</span>, <span class="st">&quot;sigma&quot;</span>, <span class="st">&quot;gamma&quot;</span>, <span class="st">&quot;sigma2&quot;</span>,</span>
+<span id="cb973-3"><a href="ch-mixture.html#cb973-3" aria-hidden="true"></a>               <span class="st">&quot;p_correct&quot;</span>, <span class="st">&quot;p_btask&quot;</span>, <span class="st">&quot;beta_task&quot;</span>))</span></code></pre></div>
 <pre><code>##           mean 2.5% 97.5% n_eff Rhat
 ## alpha     5.82 5.78  5.85  4875    1
 ## beta      0.05 0.00  0.11  4943    1
@@ -2203,29 +2287,29 @@ rt_n \sim
 \end{aligned}
 \end{equation}\]</span></p>
 <p>Before we fit the model to the real data set, we simulate data again; this time we simulate <span class="math inline">\(20\)</span> subjects, each of whom delivers a total of <span class="math inline">\(100\)</span> trials (each subject sees <span class="math inline">\(25\)</span> trials for each of the four conditions).</p>
-<div class="sourceCode" id="cb974"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb974-1"><a href="ch-mixture.html#cb974-1" aria-hidden="true"></a><span class="co"># Build the simulate data set</span></span>
-<span id="cb974-2"><a href="ch-mixture.html#cb974-2" aria-hidden="true"></a>N_subj &lt;-<span class="st"> </span><span class="dv">20</span></span>
-<span id="cb974-3"><a href="ch-mixture.html#cb974-3" aria-hidden="true"></a>N_trials &lt;-<span class="st"> </span><span class="dv">100</span></span>
-<span id="cb974-4"><a href="ch-mixture.html#cb974-4" aria-hidden="true"></a><span class="co"># Parameters&#39; true point values</span></span>
-<span id="cb974-5"><a href="ch-mixture.html#cb974-5" aria-hidden="true"></a>alpha &lt;-<span class="st"> </span><span class="fl">5.8</span></span>
-<span id="cb974-6"><a href="ch-mixture.html#cb974-6" aria-hidden="true"></a>beta &lt;-<span class="st"> </span><span class="fl">0.05</span></span>
-<span id="cb974-7"><a href="ch-mixture.html#cb974-7" aria-hidden="true"></a>sigma &lt;-<span class="st"> </span><span class="fl">0.4</span></span>
-<span id="cb974-8"><a href="ch-mixture.html#cb974-8" aria-hidden="true"></a>sigma2 &lt;-<span class="st"> </span><span class="fl">0.5</span></span>
-<span id="cb974-9"><a href="ch-mixture.html#cb974-9" aria-hidden="true"></a>gamma &lt;-<span class="st"> </span><span class="fl">5.2</span></span>
-<span id="cb974-10"><a href="ch-mixture.html#cb974-10" aria-hidden="true"></a>beta_task &lt;-<span class="st"> </span><span class="fl">0.1</span></span>
-<span id="cb974-11"><a href="ch-mixture.html#cb974-11" aria-hidden="true"></a>p_btask &lt;-<span class="st"> </span><span class="fl">0.85</span></span>
-<span id="cb974-12"><a href="ch-mixture.html#cb974-12" aria-hidden="true"></a>alpha_task &lt;-<span class="st"> </span><span class="kw">qlogis</span>(p_btask)</span>
-<span id="cb974-13"><a href="ch-mixture.html#cb974-13" aria-hidden="true"></a>p_correct &lt;-<span class="st"> </span><span class="fl">0.999</span></span>
-<span id="cb974-14"><a href="ch-mixture.html#cb974-14" aria-hidden="true"></a>tau_u &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.2</span>, <span class="fl">0.005</span>, <span class="fl">0.3</span>)</span>
-<span id="cb974-15"><a href="ch-mixture.html#cb974-15" aria-hidden="true"></a>rho &lt;-<span class="st"> </span><span class="fl">0.3</span></span></code></pre></div>
-<div class="sourceCode" id="cb975"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb975-1"><a href="ch-mixture.html#cb975-1" aria-hidden="true"></a><span class="co">## Build the data set here:</span></span>
-<span id="cb975-2"><a href="ch-mixture.html#cb975-2" aria-hidden="true"></a>N &lt;-<span class="st"> </span>N_subj <span class="op">*</span><span class="st"> </span>N_trials</span>
-<span id="cb975-3"><a href="ch-mixture.html#cb975-3" aria-hidden="true"></a>stimuli &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">x =</span> <span class="kw">rep</span>(<span class="kw">c</span>(<span class="kw">rep</span>(<span class="op">-</span><span class="fl">0.5</span>, N_trials <span class="op">/</span><span class="st"> </span><span class="dv">2</span>),</span>
-<span id="cb975-4"><a href="ch-mixture.html#cb975-4" aria-hidden="true"></a>                            <span class="kw">rep</span>(<span class="fl">0.5</span>, N_trials <span class="op">/</span><span class="st"> </span><span class="dv">2</span>)), N_subj),</span>
-<span id="cb975-5"><a href="ch-mixture.html#cb975-5" aria-hidden="true"></a>                  <span class="dt">x2 =</span> <span class="kw">rep</span>(<span class="kw">rep</span>(<span class="kw">c</span>(<span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>), N_trials <span class="op">/</span><span class="st"> </span><span class="dv">2</span>), N_subj),</span>
-<span id="cb975-6"><a href="ch-mixture.html#cb975-6" aria-hidden="true"></a>                  <span class="dt">subj =</span> <span class="kw">rep</span>(<span class="dv">1</span><span class="op">:</span>N_subj, <span class="dt">each =</span> N_trials),</span>
-<span id="cb975-7"><a href="ch-mixture.html#cb975-7" aria-hidden="true"></a>                  <span class="dt">trial =</span> <span class="kw">rep</span>(<span class="dv">1</span><span class="op">:</span>N_trials, N_subj))</span>
-<span id="cb975-8"><a href="ch-mixture.html#cb975-8" aria-hidden="true"></a>stimuli</span></code></pre></div>
+<div class="sourceCode" id="cb975"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb975-1"><a href="ch-mixture.html#cb975-1" aria-hidden="true"></a><span class="co"># Build the simulate data set</span></span>
+<span id="cb975-2"><a href="ch-mixture.html#cb975-2" aria-hidden="true"></a>N_subj &lt;-<span class="st"> </span><span class="dv">20</span></span>
+<span id="cb975-3"><a href="ch-mixture.html#cb975-3" aria-hidden="true"></a>N_trials &lt;-<span class="st"> </span><span class="dv">100</span></span>
+<span id="cb975-4"><a href="ch-mixture.html#cb975-4" aria-hidden="true"></a><span class="co"># Parameters&#39; true point values</span></span>
+<span id="cb975-5"><a href="ch-mixture.html#cb975-5" aria-hidden="true"></a>alpha &lt;-<span class="st"> </span><span class="fl">5.8</span></span>
+<span id="cb975-6"><a href="ch-mixture.html#cb975-6" aria-hidden="true"></a>beta &lt;-<span class="st"> </span><span class="fl">0.05</span></span>
+<span id="cb975-7"><a href="ch-mixture.html#cb975-7" aria-hidden="true"></a>sigma &lt;-<span class="st"> </span><span class="fl">0.4</span></span>
+<span id="cb975-8"><a href="ch-mixture.html#cb975-8" aria-hidden="true"></a>sigma2 &lt;-<span class="st"> </span><span class="fl">0.5</span></span>
+<span id="cb975-9"><a href="ch-mixture.html#cb975-9" aria-hidden="true"></a>gamma &lt;-<span class="st"> </span><span class="fl">5.2</span></span>
+<span id="cb975-10"><a href="ch-mixture.html#cb975-10" aria-hidden="true"></a>beta_task &lt;-<span class="st"> </span><span class="fl">0.1</span></span>
+<span id="cb975-11"><a href="ch-mixture.html#cb975-11" aria-hidden="true"></a>p_btask &lt;-<span class="st"> </span><span class="fl">0.85</span></span>
+<span id="cb975-12"><a href="ch-mixture.html#cb975-12" aria-hidden="true"></a>alpha_task &lt;-<span class="st"> </span><span class="kw">qlogis</span>(p_btask)</span>
+<span id="cb975-13"><a href="ch-mixture.html#cb975-13" aria-hidden="true"></a>p_correct &lt;-<span class="st"> </span><span class="fl">0.999</span></span>
+<span id="cb975-14"><a href="ch-mixture.html#cb975-14" aria-hidden="true"></a>tau_u &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.2</span>, <span class="fl">0.005</span>, <span class="fl">0.3</span>)</span>
+<span id="cb975-15"><a href="ch-mixture.html#cb975-15" aria-hidden="true"></a>rho &lt;-<span class="st"> </span><span class="fl">0.3</span></span></code></pre></div>
+<div class="sourceCode" id="cb976"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb976-1"><a href="ch-mixture.html#cb976-1" aria-hidden="true"></a><span class="co">## Build the data set here:</span></span>
+<span id="cb976-2"><a href="ch-mixture.html#cb976-2" aria-hidden="true"></a>N &lt;-<span class="st"> </span>N_subj <span class="op">*</span><span class="st"> </span>N_trials</span>
+<span id="cb976-3"><a href="ch-mixture.html#cb976-3" aria-hidden="true"></a>stimuli &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">x =</span> <span class="kw">rep</span>(<span class="kw">c</span>(<span class="kw">rep</span>(<span class="op">-</span><span class="fl">0.5</span>, N_trials <span class="op">/</span><span class="st"> </span><span class="dv">2</span>),</span>
+<span id="cb976-4"><a href="ch-mixture.html#cb976-4" aria-hidden="true"></a>                            <span class="kw">rep</span>(<span class="fl">0.5</span>, N_trials <span class="op">/</span><span class="st"> </span><span class="dv">2</span>)), N_subj),</span>
+<span id="cb976-5"><a href="ch-mixture.html#cb976-5" aria-hidden="true"></a>                  <span class="dt">x2 =</span> <span class="kw">rep</span>(<span class="kw">rep</span>(<span class="kw">c</span>(<span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>), N_trials <span class="op">/</span><span class="st"> </span><span class="dv">2</span>), N_subj),</span>
+<span id="cb976-6"><a href="ch-mixture.html#cb976-6" aria-hidden="true"></a>                  <span class="dt">subj =</span> <span class="kw">rep</span>(<span class="dv">1</span><span class="op">:</span>N_subj, <span class="dt">each =</span> N_trials),</span>
+<span id="cb976-7"><a href="ch-mixture.html#cb976-7" aria-hidden="true"></a>                  <span class="dt">trial =</span> <span class="kw">rep</span>(<span class="dv">1</span><span class="op">:</span>N_trials, N_subj))</span>
+<span id="cb976-8"><a href="ch-mixture.html#cb976-8" aria-hidden="true"></a>stimuli</span></code></pre></div>
 <pre><code>## # A tibble: 2,000 × 4
 ##       x    x2  subj trial
 ##   &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt; &lt;int&gt;
@@ -2233,53 +2317,53 @@ rt_n \sim
 ## 2  -0.5   0.5     1     2
 ## 3  -0.5  -0.5     1     3
 ## # ℹ 1,997 more rows</code></pre>
-<div class="sourceCode" id="cb977"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb977-1"><a href="ch-mixture.html#cb977-1" aria-hidden="true"></a><span class="co"># Build the correlation matrix for the adjustments u:</span></span>
-<span id="cb977-2"><a href="ch-mixture.html#cb977-2" aria-hidden="true"></a>Cor_u &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">rep</span>(rho, <span class="dv">9</span>), <span class="dt">nrow =</span> <span class="dv">3</span>)</span>
-<span id="cb977-3"><a href="ch-mixture.html#cb977-3" aria-hidden="true"></a><span class="kw">diag</span>(Cor_u) &lt;-<span class="st"> </span><span class="dv">1</span></span>
-<span id="cb977-4"><a href="ch-mixture.html#cb977-4" aria-hidden="true"></a>Cor_u</span></code></pre></div>
+<div class="sourceCode" id="cb978"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb978-1"><a href="ch-mixture.html#cb978-1" aria-hidden="true"></a><span class="co"># Build the correlation matrix for the adjustments u:</span></span>
+<span id="cb978-2"><a href="ch-mixture.html#cb978-2" aria-hidden="true"></a>Cor_u &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">rep</span>(rho, <span class="dv">9</span>), <span class="dt">nrow =</span> <span class="dv">3</span>)</span>
+<span id="cb978-3"><a href="ch-mixture.html#cb978-3" aria-hidden="true"></a><span class="kw">diag</span>(Cor_u) &lt;-<span class="st"> </span><span class="dv">1</span></span>
+<span id="cb978-4"><a href="ch-mixture.html#cb978-4" aria-hidden="true"></a>Cor_u</span></code></pre></div>
 <pre><code>##      [,1] [,2] [,3]
 ## [1,]  1.0  0.3  0.3
 ## [2,]  0.3  1.0  0.3
 ## [3,]  0.3  0.3  1.0</code></pre>
-<div class="sourceCode" id="cb979"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb979-1"><a href="ch-mixture.html#cb979-1" aria-hidden="true"></a><span class="co"># Variance covariance matrix for subjects:</span></span>
-<span id="cb979-2"><a href="ch-mixture.html#cb979-2" aria-hidden="true"></a>Sigma_u &lt;-<span class="st"> </span><span class="kw">diag</span>(tau_u, <span class="dv">3</span>, <span class="dv">3</span>) <span class="op">%*%</span><span class="st"> </span>Cor_u <span class="op">%*%</span><span class="st"> </span><span class="kw">diag</span>(tau_u, <span class="dv">3</span>, <span class="dv">3</span>)</span>
-<span id="cb979-3"><a href="ch-mixture.html#cb979-3" aria-hidden="true"></a><span class="co"># Create the correlated adjustments:</span></span>
-<span id="cb979-4"><a href="ch-mixture.html#cb979-4" aria-hidden="true"></a>u &lt;-<span class="st"> </span><span class="kw">mvrnorm</span>(<span class="dt">n =</span> N_subj, <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>), Sigma_u)</span>
-<span id="cb979-5"><a href="ch-mixture.html#cb979-5" aria-hidden="true"></a><span class="co"># Check whether they are correctly correlated</span></span>
-<span id="cb979-6"><a href="ch-mixture.html#cb979-6" aria-hidden="true"></a><span class="co"># (There will be some random variation,</span></span>
-<span id="cb979-7"><a href="ch-mixture.html#cb979-7" aria-hidden="true"></a><span class="co"># but if you increase the number of observations, </span></span>
-<span id="cb979-8"><a href="ch-mixture.html#cb979-8" aria-hidden="true"></a><span class="co"># you&#39;ll be able to obtain more exact values below):</span></span>
-<span id="cb979-9"><a href="ch-mixture.html#cb979-9" aria-hidden="true"></a><span class="kw">cor</span>(u)</span></code></pre></div>
+<div class="sourceCode" id="cb980"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb980-1"><a href="ch-mixture.html#cb980-1" aria-hidden="true"></a><span class="co"># Variance covariance matrix for subjects:</span></span>
+<span id="cb980-2"><a href="ch-mixture.html#cb980-2" aria-hidden="true"></a>Sigma_u &lt;-<span class="st"> </span><span class="kw">diag</span>(tau_u, <span class="dv">3</span>, <span class="dv">3</span>) <span class="op">%*%</span><span class="st"> </span>Cor_u <span class="op">%*%</span><span class="st"> </span><span class="kw">diag</span>(tau_u, <span class="dv">3</span>, <span class="dv">3</span>)</span>
+<span id="cb980-3"><a href="ch-mixture.html#cb980-3" aria-hidden="true"></a><span class="co"># Create the correlated adjustments:</span></span>
+<span id="cb980-4"><a href="ch-mixture.html#cb980-4" aria-hidden="true"></a>u &lt;-<span class="st"> </span><span class="kw">mvrnorm</span>(<span class="dt">n =</span> N_subj, <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>), Sigma_u)</span>
+<span id="cb980-5"><a href="ch-mixture.html#cb980-5" aria-hidden="true"></a><span class="co"># Check whether they are correctly correlated</span></span>
+<span id="cb980-6"><a href="ch-mixture.html#cb980-6" aria-hidden="true"></a><span class="co"># (There will be some random variation,</span></span>
+<span id="cb980-7"><a href="ch-mixture.html#cb980-7" aria-hidden="true"></a><span class="co"># but if you increase the number of observations, </span></span>
+<span id="cb980-8"><a href="ch-mixture.html#cb980-8" aria-hidden="true"></a><span class="co"># you&#39;ll be able to obtain more exact values below):</span></span>
+<span id="cb980-9"><a href="ch-mixture.html#cb980-9" aria-hidden="true"></a><span class="kw">cor</span>(u)</span></code></pre></div>
 <pre><code>##       [,1]  [,2]  [,3]
 ## [1,] 1.000 0.514 0.314
 ## [2,] 0.514 1.000 0.245
 ## [3,] 0.314 0.245 1.000</code></pre>
-<div class="sourceCode" id="cb981"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb981-1"><a href="ch-mixture.html#cb981-1" aria-hidden="true"></a><span class="co"># Check the SDs:</span></span>
-<span id="cb981-2"><a href="ch-mixture.html#cb981-2" aria-hidden="true"></a><span class="kw">sd</span>(u[, <span class="dv">1</span>]); <span class="kw">sd</span>(u[, <span class="dv">2</span>]); <span class="kw">sd</span>(u[, <span class="dv">3</span>])</span></code></pre></div>
+<div class="sourceCode" id="cb982"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb982-1"><a href="ch-mixture.html#cb982-1" aria-hidden="true"></a><span class="co"># Check the SDs:</span></span>
+<span id="cb982-2"><a href="ch-mixture.html#cb982-2" aria-hidden="true"></a><span class="kw">sd</span>(u[, <span class="dv">1</span>]); <span class="kw">sd</span>(u[, <span class="dv">2</span>]); <span class="kw">sd</span>(u[, <span class="dv">3</span>])</span></code></pre></div>
 <pre><code>## [1] 0.221</code></pre>
 <pre><code>## [1] 0.00586</code></pre>
 <pre><code>## [1] 0.295</code></pre>
-<div class="sourceCode" id="cb985"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb985-1"><a href="ch-mixture.html#cb985-1" aria-hidden="true"></a><span class="co"># Create the simulated data:</span></span>
-<span id="cb985-2"><a href="ch-mixture.html#cb985-2" aria-hidden="true"></a>df_dots_simdata &lt;-<span class="st"> </span>stimuli <span class="op">%&gt;%</span></span>
-<span id="cb985-3"><a href="ch-mixture.html#cb985-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">z =</span> <span class="kw">rbern</span>(N, <span class="dt">prob =</span> <span class="kw">plogis</span>(alpha_task <span class="op">+</span><span class="st"> </span>x2 <span class="op">*</span><span class="st"> </span>beta_task)),</span>
-<span id="cb985-4"><a href="ch-mixture.html#cb985-4" aria-hidden="true"></a>         <span class="dt">rt =</span> <span class="kw">ifelse</span>(z,</span>
-<span id="cb985-5"><a href="ch-mixture.html#cb985-5" aria-hidden="true"></a>             <span class="kw">rlnorm</span>(N, <span class="dt">meanlog =</span> alpha <span class="op">+</span><span class="st"> </span>u[subj, <span class="dv">1</span>] <span class="op">+</span></span>
-<span id="cb985-6"><a href="ch-mixture.html#cb985-6" aria-hidden="true"></a><span class="st">                             </span>(beta <span class="op">+</span><span class="st"> </span>u[subj, <span class="dv">2</span>]) <span class="op">*</span><span class="st"> </span>x,</span>
-<span id="cb985-7"><a href="ch-mixture.html#cb985-7" aria-hidden="true"></a>                    <span class="dt">sdlog =</span> sigma),</span>
-<span id="cb985-8"><a href="ch-mixture.html#cb985-8" aria-hidden="true"></a>             <span class="kw">rlnorm</span>(N, <span class="dt">meanlog =</span> gamma <span class="op">+</span><span class="st"> </span>u[subj, <span class="dv">3</span>],</span>
-<span id="cb985-9"><a href="ch-mixture.html#cb985-9" aria-hidden="true"></a>                    <span class="dt">sdlog =</span> sigma2)),</span>
-<span id="cb985-10"><a href="ch-mixture.html#cb985-10" aria-hidden="true"></a>         <span class="dt">acc =</span> <span class="kw">ifelse</span>(z, <span class="kw">rbern</span>(<span class="dt">n =</span> N, p_correct),</span>
-<span id="cb985-11"><a href="ch-mixture.html#cb985-11" aria-hidden="true"></a>              <span class="kw">rbern</span>(<span class="dt">n =</span> N, <span class="fl">0.5</span>)),</span>
-<span id="cb985-12"><a href="ch-mixture.html#cb985-12" aria-hidden="true"></a>         <span class="dt">diff =</span> <span class="kw">if_else</span>(x <span class="op">==</span><span class="st"> </span><span class="fl">0.5</span>, <span class="st">&quot;hard&quot;</span>, <span class="st">&quot;easy&quot;</span>),</span>
-<span id="cb985-13"><a href="ch-mixture.html#cb985-13" aria-hidden="true"></a>         <span class="dt">emphasis =</span> <span class="kw">ifelse</span>(x2 <span class="op">==</span><span class="st"> </span><span class="fl">0.5</span>, <span class="st">&quot;accuracy&quot;</span>, <span class="st">&quot;speed&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb986"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb986-1"><a href="ch-mixture.html#cb986-1" aria-hidden="true"></a><span class="co"># Create the simulated data:</span></span>
+<span id="cb986-2"><a href="ch-mixture.html#cb986-2" aria-hidden="true"></a>df_dots_simdata &lt;-<span class="st"> </span>stimuli <span class="op">%&gt;%</span></span>
+<span id="cb986-3"><a href="ch-mixture.html#cb986-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">z =</span> <span class="kw">rbern</span>(N, <span class="dt">prob =</span> <span class="kw">plogis</span>(alpha_task <span class="op">+</span><span class="st"> </span>x2 <span class="op">*</span><span class="st"> </span>beta_task)),</span>
+<span id="cb986-4"><a href="ch-mixture.html#cb986-4" aria-hidden="true"></a>         <span class="dt">rt =</span> <span class="kw">ifelse</span>(z,</span>
+<span id="cb986-5"><a href="ch-mixture.html#cb986-5" aria-hidden="true"></a>             <span class="kw">rlnorm</span>(N, <span class="dt">meanlog =</span> alpha <span class="op">+</span><span class="st"> </span>u[subj, <span class="dv">1</span>] <span class="op">+</span></span>
+<span id="cb986-6"><a href="ch-mixture.html#cb986-6" aria-hidden="true"></a><span class="st">                             </span>(beta <span class="op">+</span><span class="st"> </span>u[subj, <span class="dv">2</span>]) <span class="op">*</span><span class="st"> </span>x,</span>
+<span id="cb986-7"><a href="ch-mixture.html#cb986-7" aria-hidden="true"></a>                    <span class="dt">sdlog =</span> sigma),</span>
+<span id="cb986-8"><a href="ch-mixture.html#cb986-8" aria-hidden="true"></a>             <span class="kw">rlnorm</span>(N, <span class="dt">meanlog =</span> gamma <span class="op">+</span><span class="st"> </span>u[subj, <span class="dv">3</span>],</span>
+<span id="cb986-9"><a href="ch-mixture.html#cb986-9" aria-hidden="true"></a>                    <span class="dt">sdlog =</span> sigma2)),</span>
+<span id="cb986-10"><a href="ch-mixture.html#cb986-10" aria-hidden="true"></a>         <span class="dt">acc =</span> <span class="kw">ifelse</span>(z, <span class="kw">rbern</span>(<span class="dt">n =</span> N, p_correct),</span>
+<span id="cb986-11"><a href="ch-mixture.html#cb986-11" aria-hidden="true"></a>              <span class="kw">rbern</span>(<span class="dt">n =</span> N, <span class="fl">0.5</span>)),</span>
+<span id="cb986-12"><a href="ch-mixture.html#cb986-12" aria-hidden="true"></a>         <span class="dt">diff =</span> <span class="kw">if_else</span>(x <span class="op">==</span><span class="st"> </span><span class="fl">0.5</span>, <span class="st">&quot;hard&quot;</span>, <span class="st">&quot;easy&quot;</span>),</span>
+<span id="cb986-13"><a href="ch-mixture.html#cb986-13" aria-hidden="true"></a>         <span class="dt">emphasis =</span> <span class="kw">ifelse</span>(x2 <span class="op">==</span><span class="st"> </span><span class="fl">0.5</span>, <span class="st">&quot;accuracy&quot;</span>, <span class="st">&quot;speed&quot;</span>))</span></code></pre></div>
 <p>Verify that the distribution of the simulated response times conditional on the simulated accuracy and the experimental manipulations make sense; see Figure <a href="ch-mixture.html#fig:simdatartacc">17.12</a>.</p>
 
-<div class="sourceCode" id="cb986"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb986-1"><a href="ch-mixture.html#cb986-1" aria-hidden="true"></a><span class="kw">ggplot</span>(df_dots_simdata, <span class="kw">aes</span>(<span class="dt">x =</span> <span class="kw">factor</span>(acc), <span class="dt">y =</span> rt)) <span class="op">+</span></span>
-<span id="cb986-2"><a href="ch-mixture.html#cb986-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">position =</span> <span class="kw">position_jitter</span>(<span class="dt">width =</span> <span class="fl">0.4</span>,</span>
-<span id="cb986-3"><a href="ch-mixture.html#cb986-3" aria-hidden="true"></a>                                        <span class="dt">height =</span> <span class="dv">0</span>), <span class="dt">alpha =</span> <span class="fl">0.5</span>) <span class="op">+</span></span>
-<span id="cb986-4"><a href="ch-mixture.html#cb986-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">facet_wrap</span>(diff <span class="op">~</span><span class="st"> </span>emphasis) <span class="op">+</span></span>
-<span id="cb986-5"><a href="ch-mixture.html#cb986-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Accuracy&quot;</span>) <span class="op">+</span></span>
-<span id="cb986-6"><a href="ch-mixture.html#cb986-6" aria-hidden="true"></a><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Response time&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb987"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb987-1"><a href="ch-mixture.html#cb987-1" aria-hidden="true"></a><span class="kw">ggplot</span>(df_dots_simdata, <span class="kw">aes</span>(<span class="dt">x =</span> <span class="kw">factor</span>(acc), <span class="dt">y =</span> rt)) <span class="op">+</span></span>
+<span id="cb987-2"><a href="ch-mixture.html#cb987-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">position =</span> <span class="kw">position_jitter</span>(<span class="dt">width =</span> <span class="fl">0.4</span>,</span>
+<span id="cb987-3"><a href="ch-mixture.html#cb987-3" aria-hidden="true"></a>                                        <span class="dt">height =</span> <span class="dv">0</span>), <span class="dt">alpha =</span> <span class="fl">0.5</span>) <span class="op">+</span></span>
+<span id="cb987-4"><a href="ch-mixture.html#cb987-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">facet_wrap</span>(diff <span class="op">~</span><span class="st"> </span>emphasis) <span class="op">+</span></span>
+<span id="cb987-5"><a href="ch-mixture.html#cb987-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Accuracy&quot;</span>) <span class="op">+</span></span>
+<span id="cb987-6"><a href="ch-mixture.html#cb987-6" aria-hidden="true"></a><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&quot;Response time&quot;</span>)</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:simdatartacc"></span>
 <img src="bayescogsci_files/figure-html/simdatartacc-1.svg" alt="The distribution of response times conditional on the simulated accuracy and the experimental manipulations for the simulated hierarchical data (df_dots_simdata) that follows the fast-guess model." width="672" />
 <p class="caption">
@@ -2345,26 +2429,26 @@ generated quantities {
   corr_matrix[3] rho_u = L_u * L_u&#39;;
 }</code></pre>
 <p>Save the model code and fit it to the simulated data:</p>
-<div class="sourceCode" id="cb988"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb988-1"><a href="ch-mixture.html#cb988-1" aria-hidden="true"></a>ls_dots_simdata &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">N =</span> N,</span>
-<span id="cb988-2"><a href="ch-mixture.html#cb988-2" aria-hidden="true"></a>                        <span class="dt">rt =</span> df_dots_simdata<span class="op">$</span>rt,</span>
-<span id="cb988-3"><a href="ch-mixture.html#cb988-3" aria-hidden="true"></a>                        <span class="dt">x =</span> df_dots_simdata<span class="op">$</span>x,</span>
-<span id="cb988-4"><a href="ch-mixture.html#cb988-4" aria-hidden="true"></a>                        <span class="dt">x2 =</span> df_dots_simdata<span class="op">$</span>x2,</span>
-<span id="cb988-5"><a href="ch-mixture.html#cb988-5" aria-hidden="true"></a>                        <span class="dt">acc =</span> df_dots_simdata<span class="op">$</span>acc,</span>
-<span id="cb988-6"><a href="ch-mixture.html#cb988-6" aria-hidden="true"></a>                        <span class="dt">subj =</span> df_dots_simdata<span class="op">$</span>subj,</span>
-<span id="cb988-7"><a href="ch-mixture.html#cb988-7" aria-hidden="true"></a>                        <span class="dt">N_subj =</span> N_subj)</span>
-<span id="cb988-8"><a href="ch-mixture.html#cb988-8" aria-hidden="true"></a>mixture_h &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
-<span id="cb988-9"><a href="ch-mixture.html#cb988-9" aria-hidden="true"></a>                         <span class="st">&quot;mixture_h.stan&quot;</span>,</span>
-<span id="cb988-10"><a href="ch-mixture.html#cb988-10" aria-hidden="true"></a>                         <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
-<span id="cb988-11"><a href="ch-mixture.html#cb988-11" aria-hidden="true"></a>fit_mix_h &lt;-<span class="st"> </span><span class="kw">stan</span>(<span class="dt">file =</span> mixture_h,</span>
-<span id="cb988-12"><a href="ch-mixture.html#cb988-12" aria-hidden="true"></a>                  <span class="dt">data =</span> ls_dots_simdata,</span>
-<span id="cb988-13"><a href="ch-mixture.html#cb988-13" aria-hidden="true"></a>                  <span class="dt">iter =</span> <span class="dv">3000</span>,</span>
-<span id="cb988-14"><a href="ch-mixture.html#cb988-14" aria-hidden="true"></a>                  <span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">adapt_delta =</span> <span class="fl">0.9</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb989"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb989-1"><a href="ch-mixture.html#cb989-1" aria-hidden="true"></a>ls_dots_simdata &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">N =</span> N,</span>
+<span id="cb989-2"><a href="ch-mixture.html#cb989-2" aria-hidden="true"></a>                        <span class="dt">rt =</span> df_dots_simdata<span class="op">$</span>rt,</span>
+<span id="cb989-3"><a href="ch-mixture.html#cb989-3" aria-hidden="true"></a>                        <span class="dt">x =</span> df_dots_simdata<span class="op">$</span>x,</span>
+<span id="cb989-4"><a href="ch-mixture.html#cb989-4" aria-hidden="true"></a>                        <span class="dt">x2 =</span> df_dots_simdata<span class="op">$</span>x2,</span>
+<span id="cb989-5"><a href="ch-mixture.html#cb989-5" aria-hidden="true"></a>                        <span class="dt">acc =</span> df_dots_simdata<span class="op">$</span>acc,</span>
+<span id="cb989-6"><a href="ch-mixture.html#cb989-6" aria-hidden="true"></a>                        <span class="dt">subj =</span> df_dots_simdata<span class="op">$</span>subj,</span>
+<span id="cb989-7"><a href="ch-mixture.html#cb989-7" aria-hidden="true"></a>                        <span class="dt">N_subj =</span> N_subj)</span>
+<span id="cb989-8"><a href="ch-mixture.html#cb989-8" aria-hidden="true"></a>mixture_h &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
+<span id="cb989-9"><a href="ch-mixture.html#cb989-9" aria-hidden="true"></a>                         <span class="st">&quot;mixture_h.stan&quot;</span>,</span>
+<span id="cb989-10"><a href="ch-mixture.html#cb989-10" aria-hidden="true"></a>                         <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
+<span id="cb989-11"><a href="ch-mixture.html#cb989-11" aria-hidden="true"></a>fit_mix_h &lt;-<span class="st"> </span><span class="kw">stan</span>(<span class="dt">file =</span> mixture_h,</span>
+<span id="cb989-12"><a href="ch-mixture.html#cb989-12" aria-hidden="true"></a>                  <span class="dt">data =</span> ls_dots_simdata,</span>
+<span id="cb989-13"><a href="ch-mixture.html#cb989-13" aria-hidden="true"></a>                  <span class="dt">iter =</span> <span class="dv">3000</span>,</span>
+<span id="cb989-14"><a href="ch-mixture.html#cb989-14" aria-hidden="true"></a>                  <span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">adapt_delta =</span> <span class="fl">0.9</span>))</span></code></pre></div>
 <p>Print the posterior summary:</p>
-<div class="sourceCode" id="cb989"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb989-1"><a href="ch-mixture.html#cb989-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mix_h, <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;alpha&quot;</span>, <span class="st">&quot;beta&quot;</span>, <span class="st">&quot;sigma&quot;</span>, <span class="st">&quot;gamma&quot;</span>,</span>
-<span id="cb989-2"><a href="ch-mixture.html#cb989-2" aria-hidden="true"></a>                          <span class="st">&quot;sigma2&quot;</span>, <span class="st">&quot;p_correct&quot;</span>, <span class="st">&quot;p_btask&quot;</span>,</span>
-<span id="cb989-3"><a href="ch-mixture.html#cb989-3" aria-hidden="true"></a>                          <span class="st">&quot;beta_task&quot;</span>, <span class="st">&quot;tau_u&quot;</span>,</span>
-<span id="cb989-4"><a href="ch-mixture.html#cb989-4" aria-hidden="true"></a>                          <span class="st">&quot;rho_u[1,2]&quot;</span>, <span class="st">&quot;rho_u[1,3]&quot;</span>,</span>
-<span id="cb989-5"><a href="ch-mixture.html#cb989-5" aria-hidden="true"></a>                          <span class="st">&quot;rho_u[2,3]&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb990"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb990-1"><a href="ch-mixture.html#cb990-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mix_h, <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;alpha&quot;</span>, <span class="st">&quot;beta&quot;</span>, <span class="st">&quot;sigma&quot;</span>, <span class="st">&quot;gamma&quot;</span>,</span>
+<span id="cb990-2"><a href="ch-mixture.html#cb990-2" aria-hidden="true"></a>                          <span class="st">&quot;sigma2&quot;</span>, <span class="st">&quot;p_correct&quot;</span>, <span class="st">&quot;p_btask&quot;</span>,</span>
+<span id="cb990-3"><a href="ch-mixture.html#cb990-3" aria-hidden="true"></a>                          <span class="st">&quot;beta_task&quot;</span>, <span class="st">&quot;tau_u&quot;</span>,</span>
+<span id="cb990-4"><a href="ch-mixture.html#cb990-4" aria-hidden="true"></a>                          <span class="st">&quot;rho_u[1,2]&quot;</span>, <span class="st">&quot;rho_u[1,3]&quot;</span>,</span>
+<span id="cb990-5"><a href="ch-mixture.html#cb990-5" aria-hidden="true"></a>                          <span class="st">&quot;rho_u[2,3]&quot;</span>))</span></code></pre></div>
 <pre><code>##             mean  2.5% 97.5% n_eff Rhat
 ## alpha       5.81  5.71  5.91   931    1
 ## beta        0.05  0.01  0.09  9395    1
@@ -2386,16 +2470,16 @@ generated quantities {
 <p>By “recovering” the true values of the parameters, we mean that the true point values are somewhere inside the bulk of the posterior distribution of the model.</p>
 <p>In in Figure <a href="ch-mixture.html#fig:recovermixt">17.13</a>, we use <code>mcmc_recover_hist()</code> to compare the posterior distributions of the relevant parameters of the model with their true point values.</p>
 
-<div class="sourceCode" id="cb991"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb991-1"><a href="ch-mixture.html#cb991-1" aria-hidden="true"></a>df_fit_mix_h &lt;-<span class="st"> </span>fit_mix_h <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.data.frame</span>() <span class="op">%&gt;%</span></span>
-<span id="cb991-2"><a href="ch-mixture.html#cb991-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">select</span>(<span class="kw">c</span>(<span class="st">&quot;alpha&quot;</span>, <span class="st">&quot;beta&quot;</span>, <span class="st">&quot;sigma&quot;</span>, <span class="st">&quot;gamma&quot;</span>, <span class="st">&quot;sigma2&quot;</span>,</span>
-<span id="cb991-3"><a href="ch-mixture.html#cb991-3" aria-hidden="true"></a>           <span class="st">&quot;p_correct&quot;</span>,<span class="st">&quot;p_btask&quot;</span>, <span class="st">&quot;beta_task&quot;</span>, <span class="st">&quot;tau_u[1]&quot;</span>,</span>
-<span id="cb991-4"><a href="ch-mixture.html#cb991-4" aria-hidden="true"></a>           <span class="st">&quot;tau_u[2]&quot;</span>, <span class="st">&quot;tau_u[3]&quot;</span>, <span class="st">&quot;rho_u[1,2]&quot;</span>, <span class="st">&quot;rho_u[1,3]&quot;</span>,</span>
-<span id="cb991-5"><a href="ch-mixture.html#cb991-5" aria-hidden="true"></a>           <span class="st">&quot;rho_u[2,3]&quot;</span>))</span>
-<span id="cb991-6"><a href="ch-mixture.html#cb991-6" aria-hidden="true"></a>true_values &lt;-<span class="st"> </span><span class="kw">c</span>(alpha, beta, sigma, gamma, sigma2,</span>
-<span id="cb991-7"><a href="ch-mixture.html#cb991-7" aria-hidden="true"></a>                p_correct, p_btask, beta_task, tau_u[<span class="dv">1</span>],</span>
-<span id="cb991-8"><a href="ch-mixture.html#cb991-8" aria-hidden="true"></a>                tau_u[<span class="dv">2</span>], tau_u[<span class="dv">3</span>], <span class="kw">rep</span>(rho,<span class="dv">3</span>))</span>
-<span id="cb991-9"><a href="ch-mixture.html#cb991-9" aria-hidden="true"></a><span class="kw">mcmc_recover_hist</span>(df_fit_mix_h, true_values) <span class="op">+</span></span>
-<span id="cb991-10"><a href="ch-mixture.html#cb991-10" aria-hidden="true"></a><span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">angle =</span> <span class="dv">45</span>, <span class="dt">vjust =</span> <span class="dv">1</span>, <span class="dt">hjust =</span> <span class="dv">1</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb992"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb992-1"><a href="ch-mixture.html#cb992-1" aria-hidden="true"></a>df_fit_mix_h &lt;-<span class="st"> </span>fit_mix_h <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">as.data.frame</span>() <span class="op">%&gt;%</span></span>
+<span id="cb992-2"><a href="ch-mixture.html#cb992-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">select</span>(<span class="kw">c</span>(<span class="st">&quot;alpha&quot;</span>, <span class="st">&quot;beta&quot;</span>, <span class="st">&quot;sigma&quot;</span>, <span class="st">&quot;gamma&quot;</span>, <span class="st">&quot;sigma2&quot;</span>,</span>
+<span id="cb992-3"><a href="ch-mixture.html#cb992-3" aria-hidden="true"></a>           <span class="st">&quot;p_correct&quot;</span>,<span class="st">&quot;p_btask&quot;</span>, <span class="st">&quot;beta_task&quot;</span>, <span class="st">&quot;tau_u[1]&quot;</span>,</span>
+<span id="cb992-4"><a href="ch-mixture.html#cb992-4" aria-hidden="true"></a>           <span class="st">&quot;tau_u[2]&quot;</span>, <span class="st">&quot;tau_u[3]&quot;</span>, <span class="st">&quot;rho_u[1,2]&quot;</span>, <span class="st">&quot;rho_u[1,3]&quot;</span>,</span>
+<span id="cb992-5"><a href="ch-mixture.html#cb992-5" aria-hidden="true"></a>           <span class="st">&quot;rho_u[2,3]&quot;</span>))</span>
+<span id="cb992-6"><a href="ch-mixture.html#cb992-6" aria-hidden="true"></a>true_values &lt;-<span class="st"> </span><span class="kw">c</span>(alpha, beta, sigma, gamma, sigma2,</span>
+<span id="cb992-7"><a href="ch-mixture.html#cb992-7" aria-hidden="true"></a>                p_correct, p_btask, beta_task, tau_u[<span class="dv">1</span>],</span>
+<span id="cb992-8"><a href="ch-mixture.html#cb992-8" aria-hidden="true"></a>                tau_u[<span class="dv">2</span>], tau_u[<span class="dv">3</span>], <span class="kw">rep</span>(rho,<span class="dv">3</span>))</span>
+<span id="cb992-9"><a href="ch-mixture.html#cb992-9" aria-hidden="true"></a><span class="kw">mcmc_recover_hist</span>(df_fit_mix_h, true_values) <span class="op">+</span></span>
+<span id="cb992-10"><a href="ch-mixture.html#cb992-10" aria-hidden="true"></a><span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">angle =</span> <span class="dv">45</span>, <span class="dt">vjust =</span> <span class="dv">1</span>, <span class="dt">hjust =</span> <span class="dv">1</span>))</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:recovermixt"></span>
 <img src="bayescogsci_files/figure-html/recovermixt-1.svg" alt="Posterior distributions of the main parameters of the mixture model fit_mix_h together with their true point values." width="672" />
 <p class="caption">
@@ -2407,25 +2491,25 @@ FIGURE 17.13: Posterior distributions of the main parameters of the mixture mode
 <div id="fitting-the-model-to-real-data" class="section level4 hasAnchor" number="17.1.5.2">
 <h4><span class="header-section-number">17.1.5.2</span> Fitting the model to real data<a href="ch-mixture.html#fitting-the-model-to-real-data" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p>After verifying that our model works as expected, we are ready to fit it to real data. We code the predictors <span class="math inline">\(x\)</span> and <span class="math inline">\(x_2\)</span> as we did for the simulated data:</p>
-<div class="sourceCode" id="cb992"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb992-1"><a href="ch-mixture.html#cb992-1" aria-hidden="true"></a>df_dots &lt;-<span class="st"> </span>df_dots <span class="op">%&gt;%</span></span>
-<span id="cb992-2"><a href="ch-mixture.html#cb992-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">x =</span> <span class="kw">if_else</span>(diff <span class="op">==</span><span class="st"> &quot;easy&quot;</span>, <span class="fl">-0.5</span>, <span class="fl">0.5</span>),</span>
-<span id="cb992-3"><a href="ch-mixture.html#cb992-3" aria-hidden="true"></a>         <span class="dt">x2 =</span> <span class="kw">if_else</span>(emphasis <span class="op">==</span><span class="st"> &quot;accuracy&quot;</span>, <span class="fl">0.5</span>, <span class="fl">-0.5</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb993"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb993-1"><a href="ch-mixture.html#cb993-1" aria-hidden="true"></a>df_dots &lt;-<span class="st"> </span>df_dots <span class="op">%&gt;%</span></span>
+<span id="cb993-2"><a href="ch-mixture.html#cb993-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">x =</span> <span class="kw">if_else</span>(diff <span class="op">==</span><span class="st"> &quot;easy&quot;</span>, <span class="fl">-0.5</span>, <span class="fl">0.5</span>),</span>
+<span id="cb993-3"><a href="ch-mixture.html#cb993-3" aria-hidden="true"></a>         <span class="dt">x2 =</span> <span class="kw">if_else</span>(emphasis <span class="op">==</span><span class="st"> &quot;accuracy&quot;</span>, <span class="fl">0.5</span>, <span class="fl">-0.5</span>))</span></code></pre></div>
 <p>The main obstacle now is that fitting the entire data set takes around 12 hours! We’ll sample 600 observations of each subject as follows:</p>
-<div class="sourceCode" id="cb993"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb993-1"><a href="ch-mixture.html#cb993-1" aria-hidden="true"></a>df_dots_data_short &lt;-<span class="st"> </span>df_dots <span class="op">%&gt;%</span></span>
-<span id="cb993-2"><a href="ch-mixture.html#cb993-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">group_by</span>(subj) <span class="op">%&gt;%</span></span>
-<span id="cb993-3"><a href="ch-mixture.html#cb993-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">sample_n</span>(<span class="dv">600</span>)</span></code></pre></div>
-<div class="sourceCode" id="cb994"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb994-1"><a href="ch-mixture.html#cb994-1" aria-hidden="true"></a>ls_dots_data_short &lt;-</span>
-<span id="cb994-2"><a href="ch-mixture.html#cb994-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">list</span>(<span class="dt">N =</span> <span class="kw">nrow</span>(df_dots_data_short),</span>
-<span id="cb994-3"><a href="ch-mixture.html#cb994-3" aria-hidden="true"></a>       <span class="dt">rt =</span> df_dots_data_short<span class="op">$</span>rt,</span>
-<span id="cb994-4"><a href="ch-mixture.html#cb994-4" aria-hidden="true"></a>       <span class="dt">x =</span> df_dots_data_short<span class="op">$</span>x,</span>
-<span id="cb994-5"><a href="ch-mixture.html#cb994-5" aria-hidden="true"></a>       <span class="dt">x2 =</span> df_dots_data_short<span class="op">$</span>x2,</span>
-<span id="cb994-6"><a href="ch-mixture.html#cb994-6" aria-hidden="true"></a>       <span class="dt">acc =</span> df_dots_data_short<span class="op">$</span>acc,</span>
-<span id="cb994-7"><a href="ch-mixture.html#cb994-7" aria-hidden="true"></a>       <span class="dt">subj =</span> <span class="kw">as.numeric</span>(df_dots_data_short<span class="op">$</span>subj),</span>
-<span id="cb994-8"><a href="ch-mixture.html#cb994-8" aria-hidden="true"></a>       <span class="dt">N_subj =</span> <span class="kw">length</span>(<span class="kw">unique</span>(df_dots_data_short<span class="op">$</span>subj)))</span>
-<span id="cb994-9"><a href="ch-mixture.html#cb994-9" aria-hidden="true"></a>fit_mix_data &lt;-<span class="st"> </span><span class="kw">stan</span>(<span class="dt">file =</span> mixture_h,</span>
-<span id="cb994-10"><a href="ch-mixture.html#cb994-10" aria-hidden="true"></a>                     <span class="dt">data =</span> ls_dots_data_short,</span>
-<span id="cb994-11"><a href="ch-mixture.html#cb994-11" aria-hidden="true"></a>                     <span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">adapt_delta =</span> <span class="fl">.9</span>,</span>
-<span id="cb994-12"><a href="ch-mixture.html#cb994-12" aria-hidden="true"></a>                                    <span class="dt">max_treedepth =</span> <span class="dv">12</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb994"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb994-1"><a href="ch-mixture.html#cb994-1" aria-hidden="true"></a>df_dots_data_short &lt;-<span class="st"> </span>df_dots <span class="op">%&gt;%</span></span>
+<span id="cb994-2"><a href="ch-mixture.html#cb994-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">group_by</span>(subj) <span class="op">%&gt;%</span></span>
+<span id="cb994-3"><a href="ch-mixture.html#cb994-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">sample_n</span>(<span class="dv">600</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb995"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb995-1"><a href="ch-mixture.html#cb995-1" aria-hidden="true"></a>ls_dots_data_short &lt;-</span>
+<span id="cb995-2"><a href="ch-mixture.html#cb995-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">list</span>(<span class="dt">N =</span> <span class="kw">nrow</span>(df_dots_data_short),</span>
+<span id="cb995-3"><a href="ch-mixture.html#cb995-3" aria-hidden="true"></a>       <span class="dt">rt =</span> df_dots_data_short<span class="op">$</span>rt,</span>
+<span id="cb995-4"><a href="ch-mixture.html#cb995-4" aria-hidden="true"></a>       <span class="dt">x =</span> df_dots_data_short<span class="op">$</span>x,</span>
+<span id="cb995-5"><a href="ch-mixture.html#cb995-5" aria-hidden="true"></a>       <span class="dt">x2 =</span> df_dots_data_short<span class="op">$</span>x2,</span>
+<span id="cb995-6"><a href="ch-mixture.html#cb995-6" aria-hidden="true"></a>       <span class="dt">acc =</span> df_dots_data_short<span class="op">$</span>acc,</span>
+<span id="cb995-7"><a href="ch-mixture.html#cb995-7" aria-hidden="true"></a>       <span class="dt">subj =</span> <span class="kw">as.numeric</span>(df_dots_data_short<span class="op">$</span>subj),</span>
+<span id="cb995-8"><a href="ch-mixture.html#cb995-8" aria-hidden="true"></a>       <span class="dt">N_subj =</span> <span class="kw">length</span>(<span class="kw">unique</span>(df_dots_data_short<span class="op">$</span>subj)))</span>
+<span id="cb995-9"><a href="ch-mixture.html#cb995-9" aria-hidden="true"></a>fit_mix_data &lt;-<span class="st"> </span><span class="kw">stan</span>(<span class="dt">file =</span> mixture_h,</span>
+<span id="cb995-10"><a href="ch-mixture.html#cb995-10" aria-hidden="true"></a>                     <span class="dt">data =</span> ls_dots_data_short,</span>
+<span id="cb995-11"><a href="ch-mixture.html#cb995-11" aria-hidden="true"></a>                     <span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">adapt_delta =</span> <span class="fl">.9</span>,</span>
+<span id="cb995-12"><a href="ch-mixture.html#cb995-12" aria-hidden="true"></a>                                    <span class="dt">max_treedepth =</span> <span class="dv">12</span>))</span></code></pre></div>
 <pre><code>## Warning: The largest R-hat is NA, indicating chains have not mixed.
 ## Running the chains for more iterations may help. See
 ## https://mc-stan.org/misc/warnings.html#r-hat
@@ -2440,10 +2524,10 @@ FIGURE 17.13: Posterior distributions of the main parameters of the mixture mode
 ## chains for more iterations may help. See
 ## https://mc-stan.org/misc/warnings.html#tail-ess</code></pre>
 <p>The model has not converged at all!</p>
-<div class="sourceCode" id="cb996"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb996-1"><a href="ch-mixture.html#cb996-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mix_data,</span>
-<span id="cb996-2"><a href="ch-mixture.html#cb996-2" aria-hidden="true"></a>      <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;alpha&quot;</span>, <span class="st">&quot;beta&quot;</span>, <span class="st">&quot;sigma&quot;</span>, <span class="st">&quot;gamma&quot;</span>, <span class="st">&quot;sigma2&quot;</span>,</span>
-<span id="cb996-3"><a href="ch-mixture.html#cb996-3" aria-hidden="true"></a>               <span class="st">&quot;p_correct&quot;</span>,<span class="st">&quot;p_btask&quot;</span>, <span class="st">&quot;beta_task&quot;</span>, <span class="st">&quot;tau_u&quot;</span>,</span>
-<span id="cb996-4"><a href="ch-mixture.html#cb996-4" aria-hidden="true"></a>               <span class="st">&quot;rho_u[1,2]&quot;</span>, <span class="st">&quot;rho_u[1,3]&quot;</span>, <span class="st">&quot;rho_u[2,3]&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb997"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb997-1"><a href="ch-mixture.html#cb997-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mix_data,</span>
+<span id="cb997-2"><a href="ch-mixture.html#cb997-2" aria-hidden="true"></a>      <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;alpha&quot;</span>, <span class="st">&quot;beta&quot;</span>, <span class="st">&quot;sigma&quot;</span>, <span class="st">&quot;gamma&quot;</span>, <span class="st">&quot;sigma2&quot;</span>,</span>
+<span id="cb997-3"><a href="ch-mixture.html#cb997-3" aria-hidden="true"></a>               <span class="st">&quot;p_correct&quot;</span>,<span class="st">&quot;p_btask&quot;</span>, <span class="st">&quot;beta_task&quot;</span>, <span class="st">&quot;tau_u&quot;</span>,</span>
+<span id="cb997-4"><a href="ch-mixture.html#cb997-4" aria-hidden="true"></a>               <span class="st">&quot;rho_u[1,2]&quot;</span>, <span class="st">&quot;rho_u[1,3]&quot;</span>, <span class="st">&quot;rho_u[2,3]&quot;</span>))</span></code></pre></div>
 <pre><code>##            mean  2.5% 97.5% n_eff  Rhat
 ## alpha      6.40  6.31  6.49     3  1.54
 ## beta       0.12  0.06  0.16     2  2.70
@@ -2461,8 +2545,8 @@ FIGURE 17.13: Posterior distributions of the main parameters of the mixture mode
 ## rho_u[2,3] 0.31 -0.20  0.72   978  1.01</code></pre>
 <p>The traceplots in Figure <a href="ch-mixture.html#fig:traceplotmulti">17.14</a> show that the chains are not mixing at all. It seems that the posterior is  multimodal, and there are at least two combinations of parameters that would fit the data equally well. (Rerunning the model might sometimes reveal three combinations.)</p>
 
-<div class="sourceCode" id="cb998"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb998-1"><a href="ch-mixture.html#cb998-1" aria-hidden="true"></a><span class="kw">traceplot</span>(fit_mix_data) <span class="op">+</span></span>
-<span id="cb998-2"><a href="ch-mixture.html#cb998-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="ot">NULL</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb999"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb999-1"><a href="ch-mixture.html#cb999-1" aria-hidden="true"></a><span class="kw">traceplot</span>(fit_mix_data) <span class="op">+</span></span>
+<span id="cb999-2"><a href="ch-mixture.html#cb999-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="ot">NULL</span>)</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:traceplotmulti"></span>
 <img src="bayescogsci_files/figure-html/traceplotmulti-1.svg" alt="Traceplots from the hierarchical model (mixture_h.stan) fit to (a subset) of the real data. The traceplot shows clearly that the posterior has at least two modes, though rerunning the model might sometimes reveal three modes." width="672" />
 <p class="caption">
@@ -2533,15 +2617,15 @@ generated quantities {
   corr_matrix[3] rho_u = L_u * L_u&#39;;
 }</code></pre>
 <p>Fit the model again to the same data:</p>
-<div class="sourceCode" id="cb1000"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1000-1"><a href="ch-mixture.html#cb1000-1" aria-hidden="true"></a>fit_mixs_data &lt;-<span class="st"> </span><span class="kw">stan</span>(<span class="dt">file =</span> mixture_h2,</span>
-<span id="cb1000-2"><a href="ch-mixture.html#cb1000-2" aria-hidden="true"></a>                     <span class="dt">data =</span> ls_dots_data_short,</span>
-<span id="cb1000-3"><a href="ch-mixture.html#cb1000-3" aria-hidden="true"></a>                     <span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">adapt_delta =</span> <span class="fl">.99</span>,</span>
-<span id="cb1000-4"><a href="ch-mixture.html#cb1000-4" aria-hidden="true"></a>                                    <span class="dt">max_treedepth =</span> <span class="dv">12</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1001"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1001-1"><a href="ch-mixture.html#cb1001-1" aria-hidden="true"></a>fit_mixs_data &lt;-<span class="st"> </span><span class="kw">stan</span>(<span class="dt">file =</span> mixture_h2,</span>
+<span id="cb1001-2"><a href="ch-mixture.html#cb1001-2" aria-hidden="true"></a>                     <span class="dt">data =</span> ls_dots_data_short,</span>
+<span id="cb1001-3"><a href="ch-mixture.html#cb1001-3" aria-hidden="true"></a>                     <span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">adapt_delta =</span> <span class="fl">.99</span>,</span>
+<span id="cb1001-4"><a href="ch-mixture.html#cb1001-4" aria-hidden="true"></a>                                    <span class="dt">max_treedepth =</span> <span class="dv">12</span>))</span></code></pre></div>
 <p>The model has now converged:</p>
-<div class="sourceCode" id="cb1001"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1001-1"><a href="ch-mixture.html#cb1001-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mixs_data,</span>
-<span id="cb1001-2"><a href="ch-mixture.html#cb1001-2" aria-hidden="true"></a>      <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;alpha&quot;</span>, <span class="st">&quot;beta&quot;</span>, <span class="st">&quot;sigma&quot;</span>, <span class="st">&quot;gamma&quot;</span>, <span class="st">&quot;sigma2&quot;</span>,</span>
-<span id="cb1001-3"><a href="ch-mixture.html#cb1001-3" aria-hidden="true"></a>               <span class="st">&quot;p_btask&quot;</span>, <span class="st">&quot;beta_task&quot;</span>, <span class="st">&quot;tau_u&quot;</span>,</span>
-<span id="cb1001-4"><a href="ch-mixture.html#cb1001-4" aria-hidden="true"></a>               <span class="st">&quot;rho_u[1,2]&quot;</span>, <span class="st">&quot;rho_u[1,3]&quot;</span>, <span class="st">&quot;rho_u[2,3]&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1002"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1002-1"><a href="ch-mixture.html#cb1002-1" aria-hidden="true"></a><span class="kw">print</span>(fit_mixs_data,</span>
+<span id="cb1002-2"><a href="ch-mixture.html#cb1002-2" aria-hidden="true"></a>      <span class="dt">pars =</span> <span class="kw">c</span>(<span class="st">&quot;alpha&quot;</span>, <span class="st">&quot;beta&quot;</span>, <span class="st">&quot;sigma&quot;</span>, <span class="st">&quot;gamma&quot;</span>, <span class="st">&quot;sigma2&quot;</span>,</span>
+<span id="cb1002-3"><a href="ch-mixture.html#cb1002-3" aria-hidden="true"></a>               <span class="st">&quot;p_btask&quot;</span>, <span class="st">&quot;beta_task&quot;</span>, <span class="st">&quot;tau_u&quot;</span>,</span>
+<span id="cb1002-4"><a href="ch-mixture.html#cb1002-4" aria-hidden="true"></a>               <span class="st">&quot;rho_u[1,2]&quot;</span>, <span class="st">&quot;rho_u[1,3]&quot;</span>, <span class="st">&quot;rho_u[2,3]&quot;</span>))</span></code></pre></div>
 <pre><code>##            mean  2.5% 97.5% n_eff Rhat
 ## alpha      6.34  6.29  6.39   642 1.00
 ## beta       0.07  0.05  0.09  2868 1.00
@@ -2558,9 +2642,9 @@ generated quantities {
 ## rho_u[2,3] 0.27 -0.31  0.76   620 1.01</code></pre>
 <p>The traceplots in Figure <a href="ch-mixture.html#fig:traceplotnomulti">17.15</a> show that this times the chains are mixing well.</p>
 
-<div class="sourceCode" id="cb1003"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb1003-1"><a href="ch-mixture.html#cb1003-1" aria-hidden="true"></a></span>
-<span id="cb1003-2"><a href="ch-mixture.html#cb1003-2" aria-hidden="true"></a><span class="kw">traceplot</span>(fit_mixs_data) <span class="op">+</span></span>
-<span id="cb1003-3"><a href="ch-mixture.html#cb1003-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="ot">NULL</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1004"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb1004-1"><a href="ch-mixture.html#cb1004-1" aria-hidden="true"></a></span>
+<span id="cb1004-2"><a href="ch-mixture.html#cb1004-2" aria-hidden="true"></a><span class="kw">traceplot</span>(fit_mixs_data) <span class="op">+</span></span>
+<span id="cb1004-3"><a href="ch-mixture.html#cb1004-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="ot">NULL</span>)</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:traceplotnomulti"></span>
 <img src="bayescogsci_files/figure-html/traceplotnomulti-1.svg" alt="Traceplots from the simplified hierarchical model (mixture_h2.stan, assuming that p_correct = 1) fit to (a subset) of the real data. The traceplot shows that chains are mixing well." width="672" />
 <p class="caption">
@@ -2621,30 +2705,30 @@ generated quantities {
   }
 }</code></pre>
 <p>Generate responses from 500 simulated experiments as follows:</p>
-<div class="sourceCode" id="cb1005"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1005-1"><a href="ch-mixture.html#cb1005-1" aria-hidden="true"></a>mixture_h2_gen &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
-<span id="cb1005-2"><a href="ch-mixture.html#cb1005-2" aria-hidden="true"></a>                              <span class="st">&quot;mixture_h2_gen.stan&quot;</span>,</span>
-<span id="cb1005-3"><a href="ch-mixture.html#cb1005-3" aria-hidden="true"></a>                              <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
-<span id="cb1005-4"><a href="ch-mixture.html#cb1005-4" aria-hidden="true"></a>gen_model &lt;-<span class="st"> </span><span class="kw">stan_model</span>(mixture_h2_gen)</span>
-<span id="cb1005-5"><a href="ch-mixture.html#cb1005-5" aria-hidden="true"></a><span class="co"># The argument of the matrix `drop` needs to be set to FALSE,</span></span>
-<span id="cb1005-6"><a href="ch-mixture.html#cb1005-6" aria-hidden="true"></a><span class="co"># otherwise R will simplify the matrix into a vector.</span></span>
-<span id="cb1005-7"><a href="ch-mixture.html#cb1005-7" aria-hidden="true"></a><span class="co"># The two commas in the line below are not a mistake!</span></span>
-<span id="cb1005-8"><a href="ch-mixture.html#cb1005-8" aria-hidden="true"></a>draws_par &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(fit_mixs_data)[<span class="dv">1</span><span class="op">:</span><span class="dv">500</span>, , drop =<span class="st"> </span><span class="ot">FALSE</span>]</span>
-<span id="cb1005-9"><a href="ch-mixture.html#cb1005-9" aria-hidden="true"></a>gen_mix_data &lt;-<span class="st"> </span><span class="kw">gqs</span>(gen_model,</span>
-<span id="cb1005-10"><a href="ch-mixture.html#cb1005-10" aria-hidden="true"></a>                    <span class="dt">data =</span> ls_dots_data_short,</span>
-<span id="cb1005-11"><a href="ch-mixture.html#cb1005-11" aria-hidden="true"></a>                    <span class="dt">draws =</span> draws_par)</span></code></pre></div>
+<div class="sourceCode" id="cb1006"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1006-1"><a href="ch-mixture.html#cb1006-1" aria-hidden="true"></a>mixture_h2_gen &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
+<span id="cb1006-2"><a href="ch-mixture.html#cb1006-2" aria-hidden="true"></a>                              <span class="st">&quot;mixture_h2_gen.stan&quot;</span>,</span>
+<span id="cb1006-3"><a href="ch-mixture.html#cb1006-3" aria-hidden="true"></a>                              <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
+<span id="cb1006-4"><a href="ch-mixture.html#cb1006-4" aria-hidden="true"></a>gen_model &lt;-<span class="st"> </span><span class="kw">stan_model</span>(mixture_h2_gen)</span>
+<span id="cb1006-5"><a href="ch-mixture.html#cb1006-5" aria-hidden="true"></a><span class="co"># The argument of the matrix `drop` needs to be set to FALSE,</span></span>
+<span id="cb1006-6"><a href="ch-mixture.html#cb1006-6" aria-hidden="true"></a><span class="co"># otherwise R will simplify the matrix into a vector.</span></span>
+<span id="cb1006-7"><a href="ch-mixture.html#cb1006-7" aria-hidden="true"></a><span class="co"># The two commas in the line below are not a mistake!</span></span>
+<span id="cb1006-8"><a href="ch-mixture.html#cb1006-8" aria-hidden="true"></a>draws_par &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(fit_mixs_data)[<span class="dv">1</span><span class="op">:</span><span class="dv">500</span>, , drop =<span class="st"> </span><span class="ot">FALSE</span>]</span>
+<span id="cb1006-9"><a href="ch-mixture.html#cb1006-9" aria-hidden="true"></a>gen_mix_data &lt;-<span class="st"> </span><span class="kw">gqs</span>(gen_model,</span>
+<span id="cb1006-10"><a href="ch-mixture.html#cb1006-10" aria-hidden="true"></a>                    <span class="dt">data =</span> ls_dots_data_short,</span>
+<span id="cb1006-11"><a href="ch-mixture.html#cb1006-11" aria-hidden="true"></a>                    <span class="dt">draws =</span> draws_par)</span></code></pre></div>
 <p>First, take a look at the general distribution of response times generated by the posterior predictive model and by our real data in Figure <a href="ch-mixture.html#fig:postpmix-postpmanip">17.16</a>(a).</p>
-<div class="sourceCode" id="cb1006"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1006-1"><a href="ch-mixture.html#cb1006-1" aria-hidden="true"></a>rt_pred &lt;-<span class="st"> </span><span class="kw">extract</span>(gen_mix_data)<span class="op">$</span>rt_pred</span>
-<span id="cb1006-2"><a href="ch-mixture.html#cb1006-2" aria-hidden="true"></a><span class="kw">ppc_dens_overlay</span>(<span class="dt">y =</span> ls_dots_data_short<span class="op">$</span>rt, <span class="dt">yrep =</span> rt_pred[<span class="dv">1</span><span class="op">:</span><span class="dv">100</span>,]) <span class="op">+</span></span>
-<span id="cb1006-3"><a href="ch-mixture.html#cb1006-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">coord_cartesian</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">2000</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1007"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1007-1"><a href="ch-mixture.html#cb1007-1" aria-hidden="true"></a>rt_pred &lt;-<span class="st"> </span><span class="kw">extract</span>(gen_mix_data)<span class="op">$</span>rt_pred</span>
+<span id="cb1007-2"><a href="ch-mixture.html#cb1007-2" aria-hidden="true"></a><span class="kw">ppc_dens_overlay</span>(<span class="dt">y =</span> ls_dots_data_short<span class="op">$</span>rt, <span class="dt">yrep =</span> rt_pred[<span class="dv">1</span><span class="op">:</span><span class="dv">100</span>,]) <span class="op">+</span></span>
+<span id="cb1007-3"><a href="ch-mixture.html#cb1007-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">coord_cartesian</span>(<span class="dt">xlim =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">2000</span>))</span></code></pre></div>
 <p>We see that the distribution of the observed response times is narrower than the predictive distribution. We are generating response times that are more spread out than the real data.</p>
 <p>Next, examine the effect of the experimental manipulation in Figure <a href="ch-mixture.html#fig:postpmix-postpmanip">17.16</a>(b): The posterior predictive check reveals that the model underestimates the observed effect of the experimental manipulation: the observed difference between response times is well outside the bulk of the predictive distribution.</p>
-<div class="sourceCode" id="cb1007"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1007-1"><a href="ch-mixture.html#cb1007-1" aria-hidden="true"></a>meanrt_diff &lt;-<span class="st"> </span><span class="cf">function</span>(rt){</span>
-<span id="cb1007-2"><a href="ch-mixture.html#cb1007-2" aria-hidden="true"></a>  <span class="kw">mean</span>(rt[ls_dots_data_short<span class="op">$</span>x <span class="op">==</span><span class="st"> </span><span class="fl">0.5</span>]) <span class="op">-</span></span>
-<span id="cb1007-3"><a href="ch-mixture.html#cb1007-3" aria-hidden="true"></a><span class="st">    </span><span class="kw">mean</span>(rt[ls_dots_data_short<span class="op">$</span>x <span class="op">==</span><span class="st"> </span><span class="fl">-0.5</span>])</span>
-<span id="cb1007-4"><a href="ch-mixture.html#cb1007-4" aria-hidden="true"></a>}</span>
-<span id="cb1007-5"><a href="ch-mixture.html#cb1007-5" aria-hidden="true"></a><span class="kw">ppc_stat</span>(ls_dots_data_short<span class="op">$</span>rt,</span>
-<span id="cb1007-6"><a href="ch-mixture.html#cb1007-6" aria-hidden="true"></a>         <span class="dt">yrep =</span> rt_pred,</span>
-<span id="cb1007-7"><a href="ch-mixture.html#cb1007-7" aria-hidden="true"></a>         <span class="dt">stat =</span> meanrt_diff)</span></code></pre></div>
+<div class="sourceCode" id="cb1008"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1008-1"><a href="ch-mixture.html#cb1008-1" aria-hidden="true"></a>meanrt_diff &lt;-<span class="st"> </span><span class="cf">function</span>(rt){</span>
+<span id="cb1008-2"><a href="ch-mixture.html#cb1008-2" aria-hidden="true"></a>  <span class="kw">mean</span>(rt[ls_dots_data_short<span class="op">$</span>x <span class="op">==</span><span class="st"> </span><span class="fl">0.5</span>]) <span class="op">-</span></span>
+<span id="cb1008-3"><a href="ch-mixture.html#cb1008-3" aria-hidden="true"></a><span class="st">    </span><span class="kw">mean</span>(rt[ls_dots_data_short<span class="op">$</span>x <span class="op">==</span><span class="st"> </span><span class="fl">-0.5</span>])</span>
+<span id="cb1008-4"><a href="ch-mixture.html#cb1008-4" aria-hidden="true"></a>}</span>
+<span id="cb1008-5"><a href="ch-mixture.html#cb1008-5" aria-hidden="true"></a><span class="kw">ppc_stat</span>(ls_dots_data_short<span class="op">$</span>rt,</span>
+<span id="cb1008-6"><a href="ch-mixture.html#cb1008-6" aria-hidden="true"></a>         <span class="dt">yrep =</span> rt_pred,</span>
+<span id="cb1008-7"><a href="ch-mixture.html#cb1008-7" aria-hidden="true"></a>         <span class="dt">stat =</span> meanrt_diff)</span></code></pre></div>
 
 <div class="figure"><span style="display:block;" id="fig:postpmix-postpmanip"></span>
 <img src="bayescogsci_files/figure-html/postpmix-postpmanip-1.svg" alt="(a) Posterior predictive distribution of the hierarchical fast-guess model (mixture_h2_gen.stan) compared to observed response times. (b) Posterior predictive distribution of the response time difference due to experimental manipulation, using the same model; the vertical bar indicates the observed difference in the data." width="49%" /><img src="bayescogsci_files/figure-html/postpmix-postpmanip-2.svg" alt="(a) Posterior predictive distribution of the hierarchical fast-guess model (mixture_h2_gen.stan) compared to observed response times. (b) Posterior predictive distribution of the response time difference due to experimental manipulation, using the same model; the vertical bar indicates the observed difference in the data." width="49%" />
@@ -2654,16 +2738,16 @@ FIGURE 17.16: (a) Posterior predictive distribution of the hierarchical fast-gue
 </div>
 <p>Another important posterior predictive check includes comparing the fit of the model using a quantile probability plot, which is presented in the next chapter.</p>
 <p>We also look at some instances of the predictive distribution. Figure <a href="ch-mixture.html#fig:postppdobs">17.17</a> shows a simulated data set in black overlaid onto the real observations in gray. As we noticed in Figure <a href="ch-mixture.html#fig:postpmix-postpmanip">17.16</a>(a), the model is predicting less variability than what we find in the data, especially when the emphasis is on accuracy.</p>
-<div class="sourceCode" id="cb1008"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1008-1"><a href="ch-mixture.html#cb1008-1" aria-hidden="true"></a>acc_pred &lt;-<span class="st"> </span><span class="kw">extract</span>(gen_mix_data)<span class="op">$</span>acc_pred</span>
-<span id="cb1008-2"><a href="ch-mixture.html#cb1008-2" aria-hidden="true"></a>df_dots_pred &lt;-</span>
-<span id="cb1008-3"><a href="ch-mixture.html#cb1008-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">tibble</span>(<span class="dt">rt =</span> ls_dots_data_short<span class="op">$</span>rt,</span>
-<span id="cb1008-4"><a href="ch-mixture.html#cb1008-4" aria-hidden="true"></a>         <span class="dt">acc =</span> ls_dots_data_short<span class="op">$</span>acc,</span>
-<span id="cb1008-5"><a href="ch-mixture.html#cb1008-5" aria-hidden="true"></a>         <span class="dt">difficulty =</span> <span class="kw">ifelse</span>(ls_dots_data_short<span class="op">$</span>x <span class="op">==</span><span class="st"> </span><span class="fl">0.5</span>,</span>
-<span id="cb1008-6"><a href="ch-mixture.html#cb1008-6" aria-hidden="true"></a>                             <span class="st">&quot;hard&quot;</span>, <span class="st">&quot;easy&quot;</span>),</span>
-<span id="cb1008-7"><a href="ch-mixture.html#cb1008-7" aria-hidden="true"></a>         <span class="dt">emphasis =</span> <span class="kw">ifelse</span>(ls_dots_data_short<span class="op">$</span>x2 <span class="op">==</span><span class="st"> </span><span class="fl">-0.5</span>,</span>
-<span id="cb1008-8"><a href="ch-mixture.html#cb1008-8" aria-hidden="true"></a>                           <span class="st">&quot;speed&quot;</span>, <span class="st">&quot;accuracy&quot;</span>),</span>
-<span id="cb1008-9"><a href="ch-mixture.html#cb1008-9" aria-hidden="true"></a>         <span class="dt">acc_pred1 =</span> acc_pred[<span class="dv">1</span>,],</span>
-<span id="cb1008-10"><a href="ch-mixture.html#cb1008-10" aria-hidden="true"></a>         <span class="dt">rt_pred1 =</span> rt_pred[<span class="dv">1</span>,])</span></code></pre></div>
+<div class="sourceCode" id="cb1009"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1009-1"><a href="ch-mixture.html#cb1009-1" aria-hidden="true"></a>acc_pred &lt;-<span class="st"> </span><span class="kw">extract</span>(gen_mix_data)<span class="op">$</span>acc_pred</span>
+<span id="cb1009-2"><a href="ch-mixture.html#cb1009-2" aria-hidden="true"></a>df_dots_pred &lt;-</span>
+<span id="cb1009-3"><a href="ch-mixture.html#cb1009-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">tibble</span>(<span class="dt">rt =</span> ls_dots_data_short<span class="op">$</span>rt,</span>
+<span id="cb1009-4"><a href="ch-mixture.html#cb1009-4" aria-hidden="true"></a>         <span class="dt">acc =</span> ls_dots_data_short<span class="op">$</span>acc,</span>
+<span id="cb1009-5"><a href="ch-mixture.html#cb1009-5" aria-hidden="true"></a>         <span class="dt">difficulty =</span> <span class="kw">ifelse</span>(ls_dots_data_short<span class="op">$</span>x <span class="op">==</span><span class="st"> </span><span class="fl">0.5</span>,</span>
+<span id="cb1009-6"><a href="ch-mixture.html#cb1009-6" aria-hidden="true"></a>                             <span class="st">&quot;hard&quot;</span>, <span class="st">&quot;easy&quot;</span>),</span>
+<span id="cb1009-7"><a href="ch-mixture.html#cb1009-7" aria-hidden="true"></a>         <span class="dt">emphasis =</span> <span class="kw">ifelse</span>(ls_dots_data_short<span class="op">$</span>x2 <span class="op">==</span><span class="st"> </span><span class="fl">-0.5</span>,</span>
+<span id="cb1009-8"><a href="ch-mixture.html#cb1009-8" aria-hidden="true"></a>                           <span class="st">&quot;speed&quot;</span>, <span class="st">&quot;accuracy&quot;</span>),</span>
+<span id="cb1009-9"><a href="ch-mixture.html#cb1009-9" aria-hidden="true"></a>         <span class="dt">acc_pred1 =</span> acc_pred[<span class="dv">1</span>,],</span>
+<span id="cb1009-10"><a href="ch-mixture.html#cb1009-10" aria-hidden="true"></a>         <span class="dt">rt_pred1 =</span> rt_pred[<span class="dv">1</span>,])</span></code></pre></div>
 
 <div class="figure"><span style="display:block;" id="fig:postppdobs"></span>
 <img src="bayescogsci_files/figure-html/postppdobs-1.svg" alt="A simulated (posterior predictive) data set in black overlaid onto the observations in gray (based on mixture_h2_gen.stan)." width="672" />

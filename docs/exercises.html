@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel J. Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2025-02-12" />
+<meta name="date" content="2026-01-13" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -375,15 +375,18 @@ window.initializeCodeFolding = function(show) {
     $(this).before(div);
     $(this).detach().appendTo(div);
 
-    // add a show code button right above
-    var showCodeText = $('<span>' + (show ? 'Hide' : 'Code') + '</span>');
+    // CRITICAL FIX: Create button with aria-hidden text that won't be copied
     var showCodeButton = $('<button type="button" class="btn btn-default btn-xs code-folding-btn pull-right"></button>');
-    showCodeButton.append(showCodeText);
     showCodeButton
         .attr('data-toggle', 'collapse')
         .attr('data-target', '#' + id)
         .attr('aria-expanded', show)
-        .attr('aria-controls', id);
+        .attr('aria-controls', id)
+        .attr('aria-label', show ? 'Hide code' : 'Show code');
+    
+    // Use aria-hidden to prevent screen readers and copy from seeing text
+    var showCodeText = $('<span aria-hidden="true" style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; pointer-events: none;">' + (show ? 'Hide' : 'Code') + '</span>');
+    showCodeButton.append(showCodeText);
 
     var buttonRow = $('<div class="row"></div>');
     var buttonCol = $('<div class="col-md-12"></div>');
@@ -393,16 +396,18 @@ window.initializeCodeFolding = function(show) {
 
     div.before(buttonRow);
 
-    // hack: return show to false, otherwise all next codeBlocks will be shown!
-    show = false;
-
-    // update state of button on show/hide
-    div.on('hidden.bs.collapse', function () {
+    // update the text of the button when it's clicked
+    div.on('hide.bs.collapse', function () {
       showCodeText.text('Code');
+      showCodeButton.attr('aria-label', 'Show code');
     });
     div.on('show.bs.collapse', function () {
       showCodeText.text('Hide');
+      showCodeButton.attr('aria-label', 'Hide code');
     });
+
+    // hack: return show to false, otherwise all next codeBlocks will be shown!
+    show = false;
   });
 
 }
@@ -793,6 +798,78 @@ $(document).ready(function () {
 });
 </script>
 
+<!-- NUCLEAR OPTION: Intercept ALL copy events and strip button text -->
+<script>
+$(document).ready(function() {
+  
+  // Method 1: Make button spans completely invisible to selection
+  function protectButtons() {
+    $('.code-folding-btn span').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+      this.style.setProperty('pointer-events', 'none', 'important');
+      $(this).attr('unselectable', 'on');
+      $(this).attr('aria-hidden', 'true');
+    });
+    
+    $('.code-folding-btn').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+    });
+  }
+  
+  protectButtons();
+  setTimeout(protectButtons, 100);
+  setTimeout(protectButtons, 500);
+  setTimeout(protectButtons, 1000);
+  
+  // Method 2: Aggressive copy event interception
+  document.addEventListener('copy', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    // Remove "Hide" or "Code" from the start
+    if (selectedText) {
+      var cleanedText = selectedText
+        .replace(/^(Hide|Code)\s*/gm, '')  // Remove from start of any line
+        .replace(/\s+(Hide|Code)\s*$/gm, '');  // Remove from end
+      
+      if (cleanedText !== selectedText) {
+        e.preventDefault();
+        
+        if (e.clipboardData) {
+          e.clipboardData.setData('text/plain', cleanedText);
+        } else if (window.clipboardData) {
+          window.clipboardData.setData('Text', cleanedText);
+        }
+      }
+    }
+  }, true);  // Use capture phase
+  
+  // Method 3: Override native copy for code blocks
+  $('body').on('copy', 'pre, pre.sourceCode, .sourceCode, code', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    if (selectedText && (selectedText.startsWith('Hide') || selectedText.startsWith('Code'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      var cleanedText = selectedText.replace(/^(Hide|Code)\s*/, '');
+      
+      if (e.originalEvent.clipboardData) {
+        e.originalEvent.clipboardData.setData('text/plain', cleanedText);
+      } else if (window.clipboardData) {
+        window.clipboardData.setData('Text', cleanedText);
+      }
+    }
+  });
+});
+</script>
 
 <script data-goatcounter="https://bayescogsci.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
@@ -1436,6 +1513,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
+<div class="book-banner">
+  <div class="banner-content">
+    📚 Get the print version of the book from 
+    <a href="https://www.taylorfrancis.com/books/mono/10.1201/9780429342646/introduction-bayesian-data-analysis-cognitive-science-shravan-vasishth-bruno-nicenboim-daniel-schad" target="_blank" rel="noopener">CRC Press</a> or your favorite store.
+    <button class="banner-close" onclick="this.parentElement.parentElement.style.display='none';" aria-label="Close banner">&times;</button>
+  </div>
+</div>
 <div id="exercises" class="section level1 hasAnchor" number="26">
 <h1><span class="header-section-number">G</span> Exercises<a href="exercises.html#exercises" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <div id="sec-Foundationsexercises" class="section level2 hasAnchor" number="26.1">
@@ -1479,13 +1563,13 @@ Compute the lower and upper boundaries such that:</p>
 <div id="exr:Foundationsexercisessamples1" class="section level3 unlisted hasAnchor" number="26.1.6">
 <h3><span class="header-section-number">G.1.6</span> Practice getting summaries from samples–Part 1<a href="exercises.html#exr:Foundationsexercisessamples1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Given data that is generated as follows:</p>
-<div class="sourceCode" id="cb1199"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1199-1"><a href="exercises.html#cb1199-1" aria-hidden="true"></a>data_gen1 &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">1000</span>, <span class="dt">mean =</span> <span class="dv">300</span>, <span class="dt">sd =</span> <span class="dv">200</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1200"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1200-1"><a href="exercises.html#cb1200-1" aria-hidden="true"></a>data_gen1 &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">1000</span>, <span class="dt">mean =</span> <span class="dv">300</span>, <span class="dt">sd =</span> <span class="dv">200</span>)</span></code></pre></div>
 <p>Calculate the mean, variance, and the lower quantile q1 and the upper quantile q2, that are equidistant and such that the range of probability between them is 80%.</p>
 </div>
 <div id="exr:Foundationsexercisessamples2" class="section level3 unlisted hasAnchor" number="26.1.7">
 <h3><span class="header-section-number">G.1.7</span> Practice getting summaries from samples–Part 2.<a href="exercises.html#exr:Foundationsexercisessamples2" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>This time we generate the data with a truncated normal distribution from the package <code>extraDistr</code>. The details of this distribution will be discussed later in section <a href="ch-reg.html#sec-pupil">4.1</a> and in the online section <a href="regression-models-with-brms---extended.html#app-truncation">A.2</a>, but for now we can treat it as an unknown generative process:</p>
-<div class="sourceCode" id="cb1200"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1200-1"><a href="exercises.html#cb1200-1" aria-hidden="true"></a>data_gen1 &lt;-<span class="st"> </span><span class="kw">rtnorm</span>(<span class="dv">1000</span>, <span class="dt">mean =</span> <span class="dv">300</span>, <span class="dt">sd =</span> <span class="dv">200</span>, <span class="dt">a =</span> <span class="dv">0</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1201"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1201-1"><a href="exercises.html#cb1201-1" aria-hidden="true"></a>data_gen1 &lt;-<span class="st"> </span><span class="kw">rtnorm</span>(<span class="dv">1000</span>, <span class="dt">mean =</span> <span class="dv">300</span>, <span class="dt">sd =</span> <span class="dv">200</span>, <span class="dt">a =</span> <span class="dv">0</span>)</span></code></pre></div>
 <p>Using the sample data, calculate the mean, variance, and the lower quantile q1 and the upper quantile q2, such that the probability of observing values between these two quantiles is 80%.</p>
 </div>
 <div id="exr:Foundationsexercisesvcov1" class="section level3 unlisted hasAnchor" number="26.1.8">
@@ -1597,7 +1681,7 @@ f(x\mid \theta) = \frac{\exp(-\theta) \theta^x}{x!}
 <div id="exr:simulatedlinearmod" class="section level3 unlisted hasAnchor" number="26.3.1">
 <h3><span class="header-section-number">G.3.1</span> Check for parameter recovery in a linear model using simulated data.<a href="exercises.html#exr:simulatedlinearmod" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Generate some simulated independent and identically distributed data with <span class="math inline">\(n=100\)</span> data points as follows:</p>
-<div class="sourceCode" id="cb1201"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1201-1"><a href="exercises.html#cb1201-1" aria-hidden="true"></a>y &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">100</span>, <span class="dt">mean =</span> <span class="dv">500</span>, <span class="dt">sd =</span> <span class="dv">50</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1202"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1202-1"><a href="exercises.html#cb1202-1" aria-hidden="true"></a>y &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">100</span>, <span class="dt">mean =</span> <span class="dv">500</span>, <span class="dt">sd =</span> <span class="dv">50</span>)</span></code></pre></div>
 <p>Next, fit a simple linear model with a normal likelihood:</p>
 <p><span class="math display" id="eq:simrtlikLM">\[\begin{equation}
 y_n  \sim \mathit{Normal}(\mu,\sigma) \tag{G.2}
@@ -1648,8 +1732,8 @@ y_n  \sim \mathit{Normal}(\mu,\sigma) \tag{G.2}
 <div id="exr:powerposing" class="section level3 unlisted hasAnchor" number="26.4.1">
 <h3><span class="header-section-number">G.4.1</span> A simple linear regression: Power posing and testosterone.<a href="exercises.html#exr:powerposing" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Load the following data set:</p>
-<div class="sourceCode" id="cb1202"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1202-1"><a href="exercises.html#cb1202-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_powerpose&quot;</span>)</span>
-<span id="cb1202-2"><a href="exercises.html#cb1202-2" aria-hidden="true"></a><span class="kw">head</span>(df_powerpose)</span></code></pre></div>
+<div class="sourceCode" id="cb1203"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1203-1"><a href="exercises.html#cb1203-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_powerpose&quot;</span>)</span>
+<span id="cb1203-2"><a href="exercises.html#cb1203-2" aria-hidden="true"></a><span class="kw">head</span>(df_powerpose)</span></code></pre></div>
 <pre><code>##   id hptreat female age testm1 testm2
 ## 2 29    High   Male  19   38.7   62.4
 ## 3 30     Low Female  20   32.8   29.2
@@ -1685,8 +1769,8 @@ y_n  \sim \mathit{Normal}(\mu,\sigma) \tag{G.2}
 <div id="exr:red" class="section level3 unlisted hasAnchor" number="26.4.5">
 <h3><span class="header-section-number">G.4.5</span> Red is the sexiest color.<a href="exercises.html#exr:red" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Load the following data set:</p>
-<div class="sourceCode" id="cb1204"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1204-1"><a href="exercises.html#cb1204-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_red&quot;</span>)</span>
-<span id="cb1204-2"><a href="exercises.html#cb1204-2" aria-hidden="true"></a><span class="kw">head</span>(df_red)</span></code></pre></div>
+<div class="sourceCode" id="cb1205"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1205-1"><a href="exercises.html#cb1205-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_red&quot;</span>)</span>
+<span id="cb1205-2"><a href="exercises.html#cb1205-2" aria-hidden="true"></a><span class="kw">head</span>(df_red)</span></code></pre></div>
 <pre><code>##    risk age red pink redorpink
 ## 8     0  19   0    0         0
 ## 9     0  25   0    0         0
@@ -1702,8 +1786,8 @@ y_n  \sim \mathit{Normal}(\mu,\sigma) \tag{G.2}
 <div id="exr:hierarchical-normal" class="section level3 unlisted hasAnchor" number="26.5.1">
 <h3><span class="header-section-number">G.5.1</span> A hierarchical model (normal likelihood) of cognitive load on pupil size.<a href="exercises.html#exr:hierarchical-normal" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>As in section <a href="ch-reg.html#sec-pupil">4.1</a>, we focus on the effect of cognitive load on pupil size, but this time we look at all the subjects of <span class="citation">Wahn et al. (<a href="#ref-wahnPupilSizesScale2016" role="doc-biblioref">2016</a>)</span>:</p>
-<div class="sourceCode" id="cb1206"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1206-1"><a href="exercises.html#cb1206-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_pupil_complete&quot;</span>)</span>
-<span id="cb1206-2"><a href="exercises.html#cb1206-2" aria-hidden="true"></a>df_pupil_complete</span></code></pre></div>
+<div class="sourceCode" id="cb1207"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1207-1"><a href="exercises.html#cb1207-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_pupil_complete&quot;</span>)</span>
+<span id="cb1207-2"><a href="exercises.html#cb1207-2" aria-hidden="true"></a>df_pupil_complete</span></code></pre></div>
 <pre><code>## # A tibble: 2,228 × 4
 ##    subj trial  load p_size
 ##   &lt;int&gt; &lt;int&gt; &lt;int&gt;  &lt;dbl&gt;
@@ -1728,8 +1812,8 @@ y_n  \sim \mathit{Normal}(\mu,\sigma) \tag{G.2}
 <p>The underlying explanation has to do with memory processes: Shorter linguistic dependencies are easier to process due to either reduced interference or decay, or both. For implemented computational models that spell this point out, see <span class="citation">Lewis and Vasishth (<a href="#ref-lewisvasishth:cogsci05" role="doc-biblioref">2005</a>)</span> and <span class="citation">Engelmann, Jäger, and Vasishth (<a href="#ref-EngelmannJaegerVasishth2019" role="doc-biblioref">2020</a>)</span>.</p>
 <p>In the Grodner and Gibson data, the dependent measure is  reading time at the relative clause verb, (e.g., <em>sent</em>) of different sentences with either ORC or SRC. The dependent variable is in milliseconds and was measured in a self-paced reading task.  Self-paced reading is a task where subjects read a sentence or a short text word-by-word or phrase-by-phrase, pressing a button to get each word or phrase displayed; the preceding word disappears every time the button is pressed. In <a href="ch-priors.html#sec-simpleexamplepriors">E.1</a>, we provide a more detailed explanation of this experimental method.</p>
 <p>For this experiment, we are expecting longer reading times at the relative clause verbs of ORC sentences in comparison to the relative clause verb of SRC sentences.</p>
-<div class="sourceCode" id="cb1208"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1208-1"><a href="exercises.html#cb1208-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_gg05_rc&quot;</span>)</span>
-<span id="cb1208-2"><a href="exercises.html#cb1208-2" aria-hidden="true"></a>df_gg05_rc</span></code></pre></div>
+<div class="sourceCode" id="cb1209"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1209-1"><a href="exercises.html#cb1209-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_gg05_rc&quot;</span>)</span>
+<span id="cb1209-2"><a href="exercises.html#cb1209-2" aria-hidden="true"></a>df_gg05_rc</span></code></pre></div>
 <pre><code>## # A tibble: 672 × 7
 ##    subj  item condition    RT residRT qcorrect experiment
 ##   &lt;int&gt; &lt;int&gt; &lt;chr&gt;     &lt;int&gt;   &lt;dbl&gt;    &lt;int&gt; &lt;chr&gt;     
@@ -1739,8 +1823,8 @@ y_n  \sim \mathit{Normal}(\mu,\sigma) \tag{G.2}
 ## # ℹ 669 more rows</code></pre>
 <p>You should use a sum coding for the predictors. Here, object relative clauses (<code>"objgaps"</code>) are coded <span class="math inline">\(+1/2\)</span>, subject relative clauses
 <span class="math inline">\(-1/2\)</span>.</p>
-<div class="sourceCode" id="cb1210"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1210-1"><a href="exercises.html#cb1210-1" aria-hidden="true"></a>df_gg05_rc &lt;-<span class="st"> </span>df_gg05_rc <span class="op">%&gt;%</span></span>
-<span id="cb1210-2"><a href="exercises.html#cb1210-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">c_cond =</span> <span class="kw">if_else</span>(condition <span class="op">==</span><span class="st"> &quot;objgap&quot;</span>, <span class="dv">1</span><span class="op">/</span><span class="dv">2</span>, <span class="dv">-1</span><span class="op">/</span><span class="dv">2</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1211"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1211-1"><a href="exercises.html#cb1211-1" aria-hidden="true"></a>df_gg05_rc &lt;-<span class="st"> </span>df_gg05_rc <span class="op">%&gt;%</span></span>
+<span id="cb1211-2"><a href="exercises.html#cb1211-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">c_cond =</span> <span class="kw">if_else</span>(condition <span class="op">==</span><span class="st"> &quot;objgap&quot;</span>, <span class="dv">1</span><span class="op">/</span><span class="dv">2</span>, <span class="dv">-1</span><span class="op">/</span><span class="dv">2</span>))</span></code></pre></div>
 <p>You should be able to now fit a “maximal” model (correlated varying intercept and slopes for subjects and for items) assuming a log-normal likelihood.</p>
 <ol style="list-style-type: lower-alpha">
 <li>Examine the effect of relative clause attachment site (the predictor <code>c_cond</code>) on reading times <code>RT</code> (<span class="math inline">\(\beta\)</span>).</li>
@@ -1751,8 +1835,8 @@ y_n  \sim \mathit{Normal}(\mu,\sigma) \tag{G.2}
 <div id="exr:HLMExerciseMandarinRC" class="section level3 unlisted hasAnchor" number="26.5.3">
 <h3><span class="header-section-number">G.5.3</span> Relative clause processing in Mandarin Chinese<a href="exercises.html#exr:HLMExerciseMandarinRC" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Load the following two data sets:</p>
-<div class="sourceCode" id="cb1211"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1211-1"><a href="exercises.html#cb1211-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_gibsonwu&quot;</span>)</span>
-<span id="cb1211-2"><a href="exercises.html#cb1211-2" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_gibsonwu2&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1212"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1212-1"><a href="exercises.html#cb1212-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_gibsonwu&quot;</span>)</span>
+<span id="cb1212-2"><a href="exercises.html#cb1212-2" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_gibsonwu2&quot;</span>)</span></code></pre></div>
 <p>The data are taken from two experiments that investigate (inter alia) the effect of relative clause type on reading time in Chinese. The data are from <span class="citation">Gibson and Wu (<a href="#ref-gibsonwu" role="doc-biblioref">2013</a>)</span> and <span class="citation">Vasishth et al. (<a href="#ref-VasishthetalPLoSOne2013" role="doc-biblioref">2013</a>)</span> respectively. The second data set is a direct replication attempt of the <span class="citation">Gibson and Wu (<a href="#ref-gibsonwu" role="doc-biblioref">2013</a>)</span> experiment.</p>
 <p>Chinese relative clauses are interesting theoretically because they are prenominal: the relative clause appears before the head noun. For example, the English relative clauses shown above would appear in the following order in Mandarin. The square brackets mark the relative clause, and REL refers to the Chinese equivalent of the English relative pronoun <em>who</em>.</p>
 <p>(2a) [The photographer <em>sent</em> to the editor] REL the <em>reporter</em> was hoping for a good story. (ORC)</p>
@@ -1770,9 +1854,9 @@ y_n  \sim \mathit{Normal}(\mu,\sigma) \tag{G.2}
 <div id="exr:HLMExerciseEnglishAgrmt" class="section level3 unlisted hasAnchor" number="26.5.4">
 <h3><span class="header-section-number">G.5.4</span>  Agreement attraction in comprehension<a href="exercises.html#exr:HLMExerciseEnglishAgrmt" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Load the following data:</p>
-<div class="sourceCode" id="cb1212"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1212-1"><a href="exercises.html#cb1212-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_dillonE1&quot;</span>)</span>
-<span id="cb1212-2"><a href="exercises.html#cb1212-2" aria-hidden="true"></a>dillonE1 &lt;-<span class="st"> </span>df_dillonE1</span>
-<span id="cb1212-3"><a href="exercises.html#cb1212-3" aria-hidden="true"></a><span class="kw">head</span>(dillonE1)</span></code></pre></div>
+<div class="sourceCode" id="cb1213"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1213-1"><a href="exercises.html#cb1213-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_dillonE1&quot;</span>)</span>
+<span id="cb1213-2"><a href="exercises.html#cb1213-2" aria-hidden="true"></a>dillonE1 &lt;-<span class="st"> </span>df_dillonE1</span>
+<span id="cb1213-3"><a href="exercises.html#cb1213-3" aria-hidden="true"></a><span class="kw">head</span>(dillonE1)</span></code></pre></div>
 <pre><code>##         subj       item   rt int     expt
 ## 49 dillonE11 dillonE119 2918 low dillonE1
 ## 56 dillonE11 dillonE119 1338 low dillonE1
@@ -1795,8 +1879,8 @@ y_n  \sim \mathit{Normal}(\mu,\sigma) \tag{G.2}
 <h3><span class="header-section-number">G.5.5</span>  Attentional blink (Bernoulli likelihood)<a href="exercises.html#exr:ab" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>The attentional blink <span class="citation">(AB; first described by Raymond, Shapiro, and Arnell <a href="#ref-raymond1992temporary" role="doc-biblioref">1992</a>; though it has been noticed before e.g., Broadbent and Broadbent <a href="#ref-Broadbent1987" role="doc-biblioref">1987</a>)</span> refers to a temporary reduction in the accuracy of detecting a <em>probe</em> (e.g., a letter “X”) presented closely after a <em>target</em> that has been detected (e.g., a white letter). We will focus on the experimental condition of Experiment 2 of <span class="citation">Raymond, Shapiro, and Arnell (<a href="#ref-raymond1992temporary" role="doc-biblioref">1992</a>)</span>. Subjects are presented with letters in  rapid serial visual presentation (RSVP) at the center of the screen at a constant rate and are required to identify the only white letter (target) in the stream of black letters, and then to report whether the letter X (probe) occurred in the subsequent letter stream. The AB is defined as having occurred when the target is reported correctly but the report of the probe is inaccurate at a short <em>lag</em> or <em>target-probe</em> interval.</p>
 <p>The data set <code>df_ab</code> is a subset of the data of this paradigm from a replication conducted by <span class="citation">Grassi et al. (<a href="#ref-grassi_two_2021" role="doc-biblioref">2021</a>)</span>. In this subset, the probe was always present and the target was correctly identified. We want to find out how the lag affects the accuracy of the identification of the probe.</p>
-<div class="sourceCode" id="cb1214"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1214-1"><a href="exercises.html#cb1214-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_ab&quot;</span>)</span>
-<span id="cb1214-2"><a href="exercises.html#cb1214-2" aria-hidden="true"></a>df_ab</span></code></pre></div>
+<div class="sourceCode" id="cb1215"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1215-1"><a href="exercises.html#cb1215-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_ab&quot;</span>)</span>
+<span id="cb1215-2"><a href="exercises.html#cb1215-2" aria-hidden="true"></a>df_ab</span></code></pre></div>
 <pre><code>## # A tibble: 2,101 × 4
 ##    subj probe_correct trial   lag
 ##   &lt;int&gt;         &lt;int&gt; &lt;int&gt; &lt;int&gt;
@@ -1839,10 +1923,10 @@ y_n  \sim \mathit{Normal}(\mu,\sigma) \tag{G.2}
 <div id="exr:HLMExerciseGramCE" class="section level3 unlisted hasAnchor" number="26.5.8">
 <h3><span class="header-section-number">G.5.8</span> The  grammaticality illusion<a href="exercises.html#exr:HLMExerciseGramCE" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Load the following two data sets:</p>
-<div class="sourceCode" id="cb1216"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1216-1"><a href="exercises.html#cb1216-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_english&quot;</span>)</span>
-<span id="cb1216-2"><a href="exercises.html#cb1216-2" aria-hidden="true"></a>english &lt;-<span class="st"> </span>df_english</span>
-<span id="cb1216-3"><a href="exercises.html#cb1216-3" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_dutch&quot;</span>)</span>
-<span id="cb1216-4"><a href="exercises.html#cb1216-4" aria-hidden="true"></a>dutch &lt;-<span class="st"> </span>df_dutch</span></code></pre></div>
+<div class="sourceCode" id="cb1217"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1217-1"><a href="exercises.html#cb1217-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_english&quot;</span>)</span>
+<span id="cb1217-2"><a href="exercises.html#cb1217-2" aria-hidden="true"></a>english &lt;-<span class="st"> </span>df_english</span>
+<span id="cb1217-3"><a href="exercises.html#cb1217-3" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_dutch&quot;</span>)</span>
+<span id="cb1217-4"><a href="exercises.html#cb1217-4" aria-hidden="true"></a>dutch &lt;-<span class="st"> </span>df_dutch</span></code></pre></div>
 <p>In an offline accuracy rating study on English double center-embedding constructions, <span class="citation">Gibson and Thomas (<a href="#ref-gibsonthomas99" role="doc-biblioref">1999</a>)</span> found that grammatical constructions (e.g., example 4a below) were no less acceptable than ungrammatical constructions (e.g., example 4b) where a middle verb phrase (e.g., <em>was cleaning every week</em>) was missing.</p>
 <p>(4a) The apartment that the maid who the service had sent over was cleaning every week was well decorated.</p>
 <p>(4b) *The apartment that the maid who the service had sent over — was well decorated</p>
@@ -1860,10 +1944,10 @@ y_n  \sim \mathit{Normal}(\mu,\sigma) \tag{G.2}
 <div id="exr:ContrastsPersian" class="section level3 unlisted hasAnchor" number="26.6.1">
 <h3><span class="header-section-number">G.6.1</span> Contrast coding for a four-condition design<a href="exercises.html#exr:ContrastsPersian" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Load the following data. These data are from Experiment 1 in a set of reading studies on Persian <span class="citation">(Safavi, Husain, and Vasishth <a href="#ref-SafaviEtAlFrontiers2016" role="doc-biblioref">2016</a>)</span>. This is a self-paced reading study on particle-verb constructions, with a <span class="math inline">\(2\times 2\)</span> design: distance (short, long) and predictability (predictable, unpredictable). The data are from a critical region in the sentence. All the data from the <span class="citation">Safavi, Husain, and Vasishth (<a href="#ref-SafaviEtAlFrontiers2016" role="doc-biblioref">2016</a>)</span> paper are available from <a href="https://github.com/vasishth/SafaviEtAl2016" class="uri">https://github.com/vasishth/SafaviEtAl2016</a>.</p>
-<div class="sourceCode" id="cb1217"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1217-1"><a href="exercises.html#cb1217-1" aria-hidden="true"></a><span class="kw">library</span>(bcogsci)</span>
-<span id="cb1217-2"><a href="exercises.html#cb1217-2" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_persianE1&quot;</span>)</span>
-<span id="cb1217-3"><a href="exercises.html#cb1217-3" aria-hidden="true"></a>dat1 &lt;-<span class="st"> </span>df_persianE1</span>
-<span id="cb1217-4"><a href="exercises.html#cb1217-4" aria-hidden="true"></a><span class="kw">head</span>(dat1)</span></code></pre></div>
+<div class="sourceCode" id="cb1218"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1218-1"><a href="exercises.html#cb1218-1" aria-hidden="true"></a><span class="kw">library</span>(bcogsci)</span>
+<span id="cb1218-2"><a href="exercises.html#cb1218-2" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_persianE1&quot;</span>)</span>
+<span id="cb1218-3"><a href="exercises.html#cb1218-3" aria-hidden="true"></a>dat1 &lt;-<span class="st"> </span>df_persianE1</span>
+<span id="cb1218-4"><a href="exercises.html#cb1218-4" aria-hidden="true"></a><span class="kw">head</span>(dat1)</span></code></pre></div>
 <pre><code>##     subj item   rt distance   predability
 ## 60     4    6  568    short   predictable
 ## 94     4   17  517     long unpredictable
@@ -1898,9 +1982,9 @@ y_n  \sim \mathit{Normal}(\mu,\sigma) \tag{G.2}
 <h3><span class="header-section-number">G.6.2</span>  Helmert coding for a six-condition design.<a href="exercises.html#exr:ContrastsNPIHelmert" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>This data-set is from a psycholinguistics study, and although we explain the theoretical background below, one does not need to deeply understand the research questions to be able to define the contrasts.</p>
 <p>Load the following data:</p>
-<div class="sourceCode" id="cb1219"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1219-1"><a href="exercises.html#cb1219-1" aria-hidden="true"></a><span class="kw">library</span>(bcogsci)</span>
-<span id="cb1219-2"><a href="exercises.html#cb1219-2" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_polarity&quot;</span>)</span>
-<span id="cb1219-3"><a href="exercises.html#cb1219-3" aria-hidden="true"></a><span class="kw">head</span>(df_polarity)</span></code></pre></div>
+<div class="sourceCode" id="cb1220"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1220-1"><a href="exercises.html#cb1220-1" aria-hidden="true"></a><span class="kw">library</span>(bcogsci)</span>
+<span id="cb1220-2"><a href="exercises.html#cb1220-2" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_polarity&quot;</span>)</span>
+<span id="cb1220-3"><a href="exercises.html#cb1220-3" aria-hidden="true"></a><span class="kw">head</span>(df_polarity)</span></code></pre></div>
 <pre><code>##   subject item condition times value
 ## 1       1    6         f   SFD   328
 ## 2       1   24         f   SFD   206
@@ -1925,8 +2009,8 @@ y_n  \sim \mathit{Normal}(\mu,\sigma) \tag{G.2}
 </ol></li>
 </ul>
 <p>We will focus only on re-reading time in this data set. Subset the data so that we only have re-reading times in the data frame:</p>
-<div class="sourceCode" id="cb1221"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1221-1"><a href="exercises.html#cb1221-1" aria-hidden="true"></a>dat2 &lt;-<span class="st"> </span><span class="kw">subset</span>(df_polarity, times <span class="op">==</span><span class="st"> &quot;RRT&quot;</span>)</span>
-<span id="cb1221-2"><a href="exercises.html#cb1221-2" aria-hidden="true"></a><span class="kw">head</span>(dat2)</span></code></pre></div>
+<div class="sourceCode" id="cb1222"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1222-1"><a href="exercises.html#cb1222-1" aria-hidden="true"></a>dat2 &lt;-<span class="st"> </span><span class="kw">subset</span>(df_polarity, times <span class="op">==</span><span class="st"> &quot;RRT&quot;</span>)</span>
+<span id="cb1222-2"><a href="exercises.html#cb1222-2" aria-hidden="true"></a><span class="kw">head</span>(dat2)</span></code></pre></div>
 <pre><code>##      subject item condition times value
 ## 6365       1   20         b   RRT   240
 ## 6366       1    3         c   RRT  1866
@@ -1959,10 +2043,10 @@ difference between the two grammatical conditions? Here, the comparison is betwe
 <div id="exr:ContrastsPersianANOVA" class="section level3 unlisted hasAnchor" number="26.7.1">
 <h3><span class="header-section-number">G.7.1</span> ANOVA coding for a four-condition design.<a href="exercises.html#exr:ContrastsPersianANOVA" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Load the following data. These data are from Experiment 1 in a set of reading studies on Persian <span class="citation">(Safavi, Husain, and Vasishth <a href="#ref-SafaviEtAlFrontiers2016" role="doc-biblioref">2016</a>)</span>; we encountered these data in the preceding chapter’s exercises.</p>
-<div class="sourceCode" id="cb1223"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1223-1"><a href="exercises.html#cb1223-1" aria-hidden="true"></a><span class="kw">library</span>(bcogsci)</span>
-<span id="cb1223-2"><a href="exercises.html#cb1223-2" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_persianE1&quot;</span>)</span>
-<span id="cb1223-3"><a href="exercises.html#cb1223-3" aria-hidden="true"></a>dat1 &lt;-<span class="st"> </span>df_persianE1</span>
-<span id="cb1223-4"><a href="exercises.html#cb1223-4" aria-hidden="true"></a><span class="kw">head</span>(dat1)</span></code></pre></div>
+<div class="sourceCode" id="cb1224"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1224-1"><a href="exercises.html#cb1224-1" aria-hidden="true"></a><span class="kw">library</span>(bcogsci)</span>
+<span id="cb1224-2"><a href="exercises.html#cb1224-2" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_persianE1&quot;</span>)</span>
+<span id="cb1224-3"><a href="exercises.html#cb1224-3" aria-hidden="true"></a>dat1 &lt;-<span class="st"> </span>df_persianE1</span>
+<span id="cb1224-4"><a href="exercises.html#cb1224-4" aria-hidden="true"></a><span class="kw">head</span>(dat1)</span></code></pre></div>
 <pre><code>##     subj item   rt distance   predability
 ## 60     4    6  568    short   predictable
 ## 94     4   17  517     long unpredictable
@@ -1982,8 +2066,8 @@ difference between the two grammatical conditions? Here, the comparison is betwe
 <div id="exr:Contrasts2x2x2Dillon2013" class="section level3 unlisted hasAnchor" number="26.7.2">
 <h3><span class="header-section-number">G.7.2</span> ANOVA and nested comparisons in a <span class="math inline">\(2\times 2\times 2\)</span> design<a href="exercises.html#exr:Contrasts2x2x2Dillon2013" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Load the following data set. This is a <span class="math inline">\(2\times 2\times 2\)</span> design from <span class="citation">Jäger et al. (<a href="#ref-JaegerMertzenVanDykeVasishth2019" role="doc-biblioref">2020</a>)</span>, with the factors Grammaticality (grammatical vs. ungrammatical), Dependency (Agreement vs. Reflexives), and Interference (Interference vs. no interference). The experiment is a replication attempt of Experiment 1 reported in <span class="citation">Dillon et al. (<a href="#ref-Dillon-EtAl-2013" role="doc-biblioref">2013</a>)</span>.</p>
-<div class="sourceCode" id="cb1225"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1225-1"><a href="exercises.html#cb1225-1" aria-hidden="true"></a><span class="kw">library</span>(bcogsci)</span>
-<span id="cb1225-2"><a href="exercises.html#cb1225-2" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_dillonrep&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1226"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1226-1"><a href="exercises.html#cb1226-1" aria-hidden="true"></a><span class="kw">library</span>(bcogsci)</span>
+<span id="cb1226-2"><a href="exercises.html#cb1226-2" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_dillonrep&quot;</span>)</span></code></pre></div>
 <ul>
 <li>The grammatical conditions are a,b,e,f. The rest of the conditions are ungrammatical.</li>
 <li>The agreement conditions are a,b,c,d. The other conditions are reflexives.</li>
@@ -2029,9 +2113,9 @@ t_n \sim \mathit{Normal}(\mu, \sigma)
 <div id="exr:badstan" class="section level3 unlisted hasAnchor" number="26.8.2">
 <h3><span class="header-section-number">G.8.2</span> Incorrect Stan model.<a href="exercises.html#exr:badstan" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>We want to fit both response times and accuracy with the same model. We simulate the data as follows:</p>
-<div class="sourceCode" id="cb1226"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1226-1"><a href="exercises.html#cb1226-1" aria-hidden="true"></a>N &lt;-<span class="st"> </span><span class="dv">500</span></span>
-<span id="cb1226-2"><a href="exercises.html#cb1226-2" aria-hidden="true"></a>df_sim &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">rt =</span> <span class="kw">rlnorm</span>(N, <span class="dt">mean =</span> <span class="dv">6</span>, <span class="dt">sd =</span> <span class="fl">.5</span>),</span>
-<span id="cb1226-3"><a href="exercises.html#cb1226-3" aria-hidden="true"></a>                 <span class="dt">correct =</span> <span class="kw">rbern</span>(N, <span class="dt">prob =</span> <span class="fl">.85</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1227"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1227-1"><a href="exercises.html#cb1227-1" aria-hidden="true"></a>N &lt;-<span class="st"> </span><span class="dv">500</span></span>
+<span id="cb1227-2"><a href="exercises.html#cb1227-2" aria-hidden="true"></a>df_sim &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">rt =</span> <span class="kw">rlnorm</span>(N, <span class="dt">mean =</span> <span class="dv">6</span>, <span class="dt">sd =</span> <span class="fl">.5</span>),</span>
+<span id="cb1227-3"><a href="exercises.html#cb1227-3" aria-hidden="true"></a>                 <span class="dt">correct =</span> <span class="kw">rbern</span>(N, <span class="dt">prob =</span> <span class="fl">.85</span>))</span></code></pre></div>
 <p>We build the following model:</p>
 <pre class="stan fold-show"><code>data {
   int&lt;lower = 1&gt; N;
@@ -2050,12 +2134,12 @@ model {
     target += bernoulli_lpdf(correct[n] | theta);
 }</code></pre>
 <p>Why does this model not work?</p>
-<div class="sourceCode" id="cb1228"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1228-1"><a href="exercises.html#cb1228-1" aria-hidden="true"></a>ls_sim &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">rt =</span> df_sim<span class="op">$</span>rt,</span>
-<span id="cb1228-2"><a href="exercises.html#cb1228-2" aria-hidden="true"></a>               <span class="dt">correct =</span> df_sim<span class="op">$</span>correct)</span>
-<span id="cb1228-3"><a href="exercises.html#cb1228-3" aria-hidden="true"></a>incorrect &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
-<span id="cb1228-4"><a href="exercises.html#cb1228-4" aria-hidden="true"></a>                         <span class="st">&quot;incorrect.stan&quot;</span>,</span>
-<span id="cb1228-5"><a href="exercises.html#cb1228-5" aria-hidden="true"></a>                         <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
-<span id="cb1228-6"><a href="exercises.html#cb1228-6" aria-hidden="true"></a>fit_sim &lt;-<span class="st"> </span><span class="kw">stan</span>(incorrect, <span class="dt">data =</span> ls_sim)</span></code></pre></div>
+<div class="sourceCode" id="cb1229"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1229-1"><a href="exercises.html#cb1229-1" aria-hidden="true"></a>ls_sim &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">rt =</span> df_sim<span class="op">$</span>rt,</span>
+<span id="cb1229-2"><a href="exercises.html#cb1229-2" aria-hidden="true"></a>               <span class="dt">correct =</span> df_sim<span class="op">$</span>correct)</span>
+<span id="cb1229-3"><a href="exercises.html#cb1229-3" aria-hidden="true"></a>incorrect &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
+<span id="cb1229-4"><a href="exercises.html#cb1229-4" aria-hidden="true"></a>                         <span class="st">&quot;incorrect.stan&quot;</span>,</span>
+<span id="cb1229-5"><a href="exercises.html#cb1229-5" aria-hidden="true"></a>                         <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
+<span id="cb1229-6"><a href="exercises.html#cb1229-6" aria-hidden="true"></a>fit_sim &lt;-<span class="st"> </span><span class="kw">stan</span>(incorrect, <span class="dt">data =</span> ls_sim)</span></code></pre></div>
 <pre><code>## Error in stanc(file = file, model_code = model_code, model_name = model_name, : 0
 ## Syntax error in &#39;string&#39;, line 13, column 2 to column 5, parsing error:
 ##    -------------------------------------------------
@@ -2075,7 +2159,7 @@ model {
 <h3><span class="header-section-number">G.8.3</span> Using Stan documentation.<a href="exercises.html#exr:skewstan" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Edit the simple example with Stan from section <a href="ch-introstan.html#sec-firststan">8.2</a>, and replace the normal distribution with a skew normal distribution. (Don’t forget to add a prior to the new parameter, and check the Stan documentation or a statistics textbook for more information about the distribution).</p>
 <p>Fit the following data:</p>
-<div class="sourceCode" id="cb1230"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1230-1"><a href="exercises.html#cb1230-1" aria-hidden="true"></a>Y &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">1000</span>, <span class="dt">mean =</span> <span class="dv">3</span>, <span class="dt">sd =</span> <span class="dv">10</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1231"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1231-1"><a href="exercises.html#cb1231-1" aria-hidden="true"></a>Y &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">1000</span>, <span class="dt">mean =</span> <span class="dv">3</span>, <span class="dt">sd =</span> <span class="dv">10</span>)</span></code></pre></div>
 <p>Does the estimate of the new parameter make sense?</p>
 </div>
 <div id="exr:linkfunction" class="section level3 unlisted hasAnchor" number="26.8.4">
@@ -2098,8 +2182,8 @@ model {
 <div id="exr:fallacy" class="section level3 unlisted hasAnchor" number="26.8.6">
 <h3><span class="header-section-number">G.8.6</span> The conjunction fallacy.<a href="exercises.html#exr:fallacy" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p><span class="citation">Paolacci, Chandler, and Ipeirotis (<a href="#ref-Paolaccietal" role="doc-biblioref">2010</a>)</span> examined whether the results of some classic experiments differ between a university pool population and subjects recruited from Mechanical Turk. We’ll examine whether the results of the conjunction fallacy experiment <span class="citation">(or Linda problem: Tversky and Kahneman <a href="#ref-TverskyKahneman1983" role="doc-biblioref">1983</a>)</span> are replicated for both groups.</p>
-<div class="sourceCode" id="cb1232"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1232-1"><a href="exercises.html#cb1232-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_fallacy&quot;</span>)</span>
-<span id="cb1232-2"><a href="exercises.html#cb1232-2" aria-hidden="true"></a>df_fallacy</span></code></pre></div>
+<div class="sourceCode" id="cb1233"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1233-1"><a href="exercises.html#cb1233-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_fallacy&quot;</span>)</span>
+<span id="cb1233-2"><a href="exercises.html#cb1233-2" aria-hidden="true"></a>df_fallacy</span></code></pre></div>
 <pre><code>## # A tibble: 268 × 2
 ##   source answer
 ##   &lt;chr&gt;   &lt;int&gt;
@@ -2198,16 +2282,16 @@ f(x;\mu ,\lambda )={\sqrt {\frac {\lambda }{2\pi x^{3}}}}\exp {\biggl (}-{\frac 
 <ol style="list-style-type: decimal">
 <li>Implement this distribution in Stan as <code>wald_lpdf</code>. In order to do this, you will need to derive the logarithm of the PDF presented above. You can adapt the code of the following R function.</li>
 </ol>
-<div class="sourceCode" id="cb1234"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1234-1"><a href="exercises.html#cb1234-1" aria-hidden="true"></a>dwald &lt;-<span class="st"> </span><span class="cf">function</span>(x, lambda, mu, <span class="dt">log =</span> <span class="ot">FALSE</span>) {</span>
-<span id="cb1234-2"><a href="exercises.html#cb1234-2" aria-hidden="true"></a>  log_density &lt;-<span class="st"> </span><span class="fl">0.5</span> <span class="op">*</span><span class="st"> </span><span class="kw">log</span>(lambda <span class="op">/</span><span class="st"> </span>(<span class="dv">2</span> <span class="op">*</span><span class="st"> </span><span class="kw">pi</span>())) <span class="op">-</span></span>
-<span id="cb1234-3"><a href="exercises.html#cb1234-3" aria-hidden="true"></a><span class="st">    </span><span class="fl">1.5</span> <span class="op">*</span><span class="st"> </span><span class="kw">log</span>(x) <span class="op">-</span></span>
-<span id="cb1234-4"><a href="exercises.html#cb1234-4" aria-hidden="true"></a><span class="st">    </span><span class="fl">0.5</span> <span class="op">*</span><span class="st"> </span>lambda <span class="op">*</span><span class="st"> </span>((x <span class="op">-</span><span class="st"> </span>mu) <span class="op">/</span><span class="st"> </span>(mu <span class="op">*</span><span class="st"> </span><span class="kw">sqrt</span>(x)))<span class="op">^</span><span class="dv">2</span></span>
-<span id="cb1234-5"><a href="exercises.html#cb1234-5" aria-hidden="true"></a>  <span class="cf">if</span> (log <span class="op">==</span><span class="st"> </span><span class="ot">FALSE</span>) {</span>
-<span id="cb1234-6"><a href="exercises.html#cb1234-6" aria-hidden="true"></a>    <span class="kw">exp</span>(log_density)</span>
-<span id="cb1234-7"><a href="exercises.html#cb1234-7" aria-hidden="true"></a>  } <span class="cf">else</span> {</span>
-<span id="cb1234-8"><a href="exercises.html#cb1234-8" aria-hidden="true"></a>    log_density</span>
-<span id="cb1234-9"><a href="exercises.html#cb1234-9" aria-hidden="true"></a>  }</span>
-<span id="cb1234-10"><a href="exercises.html#cb1234-10" aria-hidden="true"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb1235"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1235-1"><a href="exercises.html#cb1235-1" aria-hidden="true"></a>dwald &lt;-<span class="st"> </span><span class="cf">function</span>(x, lambda, mu, <span class="dt">log =</span> <span class="ot">FALSE</span>) {</span>
+<span id="cb1235-2"><a href="exercises.html#cb1235-2" aria-hidden="true"></a>  log_density &lt;-<span class="st"> </span><span class="fl">0.5</span> <span class="op">*</span><span class="st"> </span><span class="kw">log</span>(lambda <span class="op">/</span><span class="st"> </span>(<span class="dv">2</span> <span class="op">*</span><span class="st"> </span><span class="kw">pi</span>())) <span class="op">-</span></span>
+<span id="cb1235-3"><a href="exercises.html#cb1235-3" aria-hidden="true"></a><span class="st">    </span><span class="fl">1.5</span> <span class="op">*</span><span class="st"> </span><span class="kw">log</span>(x) <span class="op">-</span></span>
+<span id="cb1235-4"><a href="exercises.html#cb1235-4" aria-hidden="true"></a><span class="st">    </span><span class="fl">0.5</span> <span class="op">*</span><span class="st"> </span>lambda <span class="op">*</span><span class="st"> </span>((x <span class="op">-</span><span class="st"> </span>mu) <span class="op">/</span><span class="st"> </span>(mu <span class="op">*</span><span class="st"> </span><span class="kw">sqrt</span>(x)))<span class="op">^</span><span class="dv">2</span></span>
+<span id="cb1235-5"><a href="exercises.html#cb1235-5" aria-hidden="true"></a>  <span class="cf">if</span> (log <span class="op">==</span><span class="st"> </span><span class="ot">FALSE</span>) {</span>
+<span id="cb1235-6"><a href="exercises.html#cb1235-6" aria-hidden="true"></a>    <span class="kw">exp</span>(log_density)</span>
+<span id="cb1235-7"><a href="exercises.html#cb1235-7" aria-hidden="true"></a>  } <span class="cf">else</span> {</span>
+<span id="cb1235-8"><a href="exercises.html#cb1235-8" aria-hidden="true"></a>    log_density</span>
+<span id="cb1235-9"><a href="exercises.html#cb1235-9" aria-hidden="true"></a>  }</span>
+<span id="cb1235-10"><a href="exercises.html#cb1235-10" aria-hidden="true"></a>}</span></code></pre></div>
 <ol start="2" style="list-style-type: decimal">
 <li>Verify the correctness of the model by recovering the true values of (your choice) of the parameters of the model and by using simulation-based calibration. As with the previous exercise, you will need to decide on sensible priors by deriving prior predictive distributions that are adequate for response times.</li>
 </ol>
@@ -2226,8 +2310,8 @@ f(x;\mu ,\lambda )={\sqrt {\frac {\lambda }{2\pi x^{3}}}}\exp {\biggl (}-{\frac 
 <div id="exr:REMAMEBuerki" class="section level3 unlisted hasAnchor" number="26.11.2">
 <h3><span class="header-section-number">G.11.2</span> A meta-analysis of picture-word interference data<a href="exercises.html#exr:REMAMEBuerki" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Load the following data set:</p>
-<div class="sourceCode" id="cb1235"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1235-1"><a href="exercises.html#cb1235-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_buerki&quot;</span>)</span>
-<span id="cb1235-2"><a href="exercises.html#cb1235-2" aria-hidden="true"></a><span class="kw">head</span>(df_buerki)</span></code></pre></div>
+<div class="sourceCode" id="cb1236"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1236-1"><a href="exercises.html#cb1236-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_buerki&quot;</span>)</span>
+<span id="cb1236-2"><a href="exercises.html#cb1236-2" aria-hidden="true"></a><span class="kw">head</span>(df_buerki)</span></code></pre></div>
 <pre><code>##                  study   d    se study_id
 ## 1 Collina 2013 Exp.1 a  24 13.09        1
 ## 2 Collina 2013 Exp.1 b -25 17.00        2
@@ -2235,7 +2319,7 @@ f(x;\mu ,\lambda )={\sqrt {\frac {\lambda }{2\pi x^{3}}}}\exp {\biggl (}-{\frac 
 ## 4     Mahon 2007 Exp.1  17 12.24        4
 ## 5     Mahon 2007 Exp.2  57 13.96        5
 ## 6    Mahon 2007 Exp. 4  17  8.01        6</code></pre>
-<div class="sourceCode" id="cb1237"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1237-1"><a href="exercises.html#cb1237-1" aria-hidden="true"></a>df_buerki &lt;-<span class="st"> </span><span class="kw">subset</span>(df_buerki, se <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.60</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1238"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1238-1"><a href="exercises.html#cb1238-1" aria-hidden="true"></a>df_buerki &lt;-<span class="st"> </span><span class="kw">subset</span>(df_buerki, se <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.60</span>)</span></code></pre></div>
 <p>The data are from <span class="citation">Bürki et al. (<a href="#ref-BuerkiEtAl2020" role="doc-biblioref">2020</a>)</span>. We have a summary of the effect estimates (d) and standard errors (se) of the estimates from 162 published experiments on a phenomenon called <em>semantic picture-word interference</em>. We removed an implausibly low SE in the code above, but the results don’t change regardless of whether we keep them or not, because we have data from a lot of studies.</p>
 <p>In this experimental paradigm, subjects are asked to name a picture while ignoring a distractor word (which is either related or unrelated to the picture). The word can be printed on the picture itself, or presented auditorily. The dependent measure is the response latency, or time interval between the presentation of the picture and the onset of the vocal response. Theory says that distractors that come from the same semantic category as the picture to be named lead to a slower response then when the distractor comes from a different semantic category.</p>
 <p>Carry out a random effects meta-analysis using <code>brms</code> and display the posterior distribution of the effect, along with the posterior of the between study standard deviation.</p>
@@ -2248,8 +2332,8 @@ f(x;\mu ,\lambda )={\sqrt {\frac {\lambda }{2\pi x^{3}}}}\exp {\biggl (}-{\frac 
 <div id="exr:REMAMELiEnglish" class="section level3 unlisted hasAnchor" number="26.11.3">
 <h3><span class="header-section-number">G.11.3</span> Measurement error model for English VOT data<a href="exercises.html#exr:REMAMELiEnglish" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Load the following data:</p>
-<div class="sourceCode" id="cb1238"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1238-1"><a href="exercises.html#cb1238-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_VOTenglish&quot;</span>)</span>
-<span id="cb1238-2"><a href="exercises.html#cb1238-2" aria-hidden="true"></a><span class="kw">head</span>(df_VOTenglish)</span></code></pre></div>
+<div class="sourceCode" id="cb1239"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1239-1"><a href="exercises.html#cb1239-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_VOTenglish&quot;</span>)</span>
+<span id="cb1239-2"><a href="exercises.html#cb1239-2" aria-hidden="true"></a><span class="kw">head</span>(df_VOTenglish)</span></code></pre></div>
 <pre><code>##   subject meanVOT seVOT meanvdur sevdur
 ## 1     F01   108.1  4.56      171   11.7
 ## 2     F02    92.5  4.62      189   12.7
@@ -2273,8 +2357,8 @@ f(x;\mu ,\lambda )={\sqrt {\frac {\lambda }{2\pi x^{3}}}}\exp {\biggl (}-{\frac 
 <div id="exr:bf-logn" class="section level3 unlisted hasAnchor" number="26.13.2">
 <h3><span class="header-section-number">G.13.2</span> Is there evidence for the claim that English subject relative clauses are easier to process than object relative clauses?<a href="exercises.html#exr:bf-logn" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Consider again the reading time data coming from Experiment 1 of <span class="citation">Grodner and Gibson (<a href="#ref-grodner" role="doc-biblioref">2005</a>)</span> presented in exercise <a href="exercises.html#exr:hierarchical-logn">G.5.2</a>:</p>
-<div class="sourceCode" id="cb1240"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1240-1"><a href="exercises.html#cb1240-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_gg05_rc&quot;</span>)</span>
-<span id="cb1240-2"><a href="exercises.html#cb1240-2" aria-hidden="true"></a>df_gg05_rc</span></code></pre></div>
+<div class="sourceCode" id="cb1241"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1241-1"><a href="exercises.html#cb1241-1" aria-hidden="true"></a><span class="kw">data</span>(<span class="st">&quot;df_gg05_rc&quot;</span>)</span>
+<span id="cb1241-2"><a href="exercises.html#cb1241-2" aria-hidden="true"></a>df_gg05_rc</span></code></pre></div>
 <pre><code>## # A tibble: 672 × 7
 ##    subj  item condition    RT residRT qcorrect experiment
 ##   &lt;int&gt; &lt;int&gt; &lt;chr&gt;     &lt;int&gt;   &lt;dbl&gt;    &lt;int&gt; &lt;chr&gt;     
@@ -2283,8 +2367,8 @@ f(x;\mu ,\lambda )={\sqrt {\frac {\lambda }{2\pi x^{3}}}}\exp {\biggl (}-{\frac 
 ## 3     1     3 objgap      309   -40.3        0 tedrg3    
 ## # ℹ 669 more rows</code></pre>
 <p>As in exercise <a href="exercises.html#exr:hierarchical-logn">G.5.2</a>, you should use a sum coding for the predictors. Here, object relative clauses (<code>"objgaps"</code>) are coded <span class="math inline">\(+1/2\)</span>, and subject relative clauses as <span class="math inline">\(-1/2\)</span>.</p>
-<div class="sourceCode" id="cb1242"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1242-1"><a href="exercises.html#cb1242-1" aria-hidden="true"></a>df_gg05_rc &lt;-<span class="st"> </span>df_gg05_rc <span class="op">%&gt;%</span></span>
-<span id="cb1242-2"><a href="exercises.html#cb1242-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">c_cond =</span> <span class="kw">if_else</span>(condition <span class="op">==</span><span class="st"> &quot;objgap&quot;</span>, <span class="dv">1</span><span class="op">/</span><span class="dv">2</span>, <span class="dv">-1</span><span class="op">/</span><span class="dv">2</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1243"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1243-1"><a href="exercises.html#cb1243-1" aria-hidden="true"></a>df_gg05_rc &lt;-<span class="st"> </span>df_gg05_rc <span class="op">%&gt;%</span></span>
+<span id="cb1243-2"><a href="exercises.html#cb1243-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">c_cond =</span> <span class="kw">if_else</span>(condition <span class="op">==</span><span class="st"> &quot;objgap&quot;</span>, <span class="dv">1</span><span class="op">/</span><span class="dv">2</span>, <span class="dv">-1</span><span class="op">/</span><span class="dv">2</span>))</span></code></pre></div>
 <p>Using the Bayes factors function shown in this chapter, quantify the evidence against the null model (no population-level reading time difference between SRC and ORC) relative to the following alternative models:</p>
 <ol style="list-style-type: lower-alpha">
 <li><span class="math inline">\(\beta \sim \mathit{Normal}(0, 1)\)</span></li>
@@ -2298,12 +2382,12 @@ f(x;\mu ,\lambda )={\sqrt {\frac {\lambda }{2\pi x^{3}}}}\exp {\biggl (}-{\frac 
 <p>What are the Bayes factors in favor of the alternative models a-f, compared to the null model?</p>
 <p>Now carry out a standard frequentist likelihood ratio test using the <code>anova()</code> function that is used with the <code>lmer()</code> function. The commands
 for doing this comparison would be:</p>
-<div class="sourceCode" id="cb1243"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1243-1"><a href="exercises.html#cb1243-1" aria-hidden="true"></a>m_full &lt;-<span class="st"> </span><span class="kw">lmer</span>(<span class="kw">log</span>(RT) <span class="op">~</span><span class="st"> </span>c_cond <span class="op">+</span></span>
-<span id="cb1243-2"><a href="exercises.html#cb1243-2" aria-hidden="true"></a><span class="st">                 </span>(c_cond <span class="op">||</span><span class="st"> </span>subj) <span class="op">+</span><span class="st"> </span>(c_cond <span class="op">||</span><span class="st"> </span>item),</span>
-<span id="cb1243-3"><a href="exercises.html#cb1243-3" aria-hidden="true"></a>               df_gg05_rc)</span>
-<span id="cb1243-4"><a href="exercises.html#cb1243-4" aria-hidden="true"></a>m_null &lt;-<span class="st"> </span><span class="kw">lmer</span>(<span class="kw">log</span>(RT) <span class="op">~</span><span class="st"> </span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>(c_cond<span class="op">||</span>subj) <span class="op">+</span><span class="st"> </span>(c_cond <span class="op">||</span><span class="st"> </span>item),</span>
-<span id="cb1243-5"><a href="exercises.html#cb1243-5" aria-hidden="true"></a>               df_gg05_rc)</span>
-<span id="cb1243-6"><a href="exercises.html#cb1243-6" aria-hidden="true"></a><span class="kw">anova</span>(m_null, m_full)</span></code></pre></div>
+<div class="sourceCode" id="cb1244"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1244-1"><a href="exercises.html#cb1244-1" aria-hidden="true"></a>m_full &lt;-<span class="st"> </span><span class="kw">lmer</span>(<span class="kw">log</span>(RT) <span class="op">~</span><span class="st"> </span>c_cond <span class="op">+</span></span>
+<span id="cb1244-2"><a href="exercises.html#cb1244-2" aria-hidden="true"></a><span class="st">                 </span>(c_cond <span class="op">||</span><span class="st"> </span>subj) <span class="op">+</span><span class="st"> </span>(c_cond <span class="op">||</span><span class="st"> </span>item),</span>
+<span id="cb1244-3"><a href="exercises.html#cb1244-3" aria-hidden="true"></a>               df_gg05_rc)</span>
+<span id="cb1244-4"><a href="exercises.html#cb1244-4" aria-hidden="true"></a>m_null &lt;-<span class="st"> </span><span class="kw">lmer</span>(<span class="kw">log</span>(RT) <span class="op">~</span><span class="st"> </span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>(c_cond<span class="op">||</span>subj) <span class="op">+</span><span class="st"> </span>(c_cond <span class="op">||</span><span class="st"> </span>item),</span>
+<span id="cb1244-5"><a href="exercises.html#cb1244-5" aria-hidden="true"></a>               df_gg05_rc)</span>
+<span id="cb1244-6"><a href="exercises.html#cb1244-6" aria-hidden="true"></a><span class="kw">anova</span>(m_null, m_full)</span></code></pre></div>
 <p>How do the conclusions from the Bayes factor analyses compare with the conclusion we obtain from the frequentist model comparison?</p>
 </div>
 <div id="exr:bf-logistic" class="section level3 unlisted hasAnchor" number="26.13.3">
@@ -2446,10 +2530,10 @@ FIGURE G.3: Multinomial processing tree for the new items in the source monitori
 <li>All the predictors are between subject, this means that only a by-intercept adjustment (for every latent process) is possible.</li>
 </ul>
 <p>If you want some basis to start with, you can have a look at the incomplete code in <code>source.stan</code>, by typing the following in R:</p>
-<div class="sourceCode" id="cb1244"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1244-1"><a href="exercises.html#cb1244-1" aria-hidden="true"></a><span class="kw">cat</span>(<span class="kw">readLines</span>(<span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
-<span id="cb1244-2"><a href="exercises.html#cb1244-2" aria-hidden="true"></a>                     <span class="st">&quot;source.stan&quot;</span>,</span>
-<span id="cb1244-3"><a href="exercises.html#cb1244-3" aria-hidden="true"></a>                     <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)),</span>
-<span id="cb1244-4"><a href="exercises.html#cb1244-4" aria-hidden="true"></a>    <span class="dt">sep =</span> <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1245"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1245-1"><a href="exercises.html#cb1245-1" aria-hidden="true"></a><span class="kw">cat</span>(<span class="kw">readLines</span>(<span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
+<span id="cb1245-2"><a href="exercises.html#cb1245-2" aria-hidden="true"></a>                     <span class="st">&quot;source.stan&quot;</span>,</span>
+<span id="cb1245-3"><a href="exercises.html#cb1245-3" aria-hidden="true"></a>                     <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)),</span>
+<span id="cb1245-4"><a href="exercises.html#cb1245-4" aria-hidden="true"></a>    <span class="dt">sep =</span> <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 </div>
 </div>
 <div id="mixture-models" class="section level2 hasAnchor" number="26.17">
@@ -2472,10 +2556,10 @@ FIGURE G.3: Multinomial processing tree for the new items in the source monitori
 <li>Carry out model comparison (with Bayes factor and cross-validation).</li>
 </ol>
 
-<div class="sourceCode" id="cb1245"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb1245-1"><a href="exercises.html#cb1245-1" aria-hidden="true"></a></span>
-<span id="cb1245-2"><a href="exercises.html#cb1245-2" aria-hidden="true"></a><span class="kw">ggplot</span>(df_schizophrenia, <span class="kw">aes</span>(rt)) <span class="op">+</span></span>
-<span id="cb1245-3"><a href="exercises.html#cb1245-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_histogram</span>() <span class="op">+</span></span>
-<span id="cb1245-4"><a href="exercises.html#cb1245-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">facet_grid</span>(<span class="dt">rows =</span> <span class="kw">vars</span>(<span class="kw">factor</span>(patient, <span class="dt">labels =</span> <span class="kw">c</span>(<span class="st">&quot;control&quot;</span>, <span class="st">&quot;schizophrenic&quot;</span>))))</span></code></pre></div>
+<div class="sourceCode" id="cb1246"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb1246-1"><a href="exercises.html#cb1246-1" aria-hidden="true"></a></span>
+<span id="cb1246-2"><a href="exercises.html#cb1246-2" aria-hidden="true"></a><span class="kw">ggplot</span>(df_schizophrenia, <span class="kw">aes</span>(rt)) <span class="op">+</span></span>
+<span id="cb1246-3"><a href="exercises.html#cb1246-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_histogram</span>() <span class="op">+</span></span>
+<span id="cb1246-4"><a href="exercises.html#cb1246-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">facet_grid</span>(<span class="dt">rows =</span> <span class="kw">vars</span>(<span class="kw">factor</span>(patient, <span class="dt">labels =</span> <span class="kw">c</span>(<span class="st">&quot;control&quot;</span>, <span class="st">&quot;schizophrenic&quot;</span>))))</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:schiz"></span>
 <img src="bayescogsci_files/figure-html/schiz-1.svg" alt="The distribution of response times for control and schizophrenic patients in df_schizophrenia." width="672" />
 <p class="caption">
@@ -2529,15 +2613,15 @@ FIGURE G.5: Quantile probability plot showing 0.1, 0.3, 0.5, 0.7, and 0.9 respon
 <li><p>Fit a non-hierarchical log-normal race model to account for how both choice and response time are affected by task difficulty and emphasis. Assume no contaminant distribution of responses.</p></li>
 </ol>
 <p>Note that the direction of the dots is indicated with <code>stim</code>, when <code>stim</code> and <code>resp</code> match, both are <code>L</code>, left, or both are <code>R</code>, right, the accuracy, <code>acc</code>, is 1. For modeling this task with a log-normal race model, the difficulty of the task should be coded in a way that reflects that the stimuli will be harder to detect for the relevant accumulator. One way to do it is the following:</p>
-<div class="sourceCode" id="cb1246"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1246-1"><a href="exercises.html#cb1246-1" aria-hidden="true"></a>df_dots_subset &lt;-<span class="st"> </span>df_dots <span class="op">%&gt;%</span></span>
-<span id="cb1246-2"><a href="exercises.html#cb1246-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">filter</span>(subj <span class="op">==</span><span class="st"> </span><span class="dv">1</span>)</span>
-<span id="cb1246-3"><a href="exercises.html#cb1246-3" aria-hidden="true"></a></span>
-<span id="cb1246-4"><a href="exercises.html#cb1246-4" aria-hidden="true"></a>df_dots_subset &lt;-<span class="st"> </span>df_dots_subset <span class="op">%&gt;%</span></span>
-<span id="cb1246-5"><a href="exercises.html#cb1246-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">c_diff =</span> <span class="kw">case_when</span>(stim <span class="op">==</span><span class="st"> &quot;L&quot;</span> <span class="op">&amp;</span><span class="st"> </span>diff <span class="op">==</span><span class="st"> &quot;easy&quot;</span> <span class="op">~</span><span class="st"> </span><span class="fl">.5</span>,</span>
-<span id="cb1246-6"><a href="exercises.html#cb1246-6" aria-hidden="true"></a>                            stim <span class="op">==</span><span class="st"> &quot;L&quot;</span> <span class="op">&amp;</span><span class="st"> </span>diff <span class="op">==</span><span class="st"> &quot;hard&quot;</span> <span class="op">~</span><span class="st"> </span><span class="fl">-.5</span>,</span>
-<span id="cb1246-7"><a href="exercises.html#cb1246-7" aria-hidden="true"></a>                            stim <span class="op">==</span><span class="st"> &quot;R&quot;</span> <span class="op">&amp;</span><span class="st"> </span>diff <span class="op">==</span><span class="st"> &quot;easy&quot;</span> <span class="op">~</span><span class="st"> </span><span class="fl">-.5</span>,</span>
-<span id="cb1246-8"><a href="exercises.html#cb1246-8" aria-hidden="true"></a>                            stim <span class="op">==</span><span class="st"> &quot;R&quot;</span> <span class="op">&amp;</span><span class="st"> </span>diff <span class="op">==</span><span class="st"> &quot;hard&quot;</span> <span class="op">~</span><span class="st"> </span><span class="fl">.5</span>,</span>
-<span id="cb1246-9"><a href="exercises.html#cb1246-9" aria-hidden="true"></a>                            ))</span></code></pre></div>
+<div class="sourceCode" id="cb1247"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1247-1"><a href="exercises.html#cb1247-1" aria-hidden="true"></a>df_dots_subset &lt;-<span class="st"> </span>df_dots <span class="op">%&gt;%</span></span>
+<span id="cb1247-2"><a href="exercises.html#cb1247-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">filter</span>(subj <span class="op">==</span><span class="st"> </span><span class="dv">1</span>)</span>
+<span id="cb1247-3"><a href="exercises.html#cb1247-3" aria-hidden="true"></a></span>
+<span id="cb1247-4"><a href="exercises.html#cb1247-4" aria-hidden="true"></a>df_dots_subset &lt;-<span class="st"> </span>df_dots_subset <span class="op">%&gt;%</span></span>
+<span id="cb1247-5"><a href="exercises.html#cb1247-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">c_diff =</span> <span class="kw">case_when</span>(stim <span class="op">==</span><span class="st"> &quot;L&quot;</span> <span class="op">&amp;</span><span class="st"> </span>diff <span class="op">==</span><span class="st"> &quot;easy&quot;</span> <span class="op">~</span><span class="st"> </span><span class="fl">.5</span>,</span>
+<span id="cb1247-6"><a href="exercises.html#cb1247-6" aria-hidden="true"></a>                            stim <span class="op">==</span><span class="st"> &quot;L&quot;</span> <span class="op">&amp;</span><span class="st"> </span>diff <span class="op">==</span><span class="st"> &quot;hard&quot;</span> <span class="op">~</span><span class="st"> </span><span class="fl">-.5</span>,</span>
+<span id="cb1247-7"><a href="exercises.html#cb1247-7" aria-hidden="true"></a>                            stim <span class="op">==</span><span class="st"> &quot;R&quot;</span> <span class="op">&amp;</span><span class="st"> </span>diff <span class="op">==</span><span class="st"> &quot;easy&quot;</span> <span class="op">~</span><span class="st"> </span><span class="fl">-.5</span>,</span>
+<span id="cb1247-8"><a href="exercises.html#cb1247-8" aria-hidden="true"></a>                            stim <span class="op">==</span><span class="st"> &quot;R&quot;</span> <span class="op">&amp;</span><span class="st"> </span>diff <span class="op">==</span><span class="st"> &quot;hard&quot;</span> <span class="op">~</span><span class="st"> </span><span class="fl">.5</span>,</span>
+<span id="cb1247-9"><a href="exercises.html#cb1247-9" aria-hidden="true"></a>                            ))</span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
 <li><p>Expand the previous model including a contaminant distribution of responses.</p></li>
 <li><p>Visualize the fit of the two previous models by doing posterior predictive checks using quantile probability plots.</p></li>

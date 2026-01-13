@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel J. Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2025-02-12" />
+<meta name="date" content="2026-01-13" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -375,15 +375,18 @@ window.initializeCodeFolding = function(show) {
     $(this).before(div);
     $(this).detach().appendTo(div);
 
-    // add a show code button right above
-    var showCodeText = $('<span>' + (show ? 'Hide' : 'Code') + '</span>');
+    // CRITICAL FIX: Create button with aria-hidden text that won't be copied
     var showCodeButton = $('<button type="button" class="btn btn-default btn-xs code-folding-btn pull-right"></button>');
-    showCodeButton.append(showCodeText);
     showCodeButton
         .attr('data-toggle', 'collapse')
         .attr('data-target', '#' + id)
         .attr('aria-expanded', show)
-        .attr('aria-controls', id);
+        .attr('aria-controls', id)
+        .attr('aria-label', show ? 'Hide code' : 'Show code');
+    
+    // Use aria-hidden to prevent screen readers and copy from seeing text
+    var showCodeText = $('<span aria-hidden="true" style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; pointer-events: none;">' + (show ? 'Hide' : 'Code') + '</span>');
+    showCodeButton.append(showCodeText);
 
     var buttonRow = $('<div class="row"></div>');
     var buttonCol = $('<div class="col-md-12"></div>');
@@ -393,16 +396,18 @@ window.initializeCodeFolding = function(show) {
 
     div.before(buttonRow);
 
-    // hack: return show to false, otherwise all next codeBlocks will be shown!
-    show = false;
-
-    // update state of button on show/hide
-    div.on('hidden.bs.collapse', function () {
+    // update the text of the button when it's clicked
+    div.on('hide.bs.collapse', function () {
       showCodeText.text('Code');
+      showCodeButton.attr('aria-label', 'Show code');
     });
     div.on('show.bs.collapse', function () {
       showCodeText.text('Hide');
+      showCodeButton.attr('aria-label', 'Hide code');
     });
+
+    // hack: return show to false, otherwise all next codeBlocks will be shown!
+    show = false;
   });
 
 }
@@ -793,6 +798,78 @@ $(document).ready(function () {
 });
 </script>
 
+<!-- NUCLEAR OPTION: Intercept ALL copy events and strip button text -->
+<script>
+$(document).ready(function() {
+  
+  // Method 1: Make button spans completely invisible to selection
+  function protectButtons() {
+    $('.code-folding-btn span').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+      this.style.setProperty('pointer-events', 'none', 'important');
+      $(this).attr('unselectable', 'on');
+      $(this).attr('aria-hidden', 'true');
+    });
+    
+    $('.code-folding-btn').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+    });
+  }
+  
+  protectButtons();
+  setTimeout(protectButtons, 100);
+  setTimeout(protectButtons, 500);
+  setTimeout(protectButtons, 1000);
+  
+  // Method 2: Aggressive copy event interception
+  document.addEventListener('copy', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    // Remove "Hide" or "Code" from the start
+    if (selectedText) {
+      var cleanedText = selectedText
+        .replace(/^(Hide|Code)\s*/gm, '')  // Remove from start of any line
+        .replace(/\s+(Hide|Code)\s*$/gm, '');  // Remove from end
+      
+      if (cleanedText !== selectedText) {
+        e.preventDefault();
+        
+        if (e.clipboardData) {
+          e.clipboardData.setData('text/plain', cleanedText);
+        } else if (window.clipboardData) {
+          window.clipboardData.setData('Text', cleanedText);
+        }
+      }
+    }
+  }, true);  // Use capture phase
+  
+  // Method 3: Override native copy for code blocks
+  $('body').on('copy', 'pre, pre.sourceCode, .sourceCode, code', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    if (selectedText && (selectedText.startsWith('Hide') || selectedText.startsWith('Code'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      var cleanedText = selectedText.replace(/^(Hide|Code)\s*/, '');
+      
+      if (e.originalEvent.clipboardData) {
+        e.originalEvent.clipboardData.setData('text/plain', cleanedText);
+      } else if (window.clipboardData) {
+        window.clipboardData.setData('Text', cleanedText);
+      }
+    }
+  });
+});
+</script>
 
 <script data-goatcounter="https://bayescogsci.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
@@ -1436,6 +1513,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
+<div class="book-banner">
+  <div class="banner-content">
+    📚 Get the print version of the book from 
+    <a href="https://www.taylorfrancis.com/books/mono/10.1201/9780429342646/introduction-bayesian-data-analysis-cognitive-science-shravan-vasishth-bruno-nicenboim-daniel-schad" target="_blank" rel="noopener">CRC Press</a> or your favorite store.
+    <button class="banner-close" onclick="this.parentElement.parentElement.style.display='none';" aria-label="Close banner">&times;</button>
+  </div>
+</div>
 <div id="ch-coding2x2" class="section level1 hasAnchor" number="7">
 <h1><span class="header-section-number">Chapter 7</span> Contrast coding with two predictor variables<a href="ch-coding2x2.html#ch-coding2x2" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <p>Chapter <a href="ch-contr.html#ch-contr">6</a> provides a basic introduction into contrast coding in situations where there is one predictor variable, i.e., one factor, whose effects can be estimated using a specified contrast matrix. Here, we investigate how contrast coding generalizes to situations where there is more than one predictor variable. This could either be a situation where two factors are present or where one factor is paired with a continuous predictor variable, i.e., a covariate. We first discuss contrast coding for the case of two factors (for <span class="math inline">\(2 \times 2\)</span> designs; section <a href="ch-coding2x2.html#sec-MR-ANOVA">7.1</a>) and then go on to investigate situations where one predictor is a factor and the other predictor is a covariate (section <a href="ch-coding2x2.html#sec-contrast-covariate">7.2</a>). One problem in the analysis of interactions occurs in situations where the model is not linear, but has some non-linear link function, for example in logistic models, or when assuming a log-normally distributed dependent variable. In these situations, the model makes predictions for each condition (i.e., design cell) at the latent level of the linear model. Sometimes it is important to translate these model predictions to the level of the observations (e.g., to probabilities in a logistic regression model). We will discuss how this can be implemented in section <a href="ch-coding2x2.html#sec-interactions-NLM">7.3</a>.</p>
@@ -1518,31 +1602,31 @@ FIGURE 7.1: Means and error bars (showing standard errors) for a simulated data 
 <tbody>
 <tr class="odd">
 <td align="left">Intercept</td>
-<td align="left"><span class="math inline">\(20.05\)</span></td>
-<td align="left"><span class="math inline">\(2.44\)</span></td>
-<td align="left"><span class="math inline">\(15.22\)</span></td>
-<td align="left"><span class="math inline">\(24.93\)</span></td>
+<td align="left"><span class="math inline">\(20.06\)</span></td>
+<td align="left"><span class="math inline">\(2.37\)</span></td>
+<td align="left"><span class="math inline">\(15.44\)</span></td>
+<td align="left"><span class="math inline">\(24.90\)</span></td>
 </tr>
 <tr class="even">
 <td align="left">A1</td>
-<td align="left"><span class="math inline">\(-5.01\)</span></td>
-<td align="left"><span class="math inline">\(2.47\)</span></td>
-<td align="left"><span class="math inline">\(-9.99\)</span></td>
-<td align="left"><span class="math inline">\(-0.22\)</span></td>
+<td align="left"><span class="math inline">\(-5.03\)</span></td>
+<td align="left"><span class="math inline">\(2.36\)</span></td>
+<td align="left"><span class="math inline">\(-9.49\)</span></td>
+<td align="left"><span class="math inline">\(-0.39\)</span></td>
 </tr>
 <tr class="odd">
 <td align="left">B1</td>
-<td align="left"><span class="math inline">\(-9.98\)</span></td>
-<td align="left"><span class="math inline">\(2.45\)</span></td>
-<td align="left"><span class="math inline">\(-14.81\)</span></td>
-<td align="left"><span class="math inline">\(-5.11\)</span></td>
+<td align="left"><span class="math inline">\(-9.90\)</span></td>
+<td align="left"><span class="math inline">\(2.43\)</span></td>
+<td align="left"><span class="math inline">\(-14.91\)</span></td>
+<td align="left"><span class="math inline">\(-4.98\)</span></td>
 </tr>
 <tr class="even">
 <td align="left">A1:B1</td>
-<td align="left"><span class="math inline">\(5.02\)</span></td>
-<td align="left"><span class="math inline">\(2.46\)</span></td>
-<td align="left"><span class="math inline">\(0.22\)</span></td>
-<td align="left"><span class="math inline">\(9.86\)</span></td>
+<td align="left"><span class="math inline">\(5.00\)</span></td>
+<td align="left"><span class="math inline">\(2.43\)</span></td>
+<td align="left"><span class="math inline">\(0.16\)</span></td>
+<td align="left"><span class="math inline">\(9.79\)</span></td>
 </tr>
 </tbody>
 </table>
@@ -1572,10 +1656,10 @@ FIGURE 7.1: Means and error bars (showing standard errors) for a simulated data 
 <span id="cb425-6"><a href="ch-coding2x2.html#cb425-6" aria-hidden="true"></a>                            <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> b)))</span></code></pre></div>
 <div class="sourceCode" id="cb426"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb426-1"><a href="ch-coding2x2.html#cb426-1" aria-hidden="true"></a><span class="kw">fixef</span>(fit_F4.sum)</span></code></pre></div>
 <pre><code>##           Estimate Est.Error   Q2.5 Q97.5
-## Intercept    20.04      2.39  15.31 24.80
-## FA           -5.01      2.48  -9.81 -0.20
-## FB           -9.99      2.42 -14.78 -5.24
-## FAxB          4.91      2.51  -0.03  9.73</code></pre>
+## Intercept    19.98      2.45  15.09 24.90
+## FA           -4.97      2.52  -9.92 -0.01
+## FB           -9.91      2.53 -14.81 -4.74
+## FAxB          4.91      2.45  -0.02  9.65</code></pre>
 <p>This shows that it is possible to specify the contrasts not only for each factor (e.g., here in the <span class="math inline">\(2 \times 2\)</span> design) separately. Instead, one can also pool all experimental conditions (or design cells) into one large factor (here factor <span class="math inline">\(F\)</span> with <span class="math inline">\(4\)</span> levels), and specify the contrasts for the main effects and for the interactions in the resulting one large contrast matrix simultaneously.</p>
 <p>In this approach, it can again be very useful to apply the  <code>hypr</code> package to construct contrasts for a  <span class="math inline">\(2 \times 2\)</span> design. The first parameter estimates the main effect <span class="math inline">\(A\)</span>, i.e., it compares the average of <span class="math inline">\(F1\)</span> and <span class="math inline">\(F2\)</span> to the average of <span class="math inline">\(F3\)</span> and <span class="math inline">\(F4\)</span>. The second parameter estimates the main effect <span class="math inline">\(B\)</span>, i.e., it compares the average of <span class="math inline">\(F1\)</span> and <span class="math inline">\(F3\)</span> to the average of <span class="math inline">\(F2\)</span> and <span class="math inline">\(F4\)</span>.</p>
 <p>We code direct differences between the averages, i.e., we implement scaled sum contrasts instead of sum contrasts. This is shown below: the contrast matrix contains coefficients of <span class="math inline">\(+1/2\)</span> and <span class="math inline">\(-1/2\)</span> instead of <span class="math inline">\(+1\)</span> and <span class="math inline">\(-1\)</span>. The  interaction term estimates the difference between differences, i.e., the difference between <span class="math inline">\(F1 - F2\)</span> and <span class="math inline">\(F3 - F4\)</span>.</p>
@@ -1614,11 +1698,11 @@ FIGURE 7.1: Means and error bars (showing standard errors) for a simulated data 
 <span id="cb431-5"><a href="ch-coding2x2.html#cb431-5" aria-hidden="true"></a>                            <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> sigma),</span>
 <span id="cb431-6"><a href="ch-coding2x2.html#cb431-6" aria-hidden="true"></a>                            <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> b)))</span></code></pre></div>
 <div class="sourceCode" id="cb432"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb432-1"><a href="ch-coding2x2.html#cb432-1" aria-hidden="true"></a><span class="kw">fixef</span>(fit_F4hypr)</span></code></pre></div>
-<pre><code>##           Estimate Est.Error   Q2.5  Q97.5
-## Intercept    19.96      2.43  15.28  24.82
-## FA           -9.89      4.79 -19.60  -0.64
-## FB          -19.80      4.98 -29.41 -10.20
-## FAxB         19.08      9.57  -0.02  38.39</code></pre>
+<pre><code>##           Estimate Est.Error   Q2.5 Q97.5
+## Intercept    20.01      2.42  15.21 24.79
+## FA           -9.92      4.83 -19.49 -0.39
+## FB          -19.73      4.99 -29.33 -9.73
+## FAxB         19.18      9.76  -0.32 38.62</code></pre>
 <p>The results show that the estimates for the main effects have (approximately) double the size as compared to the <span class="math inline">\(\pm 1\)</span> sum contrasts–this is the result of the scaling that we applied. I.e., the main effects now directly estimate the difference between averages. The interaction estimates the difference between differences. Importantly, if we change the scaling of the contrasts, we also need to adapt the scaling of the priors. If appropriate priors are used, then both contrasts would lead to the same hypothesis tests if one were doing hypothesis testing using Bayes factors. Thus, the <code>hypr</code> package can be used to code hypotheses in a <span class="math inline">\(2 \times 2\)</span> design.</p>
 <p>Now the main effects and interaction can be directly interpreted as differences between averages and as differences between differences. If one wants the interaction term to be on the same scale as the main effects, it would need to be multiplied by 2; however, then its interpretation would not be straightforward any more (i.e., it is no longer “the difference between differences” but a scaled variant of this). Thus, putting the interaction on the same scale as the main effects has the advantage that it ensures that the prior has the same scaling across the different terms. However, it has the disadvantage that the interpretation of the interaction term is not straightforward.</p>
 <p>Incidentally, an alternative way to code main effects and interactions is to use the <code>ifelse()</code> command in R. For example, if we want to use <span class="math inline">\(\pm 1/2\)</span> sum contrasts as in the above example, we can specify the contrasts for the main effects as vectors:</p>
@@ -1696,10 +1780,10 @@ In this version, we estimate the main effect of part of speech (<span class="mat
 <span id="cb447-6"><a href="ch-coding2x2.html#cb447-6" aria-hidden="true"></a>                          <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> b)))</span></code></pre></div>
 <div class="sourceCode" id="cb448"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb448-1"><a href="ch-coding2x2.html#cb448-1" aria-hidden="true"></a><span class="kw">fixef</span>(fit_Nest)</span></code></pre></div>
 <pre><code>##           Estimate Est.Error   Q2.5 Q97.5
-## Intercept    20.07      2.38  15.46  24.9
-## FB          -19.80      4.94 -29.73 -10.0
-## FB1xA        -0.09      7.07 -13.97  14.0
-## FB2xA        19.80      6.85   5.99  33.0</code></pre>
+## Intercept    20.02      2.48  15.17 24.81
+## FB          -19.81      5.01 -29.65 -9.71
+## FB1xA        -0.14      6.98 -14.44 13.46
+## FB2xA        19.68      7.01   5.68 33.45</code></pre>
 <p>The regression coefficients estimate the  grand mean, the difference for the  main effect of part of speech (<span class="math inline">\(B\)</span>) and the two differences (for <span class="math inline">\(A\)</span>; i.e., simple main effects) within the two levels (noun and verb) of part of speech (<span class="math inline">\(B\)</span>).</p>
 <p>These  custom nested contrasts’ columns are scaled versions of the corresponding  hypothesis matrix. This is the case because the columns are orthogonal. This illustrates one advantage of  orthogonal contrasts for the interpretation of regression coefficients: the underlying comparisons being estimated are already clear from the contrast matrix.</p>
 <p>There is also a built-in R formula specification for nested designs. The order of factors in the formula from left to right specifies a top-down order of nesting within levels, i.e., here factor <span class="math inline">\(A\)</span> (word frequency) is nested within levels of the factor <span class="math inline">\(B\)</span> (part of speech). This yields the same result as our previous result based on custom nested contrasts:</p>
@@ -1712,11 +1796,11 @@ In this version, we estimate the main effect of part of speech (<span class="mat
 <span id="cb450-7"><a href="ch-coding2x2.html#cb450-7" aria-hidden="true"></a>                           <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> sigma),</span>
 <span id="cb450-8"><a href="ch-coding2x2.html#cb450-8" aria-hidden="true"></a>                           <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> b)))</span></code></pre></div>
 <div class="sourceCode" id="cb451"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb451-1"><a href="ch-coding2x2.html#cb451-1" aria-hidden="true"></a><span class="kw">fixef</span>(fit_Nest2)</span></code></pre></div>
-<pre><code>##           Estimate Est.Error  Q2.5 Q97.5
-## Intercept    20.02      2.54  14.8 24.93
-## B1          -19.86      4.99 -29.5 -9.98
-## BB1:A1        0.01      7.34 -14.6 14.61
-## BB2:A1       19.49      7.10   5.3 33.18</code></pre>
+<pre><code>##           Estimate Est.Error   Q2.5 Q97.5
+## Intercept    20.04      2.54  15.13 25.15
+## B1          -19.78      4.86 -29.27 -9.96
+## BB1:A1       -0.02      7.12 -14.24 14.35
+## BB2:A1       19.72      6.93   5.88 33.38</code></pre>
 <p>In cases such as these, where <span class="math inline">\(A_{B1}\)</span> vs. <span class="math inline">\(A_{B2}\)</span> are nested within levels of <span class="math inline">\(B\)</span>, it is necessary to include the effect of <span class="math inline">\(B\)</span> (part of speech) in the model, even if one is only interested in the effect of <span class="math inline">\(A\)</span> (word frequency) within levels of <span class="math inline">\(B\)</span> (part of speech). Leaving out factor <span class="math inline">\(B\)</span> in this particular case of a between-subjects deisn would increase posterior uncertainty if the data are fully balanced, and could lead to biases in parameter estimation if the data are not fully balanced.</p>
 <p>Again, we show how nested contrasts can be easily implemented using  <code>hypr</code>:</p>
 <div class="sourceCode" id="cb453"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb453-1"><a href="ch-coding2x2.html#cb453-1" aria-hidden="true"></a>hNest &lt;-<span class="st"> </span><span class="kw">hypr</span>(<span class="dt">B =</span> (F1 <span class="op">+</span><span class="st"> </span>F3) <span class="op">/</span><span class="st"> </span><span class="dv">2</span> <span class="op">~</span><span class="st"> </span>(F2 <span class="op">+</span><span class="st"> </span>F4) <span class="op">/</span><span class="st"> </span><span class="dv">2</span>,</span>
@@ -1755,10 +1839,10 @@ In this version, we estimate the main effect of part of speech (<span class="mat
 <span id="cb456-7"><a href="ch-coding2x2.html#cb456-7" aria-hidden="true"></a>                <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> b)))</span></code></pre></div>
 <div class="sourceCode" id="cb457"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb457-1"><a href="ch-coding2x2.html#cb457-1" aria-hidden="true"></a><span class="kw">fixef</span>(fit_NestHypr)</span></code></pre></div>
 <pre><code>##           Estimate Est.Error   Q2.5 Q97.5
-## Intercept     20.0      2.47  15.00  24.9
-## FB           -19.9      4.79 -29.10 -10.2
-## FB1xA         -0.2      6.86 -13.84  13.6
-## FB2xA         19.4      6.97   5.11  33.0</code></pre>
+## Intercept    20.03      2.51  15.20  25.0
+## FB          -19.87      4.95 -29.65 -10.2
+## FB1xA         0.21      7.22 -13.88  14.8
+## FB2xA        19.70      6.87   6.24  33.6</code></pre>
 <p>Of course, we can also ask the reverse question: Are there differences for part of speech (<span class="math inline">\(B\)</span>) in the levels of word frequency (<span class="math inline">\(A\)</span>; in addition to estimating the main effect of word frequency, <span class="math inline">\(A\)</span>)? That is, do nouns differ from verbs for low-frequency words (<span class="math inline">\(B_{A1}\)</span>) and do nouns differ from verbs for high-frequency words (<span class="math inline">\(B_{A2}\)</span>)?</p>
 <div class="sourceCode" id="cb459"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb459-1"><a href="ch-coding2x2.html#cb459-1" aria-hidden="true"></a>hNest2 &lt;-<span class="st"> </span><span class="kw">hypr</span>(<span class="dt">A =</span> (F1 <span class="op">+</span><span class="st"> </span>F2) <span class="op">/</span><span class="st"> </span><span class="dv">2</span> <span class="op">~</span><span class="st"> </span>(F3 <span class="op">+</span><span class="st"> </span>F4) <span class="op">/</span><span class="st"> </span><span class="dv">2</span>,</span>
 <span id="cb459-2"><a href="ch-coding2x2.html#cb459-2" aria-hidden="true"></a>               <span class="dt">A1xB =</span> F2 <span class="op">~</span><span class="st"> </span>F1,</span>
@@ -1796,10 +1880,10 @@ In this version, we estimate the main effect of part of speech (<span class="mat
 <span id="cb462-7"><a href="ch-coding2x2.html#cb462-7" aria-hidden="true"></a>                <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> b)))</span></code></pre></div>
 <div class="sourceCode" id="cb463"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb463-1"><a href="ch-coding2x2.html#cb463-1" aria-hidden="true"></a><span class="kw">fixef</span>(fit_Nest2Hypr)</span></code></pre></div>
 <pre><code>##           Estimate Est.Error   Q2.5 Q97.5
-## Intercept    20.03      2.43  15.10 25.00
-## FA           -9.92      4.90 -19.25 -0.12
-## FA1xB         9.73      6.90  -4.14 23.07
-## FA2xB        29.62      6.81  16.23 43.13</code></pre>
+## Intercept    19.96      2.53  14.99 24.92
+## FA           -9.99      4.92 -20.24 -0.35
+## FA1xB         9.99      6.90  -3.62 23.89
+## FA2xB        29.32      6.84  15.34 42.82</code></pre>
 <p>Regression coefficients estimate the  grand mean, the difference for the  main effect of word frequency (<span class="math inline">\(A\)</span>) and the two part of speech effects (for <span class="math inline">\(B\)</span>; i.e.,  simple main effects) within levels of word frequency (<span class="math inline">\(A\)</span>).</p>
 <p>An important issue to keep in mind is that if, using nested contrasts, one finds a large effect in one nested comparison (e.g., <code>FA2xB</code>) but no difference or a smaller effect in the other comparison (here, <code>FA1xB</code>), one cannot conclude that there is an interaction; to argue for an interaction, one would have to test for the main effects and interaction using the ANOVA contrast coding <span class="citation">(Nieuwenhuis, Forstmann, and Wagenmakers <a href="#ref-nieuwenhuis2011erroneous" role="doc-biblioref">2011</a>)</span>.</p>
 </div>
@@ -1827,10 +1911,10 @@ E[Y] = \alpha + \beta_A A
 <span id="cb465-8"><a href="ch-coding2x2.html#cb465-8" aria-hidden="true"></a>                            <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> b)))</span></code></pre></div>
 <div class="sourceCode" id="cb466"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb466-1"><a href="ch-coding2x2.html#cb466-1" aria-hidden="true"></a><span class="kw">fixef</span>(fit_treatm)</span></code></pre></div>
 <pre><code>##           Estimate Est.Error   Q2.5 Q97.5
-## Intercept     10.1      4.83   0.42  19.7
-## B1            10.0      6.77  -3.22  23.3
-## A1             0.0      6.63 -13.18  13.6
-## B1:A1         19.8      9.34   1.03  38.5</code></pre>
+## Intercept     9.78      4.84   0.24  19.3
+## B1           10.54      6.92  -3.21  24.4
+## A1            0.49      6.87 -12.88  14.3
+## B1:A1        19.04      9.53   0.93  37.7</code></pre>
 <p>Let’s take a look at the effect of factor <span class="math inline">\(A\)</span>. How can we interpret what this measures? This effect actually estimates the effect of factor <span class="math inline">\(A\)</span> at the “location” where factor <span class="math inline">\(B\)</span> is coded as <span class="math inline">\(0\)</span>. Factor <span class="math inline">\(B\)</span> is coded as a treatment contrast, that is, it codes a zero at its baseline condition, which is <span class="math inline">\(B1\)</span>. Thus, the effect of factor <span class="math inline">\(A\)</span> estimates the effect of <span class="math inline">\(A\)</span> nested within the baseline condition of <span class="math inline">\(B\)</span>, i.e., a  simple effect. We take a look at the data presented in Figure <a href="ch-coding2x2.html#fig:twobytwosimdatFig">7.1</a>, what this  nested effect should be. Figure <a href="ch-coding2x2.html#fig:twobytwosimdatFig">7.1</a> shows that the effect of factor <span class="math inline">\(A\)</span> nested in <span class="math inline">\(B1\)</span> is <span class="math inline">\(0\)</span>. If we now compare this to the results from the linear model, it is indeed clear that the effect of factor <span class="math inline">\(A\)</span> is exactly estimated as <span class="math inline">\(0\)</span>. As expected, when factor <span class="math inline">\(B\)</span> is coded as a treatment contrast, the effect of factor <span class="math inline">\(A\)</span> estimates the effect of <span class="math inline">\(A\)</span> nested within the baseline level of factor <span class="math inline">\(B\)</span>.</p>
 <p>Next, consider the effect of factor <span class="math inline">\(B\)</span>. According to the same logic, this effect estimates the effect of factor <span class="math inline">\(B\)</span> at the “location” where factor <span class="math inline">\(A\)</span> is <span class="math inline">\(0\)</span>. Factor <span class="math inline">\(A\)</span> is also coded as a treatment contrast, that is, it codes its baseline condition <span class="math inline">\(A1\)</span> as <span class="math inline">\(0\)</span>. The effect of factor <span class="math inline">\(B\)</span> estimates the effect of <span class="math inline">\(B\)</span> nested within the baseline condition of <span class="math inline">\(A\)</span>. Figure <a href="ch-coding2x2.html#fig:twobytwosimdatFig">7.1</a> shows that this effect should be <span class="math inline">\(10\)</span>.</p>
 <p>How do we know what the “location” is, where a contrast applies? For the treatment contrasts discussed here, it is possible to reason this through because all contrasts are coded as <span class="math inline">\(0\)</span> or <span class="math inline">\(1\)</span>. How can one derive the “location” in general? What we can do is to look at the comparisons that are estimated when using the treatment contrasts (or in case we use Bayes factors, which  hypotheses are tested) in the presence of an interaction between them by using the  generalized matrix inverse. We go back to the default treatment contrasts. Then we extract the contrast matrix from the design matrix:</p>
@@ -1950,9 +2034,9 @@ E[Y] = \alpha + \beta_A A
 <span id="cb479-5"><a href="ch-coding2x2.html#cb479-5" aria-hidden="true"></a>                          <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> sigma),</span>
 <span id="cb479-6"><a href="ch-coding2x2.html#cb479-6" aria-hidden="true"></a>                          <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> b)))</span></code></pre></div>
 <div class="sourceCode" id="cb480"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb480-1"><a href="ch-coding2x2.html#cb480-1" aria-hidden="true"></a><span class="kw">fixef</span>(fit_RT_F)</span></code></pre></div>
-<pre><code>##           Estimate Est.Error Q2.5  Q97.5
-## Intercept    212.2      5.19  202 222.00
-## F1           -24.3     10.53  -45  -3.54</code></pre>
+<pre><code>##           Estimate Est.Error  Q2.5  Q97.5
+## Intercept    212.4      5.23 202.0 222.53
+## F1           -23.8     10.40 -43.8  -4.07</code></pre>
 
 <div class="figure"><span style="display:block;" id="fig:figRTF"></span>
 <img src="bayescogsci_files/figure-html/figRTF-1.svg" alt="Means and error bars (showing standard errors) for a simulated data set of response times for two different groups of subjects, who have obtained a training in lexical decisions (\(F2\)) versus have obtained a control training (\(F1\))." width="240" />
@@ -1981,9 +2065,9 @@ FIGURE 7.2: Means and error bars (showing standard errors) for a simulated data 
 <span id="cb484-8"><a href="ch-coding2x2.html#cb484-8" aria-hidden="true"></a>                             <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> b)))</span></code></pre></div>
 <div class="sourceCode" id="cb485"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb485-1"><a href="ch-coding2x2.html#cb485-1" aria-hidden="true"></a><span class="kw">fixef</span>(fit_RT_F_IQ)</span></code></pre></div>
 <pre><code>##           Estimate Est.Error   Q2.5  Q97.5
-## Intercept   212.28      4.86 202.64 221.71
-## F1            6.26     13.15 -19.56  31.43
-## c_IQ         -1.05      0.32  -1.68  -0.41</code></pre>
+## Intercept   212.41      4.80 203.04 221.87
+## F1            6.42     13.53 -20.54  32.73
+## c_IQ         -1.05      0.33  -1.69  -0.41</code></pre>
 <p>The results from the <code>brms</code> model now show that the difference in response times between groups (i.e., factor <span class="math inline">\(F\)</span>) is not estimated to be <span class="math inline">\(-25\)</span> ms any more, but instead, the estimate is about <span class="math inline">\(+7\)</span> ms, and the 95% credible interval spans the range <span class="math inline">\(-20\)</span> to <span class="math inline">\(33\)</span>. Thus, there doesn’t seem to be much reason to believe any more that the groups would differ. At the same time, we see that the predictor variable IQ shows a negative effect (Estimate = <span class="math inline">\(-1\)</span> with 95% credible interval: <span class="math inline">\(-1.7\)</span> to <span class="math inline">\(-0.4\)</span>), suggesting that–as expected–response times seem to be faster in subjects with higher IQ.</p>
 
 <div class="figure"><span style="display:block;" id="fig:figRTFIQ"></span>
@@ -2004,10 +2088,10 @@ That the height does not differ and the effect of <span class="math inline">\(F\
 <span id="cb487-7"><a href="ch-coding2x2.html#cb487-7" aria-hidden="true"></a>                <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> b)))</span></code></pre></div>
 <div class="sourceCode" id="cb488"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb488-1"><a href="ch-coding2x2.html#cb488-1" aria-hidden="true"></a><span class="kw">fixef</span>(fit_RT_FxIQ)</span></code></pre></div>
 <pre><code>##           Estimate Est.Error   Q2.5  Q97.5
-## Intercept   212.49      7.06 198.51 226.20
-## F1            6.70     14.26 -20.23  35.58
-## c_IQ         -1.06      0.34  -1.71  -0.39
-## F1:c_IQ      -0.01      0.67  -1.31   1.29</code></pre>
+## Intercept   212.22      6.95 198.58 225.64
+## F1            6.77     13.35 -19.42  33.38
+## c_IQ         -1.07      0.32  -1.71  -0.42
+## F1:c_IQ       0.02      0.66  -1.27   1.36</code></pre>
 <p>The estimate for the interaction (the term <code>F1:c_IQ</code>) is very small here (close to <span class="math inline">\(0\)</span>) and the 95% credible intervals clearly overlap with zero, showing that the two regression lines are estimated to be very similar, or parallel, to each other. If this is the case, then it is possible to correct for IQ when estimating the group difference. (From the perspective of causal inference, one might need additional requirements to draw strong conclusions here, such as measuring the covariate before the dependent variable, or reasoning based on theoretical plausibility.)</p>
 </div>
 <div id="estimating-differences-in-slopes" class="section level3 hasAnchor" number="7.2.2">
@@ -2033,10 +2117,10 @@ FIGURE 7.4: Response times as a function of individual IQ for two groups perform
 <span id="cb491-8"><a href="ch-coding2x2.html#cb491-8" aria-hidden="true"></a>                              <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> b)))</span></code></pre></div>
 <div class="sourceCode" id="cb492"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb492-1"><a href="ch-coding2x2.html#cb492-1" aria-hidden="true"></a><span class="kw">fixef</span>(fit_RT_FxIQ2)</span></code></pre></div>
 <pre><code>##           Estimate Est.Error   Q2.5  Q97.5
-## Intercept   209.97      4.90 200.23 219.68
-## F1           19.18      9.62   0.38  38.00
-## c_IQ         -0.80      0.33  -1.44  -0.19
-## F1:c_IQ      -1.61      0.64  -2.87  -0.36</code></pre>
+## Intercept   209.90      4.96 199.92 219.61
+## F1           19.44      9.92   0.32  38.71
+## c_IQ         -0.80      0.33  -1.46  -0.16
+## F1:c_IQ      -1.62      0.68  -2.99  -0.26</code></pre>
 <p>We can see that the main effect of IQ (term <code>c_IQ</code>) is negative (<span class="math inline">\(-0.8\)</span>) with 95% credible intervals <span class="math inline">\(-1.5\)</span> to <span class="math inline">\(-0.2\)</span>, suggesting that overall response times decrease with increasing IQ. This is qualified by the interaction term, which is estimated to be negative (<span class="math inline">\(-1.6\)</span>), with 95% credible intervals <span class="math inline">\(-2.9\)</span> to <span class="math inline">\(-0.3\)</span>. This suggests that the slope in the complex group (which was coded as <span class="math inline">\(+0.5\)</span> in the scaled sum contrast) is more negative than the slope in the simple group (which was coded as <span class="math inline">\(-0.5\)</span> in the scaled sum contrast). Thus, the interaction assesses the difference between slopes.</p>
 <p>We can also run a model, where the  nested slopes are estimated, i.e., the slope of IQ in the simple group and the slope of IQ in the complex group. This can be implemented by using the nested coding that we learned about in the previous section:</p>
 <div class="sourceCode" id="cb494"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb494-1"><a href="ch-coding2x2.html#cb494-1" aria-hidden="true"></a>fit_RT_FnIQ2 &lt;-</span>
@@ -2048,10 +2132,10 @@ FIGURE 7.4: Response times as a function of individual IQ for two groups perform
 <span id="cb494-7"><a href="ch-coding2x2.html#cb494-7" aria-hidden="true"></a>                <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> b)))</span></code></pre></div>
 <div class="sourceCode" id="cb495"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb495-1"><a href="ch-coding2x2.html#cb495-1" aria-hidden="true"></a><span class="kw">fixef</span>(fit_RT_FnIQ2)</span></code></pre></div>
 <pre><code>##               Estimate Est.Error   Q2.5  Q97.5
-## Intercept        209.9      4.79 200.26 219.37
-## F1                19.3      9.46   0.29  37.23
-## Fsimple:c_IQ       0.0      0.47  -0.94   0.93
-## Fcomplex:c_IQ     -1.6      0.46  -2.51  -0.69</code></pre>
+## Intercept       209.88      4.88 200.31 219.78
+## F1               19.14      9.60   0.15  38.40
+## Fsimple:c_IQ      0.00      0.46  -0.89   0.88
+## Fcomplex:c_IQ    -1.59      0.46  -2.48  -0.69</code></pre>
 <p>Now we see that the slope of IQ in the simple group (<code>Fsimple:c_IQ</code>) is estimated to be <span class="math inline">\(0\)</span>, with credible intervals clearly including zero. By contrast, the slope in the complex group (<code>Fcomplex:c_IQ</code>) is estimated as <span class="math inline">\(-1.6\)</span> (95% CrI = <span class="math inline">\([-2.5,-0.7]\)</span>). This is consistent with our hypothesis that high IQ speeds up response times for the complex but not for the simple task. (To obtain evidence for this effect, we need Bayes factors, see chapter <a href="ch-bf.html#ch-bf">13</a>.)
 We can also see from the  nested analysis that the difference in slopes between conditions is <span class="math inline">\(-1.6 - 0.0 = -1.6\)</span>. This is exactly the value for the interaction term that we estimated in the previous model, demonstrating that  interaction terms assess the difference between slopes; i.e., they estimate in how far the regression lines in the two conditions are parallel, with an estimate of <span class="math inline">\(0\)</span> indicating perfectly parallel lines.</p>
 <p>Notice that we can compute posterior samples for the nested slopes from the model with the interaction. That is, we can take the model that estimates main effects and the interaction, and compute posterior samples for the slope of IQ in the simple task and the slope of IQ in the complex task. First, we extract the posterior samples from the model.</p>
@@ -2070,7 +2154,7 @@ We can also see from the  nested analysis that the difference in slopes between 
 <div class="sourceCode" id="cb502"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb502-1"><a href="ch-coding2x2.html#cb502-1" aria-hidden="true"></a><span class="kw">c</span>(<span class="dt">IQc.c_simple =</span> <span class="kw">mean</span>(df_postSamp_RT_FxIQ2<span class="op">$</span>b_c_IQ_simple),</span>
 <span id="cb502-2"><a href="ch-coding2x2.html#cb502-2" aria-hidden="true"></a>  <span class="dt">IQc.c_complex =</span> <span class="kw">mean</span>(df_postSamp_RT_FxIQ2<span class="op">$</span>b_c_IQ_complex))</span></code></pre></div>
 <pre><code>##  IQc.c_simple IQc.c_complex 
-##       0.00738      -1.60730</code></pre>
+##       0.00667      -1.61526</code></pre>
 <p>The results show that the posterior means for the slope of <code>c_IQ</code> are <span class="math inline">\(0\)</span> and <span class="math inline">\(-1.6\)</span> for the simple and the complex groups, as we had found above in the nested analysis. This is the case because the data are sufficiently informative compared to the data. When the data are sparse or when working with Bayes factors, priors will have to be set carefully for each specific analysis.</p>
 <p>In most situations one should always center  covariates before including them into a model. If covariates are not centered, then the effects (here the effect for the factor) cannot be interpreted as main effects any more.</p>
 <p>One can also do analyses with  interactions between a  covariate and a factor, but by using different contrast codings. For example, if we use  treatment contrasts for the factor, then the main effect of <code>c_IQ</code> assesses not the average slope of <code>c_IQ</code> across conditions, but instead the  nested slope of <code>c_IQ</code> within the baseline group of the treatment contrast. The interaction still assesses the difference in slopes between groups. In a situation where there are more than two groups, when one estimates the interaction of contrasts with a covariate, then the contrasts define which slopes are compared with each other in the interaction terms. For example, when using sum contrasts in an example where the influence of IQ is measured on response times for nouns, verbs, and adjectives, then there are two interaction terms: these assess (1) whether the slope of IQ for nouns is different from the average slope across conditions, and (2) whether the slope of IQ for verbs is different from the average slope across conditions. If one uses repeated contrasts in a situation where the influence of IQ on response times is estimated for word frequency conditions “low”, “medium-low”m “medium-high”m and “high”, then there are three interaction terms (one for each contrast). The first interaction term estimates the difference in slopes between “low” and “medium-low” word frequencies, the second interaction term estimates the difference in slopes between “medium-low” and “medium-high” word frequencies, and the third interaction term estimates the difference in slopes between “medium-high” and “high” word frequency conditions. Thus, the logic of how contrasts specify certain comparisons between conditions extends directly to the situation where differences in slopes are estimated.</p>
@@ -2129,10 +2213,10 @@ We can also see from the  nested analysis that the difference in slopes between 
 <span id="cb505-7"><a href="ch-coding2x2.html#cb505-7" aria-hidden="true"></a>                                <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">3</span>), <span class="dt">class =</span> b)))</span></code></pre></div>
 <div class="sourceCode" id="cb506"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb506-1"><a href="ch-coding2x2.html#cb506-1" aria-hidden="true"></a><span class="kw">fixef</span>(fit_pDV_AB.sum)</span></code></pre></div>
 <pre><code>##           Estimate Est.Error  Q2.5 Q97.5
-## Intercept    -0.36      0.17 -0.70 -0.03
-## A1            0.70      0.34  0.04  1.40
-## B1            2.10      0.34  1.46  2.78
-## A1:B1         1.34      0.65  0.05  2.63</code></pre>
+## Intercept    -0.36      0.18 -0.70 -0.02
+## A1            0.70      0.34  0.03  1.40
+## B1            2.11      0.34  1.49  2.81
+## A1:B1         1.35      0.67  0.06  2.71</code></pre>
 <p>The results from this analysis show that the estimates for the two main effects (<span class="math inline">\(A1\)</span> and <span class="math inline">\(B1\)</span>) as well as the interaction (<span class="math inline">\(A1:B1\)</span>) are positive and the 95% credible intervals do not include zero. If we want to make a discovery claim, we would need to perform Bayes factor analyses to investigate the evidence that there is for each of the effects.</p>
 <p>Next, we discuss how we can obtain  model predictions for each of the four experimental conditions for this generalized linear model. To obtain such predictions, we first take a look at the  contrast matrix. We simultaneously have contrasts for two main effects and one interaction:</p>
 <p>We obtain the posterior samples for the estimates from the model:</p>
@@ -2152,7 +2236,7 @@ We can also see from the  nested analysis that the difference in slopes between 
 <span id="cb510-2"><a href="ch-coding2x2.html#cb510-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">select</span>(A1_B1, A1_B2, A2_B1, A2_B2) <span class="op">%&gt;%</span></span>
 <span id="cb510-3"><a href="ch-coding2x2.html#cb510-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">colMeans</span>()</span></code></pre></div>
 <pre><code>##    A1_B1    A1_B2    A2_B1    A2_B2 
-## -1.42601  0.00222 -1.39016  1.37494</code></pre>
+## -1.43145  0.00911 -1.40186  1.38492</code></pre>
 <p>This shows that these values are not on the probability scale. Instead, they are on the  (log-odds) scale of the latent linear predictor <span class="math inline">\(\eta\)</span>. For presentation and interpretation of the results, it might be much more informative to look at the condition means in terms of the probabilities of success in each of the four conditions. Given that we have the linear predictions for each condition, this can be easily computed by sending all posterior samples for the linear predictions through the link function. Applying the  logistic function  (<code>plogis()</code> in R) transforms the linear predictors to the  probability scale:<a href="#fn31" class="footnote-ref" id="fnref31"><sup>31</sup></a></p>
 <div class="sourceCode" id="cb512"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb512-1"><a href="ch-coding2x2.html#cb512-1" aria-hidden="true"></a>df_postSamp_pDV &lt;-<span class="st"> </span>df_postSamp_pDV <span class="op">%&gt;%</span></span>
 <span id="cb512-2"><a href="ch-coding2x2.html#cb512-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">p_A1_B1 =</span> <span class="kw">plogis</span>(A1_B1),</span>
@@ -2164,30 +2248,30 @@ We can also see from the  nested analysis that the difference in slopes between 
 <span id="cb513-2"><a href="ch-coding2x2.html#cb513-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">select</span>(p_A1_B1, p_A1_B2, p_A2_B1, p_A2_B2) <span class="op">%&gt;%</span></span>
 <span id="cb513-3"><a href="ch-coding2x2.html#cb513-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">colMeans</span>()</span></code></pre></div>
 <pre><code>## p_A1_B1 p_A1_B2 p_A2_B1 p_A2_B2 
-##   0.200   0.501   0.205   0.792</code></pre>
+##   0.199   0.502   0.203   0.794</code></pre>
 <p>Of course, the advantage is that we now have posterior samples for these conditions available, and can compute posterior 95% credible intervals (also see Figure <a href="ch-coding2x2.html#fig:figpDV">7.5</a>). Rather than computing these manually, the function  <code>conditional_effects()</code> can do this for us. By default, all main effects and two-way interactions estimated in the model are shown (this can be changed by including, for example, <code>effects = "A:B"</code>).</p>
 <div class="sourceCode" id="cb515"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb515-1"><a href="ch-coding2x2.html#cb515-1" aria-hidden="true"></a><span class="kw">conditional_effects</span>(fit_pDV_AB.sum, <span class="dt">robust =</span> <span class="ot">FALSE</span>)[]</span></code></pre></div>
 <pre><code>## $A
 ##    A   pDV  B cond__ effect1__ estimate__   se__ lower__ upper__
-## 1 A1 0.425 B1      1        A1      0.200 0.0553   0.103   0.319
-## 2 A2 0.425 B1      1        A2      0.205 0.0549   0.110   0.322
+## 1 A1 0.425 B1      1        A1      0.199 0.0559   0.103   0.316
+## 2 A2 0.425 B1      1        A2      0.203 0.0553   0.106   0.324
 ## 
 ## $B
 ##    B   pDV  A cond__ effect1__ estimate__   se__ lower__ upper__
-## 1 B1 0.425 A1      1        B1      0.200 0.0553   0.103   0.319
-## 2 B2 0.425 A1      1        B2      0.501 0.0694   0.367   0.634
+## 1 B1 0.425 A1      1        B1      0.199 0.0559   0.103   0.316
+## 2 B2 0.425 A1      1        B2      0.502 0.0699   0.365   0.639
 ## 
 ## $`A:B`
 ##    A  B   pDV cond__ effect1__ effect2__ estimate__   se__ lower__
-## 1 A1 B1 0.425      1        A1        B1      0.200 0.0553   0.103
-## 2 A1 B2 0.425      1        A1        B2      0.501 0.0694   0.367
-## 3 A2 B1 0.425      1        A2        B1      0.205 0.0549   0.110
-## 4 A2 B2 0.425      1        A2        B2      0.792 0.0561   0.672
+## 1 A1 B1 0.425      1        A1        B1      0.199 0.0559   0.103
+## 2 A1 B2 0.425      1        A1        B2      0.502 0.0699   0.365
+## 3 A2 B1 0.425      1        A2        B1      0.203 0.0553   0.106
+## 4 A2 B2 0.425      1        A2        B2      0.794 0.0576   0.669
 ##   upper__
-## 1   0.319
-## 2   0.634
-## 3   0.322
-## 4   0.893</code></pre>
+## 1   0.316
+## 2   0.639
+## 3   0.324
+## 4   0.895</code></pre>
 <p>We plot the two-way  interaction using <code>brms</code>, embedding the <code>conditional_effects()</code> call in <code>plot(.)[[1]]</code>. This allows us to select the first (and here the only) <code>ggplot2</code> element and to customize it.</p>
 
 <div class="sourceCode" id="cb517"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb517-1"><a href="ch-coding2x2.html#cb517-1" aria-hidden="true"></a><span class="kw">plot</span>(<span class="kw">conditional_effects</span>(fit_pDV_AB.sum,</span>

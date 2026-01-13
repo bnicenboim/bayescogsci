@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel J. Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2025-02-12" />
+<meta name="date" content="2026-01-13" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -375,15 +375,18 @@ window.initializeCodeFolding = function(show) {
     $(this).before(div);
     $(this).detach().appendTo(div);
 
-    // add a show code button right above
-    var showCodeText = $('<span>' + (show ? 'Hide' : 'Code') + '</span>');
+    // CRITICAL FIX: Create button with aria-hidden text that won't be copied
     var showCodeButton = $('<button type="button" class="btn btn-default btn-xs code-folding-btn pull-right"></button>');
-    showCodeButton.append(showCodeText);
     showCodeButton
         .attr('data-toggle', 'collapse')
         .attr('data-target', '#' + id)
         .attr('aria-expanded', show)
-        .attr('aria-controls', id);
+        .attr('aria-controls', id)
+        .attr('aria-label', show ? 'Hide code' : 'Show code');
+    
+    // Use aria-hidden to prevent screen readers and copy from seeing text
+    var showCodeText = $('<span aria-hidden="true" style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; pointer-events: none;">' + (show ? 'Hide' : 'Code') + '</span>');
+    showCodeButton.append(showCodeText);
 
     var buttonRow = $('<div class="row"></div>');
     var buttonCol = $('<div class="col-md-12"></div>');
@@ -393,16 +396,18 @@ window.initializeCodeFolding = function(show) {
 
     div.before(buttonRow);
 
-    // hack: return show to false, otherwise all next codeBlocks will be shown!
-    show = false;
-
-    // update state of button on show/hide
-    div.on('hidden.bs.collapse', function () {
+    // update the text of the button when it's clicked
+    div.on('hide.bs.collapse', function () {
       showCodeText.text('Code');
+      showCodeButton.attr('aria-label', 'Show code');
     });
     div.on('show.bs.collapse', function () {
       showCodeText.text('Hide');
+      showCodeButton.attr('aria-label', 'Hide code');
     });
+
+    // hack: return show to false, otherwise all next codeBlocks will be shown!
+    show = false;
   });
 
 }
@@ -793,6 +798,78 @@ $(document).ready(function () {
 });
 </script>
 
+<!-- NUCLEAR OPTION: Intercept ALL copy events and strip button text -->
+<script>
+$(document).ready(function() {
+  
+  // Method 1: Make button spans completely invisible to selection
+  function protectButtons() {
+    $('.code-folding-btn span').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+      this.style.setProperty('pointer-events', 'none', 'important');
+      $(this).attr('unselectable', 'on');
+      $(this).attr('aria-hidden', 'true');
+    });
+    
+    $('.code-folding-btn').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+    });
+  }
+  
+  protectButtons();
+  setTimeout(protectButtons, 100);
+  setTimeout(protectButtons, 500);
+  setTimeout(protectButtons, 1000);
+  
+  // Method 2: Aggressive copy event interception
+  document.addEventListener('copy', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    // Remove "Hide" or "Code" from the start
+    if (selectedText) {
+      var cleanedText = selectedText
+        .replace(/^(Hide|Code)\s*/gm, '')  // Remove from start of any line
+        .replace(/\s+(Hide|Code)\s*$/gm, '');  // Remove from end
+      
+      if (cleanedText !== selectedText) {
+        e.preventDefault();
+        
+        if (e.clipboardData) {
+          e.clipboardData.setData('text/plain', cleanedText);
+        } else if (window.clipboardData) {
+          window.clipboardData.setData('Text', cleanedText);
+        }
+      }
+    }
+  }, true);  // Use capture phase
+  
+  // Method 3: Override native copy for code blocks
+  $('body').on('copy', 'pre, pre.sourceCode, .sourceCode, code', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    if (selectedText && (selectedText.startsWith('Hide') || selectedText.startsWith('Code'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      var cleanedText = selectedText.replace(/^(Hide|Code)\s*/, '');
+      
+      if (e.originalEvent.clipboardData) {
+        e.originalEvent.clipboardData.setData('text/plain', cleanedText);
+      } else if (window.clipboardData) {
+        window.clipboardData.setData('Text', cleanedText);
+      }
+    }
+  });
+});
+</script>
 
 <script data-goatcounter="https://bayescogsci.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
@@ -1436,6 +1513,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
+<div class="book-banner">
+  <div class="banner-content">
+    📚 Get the print version of the book from 
+    <a href="https://www.taylorfrancis.com/books/mono/10.1201/9780429342646/introduction-bayesian-data-analysis-cognitive-science-shravan-vasishth-bruno-nicenboim-daniel-schad" target="_blank" rel="noopener">CRC Press</a> or your favorite store.
+    <button class="banner-close" onclick="this.parentElement.parentElement.style.display='none';" aria-label="Close banner">&times;</button>
+  </div>
+</div>
 <div id="ch-remame" class="section level1 hasAnchor" number="11">
 <h1><span class="header-section-number">Chapter 11</span>  Meta-analysis and  measurement error models<a href="ch-remame.html#ch-remame" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <p>In this chapter, we introduce two relatively underutilized modeling approaches that are potentially very important for cognitive science: meta-analysis and measurement-error models.</p>
@@ -1764,21 +1848,21 @@ FIGURE 11.2: The relationship between (centered) mean PCU scores and mean readin
 <pre><code>## ...
 ## Population-Level Effects: 
 ##            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS
-## Intercept      0.06      0.00     0.05     0.06 1.00     5562
-## c_mean_pcu    -0.01      0.01    -0.03     0.00 1.00     2155
+## Intercept      0.06      0.00     0.05     0.06 1.00     5516
+## c_mean_pcu    -0.01      0.01    -0.03     0.00 1.00     2540
 ##            Tail_ESS
-## Intercept      3214
-## c_mean_pcu     1993
+## Intercept      3095
+## c_mean_pcu     2337
 ## 
 ## Family Specific Parameters: 
 ##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sigma     0.01      0.00     0.01     0.01 1.00     1869     1967
+## sigma     0.01      0.00     0.01     0.01 1.00     1855     2166
 ## 
 ## ...</code></pre>
 <div class="sourceCode" id="cb706"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb706-1"><a href="ch-remame.html#cb706-1" aria-hidden="true"></a><span class="co"># Proportion of samples below zero</span></span>
 <span id="cb706-2"><a href="ch-remame.html#cb706-2" aria-hidden="true"></a>(Pb &lt;-<span class="st"> </span><span class="kw">mean</span>(<span class="kw">as_draws_df</span>(fit_indiv)<span class="op">$</span>b_c_mean_pcu <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span>))</span></code></pre></div>
-<pre><code>## [1] 0.945</code></pre>
-<p>Figure <a href="ch-remame.html#fig:meplotstanplot">11.3</a>(a) shows the posterior distribution of the slope in this model. Most of the probability mass is negative (94.525%), suggesting that a better PCU score is associated with slower reading speed rather than faster; that is, that a larger working memory capacity is associated with less reading fluency. This is not a very intuitive result and it could be the case that is driven by the two extreme data points. Rather than removing these data points, we’ll examine what happens when the uncertainty of the measurements is taken into account.</p>
+<pre><code>## [1] 0.946</code></pre>
+<p>Figure <a href="ch-remame.html#fig:meplotstanplot">11.3</a>(a) shows the posterior distribution of the slope in this model. Most of the probability mass is negative (94.6%), suggesting that a better PCU score is associated with slower reading speed rather than faster; that is, that a larger working memory capacity is associated with less reading fluency. This is not a very intuitive result and it could be the case that is driven by the two extreme data points. Rather than removing these data points, we’ll examine what happens when the uncertainty of the measurements is taken into account.</p>
 <p>Taking this uncertainty of the measurement is important; in many practical research problems, researchers will often take average measurements like these and examine the correlation between them. However, each of those data points is being measured with some error (uncertainty), but this error is being ignored when we take the averaged values. Ignoring this uncertainty leads to over-enthusiastic inferences. A measurement-error model solves this issue.</p>
 <p>The measurement error model is stated as follows. There is assumed to be a true unobserved value <span class="math inline">\(y_{n,TRUE}\)</span> for the dependent variable, and a true unobserved value <span class="math inline">\(x_{n,TRUE}\)</span> for the predictor, where <span class="math inline">\(n\)</span> is indexing the observation number.
 The observed values <span class="math inline">\(y_n\)</span> and the predictor <span class="math inline">\(x_n\)</span> are assumed to be generated with some error:</p>
@@ -1827,22 +1911,22 @@ x_{n,TRUE} \sim\mathit{Normal}(\chi,\tau)
 <pre><code>## ...
 ## Population-Level Effects: 
 ##                    Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS
-## Intercept              0.05      0.00     0.05     0.06 1.00     4098
-## mec_mean_pcuse_pcu    -0.00      0.01    -0.01     0.01 1.00     7097
+## Intercept              0.05      0.00     0.05     0.06 1.00     3993
+## mec_mean_pcuse_pcu    -0.00      0.01    -0.01     0.01 1.00     6339
 ##                    Tail_ESS
-## Intercept              2810
-## mec_mean_pcuse_pcu     3136
+## Intercept              2586
+## mec_mean_pcuse_pcu     3311
 ## 
 ## Family Specific Parameters: 
 ##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sigma     0.01      0.00     0.01     0.01 1.00     6201     2938
+## sigma     0.01      0.00     0.01     0.01 1.00     6947     3048
 ## 
 ## ...</code></pre>
 <div class="sourceCode" id="cb712"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb712-1"><a href="ch-remame.html#cb712-1" aria-hidden="true"></a><span class="co"># Proportion of samples below zero</span></span>
 <span id="cb712-2"><a href="ch-remame.html#cb712-2" aria-hidden="true"></a><span class="co"># Parameter names can be found out with `variables(fit_indiv_me)`</span></span>
 <span id="cb712-3"><a href="ch-remame.html#cb712-3" aria-hidden="true"></a>(Pb_me &lt;-<span class="st"> </span><span class="kw">mean</span>(<span class="kw">as_draws_df</span>(fit_indiv_me)<span class="op">$</span>bsp_mec_mean_pcuse_pcu <span class="op">&lt;</span><span class="st"> </span><span class="dv">0</span>))</span></code></pre></div>
-<pre><code>## [1] 0.609</code></pre>
-<p>The posterior for the slope is plotted in Figure <a href="ch-remame.html#fig:meplotstanplot">11.3</a>(b); this figure shows that the association between PCU scores and reading speed is much weaker once measurement error is taken into account: The posterior is much more uncertain (much more widely distributed) than in the simple linear model we fit above (compare Figure <a href="ch-remame.html#fig:meplotstanplot">11.3</a>(b) with Figure <a href="ch-remame.html#fig:meplotstanplot">11.3</a>(a)), and the direction of the association is now unclear, with 61% of the probability mass below zero, rather than 95%.</p>
+<pre><code>## [1] 0.629</code></pre>
+<p>The posterior for the slope is plotted in Figure <a href="ch-remame.html#fig:meplotstanplot">11.3</a>(b); this figure shows that the association between PCU scores and reading speed is much weaker once measurement error is taken into account: The posterior is much more uncertain (much more widely distributed) than in the simple linear model we fit above (compare Figure <a href="ch-remame.html#fig:meplotstanplot">11.3</a>(b) with Figure <a href="ch-remame.html#fig:meplotstanplot">11.3</a>(a)), and the direction of the association is now unclear, with 63% of the probability mass below zero, rather than 95%.</p>
 
 <div class="sourceCode" id="cb714"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb714-1"><a href="ch-remame.html#cb714-1" aria-hidden="true"></a></span>
 <span id="cb714-2"><a href="ch-remame.html#cb714-2" aria-hidden="true"></a><span class="co"># Plot a</span></span>

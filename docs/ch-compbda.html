@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel J. Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2025-02-12" />
+<meta name="date" content="2026-01-13" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -375,15 +375,18 @@ window.initializeCodeFolding = function(show) {
     $(this).before(div);
     $(this).detach().appendTo(div);
 
-    // add a show code button right above
-    var showCodeText = $('<span>' + (show ? 'Hide' : 'Code') + '</span>');
+    // CRITICAL FIX: Create button with aria-hidden text that won't be copied
     var showCodeButton = $('<button type="button" class="btn btn-default btn-xs code-folding-btn pull-right"></button>');
-    showCodeButton.append(showCodeText);
     showCodeButton
         .attr('data-toggle', 'collapse')
         .attr('data-target', '#' + id)
         .attr('aria-expanded', show)
-        .attr('aria-controls', id);
+        .attr('aria-controls', id)
+        .attr('aria-label', show ? 'Hide code' : 'Show code');
+    
+    // Use aria-hidden to prevent screen readers and copy from seeing text
+    var showCodeText = $('<span aria-hidden="true" style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; pointer-events: none;">' + (show ? 'Hide' : 'Code') + '</span>');
+    showCodeButton.append(showCodeText);
 
     var buttonRow = $('<div class="row"></div>');
     var buttonCol = $('<div class="col-md-12"></div>');
@@ -393,16 +396,18 @@ window.initializeCodeFolding = function(show) {
 
     div.before(buttonRow);
 
-    // hack: return show to false, otherwise all next codeBlocks will be shown!
-    show = false;
-
-    // update state of button on show/hide
-    div.on('hidden.bs.collapse', function () {
+    // update the text of the button when it's clicked
+    div.on('hide.bs.collapse', function () {
       showCodeText.text('Code');
+      showCodeButton.attr('aria-label', 'Show code');
     });
     div.on('show.bs.collapse', function () {
       showCodeText.text('Hide');
+      showCodeButton.attr('aria-label', 'Hide code');
     });
+
+    // hack: return show to false, otherwise all next codeBlocks will be shown!
+    show = false;
   });
 
 }
@@ -793,6 +798,78 @@ $(document).ready(function () {
 });
 </script>
 
+<!-- NUCLEAR OPTION: Intercept ALL copy events and strip button text -->
+<script>
+$(document).ready(function() {
+  
+  // Method 1: Make button spans completely invisible to selection
+  function protectButtons() {
+    $('.code-folding-btn span').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+      this.style.setProperty('pointer-events', 'none', 'important');
+      $(this).attr('unselectable', 'on');
+      $(this).attr('aria-hidden', 'true');
+    });
+    
+    $('.code-folding-btn').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+    });
+  }
+  
+  protectButtons();
+  setTimeout(protectButtons, 100);
+  setTimeout(protectButtons, 500);
+  setTimeout(protectButtons, 1000);
+  
+  // Method 2: Aggressive copy event interception
+  document.addEventListener('copy', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    // Remove "Hide" or "Code" from the start
+    if (selectedText) {
+      var cleanedText = selectedText
+        .replace(/^(Hide|Code)\s*/gm, '')  // Remove from start of any line
+        .replace(/\s+(Hide|Code)\s*$/gm, '');  // Remove from end
+      
+      if (cleanedText !== selectedText) {
+        e.preventDefault();
+        
+        if (e.clipboardData) {
+          e.clipboardData.setData('text/plain', cleanedText);
+        } else if (window.clipboardData) {
+          window.clipboardData.setData('Text', cleanedText);
+        }
+      }
+    }
+  }, true);  // Use capture phase
+  
+  // Method 3: Override native copy for code blocks
+  $('body').on('copy', 'pre, pre.sourceCode, .sourceCode, code', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    if (selectedText && (selectedText.startsWith('Hide') || selectedText.startsWith('Code'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      var cleanedText = selectedText.replace(/^(Hide|Code)\s*/, '');
+      
+      if (e.originalEvent.clipboardData) {
+        e.originalEvent.clipboardData.setData('text/plain', cleanedText);
+      } else if (window.clipboardData) {
+        window.clipboardData.setData('Text', cleanedText);
+      }
+    }
+  });
+});
+</script>
 
 <script data-goatcounter="https://bayescogsci.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
@@ -1436,6 +1513,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
+<div class="book-banner">
+  <div class="banner-content">
+    📚 Get the print version of the book from 
+    <a href="https://www.taylorfrancis.com/books/mono/10.1201/9780429342646/introduction-bayesian-data-analysis-cognitive-science-shravan-vasishth-bruno-nicenboim-daniel-schad" target="_blank" rel="noopener">CRC Press</a> or your favorite store.
+    <button class="banner-close" onclick="this.parentElement.parentElement.style.display='none';" aria-label="Close banner">&times;</button>
+  </div>
+</div>
 <div id="ch-compbda" class="section level1 hasAnchor" number="3">
 <h1><span class="header-section-number">Chapter 3</span> Computational Bayesian data analysis<a href="ch-compbda.html#ch-compbda" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <p>In the previous chapter, we learned how to analytically derive the posterior distribution of the parameters in our model.
@@ -1451,7 +1535,7 @@ p(\boldsymbol{\Theta}|\boldsymbol{y}) &amp;= \cfrac{ p(\boldsymbol{y}|\boldsymbo
 <div id="sec-sampling" class="section level2 hasAnchor" number="3.1">
 <h2><span class="header-section-number">3.1</span> Deriving the  posterior through  sampling<a href="ch-compbda.html#sec-sampling" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>Let’s say that we want to derive the posterior of the model from section <a href="ch-introBDA.html#sec-analytical">2.2</a>, that is, the posterior distribution of the cloze probability of “<em>umbrella</em>,” <span class="math inline">\(\theta\)</span>, given the following data: a word (e.g., “<em>umbrella</em>”) was answered 80 out of 100 times, and assuming a binomial distribution as the likelihood function, and <span class="math inline">\(\mathit{Beta}(a=4,b=4)\)</span> as a prior distribution for the cloze probability. If we can generate samples<a href="#fn9" class="footnote-ref" id="fnref9"><sup>9</sup></a> from the posterior distribution of <span class="math inline">\(\theta\)</span>, instead of an analytically derived posterior distribution, given enough samples we will have a good approximation of the posterior distribution. Obtaining samples from the posterior will be the only viable option in the models that we will discuss in this book. By “obtaining samples,” we are talking about a situation analogous to when we use <code>rbinom()</code> or <code>rnorm()</code> to obtain samples from a particular distribution. For more details about sampling algorithms, see the section Further Reading (section <a href="ch-compbda.html#sec-ch3furtherreading">3.10</a>).</p>
-<p>Thanks to  probabilistic programming languages, it will be relatively straightforward to get these samples, and we will discuss how we will do it in more detail in the next section. For now let’s assume that we used some probabilistic programming language to obtain 20000 samples from the posterior distribution of the cloze probability, <span class="math inline">\(\theta\)</span>: 0.782, 0.722, 0.782, 0.727, 0.839, 0.828, 0.769, 0.806, 0.839, 0.832, 0.728, 0.805, 0.764, 0.756, 0.791, 0.739, 0.774, 0.758, 0.815, 0.808, . Figure <a href="ch-compbda.html#fig:betapost">3.1</a> shows that the approximation of the posterior looks quite similar to the analytically derived posterior. The difference between the analytically computed and approximated mean and variance are <span class="math inline">\(-0.0001\)</span> and <span class="math inline">\(0.000003\)</span> respectively.</p>
+<p>Thanks to  probabilistic programming languages, it will be relatively straightforward to get these samples, and we will discuss how we will do it in more detail in the next section. For now let’s assume that we used some probabilistic programming language to obtain 20000 samples from the posterior distribution of the cloze probability, <span class="math inline">\(\theta\)</span>: 0.753, 0.786, 0.742, 0.775, 0.78, 0.816, 0.759, 0.687, 0.756, 0.759, 0.72, 0.839, 0.686, 0.809, 0.736, 0.7, 0.822, 0.761, 0.764, 0.786, . Figure <a href="ch-compbda.html#fig:betapost">3.1</a> shows that the approximation of the posterior looks quite similar to the analytically derived posterior. The difference between the analytically computed and approximated mean and variance are <span class="math inline">\(-0.0002\)</span> and <span class="math inline">\(-0.000004\)</span> respectively.</p>
 
 <div class="figure"><span style="display:block;" id="fig:betapost"></span>
 <img src="bayescogsci_files/figure-html/betapost-1.svg" alt="Histogram of the samples of \(\theta\) from the posterior distribution generated via sampling. The black line shows the density plot of the analytically derived posterior." width="672" />
@@ -1562,9 +1646,9 @@ FIGURE 3.3: (a) Traceplots of our <code>brms</code> model for the button-pressin
 <span id="cb98-2"><a href="ch-compbda.html#cb98-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">head</span>(<span class="dv">3</span>)</span></code></pre></div>
 <pre><code>## # A draws_df: 3 iterations, 1 chains, and 5 variables
 ##   b_Intercept sigma Intercept lprior  lp__
-## 1         168    25       168    -19 -1683
-## 2         169    24       169    -19 -1683
-## 3         169    25       169    -19 -1683
+## 1         169    24       169    -19 -1684
+## 2         168    25       168    -19 -1683
+## 3         168    26       168    -19 -1684
 ## # ... hidden reserved variables {&#39;.chain&#39;, &#39;.iteration&#39;, &#39;.draw&#39;}</code></pre>
 <p>The term <code>b_Intercept</code> in the <code>brms</code> output corresponds to our <span class="math inline">\(\mu\)</span>. We can ignore the last three columns: <code>Intercept</code> is an auxiliary intercept assuming centered predictors, which coincides here with <code>b_Intercept</code> and is discussed in online section <a href="regression-models-with-brms---extended.html#app-intercept">A.3</a>, <code>lprior</code> is the log-density of the (joint) prior distribution and it is there for compatibility with the package <code>priorsense</code> (<a href="https://github.com/n-kall/priorsense" class="uri">https://github.com/n-kall/priorsense</a>), and <code>lp</code> is not really part of the posterior, it’s the log-density of the unnormalized posterior for each iteration (<code>lp</code> is discussed in online section <a href="advanced-models-with-stan---extended.html#app-target">B.1</a>, which sould be read in the context of chapter <a href="ch-introstan.html#ch-introstan">8</a>).</p>
 <p>Plot the density and traceplots of each parameter after the warmup with <code>plot(fit_press)</code> (Figure <a href="ch-compbda.html#fig:densitytrace">3.4</a>).</p>
@@ -1587,11 +1671,11 @@ FIGURE 3.4: Density and  traceplots of our <code>brms</code> model for the butto
 ## 
 ## Regression Coefficients:
 ##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept   168.63      1.29   166.17   171.23 1.00     3482     2624
+## Intercept   168.62      1.33   166.02   171.22 1.00     3920     2822
 ## 
 ## Further Distributional Parameters:
 ##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sigma    25.02      0.96    23.26    26.98 1.00     2990     2588
+## sigma    24.98      0.95    23.19    26.90 1.00     2644     2586
 ## 
 ## Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
 ## and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -1600,7 +1684,7 @@ FIGURE 3.4: Density and  traceplots of our <code>brms</code> model for the butto
 <div class="sourceCode" id="cb102"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb102-1"><a href="ch-compbda.html#cb102-1" aria-hidden="true"></a><span class="kw">as_draws_df</span>(fit_press)<span class="op">$</span>b_Intercept <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mean</span>()</span></code></pre></div>
 <pre><code>## [1] 169</code></pre>
 <div class="sourceCode" id="cb104"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb104-1"><a href="ch-compbda.html#cb104-1" aria-hidden="true"></a><span class="kw">as_draws_df</span>(fit_press)<span class="op">$</span>b_Intercept <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">sd</span>()</span></code></pre></div>
-<pre><code>## [1] 1.29</code></pre>
+<pre><code>## [1] 1.33</code></pre>
 <div class="sourceCode" id="cb106"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb106-1"><a href="ch-compbda.html#cb106-1" aria-hidden="true"></a><span class="kw">as_draws_df</span>(fit_press)<span class="op">$</span>b_Intercept <span class="op">%&gt;%</span></span>
 <span id="cb106-2"><a href="ch-compbda.html#cb106-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">quantile</span>(<span class="kw">c</span>(<span class="fl">0.025</span>, <span class="fl">.975</span>))</span></code></pre></div>
 <pre><code>##  2.5% 97.5% 
@@ -1677,7 +1761,7 @@ p(\boldsymbol{y_{pred}}) &amp;= p(y_{pred_1},\dots,y_{pred_n})\\
 <span id="cb109-8"><a href="ch-compbda.html#cb109-8" aria-hidden="true"></a>                                 <span class="dt">sigma_samples =</span> sigma_samples,</span>
 <span id="cb109-9"><a href="ch-compbda.html#cb109-9" aria-hidden="true"></a>                                 <span class="dt">N_obs =</span> N_obs)</span>
 <span id="cb109-10"><a href="ch-compbda.html#cb109-10" aria-hidden="true"></a><span class="kw">toc</span>()</span></code></pre></div>
-<pre><code>## 1.39 sec elapsed</code></pre>
+<pre><code>## 1.666 sec elapsed</code></pre>
 <div class="sourceCode" id="cb111"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb111-1"><a href="ch-compbda.html#cb111-1" aria-hidden="true"></a>prior_pred</span></code></pre></div>
 <pre><code>## # A tibble: 361,000 × 3
 ##   trialn t_pred  iter
@@ -1686,7 +1770,7 @@ p(\boldsymbol{y_{pred}}) &amp;= p(y_{pred_1},\dots,y_{pred_n})\\
 ## 2      2 16686.     1
 ## 3      3 17245.     1
 ## # ℹ 360,997 more rows</code></pre>
-<pre><code>## 0.321 sec elapsed</code></pre>
+<pre><code>## 0.465 sec elapsed</code></pre>
 <p>Figure <a href="ch-compbda.html#fig:priorpred-simple">3.5</a> shows the first 18 samples of the prior predictive distribution (i.e., 18 independently generated prior predicted data sets) with the code below.</p>
 
 <div class="sourceCode" id="cb114"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb114-1"><a href="ch-compbda.html#cb114-1" aria-hidden="true"></a>prior_pred <span class="op">%&gt;%</span></span>
@@ -1777,11 +1861,11 @@ Here, one could assume a non-truncated prior like <span class="math inline">\(\m
 <pre><code>## ...
 ## Population-Level Effects: 
 ##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept   168.68      1.28   166.18   171.22 1.00     4192     2840
+## Intercept   168.65      1.28   166.20   171.15 1.00     4227     3161
 ## 
 ## Family Specific Parameters: 
 ##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sigma    25.02      0.94    23.24    27.02 1.01      602      469
+## sigma    24.96      0.93    23.17    26.79 1.01      590      503
 ## 
 ## ...</code></pre>
 <p>Next, consider what happens if very informative priors are used. Assume that mean values very close to <span class="math inline">\(400\)</span> ms are the most likely, and that the standard deviation of the finger tapping times is very close to <span class="math inline">\(100\)</span> ms. Given that this is a model of button-pressing times, such an informative prior seems wrong—<span class="math inline">\(200\)</span> ms seems like a more realistic mean button-pressing time, not <span class="math inline">\(400\)</span> ms. You can check this by doing an experiment yourself and looking at the recorded times; software like Linger (<a href="http://tedlab.mit.edu/~dr/Linger/" class="uri">http://tedlab.mit.edu/~dr/Linger/</a>) makes it easy to set up such an experiment.</p>
@@ -1805,11 +1889,11 @@ Here, one could assume a non-truncated prior like <span class="math inline">\(\m
 <pre><code>## ...
 ## Population-Level Effects: 
 ##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept   172.95      1.42   170.20   175.77 1.00     2639     2367
+## Intercept   172.97      1.39   170.28   175.73 1.00     2672     2256
 ## 
 ## Family Specific Parameters: 
 ##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sigma    26.11      1.06    24.19    28.26 1.00     2599     2561
+## sigma    26.13      1.05    24.14    28.28 1.00     2780     2377
 ## 
 ## ...</code></pre>
 <p>As a final example of a sensitivity analysis, choose some principled priors. Assuming that we have some prior experience with previous similar experiments, suppose the mean response time is expected to be around <span class="math inline">\(200\)</span> ms, with a 95% probability of the mean ranging from <span class="math inline">\(0\)</span> to <span class="math inline">\(400\)</span> ms. This uncertainty is perhaps unreasonably large, but one might want to allow a bit more uncertainty than one really thinks is reasonable <span class="citation">(this kind of conservativity in allowing somewhat more uncertainty is sometimes called Cromwell’s rule in Bayesian statistics; see O’Hagan and Forster <a href="#ref-kendall2004" role="doc-biblioref">2004</a>, sec. 3.19)</span>. In such a case, one can decide on the prior <span class="math inline">\(\mathit{Normal}(200, 100)\)</span>. Given that the experiment involves only one subject and the task is very simple, one might not expect the residual standard deviation <span class="math inline">\(\sigma\)</span> to be very large: As an example, one can settle on a location of <span class="math inline">\(50\)</span> ms for a truncated normal distribution, but still allow for relatively large uncertainty: <span class="math inline">\(Normal_{+}(50,50)\)</span>.
@@ -1833,11 +1917,11 @@ The prior specifications are summarized below.</p>
 <pre><code>## ...
 ## Population-Level Effects: 
 ##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept   168.68      1.30   166.17   171.26 1.00     3775     2676
+## Intercept   168.67      1.36   165.98   171.32 1.00     3215     2607
 ## 
 ## Family Specific Parameters: 
 ##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sigma    25.01      0.95    23.21    27.07 1.00     4210     2622
+## sigma    25.05      0.96    23.26    27.05 1.00     3793     2768
 ## 
 ## ...</code></pre>
 <p>The above examples of using different priors should not be misunderstood to mean that priors never matter. When there is enough data, the likelihood will dominate in determining the posterior distributions. What constitutes “enough” data is also a function of the complexity of the model; as a general rule, more complex models require more data.</p>
@@ -1874,9 +1958,9 @@ p(\boldsymbol{y_{pred}}\mid \boldsymbol{y} )=\int_{\boldsymbol{\Theta}} p(\bolds
 <pre><code>## # A tibble: 1,444,000 × 3
 ##    iter trialn t_pred
 ##   &lt;dbl&gt;  &lt;int&gt;  &lt;dbl&gt;
-## 1     1      1   128.
-## 2     1      2   134.
-## 3     1      3   167.
+## 1     1      1   132.
+## 2     1      2   137.
+## 3     1      3   168.
 ## # ℹ 1,443,997 more rows</code></pre>
 <p>The <code>brms</code> function  <code>posterior_predict()</code> is a convenient function that delivers samples from the posterior predictive distribution. Using the command <code>posterior_predict(fit_press)</code> yields the predicted finger tapping times in a matrix, with the samples as rows and the observations (data-points) as columns. (Bear in mind that if a model is fit with <code>sample_prior = "only"</code>, the dependent variable is ignored and <code>posterior_predict()</code> will yield samples from the prior predictive distribution).</p>
 <p>The posterior predictive distribution can be used to examine the “descriptive adequacy” of the model under consideration <span class="citation">(Gelman et al. <a href="#ref-Gelman14" role="doc-biblioref">2014</a>, Chapter 6; Shiffrin et al. <a href="#ref-shiffrinSurveyModelEvaluation2008" role="doc-biblioref">2008</a>)</span>. Examining the posterior predictive distribution to establish  descriptive adequacy is called  posterior predictive checking. The goal here is to establish that the posterior predictive data look more or less similar to the observed data. Achieving descriptive adequacy means that the current data could have been generated by the model. Although passing a test of descriptive adequacy is not strong evidence in favor of a model, a major failure in descriptive adequacy can be interpreted as strong evidence against a model <span class="citation">(Shiffrin et al. <a href="#ref-shiffrinSurveyModelEvaluation2008" role="doc-biblioref">2008</a>)</span>.
@@ -2062,11 +2146,11 @@ FIGURE 3.12: The prior predictive distributions of the mean, maximum, and minimu
 <pre><code>## ...
 ## Population-Level Effects: 
 ##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept     5.12      0.01     5.10     5.13 1.00     4098     2796
+## Intercept     5.12      0.01     5.10     5.13 1.00     3769     2859
 ## 
 ## Family Specific Parameters: 
 ##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sigma     0.13      0.01     0.13     0.15 1.00     2463     1999
+## sigma     0.13      0.01     0.13     0.15 1.00     3145     2444
 ## 
 ## ...</code></pre>
 <p>If the research goal is to find out how long it takes to press the space bar in milliseconds, we need to transform the <span class="math inline">\(\mu\)</span> (or <code>Intercept</code> in the model) to milliseconds. Because the median of the log-normal distribution is <span class="math inline">\(\exp(\mu)\)</span>, the following returns the median estimate in milliseconds (recall that for the mean we would need to calculate <span class="math inline">\(\exp(\mu +\sigma ^{2}/2)\)</span>):</p>

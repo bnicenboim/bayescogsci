@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel J. Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2025-02-12" />
+<meta name="date" content="2026-01-13" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -375,15 +375,18 @@ window.initializeCodeFolding = function(show) {
     $(this).before(div);
     $(this).detach().appendTo(div);
 
-    // add a show code button right above
-    var showCodeText = $('<span>' + (show ? 'Hide' : 'Code') + '</span>');
+    // CRITICAL FIX: Create button with aria-hidden text that won't be copied
     var showCodeButton = $('<button type="button" class="btn btn-default btn-xs code-folding-btn pull-right"></button>');
-    showCodeButton.append(showCodeText);
     showCodeButton
         .attr('data-toggle', 'collapse')
         .attr('data-target', '#' + id)
         .attr('aria-expanded', show)
-        .attr('aria-controls', id);
+        .attr('aria-controls', id)
+        .attr('aria-label', show ? 'Hide code' : 'Show code');
+    
+    // Use aria-hidden to prevent screen readers and copy from seeing text
+    var showCodeText = $('<span aria-hidden="true" style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; pointer-events: none;">' + (show ? 'Hide' : 'Code') + '</span>');
+    showCodeButton.append(showCodeText);
 
     var buttonRow = $('<div class="row"></div>');
     var buttonCol = $('<div class="col-md-12"></div>');
@@ -393,16 +396,18 @@ window.initializeCodeFolding = function(show) {
 
     div.before(buttonRow);
 
-    // hack: return show to false, otherwise all next codeBlocks will be shown!
-    show = false;
-
-    // update state of button on show/hide
-    div.on('hidden.bs.collapse', function () {
+    // update the text of the button when it's clicked
+    div.on('hide.bs.collapse', function () {
       showCodeText.text('Code');
+      showCodeButton.attr('aria-label', 'Show code');
     });
     div.on('show.bs.collapse', function () {
       showCodeText.text('Hide');
+      showCodeButton.attr('aria-label', 'Hide code');
     });
+
+    // hack: return show to false, otherwise all next codeBlocks will be shown!
+    show = false;
   });
 
 }
@@ -793,6 +798,78 @@ $(document).ready(function () {
 });
 </script>
 
+<!-- NUCLEAR OPTION: Intercept ALL copy events and strip button text -->
+<script>
+$(document).ready(function() {
+  
+  // Method 1: Make button spans completely invisible to selection
+  function protectButtons() {
+    $('.code-folding-btn span').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+      this.style.setProperty('pointer-events', 'none', 'important');
+      $(this).attr('unselectable', 'on');
+      $(this).attr('aria-hidden', 'true');
+    });
+    
+    $('.code-folding-btn').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+    });
+  }
+  
+  protectButtons();
+  setTimeout(protectButtons, 100);
+  setTimeout(protectButtons, 500);
+  setTimeout(protectButtons, 1000);
+  
+  // Method 2: Aggressive copy event interception
+  document.addEventListener('copy', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    // Remove "Hide" or "Code" from the start
+    if (selectedText) {
+      var cleanedText = selectedText
+        .replace(/^(Hide|Code)\s*/gm, '')  // Remove from start of any line
+        .replace(/\s+(Hide|Code)\s*$/gm, '');  // Remove from end
+      
+      if (cleanedText !== selectedText) {
+        e.preventDefault();
+        
+        if (e.clipboardData) {
+          e.clipboardData.setData('text/plain', cleanedText);
+        } else if (window.clipboardData) {
+          window.clipboardData.setData('Text', cleanedText);
+        }
+      }
+    }
+  }, true);  // Use capture phase
+  
+  // Method 3: Override native copy for code blocks
+  $('body').on('copy', 'pre, pre.sourceCode, .sourceCode, code', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    if (selectedText && (selectedText.startsWith('Hide') || selectedText.startsWith('Code'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      var cleanedText = selectedText.replace(/^(Hide|Code)\s*/, '');
+      
+      if (e.originalEvent.clipboardData) {
+        e.originalEvent.clipboardData.setData('text/plain', cleanedText);
+      } else if (window.clipboardData) {
+        window.clipboardData.setData('Text', cleanedText);
+      }
+    }
+  });
+});
+</script>
 
 <script data-goatcounter="https://bayescogsci.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
@@ -1436,6 +1513,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
+<div class="book-banner">
+  <div class="banner-content">
+    📚 Get the print version of the book from 
+    <a href="https://www.taylorfrancis.com/books/mono/10.1201/9780429342646/introduction-bayesian-data-analysis-cognitive-science-shravan-vasishth-bruno-nicenboim-daniel-schad" target="_blank" rel="noopener">CRC Press</a> or your favorite store.
+    <button class="banner-close" onclick="this.parentElement.parentElement.style.display='none';" aria-label="Close banner">&times;</button>
+  </div>
+</div>
 <div id="regression-models-with-brms---extended" class="section level1 hasAnchor" number="20">
 <h1><span class="header-section-number">A</span> Regression models with <code>brms</code> - Extended<a href="regression-models-with-brms---extended.html#regression-models-with-brms---extended" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <div id="app-efficientpriorpd" class="section level2 hasAnchor" number="20.1">
@@ -1444,27 +1528,27 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>To address this, one could use a more efficient function using the <code>map2_dfr()</code> function from the <code>purrr</code> package, which yields approximately a 10-fold increase in speed. Although the distributions should be the same with both functions, the specific numbers in the tables won’t be, due to the randomness in the process of sampling.</p>
 <p>The <code>purrr</code> function  <code>map2_dfr()</code> (which works similarly to the base R function <code>lapply()</code> and <code>Map()</code>) essentially runs a for-loop, and builds a data frame with the output. It iterates over the values of two vectors (or lists) simultaneously, here, <code>mu_samples</code> and <code>sigma_samples</code> and, in each iteration, it applies a function to each value of the two vectors, here, <code>mu</code> and <code>sigma</code>. The output of each function is a data frame (or tibble in this case) with <code>N_obs</code> observations which is bound in a larger data frame at the end of the loop. Each of these data frames bound together represents an iteration in the simulation, and we identify the iterations by setting <code>.id = "iter"</code>.</p>
 <p>Although this method for generating prior predictive distributions is a bit involved, it has an advantage in comparison to the more straightforward use of <code>predict()</code> (or <code>posterior_predict()</code>, which can also generate prior predictions) together with setting <code>sample_prior = "only"</code> in the <code>brms</code> model (as we will do in section <a href="ch-compbda.html#sec-lognormal">3.7.2</a>). Our method of generating prior predictive distributions does not depend on Stan’s sampler, which means that no matter the number of iterations in our simulation or how uninformative our priors, there will never be any convergence problems.</p>
-<div class="sourceCode" id="cb1084"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1084-1"><a href="regression-models-with-brms---extended.html#cb1084-1" aria-hidden="true"></a><span class="kw">library</span>(purrr)</span>
-<span id="cb1084-2"><a href="regression-models-with-brms---extended.html#cb1084-2" aria-hidden="true"></a><span class="co"># Define the function:</span></span>
-<span id="cb1084-3"><a href="regression-models-with-brms---extended.html#cb1084-3" aria-hidden="true"></a>normal_predictive_distribution &lt;-<span class="st"> </span><span class="cf">function</span>(mu_samples,</span>
-<span id="cb1084-4"><a href="regression-models-with-brms---extended.html#cb1084-4" aria-hidden="true"></a>                                           sigma_samples,</span>
-<span id="cb1084-5"><a href="regression-models-with-brms---extended.html#cb1084-5" aria-hidden="true"></a>                                           N_obs) {</span>
-<span id="cb1084-6"><a href="regression-models-with-brms---extended.html#cb1084-6" aria-hidden="true"></a>  <span class="kw">map2_dfr</span>(mu_samples, sigma_samples, <span class="cf">function</span>(mu, sigma) {</span>
-<span id="cb1084-7"><a href="regression-models-with-brms---extended.html#cb1084-7" aria-hidden="true"></a>    <span class="kw">tibble</span>(<span class="dt">trialn =</span> <span class="kw">seq_len</span>(N_obs),</span>
-<span id="cb1084-8"><a href="regression-models-with-brms---extended.html#cb1084-8" aria-hidden="true"></a>           <span class="dt">t_pred =</span> <span class="kw">rnorm</span>(N_obs, mu, sigma))</span>
-<span id="cb1084-9"><a href="regression-models-with-brms---extended.html#cb1084-9" aria-hidden="true"></a>  }, <span class="dt">.id =</span> <span class="st">&quot;iter&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb1084-10"><a href="regression-models-with-brms---extended.html#cb1084-10" aria-hidden="true"></a><span class="st">    </span><span class="co"># .id is always a string and</span></span>
-<span id="cb1084-11"><a href="regression-models-with-brms---extended.html#cb1084-11" aria-hidden="true"></a><span class="st">    </span><span class="co"># needs to be converted to a number</span></span>
-<span id="cb1084-12"><a href="regression-models-with-brms---extended.html#cb1084-12" aria-hidden="true"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">iter =</span> <span class="kw">as.numeric</span>(iter))</span>
-<span id="cb1084-13"><a href="regression-models-with-brms---extended.html#cb1084-13" aria-hidden="true"></a>}</span>
-<span id="cb1084-14"><a href="regression-models-with-brms---extended.html#cb1084-14" aria-hidden="true"></a><span class="co"># Test the timing:</span></span>
-<span id="cb1084-15"><a href="regression-models-with-brms---extended.html#cb1084-15" aria-hidden="true"></a><span class="kw">tic</span>()</span>
-<span id="cb1084-16"><a href="regression-models-with-brms---extended.html#cb1084-16" aria-hidden="true"></a>prior_pred &lt;-</span>
-<span id="cb1084-17"><a href="regression-models-with-brms---extended.html#cb1084-17" aria-hidden="true"></a><span class="st">  </span><span class="kw">normal_predictive_distribution</span>(<span class="dt">mu_samples =</span> mu_samples,</span>
-<span id="cb1084-18"><a href="regression-models-with-brms---extended.html#cb1084-18" aria-hidden="true"></a>                                 <span class="dt">sigma_samples =</span> sigma_samples,</span>
-<span id="cb1084-19"><a href="regression-models-with-brms---extended.html#cb1084-19" aria-hidden="true"></a>                                 <span class="dt">N_obs =</span> N_obs)</span>
-<span id="cb1084-20"><a href="regression-models-with-brms---extended.html#cb1084-20" aria-hidden="true"></a><span class="kw">toc</span>()</span></code></pre></div>
-<pre><code>## 0.431 sec elapsed</code></pre>
+<div class="sourceCode" id="cb1085"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1085-1"><a href="regression-models-with-brms---extended.html#cb1085-1" aria-hidden="true"></a><span class="kw">library</span>(purrr)</span>
+<span id="cb1085-2"><a href="regression-models-with-brms---extended.html#cb1085-2" aria-hidden="true"></a><span class="co"># Define the function:</span></span>
+<span id="cb1085-3"><a href="regression-models-with-brms---extended.html#cb1085-3" aria-hidden="true"></a>normal_predictive_distribution &lt;-<span class="st"> </span><span class="cf">function</span>(mu_samples,</span>
+<span id="cb1085-4"><a href="regression-models-with-brms---extended.html#cb1085-4" aria-hidden="true"></a>                                           sigma_samples,</span>
+<span id="cb1085-5"><a href="regression-models-with-brms---extended.html#cb1085-5" aria-hidden="true"></a>                                           N_obs) {</span>
+<span id="cb1085-6"><a href="regression-models-with-brms---extended.html#cb1085-6" aria-hidden="true"></a>  <span class="kw">map2_dfr</span>(mu_samples, sigma_samples, <span class="cf">function</span>(mu, sigma) {</span>
+<span id="cb1085-7"><a href="regression-models-with-brms---extended.html#cb1085-7" aria-hidden="true"></a>    <span class="kw">tibble</span>(<span class="dt">trialn =</span> <span class="kw">seq_len</span>(N_obs),</span>
+<span id="cb1085-8"><a href="regression-models-with-brms---extended.html#cb1085-8" aria-hidden="true"></a>           <span class="dt">t_pred =</span> <span class="kw">rnorm</span>(N_obs, mu, sigma))</span>
+<span id="cb1085-9"><a href="regression-models-with-brms---extended.html#cb1085-9" aria-hidden="true"></a>  }, <span class="dt">.id =</span> <span class="st">&quot;iter&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb1085-10"><a href="regression-models-with-brms---extended.html#cb1085-10" aria-hidden="true"></a><span class="st">    </span><span class="co"># .id is always a string and</span></span>
+<span id="cb1085-11"><a href="regression-models-with-brms---extended.html#cb1085-11" aria-hidden="true"></a><span class="st">    </span><span class="co"># needs to be converted to a number</span></span>
+<span id="cb1085-12"><a href="regression-models-with-brms---extended.html#cb1085-12" aria-hidden="true"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">iter =</span> <span class="kw">as.numeric</span>(iter))</span>
+<span id="cb1085-13"><a href="regression-models-with-brms---extended.html#cb1085-13" aria-hidden="true"></a>}</span>
+<span id="cb1085-14"><a href="regression-models-with-brms---extended.html#cb1085-14" aria-hidden="true"></a><span class="co"># Test the timing:</span></span>
+<span id="cb1085-15"><a href="regression-models-with-brms---extended.html#cb1085-15" aria-hidden="true"></a><span class="kw">tic</span>()</span>
+<span id="cb1085-16"><a href="regression-models-with-brms---extended.html#cb1085-16" aria-hidden="true"></a>prior_pred &lt;-</span>
+<span id="cb1085-17"><a href="regression-models-with-brms---extended.html#cb1085-17" aria-hidden="true"></a><span class="st">  </span><span class="kw">normal_predictive_distribution</span>(<span class="dt">mu_samples =</span> mu_samples,</span>
+<span id="cb1085-18"><a href="regression-models-with-brms---extended.html#cb1085-18" aria-hidden="true"></a>                                 <span class="dt">sigma_samples =</span> sigma_samples,</span>
+<span id="cb1085-19"><a href="regression-models-with-brms---extended.html#cb1085-19" aria-hidden="true"></a>                                 <span class="dt">N_obs =</span> N_obs)</span>
+<span id="cb1085-20"><a href="regression-models-with-brms---extended.html#cb1085-20" aria-hidden="true"></a><span class="kw">toc</span>()</span></code></pre></div>
+<pre><code>## 0.533 sec elapsed</code></pre>
 </div>
 <div id="app-truncation" class="section level2 hasAnchor" number="20.2">
 <h2><span class="header-section-number">A.2</span> Truncated distributions<a href="regression-models-with-brms---extended.html#app-truncation" class="anchor-section" aria-label="Anchor link to header"></a></h2>
@@ -1492,7 +1576,7 @@ Normal_+(x |0, \sigma) = \frac{Normal(x | 0, \sigma)}{1/2}
 \end{equation}\]</span></p>
 <p>Because <span class="math inline">\(F(X= b =\infty) = 1\)</span> and <span class="math inline">\(F(X = a = 0) = 1/2\)</span>.</p>
 <p>You can verify this in R (this is valid for any value of <code>sd</code>).</p>
-<div class="sourceCode" id="cb1086"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1086-1"><a href="regression-models-with-brms---extended.html#cb1086-1" aria-hidden="true"></a><span class="kw">dnorm</span>(<span class="dv">1</span>, <span class="dt">mean =</span> <span class="dv">0</span>) <span class="op">*</span><span class="st"> </span><span class="dv">2</span> <span class="op">==</span><span class="st"> </span><span class="kw">dtnorm</span>(<span class="dv">1</span>, <span class="dt">mean =</span> <span class="dv">0</span>, <span class="dt">a =</span> <span class="dv">0</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1087"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1087-1"><a href="regression-models-with-brms---extended.html#cb1087-1" aria-hidden="true"></a><span class="kw">dnorm</span>(<span class="dv">1</span>, <span class="dt">mean =</span> <span class="dv">0</span>) <span class="op">*</span><span class="st"> </span><span class="dv">2</span> <span class="op">==</span><span class="st"> </span><span class="kw">dtnorm</span>(<span class="dv">1</span>, <span class="dt">mean =</span> <span class="dv">0</span>, <span class="dt">a =</span> <span class="dv">0</span>)</span></code></pre></div>
 <pre><code>## [1] TRUE</code></pre>
 <p>Unless the truncation of the normal distribution is symmetrical, the mean <span class="math inline">\(\mu\)</span> of the truncated normal does not coincide with the mean of the parent (untruncated) normal distribution; call this mean of the  parent distribution <span class="math inline">\(\hat{\mu}\)</span>. For any type of truncation, the standard deviation of the truncated distribution <span class="math inline">\(\sigma\)</span> does not coincide with the standard deviation of the parent distribution; call this latter standard deviation <span class="math inline">\(\hat\sigma\)</span>. Confusingly enough, the family of truncated functions <code>*tnorm()</code> keeps the names of the arguments of the family of functions <code>*norm()</code>: <code>mean</code> and <code>sd</code>. So, when defining a truncated normal distribution like <code>dtnorm(mean = 300, sd = 100, a = 0, b = Inf)</code>, the <code>mean</code> and <code>sd</code> refer to the mean <span class="math inline">\(\hat{\mu}\)</span> and standard deviation <span class="math inline">\(\hat\sigma\)</span> of the untruncated parent distribution.</p>
 <p>Sometimes one needs to model observed data as coming from a truncated normal distribution. An example would be a vector of observed standard deviations; perhaps one wants to use these estimates to work out a truncated normal prior. In order to derive such an empirically motivated prior, we have to work out what mean and standard deviation we need to use in a truncated normal distribution. We could compute the mean and standard deviation from the observed vector of standard deviations, and then use the procedure shown below to work out the mean and standard deviation that we would need to put into the truncated normal distribution. This approach is used in online chapter <a href="ch-priors.html#ch-priors">E</a>, section <a href="ch-priors.html#sec-varcomppriors">E.1.4</a> for working out a prior based on standard deviation estimates from existing data.</p>
@@ -1515,29 +1599,29 @@ Normal_+(x |0, \sigma) = \frac{Normal(x | 0, \sigma)}{1/2}
 \end{equation}\]</span></p>
 <p>Equations <a href="regression-models-with-brms---extended.html#eq:meantrunc">(A.2)</a> and <a href="regression-models-with-brms---extended.html#eq:vartrunc">(A.3)</a> have two variables, so if one is given the values for the truncated distribution <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span>, one can solve (using algebra) for the mean and standard deviation of the untruncated distribution, <span class="math inline">\(\hat\mu\)</span> and <span class="math inline">\(\hat\sigma\)</span>.</p>
 <p>For example, suppose that <span class="math inline">\(a=0\)</span> and <span class="math inline">\(b=500\)</span>, and that the mean and standard deviation of the untruncated parent distribution is <span class="math inline">\(\hat\mu=300\)</span> and <span class="math inline">\(\hat\sigma=200\)</span>. We can simulate such a situation and estimate the mean and standard deviation of the truncated distribution:</p>
-<div class="sourceCode" id="cb1088"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1088-1"><a href="regression-models-with-brms---extended.html#cb1088-1" aria-hidden="true"></a>x &lt;-<span class="st"> </span><span class="kw">rtnorm</span>(<span class="dv">10000000</span>, <span class="dt">mean =</span> <span class="dv">300</span>, <span class="dt">sd =</span> <span class="dv">200</span>, <span class="dt">a =</span> <span class="dv">0</span>, <span class="dt">b =</span> <span class="dv">500</span>)</span>
-<span id="cb1088-2"><a href="regression-models-with-brms---extended.html#cb1088-2" aria-hidden="true"></a><span class="co">## the mean and sd of the truncated distributions</span></span>
-<span id="cb1088-3"><a href="regression-models-with-brms---extended.html#cb1088-3" aria-hidden="true"></a><span class="co">## using simulation:</span></span>
-<span id="cb1088-4"><a href="regression-models-with-brms---extended.html#cb1088-4" aria-hidden="true"></a><span class="kw">mean</span>(x)</span></code></pre></div>
+<div class="sourceCode" id="cb1089"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1089-1"><a href="regression-models-with-brms---extended.html#cb1089-1" aria-hidden="true"></a>x &lt;-<span class="st"> </span><span class="kw">rtnorm</span>(<span class="dv">10000000</span>, <span class="dt">mean =</span> <span class="dv">300</span>, <span class="dt">sd =</span> <span class="dv">200</span>, <span class="dt">a =</span> <span class="dv">0</span>, <span class="dt">b =</span> <span class="dv">500</span>)</span>
+<span id="cb1089-2"><a href="regression-models-with-brms---extended.html#cb1089-2" aria-hidden="true"></a><span class="co">## the mean and sd of the truncated distributions</span></span>
+<span id="cb1089-3"><a href="regression-models-with-brms---extended.html#cb1089-3" aria-hidden="true"></a><span class="co">## using simulation:</span></span>
+<span id="cb1089-4"><a href="regression-models-with-brms---extended.html#cb1089-4" aria-hidden="true"></a><span class="kw">mean</span>(x)</span></code></pre></div>
 <pre><code>## [1] 271</code></pre>
-<div class="sourceCode" id="cb1090"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1090-1"><a href="regression-models-with-brms---extended.html#cb1090-1" aria-hidden="true"></a><span class="kw">sd</span>(x)</span></code></pre></div>
+<div class="sourceCode" id="cb1091"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1091-1"><a href="regression-models-with-brms---extended.html#cb1091-1" aria-hidden="true"></a><span class="kw">sd</span>(x)</span></code></pre></div>
 <pre><code>## [1] 129</code></pre>
 <p>These simulated values are identical to the values computed using equations <a href="regression-models-with-brms---extended.html#eq:meantrunc">(A.2)</a> and <a href="regression-models-with-brms---extended.html#eq:vartrunc">(A.3)</a>:</p>
-<div class="sourceCode" id="cb1092"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1092-1"><a href="regression-models-with-brms---extended.html#cb1092-1" aria-hidden="true"></a>a &lt;-<span class="st"> </span><span class="dv">0</span></span>
-<span id="cb1092-2"><a href="regression-models-with-brms---extended.html#cb1092-2" aria-hidden="true"></a>b &lt;-<span class="st"> </span><span class="dv">500</span></span>
-<span id="cb1092-3"><a href="regression-models-with-brms---extended.html#cb1092-3" aria-hidden="true"></a>bar_x &lt;-<span class="st"> </span><span class="dv">300</span></span>
-<span id="cb1092-4"><a href="regression-models-with-brms---extended.html#cb1092-4" aria-hidden="true"></a>bar_sigma &lt;-<span class="st"> </span><span class="dv">200</span></span>
-<span id="cb1092-5"><a href="regression-models-with-brms---extended.html#cb1092-5" aria-hidden="true"></a>alpha &lt;-<span class="st"> </span>(a <span class="op">-</span><span class="st"> </span>bar_x) <span class="op">/</span><span class="st"> </span>bar_sigma</span>
-<span id="cb1092-6"><a href="regression-models-with-brms---extended.html#cb1092-6" aria-hidden="true"></a>beta &lt;-<span class="st"> </span>(b <span class="op">-</span><span class="st"> </span>bar_x) <span class="op">/</span><span class="st"> </span>bar_sigma</span>
-<span id="cb1092-7"><a href="regression-models-with-brms---extended.html#cb1092-7" aria-hidden="true"></a>term1 &lt;-<span class="st"> </span>((<span class="kw">dnorm</span>(beta) <span class="op">-</span><span class="st"> </span><span class="kw">dnorm</span>(alpha)) <span class="op">/</span></span>
-<span id="cb1092-8"><a href="regression-models-with-brms---extended.html#cb1092-8" aria-hidden="true"></a><span class="st">            </span>(<span class="kw">pnorm</span>(beta) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(alpha)))</span>
-<span id="cb1092-9"><a href="regression-models-with-brms---extended.html#cb1092-9" aria-hidden="true"></a>term2 &lt;-<span class="st"> </span>((beta <span class="op">*</span><span class="st"> </span><span class="kw">dnorm</span>(beta) <span class="op">-</span><span class="st"> </span>alpha <span class="op">*</span><span class="st"> </span><span class="kw">dnorm</span>(alpha)) <span class="op">/</span></span>
-<span id="cb1092-10"><a href="regression-models-with-brms---extended.html#cb1092-10" aria-hidden="true"></a><span class="st">            </span>(<span class="kw">pnorm</span>(beta) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(alpha)))</span>
-<span id="cb1092-11"><a href="regression-models-with-brms---extended.html#cb1092-11" aria-hidden="true"></a><span class="co">## the mean and sd of the truncated distribution</span></span>
-<span id="cb1092-12"><a href="regression-models-with-brms---extended.html#cb1092-12" aria-hidden="true"></a><span class="co">## computed analytically:</span></span>
-<span id="cb1092-13"><a href="regression-models-with-brms---extended.html#cb1092-13" aria-hidden="true"></a>(mu &lt;-<span class="st"> </span>bar_x <span class="op">-</span><span class="st"> </span>bar_sigma <span class="op">*</span><span class="st"> </span>term1)</span></code></pre></div>
+<div class="sourceCode" id="cb1093"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1093-1"><a href="regression-models-with-brms---extended.html#cb1093-1" aria-hidden="true"></a>a &lt;-<span class="st"> </span><span class="dv">0</span></span>
+<span id="cb1093-2"><a href="regression-models-with-brms---extended.html#cb1093-2" aria-hidden="true"></a>b &lt;-<span class="st"> </span><span class="dv">500</span></span>
+<span id="cb1093-3"><a href="regression-models-with-brms---extended.html#cb1093-3" aria-hidden="true"></a>bar_x &lt;-<span class="st"> </span><span class="dv">300</span></span>
+<span id="cb1093-4"><a href="regression-models-with-brms---extended.html#cb1093-4" aria-hidden="true"></a>bar_sigma &lt;-<span class="st"> </span><span class="dv">200</span></span>
+<span id="cb1093-5"><a href="regression-models-with-brms---extended.html#cb1093-5" aria-hidden="true"></a>alpha &lt;-<span class="st"> </span>(a <span class="op">-</span><span class="st"> </span>bar_x) <span class="op">/</span><span class="st"> </span>bar_sigma</span>
+<span id="cb1093-6"><a href="regression-models-with-brms---extended.html#cb1093-6" aria-hidden="true"></a>beta &lt;-<span class="st"> </span>(b <span class="op">-</span><span class="st"> </span>bar_x) <span class="op">/</span><span class="st"> </span>bar_sigma</span>
+<span id="cb1093-7"><a href="regression-models-with-brms---extended.html#cb1093-7" aria-hidden="true"></a>term1 &lt;-<span class="st"> </span>((<span class="kw">dnorm</span>(beta) <span class="op">-</span><span class="st"> </span><span class="kw">dnorm</span>(alpha)) <span class="op">/</span></span>
+<span id="cb1093-8"><a href="regression-models-with-brms---extended.html#cb1093-8" aria-hidden="true"></a><span class="st">            </span>(<span class="kw">pnorm</span>(beta) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(alpha)))</span>
+<span id="cb1093-9"><a href="regression-models-with-brms---extended.html#cb1093-9" aria-hidden="true"></a>term2 &lt;-<span class="st"> </span>((beta <span class="op">*</span><span class="st"> </span><span class="kw">dnorm</span>(beta) <span class="op">-</span><span class="st"> </span>alpha <span class="op">*</span><span class="st"> </span><span class="kw">dnorm</span>(alpha)) <span class="op">/</span></span>
+<span id="cb1093-10"><a href="regression-models-with-brms---extended.html#cb1093-10" aria-hidden="true"></a><span class="st">            </span>(<span class="kw">pnorm</span>(beta) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(alpha)))</span>
+<span id="cb1093-11"><a href="regression-models-with-brms---extended.html#cb1093-11" aria-hidden="true"></a><span class="co">## the mean and sd of the truncated distribution</span></span>
+<span id="cb1093-12"><a href="regression-models-with-brms---extended.html#cb1093-12" aria-hidden="true"></a><span class="co">## computed analytically:</span></span>
+<span id="cb1093-13"><a href="regression-models-with-brms---extended.html#cb1093-13" aria-hidden="true"></a>(mu &lt;-<span class="st"> </span>bar_x <span class="op">-</span><span class="st"> </span>bar_sigma <span class="op">*</span><span class="st"> </span>term1)</span></code></pre></div>
 <pre><code>## [1] 271</code></pre>
-<div class="sourceCode" id="cb1094"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1094-1"><a href="regression-models-with-brms---extended.html#cb1094-1" aria-hidden="true"></a>(sigma &lt;-<span class="st"> </span><span class="kw">sqrt</span>(bar_sigma<span class="op">^</span><span class="dv">2</span> <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>term2 <span class="op">-</span><span class="st"> </span>term1<span class="op">^</span><span class="dv">2</span>)))</span></code></pre></div>
+<div class="sourceCode" id="cb1095"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1095-1"><a href="regression-models-with-brms---extended.html#cb1095-1" aria-hidden="true"></a>(sigma &lt;-<span class="st"> </span><span class="kw">sqrt</span>(bar_sigma<span class="op">^</span><span class="dv">2</span> <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>term2 <span class="op">-</span><span class="st"> </span>term1<span class="op">^</span><span class="dv">2</span>)))</span></code></pre></div>
 <pre><code>## [1] 129</code></pre>
 <p>The equations for the mean and variance of the truncated distribution (<span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span>) can also be used to work out the mean and variance of the parent untruncated distribution (<span class="math inline">\(\hat\mu\)</span> and <span class="math inline">\(\hat\sigma\)</span>), if one has estimates for <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span> (from data).</p>
 <p>Suppose that we have observed data with mean <span class="math inline">\(\mu = 271\)</span> and <span class="math inline">\(\sigma=129\)</span>. We want to assume that the data are coming from a truncated normal which has lower bound <span class="math inline">\(0\)</span> and upper bound <span class="math inline">\(500\)</span>. What are the mean and standard deviation of the parent distribution, <span class="math inline">\(\hat\mu\)</span> and <span class="math inline">\(\hat\sigma\)</span>?</p>
@@ -1554,26 +1638,26 @@ Normal_+(x |0, \sigma) = \frac{Normal(x | 0, \sigma)}{1/2}
 \end{equation}\]</span></p>
 <p>Next, solve for <span class="math inline">\(\hat\mu\)</span> and <span class="math inline">\(\hat\sigma\)</span> given the observed mean and the standard deviation of the truncated distribution, and that one knows the boundaries (<span class="math inline">\(a\)</span>, and <span class="math inline">\(b\)</span>).</p>
 <p>Define the  system of equations according to the specifications of  <code>multiroot()</code> from the package  <code>rootSolve</code>: <code>x</code> for the unknowns (<span class="math inline">\(\hat\mu\)</span> and <span class="math inline">\(\hat\sigma\)</span>), and <code>parms</code> for the known parameters: <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>, and the mean and standard deviation of the truncated normal.</p>
-<div class="sourceCode" id="cb1096"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1096-1"><a href="regression-models-with-brms---extended.html#cb1096-1" aria-hidden="true"></a>eq_system &lt;-<span class="st"> </span><span class="cf">function</span>(x, parms) {</span>
-<span id="cb1096-2"><a href="regression-models-with-brms---extended.html#cb1096-2" aria-hidden="true"></a>  mu_hat &lt;-<span class="st"> </span>x[<span class="dv">1</span>]</span>
-<span id="cb1096-3"><a href="regression-models-with-brms---extended.html#cb1096-3" aria-hidden="true"></a>  sigma_hat &lt;-<span class="st"> </span>x[<span class="dv">2</span>]</span>
-<span id="cb1096-4"><a href="regression-models-with-brms---extended.html#cb1096-4" aria-hidden="true"></a>  alpha &lt;-<span class="st"> </span>(parms[<span class="st">&quot;a&quot;</span>] <span class="op">-</span><span class="st"> </span>mu_hat) <span class="op">/</span><span class="st"> </span>sigma_hat</span>
-<span id="cb1096-5"><a href="regression-models-with-brms---extended.html#cb1096-5" aria-hidden="true"></a>  beta &lt;-<span class="st"> </span>(parms[<span class="st">&quot;b&quot;</span>] <span class="op">-</span><span class="st"> </span>mu_hat) <span class="op">/</span><span class="st"> </span>sigma_hat</span>
-<span id="cb1096-6"><a href="regression-models-with-brms---extended.html#cb1096-6" aria-hidden="true"></a>  <span class="kw">c</span>(<span class="dt">F1 =</span> parms[<span class="st">&quot;mu&quot;</span>] <span class="op">-</span><span class="st"> </span>mu_hat <span class="op">+</span><span class="st"> </span>sigma_hat <span class="op">*</span></span>
-<span id="cb1096-7"><a href="regression-models-with-brms---extended.html#cb1096-7" aria-hidden="true"></a><span class="st">    </span>(<span class="kw">dnorm</span>(beta) <span class="op">-</span><span class="st"> </span><span class="kw">dnorm</span>(alpha)) <span class="op">/</span><span class="st"> </span>(<span class="kw">pnorm</span>(beta) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(alpha)),</span>
-<span id="cb1096-8"><a href="regression-models-with-brms---extended.html#cb1096-8" aria-hidden="true"></a>    <span class="dt">F2 =</span> parms[<span class="st">&quot;sigma&quot;</span>] <span class="op">-</span><span class="st"> </span>sigma_hat <span class="op">*</span></span>
-<span id="cb1096-9"><a href="regression-models-with-brms---extended.html#cb1096-9" aria-hidden="true"></a><span class="st">     </span><span class="kw">sqrt</span>((<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>((beta) <span class="op">*</span><span class="st"> </span><span class="kw">dnorm</span>(beta) <span class="op">-</span><span class="st"> </span>(alpha) <span class="op">*</span><span class="st"> </span><span class="kw">dnorm</span>(alpha)) <span class="op">/</span></span>
-<span id="cb1096-10"><a href="regression-models-with-brms---extended.html#cb1096-10" aria-hidden="true"></a><span class="st">   </span>(<span class="kw">pnorm</span>(beta) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(alpha)) <span class="op">-</span><span class="st"> </span>((<span class="kw">dnorm</span>(beta) <span class="op">-</span><span class="st"> </span><span class="kw">dnorm</span>(alpha)) <span class="op">/</span></span>
-<span id="cb1096-11"><a href="regression-models-with-brms---extended.html#cb1096-11" aria-hidden="true"></a><span class="st">             </span>(<span class="kw">pnorm</span>(beta) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(alpha)))<span class="op">^</span><span class="dv">2</span>)))</span>
-<span id="cb1096-12"><a href="regression-models-with-brms---extended.html#cb1096-12" aria-hidden="true"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb1097"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1097-1"><a href="regression-models-with-brms---extended.html#cb1097-1" aria-hidden="true"></a>eq_system &lt;-<span class="st"> </span><span class="cf">function</span>(x, parms) {</span>
+<span id="cb1097-2"><a href="regression-models-with-brms---extended.html#cb1097-2" aria-hidden="true"></a>  mu_hat &lt;-<span class="st"> </span>x[<span class="dv">1</span>]</span>
+<span id="cb1097-3"><a href="regression-models-with-brms---extended.html#cb1097-3" aria-hidden="true"></a>  sigma_hat &lt;-<span class="st"> </span>x[<span class="dv">2</span>]</span>
+<span id="cb1097-4"><a href="regression-models-with-brms---extended.html#cb1097-4" aria-hidden="true"></a>  alpha &lt;-<span class="st"> </span>(parms[<span class="st">&quot;a&quot;</span>] <span class="op">-</span><span class="st"> </span>mu_hat) <span class="op">/</span><span class="st"> </span>sigma_hat</span>
+<span id="cb1097-5"><a href="regression-models-with-brms---extended.html#cb1097-5" aria-hidden="true"></a>  beta &lt;-<span class="st"> </span>(parms[<span class="st">&quot;b&quot;</span>] <span class="op">-</span><span class="st"> </span>mu_hat) <span class="op">/</span><span class="st"> </span>sigma_hat</span>
+<span id="cb1097-6"><a href="regression-models-with-brms---extended.html#cb1097-6" aria-hidden="true"></a>  <span class="kw">c</span>(<span class="dt">F1 =</span> parms[<span class="st">&quot;mu&quot;</span>] <span class="op">-</span><span class="st"> </span>mu_hat <span class="op">+</span><span class="st"> </span>sigma_hat <span class="op">*</span></span>
+<span id="cb1097-7"><a href="regression-models-with-brms---extended.html#cb1097-7" aria-hidden="true"></a><span class="st">    </span>(<span class="kw">dnorm</span>(beta) <span class="op">-</span><span class="st"> </span><span class="kw">dnorm</span>(alpha)) <span class="op">/</span><span class="st"> </span>(<span class="kw">pnorm</span>(beta) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(alpha)),</span>
+<span id="cb1097-8"><a href="regression-models-with-brms---extended.html#cb1097-8" aria-hidden="true"></a>    <span class="dt">F2 =</span> parms[<span class="st">&quot;sigma&quot;</span>] <span class="op">-</span><span class="st"> </span>sigma_hat <span class="op">*</span></span>
+<span id="cb1097-9"><a href="regression-models-with-brms---extended.html#cb1097-9" aria-hidden="true"></a><span class="st">     </span><span class="kw">sqrt</span>((<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>((beta) <span class="op">*</span><span class="st"> </span><span class="kw">dnorm</span>(beta) <span class="op">-</span><span class="st"> </span>(alpha) <span class="op">*</span><span class="st"> </span><span class="kw">dnorm</span>(alpha)) <span class="op">/</span></span>
+<span id="cb1097-10"><a href="regression-models-with-brms---extended.html#cb1097-10" aria-hidden="true"></a><span class="st">   </span>(<span class="kw">pnorm</span>(beta) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(alpha)) <span class="op">-</span><span class="st"> </span>((<span class="kw">dnorm</span>(beta) <span class="op">-</span><span class="st"> </span><span class="kw">dnorm</span>(alpha)) <span class="op">/</span></span>
+<span id="cb1097-11"><a href="regression-models-with-brms---extended.html#cb1097-11" aria-hidden="true"></a><span class="st">             </span>(<span class="kw">pnorm</span>(beta) <span class="op">-</span><span class="st"> </span><span class="kw">pnorm</span>(alpha)))<span class="op">^</span><span class="dv">2</span>)))</span>
+<span id="cb1097-12"><a href="regression-models-with-brms---extended.html#cb1097-12" aria-hidden="true"></a>}</span></code></pre></div>
 <p>Solving the two equations using <code>multiroot()</code> from the package <code>rootSolve</code> gives us the mean and standard deviation <span class="math inline">\(\hat\mu\)</span> and <span class="math inline">\(\hat\sigma\)</span> of the parent normal distribution. (Notice that <code>x</code> is a required parameter of the previous function so that it works with <code>multiroot()</code>, however, outside of the function the variable <code>x</code> is a vector containing the samples of the truncated normal distribution generated with <code>rtnorm()</code>).</p>
-<div class="sourceCode" id="cb1097"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1097-1"><a href="regression-models-with-brms---extended.html#cb1097-1" aria-hidden="true"></a>soln &lt;-<span class="st"> </span><span class="kw">multiroot</span>(<span class="dt">f =</span> eq_system,</span>
-<span id="cb1097-2"><a href="regression-models-with-brms---extended.html#cb1097-2" aria-hidden="true"></a>                  <span class="dt">start =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">1</span>),</span>
-<span id="cb1097-3"><a href="regression-models-with-brms---extended.html#cb1097-3" aria-hidden="true"></a>                  <span class="dt">parms =</span> <span class="kw">c</span>(<span class="dt">a =</span> <span class="dv">0</span>,</span>
-<span id="cb1097-4"><a href="regression-models-with-brms---extended.html#cb1097-4" aria-hidden="true"></a>                            <span class="dt">b =</span> <span class="dv">500</span>,</span>
-<span id="cb1097-5"><a href="regression-models-with-brms---extended.html#cb1097-5" aria-hidden="true"></a>                            <span class="dt">mu =</span> <span class="kw">mean</span>(x),</span>
-<span id="cb1097-6"><a href="regression-models-with-brms---extended.html#cb1097-6" aria-hidden="true"></a>                            <span class="dt">sigma =</span> <span class="kw">sd</span>(x)))</span>
-<span id="cb1097-7"><a href="regression-models-with-brms---extended.html#cb1097-7" aria-hidden="true"></a>soln<span class="op">$</span>root</span></code></pre></div>
+<div class="sourceCode" id="cb1098"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1098-1"><a href="regression-models-with-brms---extended.html#cb1098-1" aria-hidden="true"></a>soln &lt;-<span class="st"> </span><span class="kw">multiroot</span>(<span class="dt">f =</span> eq_system,</span>
+<span id="cb1098-2"><a href="regression-models-with-brms---extended.html#cb1098-2" aria-hidden="true"></a>                  <span class="dt">start =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">1</span>),</span>
+<span id="cb1098-3"><a href="regression-models-with-brms---extended.html#cb1098-3" aria-hidden="true"></a>                  <span class="dt">parms =</span> <span class="kw">c</span>(<span class="dt">a =</span> <span class="dv">0</span>,</span>
+<span id="cb1098-4"><a href="regression-models-with-brms---extended.html#cb1098-4" aria-hidden="true"></a>                            <span class="dt">b =</span> <span class="dv">500</span>,</span>
+<span id="cb1098-5"><a href="regression-models-with-brms---extended.html#cb1098-5" aria-hidden="true"></a>                            <span class="dt">mu =</span> <span class="kw">mean</span>(x),</span>
+<span id="cb1098-6"><a href="regression-models-with-brms---extended.html#cb1098-6" aria-hidden="true"></a>                            <span class="dt">sigma =</span> <span class="kw">sd</span>(x)))</span>
+<span id="cb1098-7"><a href="regression-models-with-brms---extended.html#cb1098-7" aria-hidden="true"></a>soln<span class="op">$</span>root</span></code></pre></div>
 <pre><code>## [1] 300 200</code></pre>
 <p>The function <code>compute_meansd_parent()</code> encapsulates the previous procedure and it is provided in the <code>bcogsci</code> package.</p>
 </div>
@@ -1582,31 +1666,31 @@ Normal_+(x |0, \sigma) = \frac{Normal(x | 0, \sigma)}{1/2}
 <p>When we set up a prior for the intercept in <code>brms</code>, we actually set a prior for an intercept assuming that all the predictors are centered. This means that when predictors are not centered (and only then), there is a mismatch between the interpretation of the intercept as returned in the output of <code>brms</code> and the interpretation of the intercept with respect to its prior specification. In this case, only the intercept in the output corresponds to the formula in the <code>brms</code> call, that is, the intercept in the output corresponds to the non-centered model. However, as we show below, when the intercept is much larger than the effects that we are considering in the formula (what we generally call <span class="math inline">\(\beta\)</span>), this discrepancy hardly matters.</p>
 <p>The reason for this mismatch when our predictors are uncentered is that <code>brms</code> increases  sampling efficiency by automatically centering all the predictors internally (that is the population-level design matrix <span class="math inline">\(X\)</span> is internally centered around its column means when <code>brms</code> fits a model). This did not matter in our previous examples because we centered our predictor (or we had no predictor), but it might matter if we want to have uncentered predictors. In the design we are discussing, a non-centered predictor of load will mean that the intercept, <span class="math inline">\(\alpha\)</span>, has a straightforward interpretation: the <span class="math inline">\(\alpha\)</span> is the mean pupil size when there is no attention load. This is in contrast with the centered version presented before, where the intercept <span class="math inline">\(\alpha\)</span> represents the pupil size for the average load of <code>2.44</code> (<code>c_load</code> is equal to 0). The difference between the non-centered model (below) and the centered version presented before is depicted in Figure <a href="regression-models-with-brms---extended.html#fig:centered-non-centered">A.1</a>.</p>
 <p>Suppose that we are quite sure that the prior values for the no load condition (i.e., load is non-centered) fall between <span class="math inline">\(400\)</span> and <span class="math inline">\(1200\)</span> ms. In that case, the following prior could be set for <span class="math inline">\(\alpha\)</span>: <span class="math inline">\(\mathit{Normal}(800,200)\)</span>. In this case, the model becomes:</p>
-<div class="sourceCode" id="cb1099"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1099-1"><a href="regression-models-with-brms---extended.html#cb1099-1" aria-hidden="true"></a>prior_nc &lt;-</span>
-<span id="cb1099-2"><a href="regression-models-with-brms---extended.html#cb1099-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">c</span>(<span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">800</span>, <span class="dv">200</span>), <span class="dt">class =</span> b, <span class="dt">coef =</span> Intercept),</span>
-<span id="cb1099-3"><a href="regression-models-with-brms---extended.html#cb1099-3" aria-hidden="true"></a>    <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">1000</span>), <span class="dt">class =</span> sigma),</span>
-<span id="cb1099-4"><a href="regression-models-with-brms---extended.html#cb1099-4" aria-hidden="true"></a>    <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="dt">class =</span> b, <span class="dt">coef =</span> load))</span>
-<span id="cb1099-5"><a href="regression-models-with-brms---extended.html#cb1099-5" aria-hidden="true"></a></span>
-<span id="cb1099-6"><a href="regression-models-with-brms---extended.html#cb1099-6" aria-hidden="true"></a>fit_pupil_non_centered &lt;-<span class="st"> </span><span class="kw">brm</span>(p_size <span class="op">~</span><span class="st"> </span><span class="dv">0</span> <span class="op">+</span><span class="st"> </span>Intercept <span class="op">+</span><span class="st"> </span>load,</span>
-<span id="cb1099-7"><a href="regression-models-with-brms---extended.html#cb1099-7" aria-hidden="true"></a>                              <span class="dt">data =</span> df_pupil,</span>
-<span id="cb1099-8"><a href="regression-models-with-brms---extended.html#cb1099-8" aria-hidden="true"></a>                              <span class="dt">family =</span> <span class="kw">gaussian</span>(),</span>
-<span id="cb1099-9"><a href="regression-models-with-brms---extended.html#cb1099-9" aria-hidden="true"></a>                              <span class="dt">prior =</span> prior_nc)</span></code></pre></div>
+<div class="sourceCode" id="cb1100"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1100-1"><a href="regression-models-with-brms---extended.html#cb1100-1" aria-hidden="true"></a>prior_nc &lt;-</span>
+<span id="cb1100-2"><a href="regression-models-with-brms---extended.html#cb1100-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">c</span>(<span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">800</span>, <span class="dv">200</span>), <span class="dt">class =</span> b, <span class="dt">coef =</span> Intercept),</span>
+<span id="cb1100-3"><a href="regression-models-with-brms---extended.html#cb1100-3" aria-hidden="true"></a>    <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">1000</span>), <span class="dt">class =</span> sigma),</span>
+<span id="cb1100-4"><a href="regression-models-with-brms---extended.html#cb1100-4" aria-hidden="true"></a>    <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="dt">class =</span> b, <span class="dt">coef =</span> load))</span>
+<span id="cb1100-5"><a href="regression-models-with-brms---extended.html#cb1100-5" aria-hidden="true"></a></span>
+<span id="cb1100-6"><a href="regression-models-with-brms---extended.html#cb1100-6" aria-hidden="true"></a>fit_pupil_non_centered &lt;-<span class="st"> </span><span class="kw">brm</span>(p_size <span class="op">~</span><span class="st"> </span><span class="dv">0</span> <span class="op">+</span><span class="st"> </span>Intercept <span class="op">+</span><span class="st"> </span>load,</span>
+<span id="cb1100-7"><a href="regression-models-with-brms---extended.html#cb1100-7" aria-hidden="true"></a>                              <span class="dt">data =</span> df_pupil,</span>
+<span id="cb1100-8"><a href="regression-models-with-brms---extended.html#cb1100-8" aria-hidden="true"></a>                              <span class="dt">family =</span> <span class="kw">gaussian</span>(),</span>
+<span id="cb1100-9"><a href="regression-models-with-brms---extended.html#cb1100-9" aria-hidden="true"></a>                              <span class="dt">prior =</span> prior_nc)</span></code></pre></div>
 <p>When the predictor is non-centered as shown above, the regular centered intercept is removed by adding <code>0</code> to the formula, and by replacing the intercept with the “actual” intercept we want to set priors on with <code>Intercept</code>. The word <code>Intercept</code> is a reserved word; we cannot name any predictor with this name. This new parameter is also of class <code>b</code>, so its prior needs to be defined accordingly. Once we use <code>0 + Intercept + ..</code>, the intercept is not calculated with predictors that are automatically centered any more.</p>
 <p>The output below shows that, as expected, although the posterior for the intercept has changed noticeably, the posterior for the effect of load remains virtually unchanged.</p>
-<div class="sourceCode" id="cb1100"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1100-1"><a href="regression-models-with-brms---extended.html#cb1100-1" aria-hidden="true"></a><span class="kw">posterior_summary</span>(fit_pupil_non_centered,</span>
-<span id="cb1100-2"><a href="regression-models-with-brms---extended.html#cb1100-2" aria-hidden="true"></a>                  <span class="dt">variable =</span> <span class="kw">c</span>(<span class="st">&quot;b_Intercept&quot;</span>, <span class="st">&quot;b_load&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1101"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1101-1"><a href="regression-models-with-brms---extended.html#cb1101-1" aria-hidden="true"></a><span class="kw">posterior_summary</span>(fit_pupil_non_centered,</span>
+<span id="cb1101-2"><a href="regression-models-with-brms---extended.html#cb1101-2" aria-hidden="true"></a>                  <span class="dt">variable =</span> <span class="kw">c</span>(<span class="st">&quot;b_Intercept&quot;</span>, <span class="st">&quot;b_load&quot;</span>))</span></code></pre></div>
 <pre><code>##             Estimate Est.Error   Q2.5 Q97.5
-## b_Intercept    624.0      34.4 558.54 693.7
-## b_load          32.3      11.6   8.58  54.6</code></pre>
+## b_Intercept    624.7      35.5 556.01 695.8
+## b_load          32.2      12.0   8.43  55.8</code></pre>
 <p>Notice the following potential pitfall. A model like the one below will fit a non-centered load predictor, but will assign a prior of <span class="math inline">\(\mathit{Normal}(800,200)\)</span> to the intercept of a model that assumes a centered predictor, <span class="math inline">\(\alpha_{centered}\)</span>, and not the current intercept, <span class="math inline">\(\alpha\)</span>.</p>
-<div class="sourceCode" id="cb1102"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1102-1"><a href="regression-models-with-brms---extended.html#cb1102-1" aria-hidden="true"></a>prior_nc &lt;-</span>
-<span id="cb1102-2"><a href="regression-models-with-brms---extended.html#cb1102-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">c</span>(<span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">800</span>, <span class="dv">200</span>), <span class="dt">class =</span> Intercept),</span>
-<span id="cb1102-3"><a href="regression-models-with-brms---extended.html#cb1102-3" aria-hidden="true"></a>    <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">1000</span>), <span class="dt">class =</span> sigma),</span>
-<span id="cb1102-4"><a href="regression-models-with-brms---extended.html#cb1102-4" aria-hidden="true"></a>    <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="dt">class =</span> b, <span class="dt">coef =</span> load))</span>
-<span id="cb1102-5"><a href="regression-models-with-brms---extended.html#cb1102-5" aria-hidden="true"></a>fit_pupil_wrong &lt;-<span class="st"> </span><span class="kw">brm</span>(p_size <span class="op">~</span><span class="st"> </span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>load,</span>
-<span id="cb1102-6"><a href="regression-models-with-brms---extended.html#cb1102-6" aria-hidden="true"></a>                       <span class="dt">data =</span> df_pupil,</span>
-<span id="cb1102-7"><a href="regression-models-with-brms---extended.html#cb1102-7" aria-hidden="true"></a>                       <span class="dt">family =</span> <span class="kw">gaussian</span>(),</span>
-<span id="cb1102-8"><a href="regression-models-with-brms---extended.html#cb1102-8" aria-hidden="true"></a>                       <span class="dt">prior =</span> prior_nc)</span></code></pre></div>
+<div class="sourceCode" id="cb1103"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1103-1"><a href="regression-models-with-brms---extended.html#cb1103-1" aria-hidden="true"></a>prior_nc &lt;-</span>
+<span id="cb1103-2"><a href="regression-models-with-brms---extended.html#cb1103-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">c</span>(<span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">800</span>, <span class="dv">200</span>), <span class="dt">class =</span> Intercept),</span>
+<span id="cb1103-3"><a href="regression-models-with-brms---extended.html#cb1103-3" aria-hidden="true"></a>    <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">1000</span>), <span class="dt">class =</span> sigma),</span>
+<span id="cb1103-4"><a href="regression-models-with-brms---extended.html#cb1103-4" aria-hidden="true"></a>    <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="dt">class =</span> b, <span class="dt">coef =</span> load))</span>
+<span id="cb1103-5"><a href="regression-models-with-brms---extended.html#cb1103-5" aria-hidden="true"></a>fit_pupil_wrong &lt;-<span class="st"> </span><span class="kw">brm</span>(p_size <span class="op">~</span><span class="st"> </span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>load,</span>
+<span id="cb1103-6"><a href="regression-models-with-brms---extended.html#cb1103-6" aria-hidden="true"></a>                       <span class="dt">data =</span> df_pupil,</span>
+<span id="cb1103-7"><a href="regression-models-with-brms---extended.html#cb1103-7" aria-hidden="true"></a>                       <span class="dt">family =</span> <span class="kw">gaussian</span>(),</span>
+<span id="cb1103-8"><a href="regression-models-with-brms---extended.html#cb1103-8" aria-hidden="true"></a>                       <span class="dt">prior =</span> prior_nc)</span></code></pre></div>
 <p>What does it mean to set a prior to <span class="math inline">\(\alpha_{centered}\)</span> in a model that doesn’t include <span class="math inline">\(\alpha_{centered}\)</span>?</p>
 <p>The fitted (expected) values of the non-centered model and the centered one are identical, that is, the values of the response distribution without the residual error are identical for both models:</p>
 <p><span class="math display" id="eq:fitted">\[\begin{equation}
@@ -1721,53 +1805,53 @@ One advantage of assuming log-normally distributed response times (but, in fact,
 <h2><span class="header-section-number">A.5</span> Prior predictive checks in R<a href="regression-models-with-brms---extended.html#app-priorR" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>The following function is an edited version of the earlier <code>normal_predictive_distribution</code> from the online section <a href="regression-models-with-brms---extended.html#app-efficientpriorpd">A.1</a>, which was used in section <a href="ch-compbda.html#sec-priorpred">3.3</a>; it has been edited to make it compatible with logistic regression and dependent on set size.</p>
 <p>As we did before, our custom function uses the <code>purrr</code> function <code>map2_dfr()</code>, which runs an efficient for-loop, iterating over two vectors (here <code>alpha_samples</code> and <code>beta_samples</code>), and builds a data frame with the output.</p>
-<div class="sourceCode" id="cb1103"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1103-1"><a href="regression-models-with-brms---extended.html#cb1103-1" aria-hidden="true"></a>logistic_model_pred &lt;-<span class="st"> </span><span class="cf">function</span>(alpha_samples,</span>
-<span id="cb1103-2"><a href="regression-models-with-brms---extended.html#cb1103-2" aria-hidden="true"></a>                                beta_samples,</span>
-<span id="cb1103-3"><a href="regression-models-with-brms---extended.html#cb1103-3" aria-hidden="true"></a>                                set_size,</span>
-<span id="cb1103-4"><a href="regression-models-with-brms---extended.html#cb1103-4" aria-hidden="true"></a>                                N_obs) {</span>
-<span id="cb1103-5"><a href="regression-models-with-brms---extended.html#cb1103-5" aria-hidden="true"></a>  <span class="kw">map2_dfr</span>(alpha_samples, beta_samples,</span>
-<span id="cb1103-6"><a href="regression-models-with-brms---extended.html#cb1103-6" aria-hidden="true"></a>           <span class="cf">function</span>(alpha, beta) {</span>
-<span id="cb1103-7"><a href="regression-models-with-brms---extended.html#cb1103-7" aria-hidden="true"></a>             <span class="kw">tibble</span>(<span class="dt">set_size =</span> set_size,</span>
-<span id="cb1103-8"><a href="regression-models-with-brms---extended.html#cb1103-8" aria-hidden="true"></a>                    <span class="co"># center size:</span></span>
-<span id="cb1103-9"><a href="regression-models-with-brms---extended.html#cb1103-9" aria-hidden="true"></a>                    <span class="dt">c_set_size =</span> set_size <span class="op">-</span><span class="st"> </span><span class="kw">mean</span>(set_size),</span>
-<span id="cb1103-10"><a href="regression-models-with-brms---extended.html#cb1103-10" aria-hidden="true"></a>                    <span class="co"># change the likelihood:</span></span>
-<span id="cb1103-11"><a href="regression-models-with-brms---extended.html#cb1103-11" aria-hidden="true"></a>                    <span class="co"># Notice the use of a link function</span></span>
-<span id="cb1103-12"><a href="regression-models-with-brms---extended.html#cb1103-12" aria-hidden="true"></a>                    <span class="co"># for alpha and beta</span></span>
-<span id="cb1103-13"><a href="regression-models-with-brms---extended.html#cb1103-13" aria-hidden="true"></a>                    <span class="dt">theta =</span> <span class="kw">plogis</span>(alpha <span class="op">+</span><span class="st"> </span>c_set_size <span class="op">*</span><span class="st"> </span>beta),</span>
-<span id="cb1103-14"><a href="regression-models-with-brms---extended.html#cb1103-14" aria-hidden="true"></a>                    <span class="dt">correct_pred =</span> <span class="kw">rbern</span>(N_obs, <span class="dt">prob =</span> theta))</span>
-<span id="cb1103-15"><a href="regression-models-with-brms---extended.html#cb1103-15" aria-hidden="true"></a>           },</span>
-<span id="cb1103-16"><a href="regression-models-with-brms---extended.html#cb1103-16" aria-hidden="true"></a>           <span class="dt">.id =</span> <span class="st">&quot;iter&quot;</span>) <span class="op">%&gt;%</span></span>
-<span id="cb1103-17"><a href="regression-models-with-brms---extended.html#cb1103-17" aria-hidden="true"></a><span class="st">    </span><span class="co"># .id is always a string and needs</span></span>
-<span id="cb1103-18"><a href="regression-models-with-brms---extended.html#cb1103-18" aria-hidden="true"></a><span class="st">    </span><span class="co"># to be converted to a number</span></span>
-<span id="cb1103-19"><a href="regression-models-with-brms---extended.html#cb1103-19" aria-hidden="true"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">iter =</span> <span class="kw">as.numeric</span>(iter))</span>
-<span id="cb1103-20"><a href="regression-models-with-brms---extended.html#cb1103-20" aria-hidden="true"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb1104"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1104-1"><a href="regression-models-with-brms---extended.html#cb1104-1" aria-hidden="true"></a>logistic_model_pred &lt;-<span class="st"> </span><span class="cf">function</span>(alpha_samples,</span>
+<span id="cb1104-2"><a href="regression-models-with-brms---extended.html#cb1104-2" aria-hidden="true"></a>                                beta_samples,</span>
+<span id="cb1104-3"><a href="regression-models-with-brms---extended.html#cb1104-3" aria-hidden="true"></a>                                set_size,</span>
+<span id="cb1104-4"><a href="regression-models-with-brms---extended.html#cb1104-4" aria-hidden="true"></a>                                N_obs) {</span>
+<span id="cb1104-5"><a href="regression-models-with-brms---extended.html#cb1104-5" aria-hidden="true"></a>  <span class="kw">map2_dfr</span>(alpha_samples, beta_samples,</span>
+<span id="cb1104-6"><a href="regression-models-with-brms---extended.html#cb1104-6" aria-hidden="true"></a>           <span class="cf">function</span>(alpha, beta) {</span>
+<span id="cb1104-7"><a href="regression-models-with-brms---extended.html#cb1104-7" aria-hidden="true"></a>             <span class="kw">tibble</span>(<span class="dt">set_size =</span> set_size,</span>
+<span id="cb1104-8"><a href="regression-models-with-brms---extended.html#cb1104-8" aria-hidden="true"></a>                    <span class="co"># center size:</span></span>
+<span id="cb1104-9"><a href="regression-models-with-brms---extended.html#cb1104-9" aria-hidden="true"></a>                    <span class="dt">c_set_size =</span> set_size <span class="op">-</span><span class="st"> </span><span class="kw">mean</span>(set_size),</span>
+<span id="cb1104-10"><a href="regression-models-with-brms---extended.html#cb1104-10" aria-hidden="true"></a>                    <span class="co"># change the likelihood:</span></span>
+<span id="cb1104-11"><a href="regression-models-with-brms---extended.html#cb1104-11" aria-hidden="true"></a>                    <span class="co"># Notice the use of a link function</span></span>
+<span id="cb1104-12"><a href="regression-models-with-brms---extended.html#cb1104-12" aria-hidden="true"></a>                    <span class="co"># for alpha and beta</span></span>
+<span id="cb1104-13"><a href="regression-models-with-brms---extended.html#cb1104-13" aria-hidden="true"></a>                    <span class="dt">theta =</span> <span class="kw">plogis</span>(alpha <span class="op">+</span><span class="st"> </span>c_set_size <span class="op">*</span><span class="st"> </span>beta),</span>
+<span id="cb1104-14"><a href="regression-models-with-brms---extended.html#cb1104-14" aria-hidden="true"></a>                    <span class="dt">correct_pred =</span> <span class="kw">rbern</span>(N_obs, <span class="dt">prob =</span> theta))</span>
+<span id="cb1104-15"><a href="regression-models-with-brms---extended.html#cb1104-15" aria-hidden="true"></a>           },</span>
+<span id="cb1104-16"><a href="regression-models-with-brms---extended.html#cb1104-16" aria-hidden="true"></a>           <span class="dt">.id =</span> <span class="st">&quot;iter&quot;</span>) <span class="op">%&gt;%</span></span>
+<span id="cb1104-17"><a href="regression-models-with-brms---extended.html#cb1104-17" aria-hidden="true"></a><span class="st">    </span><span class="co"># .id is always a string and needs</span></span>
+<span id="cb1104-18"><a href="regression-models-with-brms---extended.html#cb1104-18" aria-hidden="true"></a><span class="st">    </span><span class="co"># to be converted to a number</span></span>
+<span id="cb1104-19"><a href="regression-models-with-brms---extended.html#cb1104-19" aria-hidden="true"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">iter =</span> <span class="kw">as.numeric</span>(iter))</span>
+<span id="cb1104-20"><a href="regression-models-with-brms---extended.html#cb1104-20" aria-hidden="true"></a>}</span></code></pre></div>
 <p>Let’s assume 800 observations with 200 observation for each set size:</p>
-<div class="sourceCode" id="cb1104"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1104-1"><a href="regression-models-with-brms---extended.html#cb1104-1" aria-hidden="true"></a>N_obs &lt;-<span class="st"> </span><span class="dv">800</span></span>
-<span id="cb1104-2"><a href="regression-models-with-brms---extended.html#cb1104-2" aria-hidden="true"></a>set_size &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="kw">c</span>(<span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">6</span>, <span class="dv">8</span>), <span class="dv">200</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1105"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1105-1"><a href="regression-models-with-brms---extended.html#cb1105-1" aria-hidden="true"></a>N_obs &lt;-<span class="st"> </span><span class="dv">800</span></span>
+<span id="cb1105-2"><a href="regression-models-with-brms---extended.html#cb1105-2" aria-hidden="true"></a>set_size &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="kw">c</span>(<span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">6</span>, <span class="dv">8</span>), <span class="dv">200</span>)</span></code></pre></div>
 <p>Now, iterate over plausible standard deviations of <span class="math inline">\(\beta\)</span> with the <code>purrr</code> function <code>map_dfr()</code>, which iterates over one vector (here <code>sds_beta</code>), and also builds a data frame with the output.</p>
-<div class="sourceCode" id="cb1105"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1105-1"><a href="regression-models-with-brms---extended.html#cb1105-1" aria-hidden="true"></a>alpha_samples &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">1000</span>, <span class="dv">0</span>, <span class="fl">1.5</span>)</span>
-<span id="cb1105-2"><a href="regression-models-with-brms---extended.html#cb1105-2" aria-hidden="true"></a>sds_beta &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>, <span class="fl">0.5</span>, <span class="fl">0.1</span>, <span class="fl">0.01</span>, <span class="fl">0.001</span>)</span>
-<span id="cb1105-3"><a href="regression-models-with-brms---extended.html#cb1105-3" aria-hidden="true"></a>prior_pred &lt;-<span class="st"> </span><span class="kw">map_dfr</span>(sds_beta, <span class="cf">function</span>(sd) {</span>
-<span id="cb1105-4"><a href="regression-models-with-brms---extended.html#cb1105-4" aria-hidden="true"></a>  beta_samples &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">1000</span>, <span class="dv">0</span>, sd)</span>
-<span id="cb1105-5"><a href="regression-models-with-brms---extended.html#cb1105-5" aria-hidden="true"></a>  <span class="kw">logistic_model_pred</span>(<span class="dt">alpha_samples =</span> alpha_samples,</span>
-<span id="cb1105-6"><a href="regression-models-with-brms---extended.html#cb1105-6" aria-hidden="true"></a>                      <span class="dt">beta_samples =</span> beta_samples,</span>
-<span id="cb1105-7"><a href="regression-models-with-brms---extended.html#cb1105-7" aria-hidden="true"></a>                      <span class="dt">set_size =</span> set_size,</span>
-<span id="cb1105-8"><a href="regression-models-with-brms---extended.html#cb1105-8" aria-hidden="true"></a>                      <span class="dt">N_obs =</span> N_obs) <span class="op">%&gt;%</span></span>
-<span id="cb1105-9"><a href="regression-models-with-brms---extended.html#cb1105-9" aria-hidden="true"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">prior_beta_sd =</span> sd)</span>
-<span id="cb1105-10"><a href="regression-models-with-brms---extended.html#cb1105-10" aria-hidden="true"></a>})</span></code></pre></div>
+<div class="sourceCode" id="cb1106"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1106-1"><a href="regression-models-with-brms---extended.html#cb1106-1" aria-hidden="true"></a>alpha_samples &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">1000</span>, <span class="dv">0</span>, <span class="fl">1.5</span>)</span>
+<span id="cb1106-2"><a href="regression-models-with-brms---extended.html#cb1106-2" aria-hidden="true"></a>sds_beta &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>, <span class="fl">0.5</span>, <span class="fl">0.1</span>, <span class="fl">0.01</span>, <span class="fl">0.001</span>)</span>
+<span id="cb1106-3"><a href="regression-models-with-brms---extended.html#cb1106-3" aria-hidden="true"></a>prior_pred &lt;-<span class="st"> </span><span class="kw">map_dfr</span>(sds_beta, <span class="cf">function</span>(sd) {</span>
+<span id="cb1106-4"><a href="regression-models-with-brms---extended.html#cb1106-4" aria-hidden="true"></a>  beta_samples &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">1000</span>, <span class="dv">0</span>, sd)</span>
+<span id="cb1106-5"><a href="regression-models-with-brms---extended.html#cb1106-5" aria-hidden="true"></a>  <span class="kw">logistic_model_pred</span>(<span class="dt">alpha_samples =</span> alpha_samples,</span>
+<span id="cb1106-6"><a href="regression-models-with-brms---extended.html#cb1106-6" aria-hidden="true"></a>                      <span class="dt">beta_samples =</span> beta_samples,</span>
+<span id="cb1106-7"><a href="regression-models-with-brms---extended.html#cb1106-7" aria-hidden="true"></a>                      <span class="dt">set_size =</span> set_size,</span>
+<span id="cb1106-8"><a href="regression-models-with-brms---extended.html#cb1106-8" aria-hidden="true"></a>                      <span class="dt">N_obs =</span> N_obs) <span class="op">%&gt;%</span></span>
+<span id="cb1106-9"><a href="regression-models-with-brms---extended.html#cb1106-9" aria-hidden="true"></a><span class="st">    </span><span class="kw">mutate</span>(<span class="dt">prior_beta_sd =</span> sd)</span>
+<span id="cb1106-10"><a href="regression-models-with-brms---extended.html#cb1106-10" aria-hidden="true"></a>})</span></code></pre></div>
 <p>Calculate the accuracy for each one of the priors we want to examine, for each iteration, and for each set size.</p>
-<div class="sourceCode" id="cb1106"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1106-1"><a href="regression-models-with-brms---extended.html#cb1106-1" aria-hidden="true"></a>mean_accuracy &lt;-</span>
-<span id="cb1106-2"><a href="regression-models-with-brms---extended.html#cb1106-2" aria-hidden="true"></a><span class="st">  </span>prior_pred <span class="op">%&gt;%</span></span>
-<span id="cb1106-3"><a href="regression-models-with-brms---extended.html#cb1106-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">group_by</span>(prior_beta_sd, iter, set_size) <span class="op">%&gt;%</span></span>
-<span id="cb1106-4"><a href="regression-models-with-brms---extended.html#cb1106-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">accuracy =</span> <span class="kw">mean</span>(correct_pred)) <span class="op">%&gt;%</span></span>
-<span id="cb1106-5"><a href="regression-models-with-brms---extended.html#cb1106-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">prior =</span> <span class="kw">paste0</span>(<span class="st">&quot;Normal(0, &quot;</span>, prior_beta_sd, <span class="st">&quot;)&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1107"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1107-1"><a href="regression-models-with-brms---extended.html#cb1107-1" aria-hidden="true"></a>mean_accuracy &lt;-</span>
+<span id="cb1107-2"><a href="regression-models-with-brms---extended.html#cb1107-2" aria-hidden="true"></a><span class="st">  </span>prior_pred <span class="op">%&gt;%</span></span>
+<span id="cb1107-3"><a href="regression-models-with-brms---extended.html#cb1107-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">group_by</span>(prior_beta_sd, iter, set_size) <span class="op">%&gt;%</span></span>
+<span id="cb1107-4"><a href="regression-models-with-brms---extended.html#cb1107-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">accuracy =</span> <span class="kw">mean</span>(correct_pred)) <span class="op">%&gt;%</span></span>
+<span id="cb1107-5"><a href="regression-models-with-brms---extended.html#cb1107-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">prior =</span> <span class="kw">paste0</span>(<span class="st">&quot;Normal(0, &quot;</span>, prior_beta_sd, <span class="st">&quot;)&quot;</span>))</span></code></pre></div>
 <p>The plot of the accuracy is shown in Figure <a href="ch-reg.html#fig:priors4beta">4.13</a> of the book, and repeated here in Figure <a href="regression-models-with-brms---extended.html#fig:priors4betacode">A.5</a>.</p>
 
-<div class="sourceCode" id="cb1107"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1107-1"><a href="regression-models-with-brms---extended.html#cb1107-1" aria-hidden="true"></a>mean_accuracy <span class="op">%&gt;%</span></span>
-<span id="cb1107-2"><a href="regression-models-with-brms---extended.html#cb1107-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(accuracy)) <span class="op">+</span></span>
-<span id="cb1107-3"><a href="regression-models-with-brms---extended.html#cb1107-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_histogram</span>() <span class="op">+</span></span>
-<span id="cb1107-4"><a href="regression-models-with-brms---extended.html#cb1107-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">facet_grid</span>(set_size <span class="op">~</span><span class="st"> </span>prior) <span class="op">+</span></span>
-<span id="cb1107-5"><a href="regression-models-with-brms---extended.html#cb1107-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="fl">.5</span>, <span class="dv">1</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1108"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1108-1"><a href="regression-models-with-brms---extended.html#cb1108-1" aria-hidden="true"></a>mean_accuracy <span class="op">%&gt;%</span></span>
+<span id="cb1108-2"><a href="regression-models-with-brms---extended.html#cb1108-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(accuracy)) <span class="op">+</span></span>
+<span id="cb1108-3"><a href="regression-models-with-brms---extended.html#cb1108-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_histogram</span>() <span class="op">+</span></span>
+<span id="cb1108-4"><a href="regression-models-with-brms---extended.html#cb1108-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">facet_grid</span>(set_size <span class="op">~</span><span class="st"> </span>prior) <span class="op">+</span></span>
+<span id="cb1108-5"><a href="regression-models-with-brms---extended.html#cb1108-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="fl">.5</span>, <span class="dv">1</span>))</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:priors4betacode"></span>
 <img src="bayescogsci_files/figure-html/priors4betacode-1.svg" alt="The prior predictive distributions of mean accuracy of the model defined in section 4.3, for different set sizes and different priors for \(\beta\)." width="672" />
 <p class="caption">
@@ -1775,18 +1859,18 @@ FIGURE A.5: The prior predictive distributions of mean accuracy of the model def
 </p>
 </div>
 <p>It’s sometimes more useful to look at the predicted differences in accuracy between set sizes. We calculate them as follows, and plot them in Figure <a href="ch-reg.html#fig:priors4beta2">4.14</a> of the book, repeated here in Figure <a href="regression-models-with-brms---extended.html#fig:priors4beta2code">A.6</a>.</p>
-<div class="sourceCode" id="cb1108"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1108-1"><a href="regression-models-with-brms---extended.html#cb1108-1" aria-hidden="true"></a>diff_accuracy &lt;-<span class="st"> </span>mean_accuracy <span class="op">%&gt;%</span></span>
-<span id="cb1108-2"><a href="regression-models-with-brms---extended.html#cb1108-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">arrange</span>(set_size) <span class="op">%&gt;%</span></span>
-<span id="cb1108-3"><a href="regression-models-with-brms---extended.html#cb1108-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">group_by</span>(iter, prior_beta_sd) <span class="op">%&gt;%</span></span>
-<span id="cb1108-4"><a href="regression-models-with-brms---extended.html#cb1108-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">diff_accuracy =</span> accuracy <span class="op">-</span><span class="st"> </span><span class="kw">lag</span>(accuracy)) <span class="op">%&gt;%</span></span>
-<span id="cb1108-5"><a href="regression-models-with-brms---extended.html#cb1108-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">diffsize =</span> <span class="kw">paste</span>(set_size, <span class="st">&quot;-&quot;</span>, <span class="kw">lag</span>(set_size))) <span class="op">%&gt;%</span></span>
-<span id="cb1108-6"><a href="regression-models-with-brms---extended.html#cb1108-6" aria-hidden="true"></a><span class="st">  </span><span class="kw">filter</span>(set_size <span class="op">&gt;</span><span class="st"> </span><span class="dv">2</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1109"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1109-1"><a href="regression-models-with-brms---extended.html#cb1109-1" aria-hidden="true"></a>diff_accuracy &lt;-<span class="st"> </span>mean_accuracy <span class="op">%&gt;%</span></span>
+<span id="cb1109-2"><a href="regression-models-with-brms---extended.html#cb1109-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">arrange</span>(set_size) <span class="op">%&gt;%</span></span>
+<span id="cb1109-3"><a href="regression-models-with-brms---extended.html#cb1109-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">group_by</span>(iter, prior_beta_sd) <span class="op">%&gt;%</span></span>
+<span id="cb1109-4"><a href="regression-models-with-brms---extended.html#cb1109-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">diff_accuracy =</span> accuracy <span class="op">-</span><span class="st"> </span><span class="kw">lag</span>(accuracy)) <span class="op">%&gt;%</span></span>
+<span id="cb1109-5"><a href="regression-models-with-brms---extended.html#cb1109-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">diffsize =</span> <span class="kw">paste</span>(set_size, <span class="st">&quot;-&quot;</span>, <span class="kw">lag</span>(set_size))) <span class="op">%&gt;%</span></span>
+<span id="cb1109-6"><a href="regression-models-with-brms---extended.html#cb1109-6" aria-hidden="true"></a><span class="st">  </span><span class="kw">filter</span>(set_size <span class="op">&gt;</span><span class="st"> </span><span class="dv">2</span>)</span></code></pre></div>
 
-<div class="sourceCode" id="cb1109"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1109-1"><a href="regression-models-with-brms---extended.html#cb1109-1" aria-hidden="true"></a>diff_accuracy <span class="op">%&gt;%</span></span>
-<span id="cb1109-2"><a href="regression-models-with-brms---extended.html#cb1109-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(diff_accuracy)) <span class="op">+</span></span>
-<span id="cb1109-3"><a href="regression-models-with-brms---extended.html#cb1109-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_histogram</span>() <span class="op">+</span></span>
-<span id="cb1109-4"><a href="regression-models-with-brms---extended.html#cb1109-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">facet_grid</span>(diffsize <span class="op">~</span><span class="st"> </span>prior) <span class="op">+</span></span>
-<span id="cb1109-5"><a href="regression-models-with-brms---extended.html#cb1109-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="op">-</span>.<span class="dv">5</span>, <span class="dv">0</span>, <span class="fl">.5</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1110"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1110-1"><a href="regression-models-with-brms---extended.html#cb1110-1" aria-hidden="true"></a>diff_accuracy <span class="op">%&gt;%</span></span>
+<span id="cb1110-2"><a href="regression-models-with-brms---extended.html#cb1110-2" aria-hidden="true"></a><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(diff_accuracy)) <span class="op">+</span></span>
+<span id="cb1110-3"><a href="regression-models-with-brms---extended.html#cb1110-3" aria-hidden="true"></a><span class="st">  </span><span class="kw">geom_histogram</span>() <span class="op">+</span></span>
+<span id="cb1110-4"><a href="regression-models-with-brms---extended.html#cb1110-4" aria-hidden="true"></a><span class="st">  </span><span class="kw">facet_grid</span>(diffsize <span class="op">~</span><span class="st"> </span>prior) <span class="op">+</span></span>
+<span id="cb1110-5"><a href="regression-models-with-brms---extended.html#cb1110-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">scale_x_continuous</span>(<span class="dt">breaks =</span> <span class="kw">c</span>(<span class="op">-</span>.<span class="dv">5</span>, <span class="dv">0</span>, <span class="fl">.5</span>))</span></code></pre></div>
 <div class="figure"><span style="display:block;" id="fig:priors4beta2code"></span>
 <img src="bayescogsci_files/figure-html/priors4beta2code-1.svg" alt="The prior predictive distributions of differences in mean accuracy between set sizes of the model defined in section 4.3 for different priors for \(\beta\)." width="672" />
 <p class="caption">
@@ -2001,12 +2085,12 @@ Z_w \odot z_w +
 <h2><span class="header-section-number">A.8</span> Treatment contrast with intercept as the grand mean<a href="regression-models-with-brms---extended.html#app-cTreatGM" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>In chapter <a href="ch-contr.html#ch-contr">6</a>, we have introduced the treatment contrast, where each contrast compares one condition to a baseline condition. We have discussed that the intercept in the treatment contrast estimates the condition mean for the  baseline condition. There are some applications where this behavior may seem sub-optimal. This can be the case in experimental designs with multiple factors, where we may want to use  centered contrasts (this is discussed in chapter <a href="ch-coding2x2.html#ch-coding2x2">7</a>). Moreover, the contrast coding of the population-level (or fixed) effects also defines what the group-level (or random) effects assess. If the intercept assesses the grand mean–rather than the baseline condition–in hierarchical models, then the group-level intercepts reflect the grand mean variance, rather than the variance in the baseline condition.</p>
 <p>It is possible to design a treatment contrast where the intercept reflects the grand mean (assuming a balanced design; otherwise it’s the unweighted grand mean). We implement this using the <code>hypr</code> package. The trick is to add the intercept explicitly as a comparison of the average of all four condition means:</p>
-<div class="sourceCode" id="cb1110"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1110-1"><a href="regression-models-with-brms---extended.html#cb1110-1" aria-hidden="true"></a>HcTrGM &lt;-<span class="st"> </span><span class="kw">hypr</span>(<span class="dt">b0 =</span> <span class="op">~</span><span class="st"> </span>(F1 <span class="op">+</span><span class="st"> </span>F2 <span class="op">+</span><span class="st"> </span>F3 <span class="op">+</span><span class="st"> </span>F4) <span class="op">/</span><span class="st"> </span><span class="dv">4</span>,</span>
-<span id="cb1110-2"><a href="regression-models-with-brms---extended.html#cb1110-2" aria-hidden="true"></a>               <span class="dt">b1 =</span> F2 <span class="op">~</span><span class="st"> </span>F1,</span>
-<span id="cb1110-3"><a href="regression-models-with-brms---extended.html#cb1110-3" aria-hidden="true"></a>               <span class="dt">b2 =</span> F3 <span class="op">~</span><span class="st"> </span>F1,</span>
-<span id="cb1110-4"><a href="regression-models-with-brms---extended.html#cb1110-4" aria-hidden="true"></a>               <span class="dt">b3 =</span> F4 <span class="op">~</span><span class="st"> </span>F1,</span>
-<span id="cb1110-5"><a href="regression-models-with-brms---extended.html#cb1110-5" aria-hidden="true"></a>               <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;F1&quot;</span>, <span class="st">&quot;F2&quot;</span>, <span class="st">&quot;F3&quot;</span>, <span class="st">&quot;F4&quot;</span>))</span>
-<span id="cb1110-6"><a href="regression-models-with-brms---extended.html#cb1110-6" aria-hidden="true"></a>HcTrGM</span></code></pre></div>
+<div class="sourceCode" id="cb1111"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1111-1"><a href="regression-models-with-brms---extended.html#cb1111-1" aria-hidden="true"></a>HcTrGM &lt;-<span class="st"> </span><span class="kw">hypr</span>(<span class="dt">b0 =</span> <span class="op">~</span><span class="st"> </span>(F1 <span class="op">+</span><span class="st"> </span>F2 <span class="op">+</span><span class="st"> </span>F3 <span class="op">+</span><span class="st"> </span>F4) <span class="op">/</span><span class="st"> </span><span class="dv">4</span>,</span>
+<span id="cb1111-2"><a href="regression-models-with-brms---extended.html#cb1111-2" aria-hidden="true"></a>               <span class="dt">b1 =</span> F2 <span class="op">~</span><span class="st"> </span>F1,</span>
+<span id="cb1111-3"><a href="regression-models-with-brms---extended.html#cb1111-3" aria-hidden="true"></a>               <span class="dt">b2 =</span> F3 <span class="op">~</span><span class="st"> </span>F1,</span>
+<span id="cb1111-4"><a href="regression-models-with-brms---extended.html#cb1111-4" aria-hidden="true"></a>               <span class="dt">b3 =</span> F4 <span class="op">~</span><span class="st"> </span>F1,</span>
+<span id="cb1111-5"><a href="regression-models-with-brms---extended.html#cb1111-5" aria-hidden="true"></a>               <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;F1&quot;</span>, <span class="st">&quot;F2&quot;</span>, <span class="st">&quot;F3&quot;</span>, <span class="st">&quot;F4&quot;</span>))</span>
+<span id="cb1111-6"><a href="regression-models-with-brms---extended.html#cb1111-6" aria-hidden="true"></a>HcTrGM</span></code></pre></div>
 <pre><code>## hypr object containing 4 null hypotheses:
 ## H0.b0: 0 = (F1 + F2 + F3 + F4)/4  (Intercept)
 ## H0.b1: 0 = F2 - F1
@@ -2032,19 +2116,19 @@ Z_w \odot z_w +
 ## F3    1 -1/4  3/4 -1/4
 ## F4    1 -1/4 -1/4  3/4</code></pre>
 <p>The hypothesis matrix now explicitly codes the intercept as the first column, where all hypothesis weights are equal and sum up to one. This is coding the intercept. The other hypothesis weights are as expected for the treatment contrast. The contrast matrix now looks very different compared to the standard treatment contrast. Next, we fit a model with this adapted treatment contrast. The function  <code>contr.hypothesis</code> automatically removes the intercept that is encoded in <code>HcTrGM</code>, since this is automatically added by <code>brms</code>.</p>
-<div class="sourceCode" id="cb1112"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1112-1"><a href="regression-models-with-brms---extended.html#cb1112-1" aria-hidden="true"></a><span class="kw">contrasts</span>(df_contrasts3<span class="op">$</span>F) &lt;-<span class="st"> </span><span class="kw">contr.hypothesis</span>(HcTrGM)</span>
-<span id="cb1112-2"><a href="regression-models-with-brms---extended.html#cb1112-2" aria-hidden="true"></a>fit_TrGM &lt;-<span class="st"> </span><span class="kw">brm</span>(DV <span class="op">~</span><span class="st"> </span>F,</span>
-<span id="cb1112-3"><a href="regression-models-with-brms---extended.html#cb1112-3" aria-hidden="true"></a>                <span class="dt">data =</span> df_contrasts3,</span>
-<span id="cb1112-4"><a href="regression-models-with-brms---extended.html#cb1112-4" aria-hidden="true"></a>                <span class="dt">family =</span> <span class="kw">gaussian</span>(),</span>
-<span id="cb1112-5"><a href="regression-models-with-brms---extended.html#cb1112-5" aria-hidden="true"></a>                <span class="dt">prior =</span> <span class="kw">c</span>(<span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">20</span>, <span class="dv">50</span>), <span class="dt">class =</span> Intercept),</span>
-<span id="cb1112-6"><a href="regression-models-with-brms---extended.html#cb1112-6" aria-hidden="true"></a>                          <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> sigma),</span>
-<span id="cb1112-7"><a href="regression-models-with-brms---extended.html#cb1112-7" aria-hidden="true"></a>                          <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> b)))</span></code></pre></div>
-<div class="sourceCode" id="cb1113"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1113-1"><a href="regression-models-with-brms---extended.html#cb1113-1" aria-hidden="true"></a><span class="kw">fixef</span>(fit_TrGM)</span></code></pre></div>
-<pre><code>##           Estimate Est.Error   Q2.5 Q97.5
-## Intercept    20.01      2.38  15.07  24.7
-## Fb1           9.48      6.75  -4.47  22.3
-## Fb2          -0.42      6.75 -14.04  12.8
-## Fb3          29.25      6.81  15.41  42.4</code></pre>
+<div class="sourceCode" id="cb1113"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1113-1"><a href="regression-models-with-brms---extended.html#cb1113-1" aria-hidden="true"></a><span class="kw">contrasts</span>(df_contrasts3<span class="op">$</span>F) &lt;-<span class="st"> </span><span class="kw">contr.hypothesis</span>(HcTrGM)</span>
+<span id="cb1113-2"><a href="regression-models-with-brms---extended.html#cb1113-2" aria-hidden="true"></a>fit_TrGM &lt;-<span class="st"> </span><span class="kw">brm</span>(DV <span class="op">~</span><span class="st"> </span>F,</span>
+<span id="cb1113-3"><a href="regression-models-with-brms---extended.html#cb1113-3" aria-hidden="true"></a>                <span class="dt">data =</span> df_contrasts3,</span>
+<span id="cb1113-4"><a href="regression-models-with-brms---extended.html#cb1113-4" aria-hidden="true"></a>                <span class="dt">family =</span> <span class="kw">gaussian</span>(),</span>
+<span id="cb1113-5"><a href="regression-models-with-brms---extended.html#cb1113-5" aria-hidden="true"></a>                <span class="dt">prior =</span> <span class="kw">c</span>(<span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">20</span>, <span class="dv">50</span>), <span class="dt">class =</span> Intercept),</span>
+<span id="cb1113-6"><a href="regression-models-with-brms---extended.html#cb1113-6" aria-hidden="true"></a>                          <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> sigma),</span>
+<span id="cb1113-7"><a href="regression-models-with-brms---extended.html#cb1113-7" aria-hidden="true"></a>                          <span class="kw">prior</span>(<span class="kw">normal</span>(<span class="dv">0</span>, <span class="dv">50</span>), <span class="dt">class =</span> b)))</span></code></pre></div>
+<div class="sourceCode" id="cb1114"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1114-1"><a href="regression-models-with-brms---extended.html#cb1114-1" aria-hidden="true"></a><span class="kw">fixef</span>(fit_TrGM)</span></code></pre></div>
+<pre><code>##           Estimate Est.Error  Q2.5 Q97.5
+## Intercept    20.01      2.47  15.2  24.8
+## Fb1           9.53      6.88  -4.4  23.0
+## Fb2          -0.43      6.79 -14.0  12.5
+## Fb3          29.29      6.77  16.1  42.6</code></pre>
 <p>The results show that the coefficients reflect comparisons of each condition <span class="math inline">\(F2\)</span>, F3, and F4 to the baseline condition <span class="math inline">\(F1\)</span>. The intercept now captures the grand mean across all four conditions of <span class="math inline">\(20\)</span>.</p>
 
 </div>

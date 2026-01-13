@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel J. Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2025-02-12" />
+<meta name="date" content="2026-01-13" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -375,15 +375,18 @@ window.initializeCodeFolding = function(show) {
     $(this).before(div);
     $(this).detach().appendTo(div);
 
-    // add a show code button right above
-    var showCodeText = $('<span>' + (show ? 'Hide' : 'Code') + '</span>');
+    // CRITICAL FIX: Create button with aria-hidden text that won't be copied
     var showCodeButton = $('<button type="button" class="btn btn-default btn-xs code-folding-btn pull-right"></button>');
-    showCodeButton.append(showCodeText);
     showCodeButton
         .attr('data-toggle', 'collapse')
         .attr('data-target', '#' + id)
         .attr('aria-expanded', show)
-        .attr('aria-controls', id);
+        .attr('aria-controls', id)
+        .attr('aria-label', show ? 'Hide code' : 'Show code');
+    
+    // Use aria-hidden to prevent screen readers and copy from seeing text
+    var showCodeText = $('<span aria-hidden="true" style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; pointer-events: none;">' + (show ? 'Hide' : 'Code') + '</span>');
+    showCodeButton.append(showCodeText);
 
     var buttonRow = $('<div class="row"></div>');
     var buttonCol = $('<div class="col-md-12"></div>');
@@ -393,16 +396,18 @@ window.initializeCodeFolding = function(show) {
 
     div.before(buttonRow);
 
-    // hack: return show to false, otherwise all next codeBlocks will be shown!
-    show = false;
-
-    // update state of button on show/hide
-    div.on('hidden.bs.collapse', function () {
+    // update the text of the button when it's clicked
+    div.on('hide.bs.collapse', function () {
       showCodeText.text('Code');
+      showCodeButton.attr('aria-label', 'Show code');
     });
     div.on('show.bs.collapse', function () {
       showCodeText.text('Hide');
+      showCodeButton.attr('aria-label', 'Hide code');
     });
+
+    // hack: return show to false, otherwise all next codeBlocks will be shown!
+    show = false;
   });
 
 }
@@ -793,6 +798,78 @@ $(document).ready(function () {
 });
 </script>
 
+<!-- NUCLEAR OPTION: Intercept ALL copy events and strip button text -->
+<script>
+$(document).ready(function() {
+  
+  // Method 1: Make button spans completely invisible to selection
+  function protectButtons() {
+    $('.code-folding-btn span').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+      this.style.setProperty('pointer-events', 'none', 'important');
+      $(this).attr('unselectable', 'on');
+      $(this).attr('aria-hidden', 'true');
+    });
+    
+    $('.code-folding-btn').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+    });
+  }
+  
+  protectButtons();
+  setTimeout(protectButtons, 100);
+  setTimeout(protectButtons, 500);
+  setTimeout(protectButtons, 1000);
+  
+  // Method 2: Aggressive copy event interception
+  document.addEventListener('copy', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    // Remove "Hide" or "Code" from the start
+    if (selectedText) {
+      var cleanedText = selectedText
+        .replace(/^(Hide|Code)\s*/gm, '')  // Remove from start of any line
+        .replace(/\s+(Hide|Code)\s*$/gm, '');  // Remove from end
+      
+      if (cleanedText !== selectedText) {
+        e.preventDefault();
+        
+        if (e.clipboardData) {
+          e.clipboardData.setData('text/plain', cleanedText);
+        } else if (window.clipboardData) {
+          window.clipboardData.setData('Text', cleanedText);
+        }
+      }
+    }
+  }, true);  // Use capture phase
+  
+  // Method 3: Override native copy for code blocks
+  $('body').on('copy', 'pre, pre.sourceCode, .sourceCode, code', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    if (selectedText && (selectedText.startsWith('Hide') || selectedText.startsWith('Code'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      var cleanedText = selectedText.replace(/^(Hide|Code)\s*/, '');
+      
+      if (e.originalEvent.clipboardData) {
+        e.originalEvent.clipboardData.setData('text/plain', cleanedText);
+      } else if (window.clipboardData) {
+        window.clipboardData.setData('Text', cleanedText);
+      }
+    }
+  });
+});
+</script>
 
 <script data-goatcounter="https://bayescogsci.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
@@ -1436,6 +1513,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
+<div class="book-banner">
+  <div class="banner-content">
+    📚 Get the print version of the book from 
+    <a href="https://www.taylorfrancis.com/books/mono/10.1201/9780429342646/introduction-bayesian-data-analysis-cognitive-science-shravan-vasishth-bruno-nicenboim-daniel-schad" target="_blank" rel="noopener">CRC Press</a> or your favorite store.
+    <button class="banner-close" onclick="this.parentElement.parentElement.style.display='none';" aria-label="Close banner">&times;</button>
+  </div>
+</div>
 <div id="advanced-models-with-stan---extended" class="section level1 hasAnchor" number="21">
 <h1><span class="header-section-number">B</span> Advanced models with Stan - Extended<a href="advanced-models-with-stan---extended.html#advanced-models-with-stan---extended" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <div id="app-target" class="section level2 hasAnchor" number="21.1">
@@ -1456,15 +1540,15 @@ model {
   // Likelihood:
   target += normal_lpdf(y | mu, sigma);
 }</code></pre>
-<p>In every  iteration where the sampler explores the posterior space, <code>mu</code> and <code>sigma</code> acquire different values (this is where the Stan algorithm stops the movement of the particle in the Hamiltonian space). Say that in an iteration, <code>mu = 4.115</code> and <code>sigma = 10.794</code>. Then the following happens in the  model block:</p>
+<p>In every  iteration where the sampler explores the posterior space, <code>mu</code> and <code>sigma</code> acquire different values (this is where the Stan algorithm stops the movement of the particle in the Hamiltonian space). Say that in an iteration, <code>mu = 2.425</code> and <code>sigma = 9.925</code>. Then the following happens in the  model block:</p>
 <ol style="list-style-type: decimal">
 <li>At the beginning of the iteration, <code>target</code> is zero.</li>
-<li>The transformations that the sampler <em>automatically</em> does are taken into account. In our case, although <code>sigma</code> is constrained to be positive in our model, inside Stan’s sampler it is transformed to an  unconstrained space amenable to  Hamiltonian Monte Carlo. That is, Stan samples from an auxiliary parameter that ranges from minus infinity to infinity, which is equivalent to <code>log(sigma)</code>. This auxiliary parameter is then exponentiated, when it is incorporated into our model. Because of the mismatch between the constrained parameter space that we defined and the unconstrained space that it is converted to by Stan, an adjustment to the unnormalized posterior is required and added <em>automatically</em>. The reasons for this requirement are somewhat complex and will be discussed in section <a href="ch-custom.html#ch-custom">10</a>. In this particular case, this  adjustment (which is the log absolute value of the  Jacobian determinant), is equivalent to adding <code>log(sigma) = 2.379</code> to <code>target</code>.</li>
-<li>After <code>target += normal_lpdf(mu | 0, 20);</code> the log of the density of <span class="math inline">\(\mathit{Normal}(0,20)\)</span> is evaluated at a given sample of mu (specifically 4.115) and this is added to <code>target</code>. In R, this would be <code>dnorm(x = 4.115, mean = 0, sd = 20, log = TRUE)</code>, which is equal to <code>-3.936</code>. Thus, <code>target</code> should be <code>-3.936 + 2.379 = -1.557</code>.</li>
-<li>After <code>target += lognormal_lpdf(sigma | 3, 1)</code>, we add the log of the density of <span class="math inline">\(\mathit{LogNormal}(3, 1)\)</span> evaluated at <code>10.794</code> to the previous value of the target. In R, this would be <code>dlnorm(x = 10.794 , mean = 3, sd = 1, log = TRUE)</code>, which is equal to <code>-3.491</code>. Thus, <code>target</code> should be updated to <code>-1.557 + -3.491 = -5.048</code>.</li>
-<li>After each iteration of the for-loop in the model block, we add to the target the log density of <span class="math inline">\(\mathit{Normal}( 4.115, 10.794)\)</span> evaluated at each of the values of Y. In R, this would be to add <code>sum(dnorm(Y, 4.115, 10.794, log = TRUE))</code> (which is equal to <code>-368.997</code>) to the current value of <code>target</code> <code>-5.048 + -368.997 = -374.045</code>.</li>
+<li>The transformations that the sampler <em>automatically</em> does are taken into account. In our case, although <code>sigma</code> is constrained to be positive in our model, inside Stan’s sampler it is transformed to an  unconstrained space amenable to  Hamiltonian Monte Carlo. That is, Stan samples from an auxiliary parameter that ranges from minus infinity to infinity, which is equivalent to <code>log(sigma)</code>. This auxiliary parameter is then exponentiated, when it is incorporated into our model. Because of the mismatch between the constrained parameter space that we defined and the unconstrained space that it is converted to by Stan, an adjustment to the unnormalized posterior is required and added <em>automatically</em>. The reasons for this requirement are somewhat complex and will be discussed in section <a href="ch-custom.html#ch-custom">10</a>. In this particular case, this  adjustment (which is the log absolute value of the  Jacobian determinant), is equivalent to adding <code>log(sigma) = 2.295</code> to <code>target</code>.</li>
+<li>After <code>target += normal_lpdf(mu | 0, 20);</code> the log of the density of <span class="math inline">\(\mathit{Normal}(0,20)\)</span> is evaluated at a given sample of mu (specifically 2.425) and this is added to <code>target</code>. In R, this would be <code>dnorm(x = 2.425, mean = 0, sd = 20, log = TRUE)</code>, which is equal to <code>-3.922</code>. Thus, <code>target</code> should be <code>-3.922 + 2.295 = -1.627</code>.</li>
+<li>After <code>target += lognormal_lpdf(sigma | 3, 1)</code>, we add the log of the density of <span class="math inline">\(\mathit{LogNormal}(3, 1)\)</span> evaluated at <code>9.925</code> to the previous value of the target. In R, this would be <code>dlnorm(x = 9.925 , mean = 3, sd = 1, log = TRUE)</code>, which is equal to <code>-3.462</code>. Thus, <code>target</code> should be updated to <code>-1.627 + -3.462 = -5.089</code>.</li>
+<li>After each iteration of the for-loop in the model block, we add to the target the log density of <span class="math inline">\(\mathit{Normal}( 2.425, 9.925)\)</span> evaluated at each of the values of Y. In R, this would be to add <code>sum(dnorm(Y, 2.425, 9.925, log = TRUE))</code> (which is equal to <code>-368.006</code>) to the current value of <code>target</code> <code>-5.089 + -368.006 = -373.096</code>.</li>
 </ol>
-<p>This means that for the coordinates [mu = 4.115, sigma = 10.794], the height of the  unnormalized posterior would be the value <code>exp(target) =</code> <span class="math inline">\(\exp( -374.045 ) = 3.584\times 10^{-163}\)</span>. Incidentally, the value of <code>target</code> is returned as <code>lp__</code> (log probability) in an object storing a fit model with Stan.</p>
+<p>This means that for the coordinates [mu = 2.425, sigma = 9.925], the height of the  unnormalized posterior would be the value <code>exp(target) =</code> <span class="math inline">\(\exp( -373.096 ) = 9.26\times 10^{-163}\)</span>. Incidentally, the value of <code>target</code> is returned as <code>lp__</code> (log probability) in an object storing a fit model with Stan.</p>
 <p>It is possible to expose the value of <code>target</code>, by printing  <code>target()</code> inside a Stan model. The value of <code>target</code> after each iteration is named  <code>lp__</code> in the Stan object. This can be useful for troubleshooting a problematic model.</p>
 </div>
 <div id="app-tilde" class="section level2 hasAnchor" number="21.2">
@@ -1492,23 +1576,23 @@ target += normal_lpdf(x | mu, sigma);</code></pre>
 The downside (at the moment of writing this) is that, being lightweight, some functionality of <code>rstan</code> is lost, such as looking up functions with  <code>lookup()</code>, as well as using the fitted model with the  <code>bridgesampling</code> package to generate Bayes factors. Furthermore, the package <code>cmdstanr</code> is currently under development and the  application programming interface  (API) might still change. However, the user interested in an easy (and painless) installation and the latest features of Stan might find it useful.</p>
 <p>Once <code>cmdstanr</code> is installed, we can use it as follows:</p>
 <p>First create a new <code>CmdStanModel</code> object from a file containing a Stan program using  <code>cmdstan_model()</code></p>
-<div class="sourceCode" id="cb1120"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1120-1"><a href="advanced-models-with-stan---extended.html#cb1120-1" aria-hidden="true"></a>normal &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
-<span id="cb1120-2"><a href="advanced-models-with-stan---extended.html#cb1120-2" aria-hidden="true"></a>                      <span class="st">&quot;normal.stan&quot;</span>,</span>
-<span id="cb1120-3"><a href="advanced-models-with-stan---extended.html#cb1120-3" aria-hidden="true"></a>                      <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
-<span id="cb1120-4"><a href="advanced-models-with-stan---extended.html#cb1120-4" aria-hidden="true"></a>normal_mod &lt;-<span class="st"> </span><span class="kw">cmdstan_model</span>(normal)</span></code></pre></div>
+<div class="sourceCode" id="cb1121"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1121-1"><a href="advanced-models-with-stan---extended.html#cb1121-1" aria-hidden="true"></a>normal &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;stan_models&quot;</span>,</span>
+<span id="cb1121-2"><a href="advanced-models-with-stan---extended.html#cb1121-2" aria-hidden="true"></a>                      <span class="st">&quot;normal.stan&quot;</span>,</span>
+<span id="cb1121-3"><a href="advanced-models-with-stan---extended.html#cb1121-3" aria-hidden="true"></a>                      <span class="dt">package =</span> <span class="st">&quot;bcogsci&quot;</span>)</span>
+<span id="cb1121-4"><a href="advanced-models-with-stan---extended.html#cb1121-4" aria-hidden="true"></a>normal_mod &lt;-<span class="st"> </span><span class="kw">cmdstan_model</span>(normal)</span></code></pre></div>
 <p>The object <code>normal_mod</code> is an  R6 reference object (<a href="https://r6.r-lib.org/" class="uri">https://r6.r-lib.org/</a>). This class of object behaves similarly to objects in object oriented programming languages, such as python. Methods are accessed using <code>$</code> (rather than <code>.</code> as in python).</p>
 <p>To sample, use the <code>$sample()</code> method. The data argument accepts a list (as we used in <code>stan()</code> from <code>rstan</code>). However, many of the arguments of <code>$sample</code> have different names than the ones used in <code>stan()</code> from the <code>rstan</code> package:</p>
-<div class="sourceCode" id="cb1121"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1121-1"><a href="advanced-models-with-stan---extended.html#cb1121-1" aria-hidden="true"></a>lst_score_data &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">y =</span> y, <span class="dt">N =</span> <span class="kw">length</span>(y))</span>
-<span id="cb1121-2"><a href="advanced-models-with-stan---extended.html#cb1121-2" aria-hidden="true"></a>fit_normal_cmd &lt;-<span class="st"> </span>normal_mod<span class="op">$</span><span class="kw">sample</span>(<span class="dt">data =</span> lst_score_data,</span>
-<span id="cb1121-3"><a href="advanced-models-with-stan---extended.html#cb1121-3" aria-hidden="true"></a>                                    <span class="dt">seed =</span> <span class="dv">123</span>,</span>
-<span id="cb1121-4"><a href="advanced-models-with-stan---extended.html#cb1121-4" aria-hidden="true"></a>                                    <span class="dt">chains =</span> <span class="dv">4</span>,</span>
-<span id="cb1121-5"><a href="advanced-models-with-stan---extended.html#cb1121-5" aria-hidden="true"></a>                                    <span class="dt">parallel_chains =</span> <span class="dv">4</span>,</span>
-<span id="cb1121-6"><a href="advanced-models-with-stan---extended.html#cb1121-6" aria-hidden="true"></a>                                    <span class="dt">iter_warmup =</span> <span class="dv">1000</span>,</span>
-<span id="cb1121-7"><a href="advanced-models-with-stan---extended.html#cb1121-7" aria-hidden="true"></a>                                    <span class="dt">iter_sampling =</span> <span class="dv">1000</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1122"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1122-1"><a href="advanced-models-with-stan---extended.html#cb1122-1" aria-hidden="true"></a>lst_score_data &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">y =</span> y, <span class="dt">N =</span> <span class="kw">length</span>(y))</span>
+<span id="cb1122-2"><a href="advanced-models-with-stan---extended.html#cb1122-2" aria-hidden="true"></a>fit_normal_cmd &lt;-<span class="st"> </span>normal_mod<span class="op">$</span><span class="kw">sample</span>(<span class="dt">data =</span> lst_score_data,</span>
+<span id="cb1122-3"><a href="advanced-models-with-stan---extended.html#cb1122-3" aria-hidden="true"></a>                                    <span class="dt">seed =</span> <span class="dv">123</span>,</span>
+<span id="cb1122-4"><a href="advanced-models-with-stan---extended.html#cb1122-4" aria-hidden="true"></a>                                    <span class="dt">chains =</span> <span class="dv">4</span>,</span>
+<span id="cb1122-5"><a href="advanced-models-with-stan---extended.html#cb1122-5" aria-hidden="true"></a>                                    <span class="dt">parallel_chains =</span> <span class="dv">4</span>,</span>
+<span id="cb1122-6"><a href="advanced-models-with-stan---extended.html#cb1122-6" aria-hidden="true"></a>                                    <span class="dt">iter_warmup =</span> <span class="dv">1000</span>,</span>
+<span id="cb1122-7"><a href="advanced-models-with-stan---extended.html#cb1122-7" aria-hidden="true"></a>                                    <span class="dt">iter_sampling =</span> <span class="dv">1000</span>)</span></code></pre></div>
 <p>To show the posterior summary, access the method  <code>$summary()</code> of the object <code>fit_normal_cmd</code>.</p>
-<div class="sourceCode" id="cb1122"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1122-1"><a href="advanced-models-with-stan---extended.html#cb1122-1" aria-hidden="true"></a>fit_normal_cmd<span class="op">$</span><span class="kw">summary</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb1123"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1123-1"><a href="advanced-models-with-stan---extended.html#cb1123-1" aria-hidden="true"></a>fit_normal_cmd<span class="op">$</span><span class="kw">summary</span>()</span></code></pre></div>
 <p>Access the samples of <code>fit_normal_cmd</code> using  <code>$draws()</code>.</p>
-<div class="sourceCode" id="cb1123"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1123-1"><a href="advanced-models-with-stan---extended.html#cb1123-1" aria-hidden="true"></a>fit_normal_cmd<span class="op">$</span><span class="kw">draws</span>(<span class="dt">variables =</span> <span class="st">&quot;mu&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1124"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1124-1"><a href="advanced-models-with-stan---extended.html#cb1124-1" aria-hidden="true"></a>fit_normal_cmd<span class="op">$</span><span class="kw">draws</span>(<span class="dt">variables =</span> <span class="st">&quot;mu&quot;</span>)</span></code></pre></div>
 <p>The vignette of <a href="https://mc-stan.org/cmdstanr/" class="uri">https://mc-stan.org/cmdstanr/</a> shows more use cases, and how the samples can be transformed into other formats (data frame, matrix, etc.) together with the package <code>posterior</code> (<a href="https://mc-stan.org/cmdstanr/" class="uri">https://mc-stan.org/cmdstanr/</a>).</p>
 </div>
 <div id="app-stancontainers" class="section level2 hasAnchor" number="21.4">
@@ -1632,21 +1716,21 @@ the intercept.</p>
   \]</span></p>
 <p>It might be helpful to see how one would implement this in R:</p>
 <p>Let’s assume a correlation of <span class="math inline">\(0.8\)</span>.</p>
-<div class="sourceCode" id="cb1130"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1130-1"><a href="advanced-models-with-stan---extended.html#cb1130-1" aria-hidden="true"></a>rho_u &lt;-<span class="st"> </span><span class="fl">0.8</span></span>
-<span id="cb1130-2"><a href="advanced-models-with-stan---extended.html#cb1130-2" aria-hidden="true"></a><span class="co"># Correlation matrix</span></span>
-<span id="cb1130-3"><a href="advanced-models-with-stan---extended.html#cb1130-3" aria-hidden="true"></a>(R_u &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(<span class="dv">1</span>, rho_u, rho_u, <span class="dv">1</span>), <span class="dt">ncol =</span> <span class="dv">2</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1131"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1131-1"><a href="advanced-models-with-stan---extended.html#cb1131-1" aria-hidden="true"></a>rho_u &lt;-<span class="st"> </span><span class="fl">0.8</span></span>
+<span id="cb1131-2"><a href="advanced-models-with-stan---extended.html#cb1131-2" aria-hidden="true"></a><span class="co"># Correlation matrix</span></span>
+<span id="cb1131-3"><a href="advanced-models-with-stan---extended.html#cb1131-3" aria-hidden="true"></a>(R_u &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(<span class="dv">1</span>, rho_u, rho_u, <span class="dv">1</span>), <span class="dt">ncol =</span> <span class="dv">2</span>))</span></code></pre></div>
 <pre><code>##      [,1] [,2]
 ## [1,]  1.0  0.8
 ## [2,]  0.8  1.0</code></pre>
-<div class="sourceCode" id="cb1132"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1132-1"><a href="advanced-models-with-stan---extended.html#cb1132-1" aria-hidden="true"></a><span class="co"># Cholesky factor:</span></span>
-<span id="cb1132-2"><a href="advanced-models-with-stan---extended.html#cb1132-2" aria-hidden="true"></a><span class="co"># (Transpose it so that it looks the same as in Stan)</span></span>
-<span id="cb1132-3"><a href="advanced-models-with-stan---extended.html#cb1132-3" aria-hidden="true"></a>(L_u &lt;-<span class="st"> </span><span class="kw">t</span>(<span class="kw">chol</span>(R_u)))</span></code></pre></div>
+<div class="sourceCode" id="cb1133"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1133-1"><a href="advanced-models-with-stan---extended.html#cb1133-1" aria-hidden="true"></a><span class="co"># Cholesky factor:</span></span>
+<span id="cb1133-2"><a href="advanced-models-with-stan---extended.html#cb1133-2" aria-hidden="true"></a><span class="co"># (Transpose it so that it looks the same as in Stan)</span></span>
+<span id="cb1133-3"><a href="advanced-models-with-stan---extended.html#cb1133-3" aria-hidden="true"></a>(L_u &lt;-<span class="st"> </span><span class="kw">t</span>(<span class="kw">chol</span>(R_u)))</span></code></pre></div>
 <pre><code>##      [,1] [,2]
 ## [1,]  1.0  0.0
 ## [2,]  0.8  0.6</code></pre>
-<div class="sourceCode" id="cb1134"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1134-1"><a href="advanced-models-with-stan---extended.html#cb1134-1" aria-hidden="true"></a><span class="co"># Verify that we recover R_u,</span></span>
-<span id="cb1134-2"><a href="advanced-models-with-stan---extended.html#cb1134-2" aria-hidden="true"></a><span class="co"># Recall that %*% indicates matrix multiplication</span></span>
-<span id="cb1134-3"><a href="advanced-models-with-stan---extended.html#cb1134-3" aria-hidden="true"></a>L_u <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(L_u)</span></code></pre></div>
+<div class="sourceCode" id="cb1135"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1135-1"><a href="advanced-models-with-stan---extended.html#cb1135-1" aria-hidden="true"></a><span class="co"># Verify that we recover R_u,</span></span>
+<span id="cb1135-2"><a href="advanced-models-with-stan---extended.html#cb1135-2" aria-hidden="true"></a><span class="co"># Recall that %*% indicates matrix multiplication</span></span>
+<span id="cb1135-3"><a href="advanced-models-with-stan---extended.html#cb1135-3" aria-hidden="true"></a>L_u <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(L_u)</span></code></pre></div>
 <pre><code>##      [,1] [,2]
 ## [1,]  1.0  0.8
 ## [2,]  0.8  1.0</code></pre>
@@ -1654,10 +1738,10 @@ the intercept.</p>
 <li>Generate uncorrelated z from a standard normal distribution assuming only 10 subjects.
 <!-- , R.options = list(width = 60) --></li>
 </ol>
-<div class="sourceCode" id="cb1136"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1136-1"><a href="advanced-models-with-stan---extended.html#cb1136-1" aria-hidden="true"></a>N_subj &lt;-<span class="st"> </span><span class="dv">10</span></span>
-<span id="cb1136-2"><a href="advanced-models-with-stan---extended.html#cb1136-2" aria-hidden="true"></a>(z_u1 &lt;-<span class="st"> </span><span class="kw">rnorm</span>(N_subj, <span class="dv">0</span>, <span class="dv">1</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1137"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1137-1"><a href="advanced-models-with-stan---extended.html#cb1137-1" aria-hidden="true"></a>N_subj &lt;-<span class="st"> </span><span class="dv">10</span></span>
+<span id="cb1137-2"><a href="advanced-models-with-stan---extended.html#cb1137-2" aria-hidden="true"></a>(z_u1 &lt;-<span class="st"> </span><span class="kw">rnorm</span>(N_subj, <span class="dv">0</span>, <span class="dv">1</span>))</span></code></pre></div>
 <pre><code>##  [1] 0.138 0.588 0.680 1.391 0.759 1.432 0.283 0.384 1.389 1.119</code></pre>
-<div class="sourceCode" id="cb1138"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1138-1"><a href="advanced-models-with-stan---extended.html#cb1138-1" aria-hidden="true"></a>(z_u2 &lt;-<span class="st"> </span><span class="kw">rnorm</span>(N_subj, <span class="dv">0</span>, <span class="dv">1</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1139"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1139-1"><a href="advanced-models-with-stan---extended.html#cb1139-1" aria-hidden="true"></a>(z_u2 &lt;-<span class="st"> </span><span class="kw">rnorm</span>(N_subj, <span class="dv">0</span>, <span class="dv">1</span>))</span></code></pre></div>
 <pre><code>##  [1]  0.826 -0.666 -0.213  0.936  0.876  1.105  1.109  0.832  0.862
 ## [10] -0.541</code></pre>
 <ol start="2" style="list-style-type: decimal">
@@ -1665,49 +1749,49 @@ the intercept.</p>
 </ol>
 <p>First, create a matrix with the uncorrelated parameters:<br />
 <!-- , R.options = list(width = 60 --></p>
-<div class="sourceCode" id="cb1140"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1140-1"><a href="advanced-models-with-stan---extended.html#cb1140-1" aria-hidden="true"></a><span class="co"># matrix z_u</span></span>
-<span id="cb1140-2"><a href="advanced-models-with-stan---extended.html#cb1140-2" aria-hidden="true"></a>(z_u &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(z_u1, z_u2), <span class="dt">ncol =</span> N_subj, <span class="dt">byrow =</span> <span class="ot">TRUE</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb1141"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1141-1"><a href="advanced-models-with-stan---extended.html#cb1141-1" aria-hidden="true"></a><span class="co"># matrix z_u</span></span>
+<span id="cb1141-2"><a href="advanced-models-with-stan---extended.html#cb1141-2" aria-hidden="true"></a>(z_u &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(z_u1, z_u2), <span class="dt">ncol =</span> N_subj, <span class="dt">byrow =</span> <span class="ot">TRUE</span>))</span></code></pre></div>
 <pre><code>##       [,1]   [,2]   [,3]  [,4]  [,5] [,6]  [,7]  [,8]  [,9]  [,10]
 ## [1,] 0.138  0.588  0.680 1.391 0.759 1.43 0.283 0.384 1.389  1.119
 ## [2,] 0.826 -0.666 -0.213 0.936 0.876 1.11 1.109 0.832 0.862 -0.541</code></pre>
 <p>Then, generate correlated parameters by pre-multiplying the <span class="math inline">\(\mathbf{z}_u\)</span> matrix with <span class="math inline">\(\mathbf{L}_u\)</span>.</p>
-<div class="sourceCode" id="cb1142"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1142-1"><a href="advanced-models-with-stan---extended.html#cb1142-1" aria-hidden="true"></a>L_u <span class="op">%*%</span><span class="st"> </span>z_u</span></code></pre></div>
+<div class="sourceCode" id="cb1143"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1143-1"><a href="advanced-models-with-stan---extended.html#cb1143-1" aria-hidden="true"></a>L_u <span class="op">%*%</span><span class="st"> </span>z_u</span></code></pre></div>
 <pre><code>##       [,1]   [,2]  [,3] [,4]  [,5] [,6]  [,7]  [,8] [,9] [,10]
 ## [1,] 0.138 0.5884 0.680 1.39 0.759 1.43 0.283 0.384 1.39 1.119
 ## [2,] 0.606 0.0712 0.416 1.67 1.132 1.81 0.891 0.806 1.63 0.571</code></pre>
 <ol start="3" style="list-style-type: decimal">
 <li>Use the following diagonal matrix to scale the z_u.</li>
 </ol>
-<div class="sourceCode" id="cb1144"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1144-1"><a href="advanced-models-with-stan---extended.html#cb1144-1" aria-hidden="true"></a>tau_u1 &lt;-<span class="st"> </span><span class="fl">0.2</span></span>
-<span id="cb1144-2"><a href="advanced-models-with-stan---extended.html#cb1144-2" aria-hidden="true"></a>tau_u2 &lt;-<span class="st"> </span><span class="fl">0.01</span></span>
-<span id="cb1144-3"><a href="advanced-models-with-stan---extended.html#cb1144-3" aria-hidden="true"></a>(diag_matrix_tau &lt;-<span class="st"> </span><span class="kw">diag</span>(<span class="kw">c</span>(tau_u1,  tau_u2)))</span></code></pre></div>
+<div class="sourceCode" id="cb1145"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1145-1"><a href="advanced-models-with-stan---extended.html#cb1145-1" aria-hidden="true"></a>tau_u1 &lt;-<span class="st"> </span><span class="fl">0.2</span></span>
+<span id="cb1145-2"><a href="advanced-models-with-stan---extended.html#cb1145-2" aria-hidden="true"></a>tau_u2 &lt;-<span class="st"> </span><span class="fl">0.01</span></span>
+<span id="cb1145-3"><a href="advanced-models-with-stan---extended.html#cb1145-3" aria-hidden="true"></a>(diag_matrix_tau &lt;-<span class="st"> </span><span class="kw">diag</span>(<span class="kw">c</span>(tau_u1,  tau_u2)))</span></code></pre></div>
 <pre><code>##      [,1] [,2]
 ## [1,]  0.2 0.00
 ## [2,]  0.0 0.01</code></pre>
 <ol start="4" style="list-style-type: decimal">
 <li>Finally, generate the adjustments for each subject u:</li>
 </ol>
-<div class="sourceCode" id="cb1146"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1146-1"><a href="advanced-models-with-stan---extended.html#cb1146-1" aria-hidden="true"></a>(u &lt;-<span class="st"> </span>diag_matrix_tau <span class="op">%*%</span><span class="st"> </span>L_u <span class="op">%*%</span><span class="st"> </span>z_u)</span></code></pre></div>
+<div class="sourceCode" id="cb1147"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1147-1"><a href="advanced-models-with-stan---extended.html#cb1147-1" aria-hidden="true"></a>(u &lt;-<span class="st"> </span>diag_matrix_tau <span class="op">%*%</span><span class="st"> </span>L_u <span class="op">%*%</span><span class="st"> </span>z_u)</span></code></pre></div>
 <pre><code>##         [,1]     [,2]    [,3]   [,4]   [,5]   [,6]    [,7]
 ## [1,] 0.02757 0.117677 0.13600 0.2782 0.1518 0.2864 0.05654
 ## [2,] 0.00606 0.000712 0.00416 0.0167 0.0113 0.0181 0.00891
 ##         [,8]   [,9]   [,10]
 ## [1,] 0.07674 0.2777 0.22378
 ## [2,] 0.00806 0.0163 0.00571</code></pre>
-<div class="sourceCode" id="cb1148"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1148-1"><a href="advanced-models-with-stan---extended.html#cb1148-1" aria-hidden="true"></a><span class="co"># The rows are correlated, approximately 0.8</span></span>
-<span id="cb1148-2"><a href="advanced-models-with-stan---extended.html#cb1148-2" aria-hidden="true"></a><span class="kw">cor</span>(u[<span class="dv">1</span>, ], u[<span class="dv">2</span>, ])</span></code></pre></div>
+<div class="sourceCode" id="cb1149"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1149-1"><a href="advanced-models-with-stan---extended.html#cb1149-1" aria-hidden="true"></a><span class="co"># The rows are correlated, approximately 0.8</span></span>
+<span id="cb1149-2"><a href="advanced-models-with-stan---extended.html#cb1149-2" aria-hidden="true"></a><span class="kw">cor</span>(u[<span class="dv">1</span>, ], u[<span class="dv">2</span>, ])</span></code></pre></div>
 <pre><code>## [1] 0.703</code></pre>
-<div class="sourceCode" id="cb1150"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1150-1"><a href="advanced-models-with-stan---extended.html#cb1150-1" aria-hidden="true"></a><span class="co"># The variance components can be recovered as well:</span></span>
-<span id="cb1150-2"><a href="advanced-models-with-stan---extended.html#cb1150-2" aria-hidden="true"></a><span class="kw">sd</span>(u[<span class="dv">1</span>, ])</span></code></pre></div>
+<div class="sourceCode" id="cb1151"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1151-1"><a href="advanced-models-with-stan---extended.html#cb1151-1" aria-hidden="true"></a><span class="co"># The variance components can be recovered as well:</span></span>
+<span id="cb1151-2"><a href="advanced-models-with-stan---extended.html#cb1151-2" aria-hidden="true"></a><span class="kw">sd</span>(u[<span class="dv">1</span>, ])</span></code></pre></div>
 <pre><code>## [1] 0.0974</code></pre>
-<div class="sourceCode" id="cb1152"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1152-1"><a href="advanced-models-with-stan---extended.html#cb1152-1" aria-hidden="true"></a><span class="kw">sd</span>(u[<span class="dv">2</span>, ])</span></code></pre></div>
+<div class="sourceCode" id="cb1153"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1153-1"><a href="advanced-models-with-stan---extended.html#cb1153-1" aria-hidden="true"></a><span class="kw">sd</span>(u[<span class="dv">2</span>, ])</span></code></pre></div>
 <pre><code>## [1] 0.00587</code></pre>
 </div>
 <div id="app-sbc" class="section level2 hasAnchor" number="21.7">
 <h2><span class="header-section-number">B.7</span> Different rank visualizations and the <code>SBC</code> package.<a href="advanced-models-with-stan---extended.html#app-sbc" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>Implementing the simulation-based calibration algorithm “by hand”, as we did in section <a href="ch-custom.html#sec-validSBC">10.2</a>, introduces a new source of potential errors. Fortunately, the R package  <code>SBC</code> <span class="citation">(Kim et al. <a href="#ref-R-SBC" role="doc-biblioref">2024</a>)</span> provides tools to validate a Stan model (or any sampling algorithm) by allowing us to run simulation-based calibrations easily.
 The package is in active development at the moment<a href="#fn72" class="footnote-ref" id="fnref72"><sup>72</sup></a> and can be installed with the following command.</p>
-<div class="sourceCode" id="cb1154"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1154-1"><a href="advanced-models-with-stan---extended.html#cb1154-1" aria-hidden="true"></a>remotes<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;hyunjimoon/SBC&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1155"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1155-1"><a href="advanced-models-with-stan---extended.html#cb1155-1" aria-hidden="true"></a>remotes<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;hyunjimoon/SBC&quot;</span>)</span></code></pre></div>
 <p>One of the main advantages of this package is that it provides several ways to visualize the results of the simulation-based calibration procedure; see <a href="https://hyunjimoon.github.io/SBC/" class="uri">https://hyunjimoon.github.io/SBC/</a>. Figure <a href="advanced-models-with-stan---extended.html#fig:sbchist">B.1</a> shows rank histograms produced by <code>SBC</code> of a correct model and several different incorrect models. An alternative to rank histograms is to use an  empirical cumulative distribution function (ECDF)-based method, as proposed by <span class="citation">Säilynoja, Bürkner, and Vehtari (<a href="#ref-sailynoja2022graphical" role="doc-biblioref">2022</a>)</span>. The idea behind this method is that if the ranks produced by the simulation-based calibration algorithm are uniform the ECDF of the ranks should be close to the CDF of a uniform distribution. Figure <a href="advanced-models-with-stan---extended.html#fig:sbcecdf">B.2</a> shows the difference between the ECDF of the ranks and the CDF of a uniform distribution together with 95% confidence bands (this is the default in the <code>SBC</code> package) for a correct model and different incorrect ones.</p>
 
 <div class="figure"><span style="display:block;" id="fig:sbchist"></span>

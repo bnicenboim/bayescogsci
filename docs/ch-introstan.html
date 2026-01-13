@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel J. Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2025-02-12" />
+<meta name="date" content="2026-01-13" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -375,15 +375,18 @@ window.initializeCodeFolding = function(show) {
     $(this).before(div);
     $(this).detach().appendTo(div);
 
-    // add a show code button right above
-    var showCodeText = $('<span>' + (show ? 'Hide' : 'Code') + '</span>');
+    // CRITICAL FIX: Create button with aria-hidden text that won't be copied
     var showCodeButton = $('<button type="button" class="btn btn-default btn-xs code-folding-btn pull-right"></button>');
-    showCodeButton.append(showCodeText);
     showCodeButton
         .attr('data-toggle', 'collapse')
         .attr('data-target', '#' + id)
         .attr('aria-expanded', show)
-        .attr('aria-controls', id);
+        .attr('aria-controls', id)
+        .attr('aria-label', show ? 'Hide code' : 'Show code');
+    
+    // Use aria-hidden to prevent screen readers and copy from seeing text
+    var showCodeText = $('<span aria-hidden="true" style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; pointer-events: none;">' + (show ? 'Hide' : 'Code') + '</span>');
+    showCodeButton.append(showCodeText);
 
     var buttonRow = $('<div class="row"></div>');
     var buttonCol = $('<div class="col-md-12"></div>');
@@ -393,16 +396,18 @@ window.initializeCodeFolding = function(show) {
 
     div.before(buttonRow);
 
-    // hack: return show to false, otherwise all next codeBlocks will be shown!
-    show = false;
-
-    // update state of button on show/hide
-    div.on('hidden.bs.collapse', function () {
+    // update the text of the button when it's clicked
+    div.on('hide.bs.collapse', function () {
       showCodeText.text('Code');
+      showCodeButton.attr('aria-label', 'Show code');
     });
     div.on('show.bs.collapse', function () {
       showCodeText.text('Hide');
+      showCodeButton.attr('aria-label', 'Hide code');
     });
+
+    // hack: return show to false, otherwise all next codeBlocks will be shown!
+    show = false;
   });
 
 }
@@ -793,6 +798,78 @@ $(document).ready(function () {
 });
 </script>
 
+<!-- NUCLEAR OPTION: Intercept ALL copy events and strip button text -->
+<script>
+$(document).ready(function() {
+  
+  // Method 1: Make button spans completely invisible to selection
+  function protectButtons() {
+    $('.code-folding-btn span').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+      this.style.setProperty('pointer-events', 'none', 'important');
+      $(this).attr('unselectable', 'on');
+      $(this).attr('aria-hidden', 'true');
+    });
+    
+    $('.code-folding-btn').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+    });
+  }
+  
+  protectButtons();
+  setTimeout(protectButtons, 100);
+  setTimeout(protectButtons, 500);
+  setTimeout(protectButtons, 1000);
+  
+  // Method 2: Aggressive copy event interception
+  document.addEventListener('copy', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    // Remove "Hide" or "Code" from the start
+    if (selectedText) {
+      var cleanedText = selectedText
+        .replace(/^(Hide|Code)\s*/gm, '')  // Remove from start of any line
+        .replace(/\s+(Hide|Code)\s*$/gm, '');  // Remove from end
+      
+      if (cleanedText !== selectedText) {
+        e.preventDefault();
+        
+        if (e.clipboardData) {
+          e.clipboardData.setData('text/plain', cleanedText);
+        } else if (window.clipboardData) {
+          window.clipboardData.setData('Text', cleanedText);
+        }
+      }
+    }
+  }, true);  // Use capture phase
+  
+  // Method 3: Override native copy for code blocks
+  $('body').on('copy', 'pre, pre.sourceCode, .sourceCode, code', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    if (selectedText && (selectedText.startsWith('Hide') || selectedText.startsWith('Code'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      var cleanedText = selectedText.replace(/^(Hide|Code)\s*/, '');
+      
+      if (e.originalEvent.clipboardData) {
+        e.originalEvent.clipboardData.setData('text/plain', cleanedText);
+      } else if (window.clipboardData) {
+        window.clipboardData.setData('Text', cleanedText);
+      }
+    }
+  });
+});
+</script>
 
 <script data-goatcounter="https://bayescogsci.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
@@ -1436,6 +1513,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
+<div class="book-banner">
+  <div class="banner-content">
+    📚 Get the print version of the book from 
+    <a href="https://www.taylorfrancis.com/books/mono/10.1201/9780429342646/introduction-bayesian-data-analysis-cognitive-science-shravan-vasishth-bruno-nicenboim-daniel-schad" target="_blank" rel="noopener">CRC Press</a> or your favorite store.
+    <button class="banner-close" onclick="this.parentElement.parentElement.style.display='none';" aria-label="Close banner">&times;</button>
+  </div>
+</div>
 <div id="ch-introstan" class="section level1 hasAnchor" number="8">
 <h1><span class="header-section-number">Chapter 8</span> Introduction to the probabilistic programming language Stan<a href="ch-introstan.html#ch-introstan" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <p>Stan is a  probabilistic programming language for statistical inference written in C++ that can be accessed through several interfaces (e.g., R, Python, etc.). Stan uses an advanced dynamic  Hamiltonian Monte Carlo algorithm <span class="citation">(Betancourt <a href="#ref-betancourt2016identifying" role="doc-biblioref">2016</a>)</span> based on a variant of the  No-U-Turn sampler <span class="citation">(known as  NUTS: Hoffman and Gelman <a href="#ref-hoffmanNoUTurnSamplerAdaptively2014" role="doc-biblioref">2014</a>)</span>, which is, in general, more efficient than the traditional  Gibbs sampler used in other probabilistic languages such as  (Win)BUGS <span class="citation">(Lunn et al. <a href="#ref-lunn2000winbugs" role="doc-biblioref">2000</a>)</span> and  JAGS <span class="citation">(Plummer <a href="#ref-plummer2016jags" role="doc-biblioref">2016</a>)</span>. In this part of the book, we will focus on the package  <code>rstan</code> <span class="citation">(Guo et al. <a href="#ref-R-rstan" role="doc-biblioref">2024</a>)</span> that integrates Stan <span class="citation">(Carpenter et al. <a href="#ref-carpenter2017stan" role="doc-biblioref">2017</a>)</span> with R <span class="citation">(R Core Team <a href="#ref-R-base" role="doc-biblioref">2023</a>)</span>.</p>
@@ -1621,7 +1705,7 @@ FIGURE 8.2: Traceplots of <code>mu</code> and <code>sigma</code> from the model 
 ## mu    3.91    0.02 0.92 2.06 3.29 3.91 4.53   5.7  3707    1
 ## sigma 9.23    0.01 0.66 8.07 8.75 9.19 9.65  10.7  4026    1
 ## 
-## Samples were drawn using NUTS(diag_e) at Mon Jan 13 08:27:33 2025.
+## Samples were drawn using NUTS(diag_e) at Tue Jan 13 13:12:48 2026.
 ## For each parameter, n_eff is a crude measure of effective sample size,
 ## and Rhat is the potential scale reduction factor on split chains (at 
 ## convergence, Rhat=1).</code></pre>
@@ -1642,13 +1726,13 @@ FIGURE 8.3: Histograms of the samples of the posterior distributions of <code>mu
 <span id="cb537-4"><a href="ch-introstan.html#cb537-4" aria-hidden="true"></a>rstan<span class="op">::</span><span class="kw">extract</span>(fit_score) <span class="op">%&gt;%</span></span>
 <span id="cb537-5"><a href="ch-introstan.html#cb537-5" aria-hidden="true"></a><span class="st">  </span><span class="kw">str</span>()</span></code></pre></div>
 <pre><code>## List of 3
-##  $ mu   : num [1:4000(1d)] 3.89 5.04 3.8 3.91 5.55 ...
+##  $ mu   : num [1:4000(1d)] 4.71 3.64 5.54 4 2.5 ...
 ##   ..- attr(*, &quot;dimnames&quot;)=List of 1
 ##   .. ..$ iterations: NULL
-##  $ sigma: num [1:4000(1d)] 8.01 9.37 8.47 8.39 9.66 ...
+##  $ sigma: num [1:4000(1d)] 9.38 9.52 9.73 8.67 8.93 ...
 ##   ..- attr(*, &quot;dimnames&quot;)=List of 1
 ##   .. ..$ iterations: NULL
-##  $ lp__ : num [1:4000(1d)] -370 -369 -368 -368 -369 ...
+##  $ lp__ : num [1:4000(1d)] -368 -368 -370 -368 -369 ...
 ##   ..- attr(*, &quot;dimnames&quot;)=List of 1
 ##   .. ..$ iterations: NULL</code></pre>
 <div class="sourceCode" id="cb539"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb539-1"><a href="ch-introstan.html#cb539-1" aria-hidden="true"></a><span class="kw">as.data.frame</span>(fit_score) <span class="op">%&gt;%</span></span>

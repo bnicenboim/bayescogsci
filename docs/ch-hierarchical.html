@@ -23,7 +23,7 @@
 <meta name="author" content="Bruno Nicenboim, Daniel J. Schad, and Shravan Vasishth" />
 
 
-<meta name="date" content="2025-02-12" />
+<meta name="date" content="2026-01-13" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -375,15 +375,18 @@ window.initializeCodeFolding = function(show) {
     $(this).before(div);
     $(this).detach().appendTo(div);
 
-    // add a show code button right above
-    var showCodeText = $('<span>' + (show ? 'Hide' : 'Code') + '</span>');
+    // CRITICAL FIX: Create button with aria-hidden text that won't be copied
     var showCodeButton = $('<button type="button" class="btn btn-default btn-xs code-folding-btn pull-right"></button>');
-    showCodeButton.append(showCodeText);
     showCodeButton
         .attr('data-toggle', 'collapse')
         .attr('data-target', '#' + id)
         .attr('aria-expanded', show)
-        .attr('aria-controls', id);
+        .attr('aria-controls', id)
+        .attr('aria-label', show ? 'Hide code' : 'Show code');
+    
+    // Use aria-hidden to prevent screen readers and copy from seeing text
+    var showCodeText = $('<span aria-hidden="true" style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; pointer-events: none;">' + (show ? 'Hide' : 'Code') + '</span>');
+    showCodeButton.append(showCodeText);
 
     var buttonRow = $('<div class="row"></div>');
     var buttonCol = $('<div class="col-md-12"></div>');
@@ -393,16 +396,18 @@ window.initializeCodeFolding = function(show) {
 
     div.before(buttonRow);
 
-    // hack: return show to false, otherwise all next codeBlocks will be shown!
-    show = false;
-
-    // update state of button on show/hide
-    div.on('hidden.bs.collapse', function () {
+    // update the text of the button when it's clicked
+    div.on('hide.bs.collapse', function () {
       showCodeText.text('Code');
+      showCodeButton.attr('aria-label', 'Show code');
     });
     div.on('show.bs.collapse', function () {
       showCodeText.text('Hide');
+      showCodeButton.attr('aria-label', 'Hide code');
     });
+
+    // hack: return show to false, otherwise all next codeBlocks will be shown!
+    show = false;
   });
 
 }
@@ -793,6 +798,78 @@ $(document).ready(function () {
 });
 </script>
 
+<!-- NUCLEAR OPTION: Intercept ALL copy events and strip button text -->
+<script>
+$(document).ready(function() {
+  
+  // Method 1: Make button spans completely invisible to selection
+  function protectButtons() {
+    $('.code-folding-btn span').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+      this.style.setProperty('pointer-events', 'none', 'important');
+      $(this).attr('unselectable', 'on');
+      $(this).attr('aria-hidden', 'true');
+    });
+    
+    $('.code-folding-btn').each(function() {
+      this.style.setProperty('user-select', 'none', 'important');
+      this.style.setProperty('-webkit-user-select', 'none', 'important');
+      this.style.setProperty('-moz-user-select', 'none', 'important');
+      this.style.setProperty('-ms-user-select', 'none', 'important');
+    });
+  }
+  
+  protectButtons();
+  setTimeout(protectButtons, 100);
+  setTimeout(protectButtons, 500);
+  setTimeout(protectButtons, 1000);
+  
+  // Method 2: Aggressive copy event interception
+  document.addEventListener('copy', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    // Remove "Hide" or "Code" from the start
+    if (selectedText) {
+      var cleanedText = selectedText
+        .replace(/^(Hide|Code)\s*/gm, '')  // Remove from start of any line
+        .replace(/\s+(Hide|Code)\s*$/gm, '');  // Remove from end
+      
+      if (cleanedText !== selectedText) {
+        e.preventDefault();
+        
+        if (e.clipboardData) {
+          e.clipboardData.setData('text/plain', cleanedText);
+        } else if (window.clipboardData) {
+          window.clipboardData.setData('Text', cleanedText);
+        }
+      }
+    }
+  }, true);  // Use capture phase
+  
+  // Method 3: Override native copy for code blocks
+  $('body').on('copy', 'pre, pre.sourceCode, .sourceCode, code', function(e) {
+    var selection = window.getSelection();
+    var selectedText = selection.toString();
+    
+    if (selectedText && (selectedText.startsWith('Hide') || selectedText.startsWith('Code'))) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      var cleanedText = selectedText.replace(/^(Hide|Code)\s*/, '');
+      
+      if (e.originalEvent.clipboardData) {
+        e.originalEvent.clipboardData.setData('text/plain', cleanedText);
+      } else if (window.clipboardData) {
+        window.clipboardData.setData('Text', cleanedText);
+      }
+    }
+  });
+});
+</script>
 
 <script data-goatcounter="https://bayescogsci.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
@@ -1436,6 +1513,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
+<div class="book-banner">
+  <div class="banner-content">
+    📚 Get the print version of the book from 
+    <a href="https://www.taylorfrancis.com/books/mono/10.1201/9780429342646/introduction-bayesian-data-analysis-cognitive-science-shravan-vasishth-bruno-nicenboim-daniel-schad" target="_blank" rel="noopener">CRC Press</a> or your favorite store.
+    <button class="banner-close" onclick="this.parentElement.parentElement.style.display='none';" aria-label="Close banner">&times;</button>
+  </div>
+</div>
 <div id="ch-hierarchical" class="section level1 hasAnchor" number="5">
 <h1><span class="header-section-number">Chapter 5</span> Bayesian hierarchical models<a href="ch-hierarchical.html#ch-hierarchical" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <p>Usually, experimental data in cognitive science contain “clusters.” These are natural groups that contain observations that are more similar within the clusters than between them.
@@ -1512,17 +1596,17 @@ y_n \sim \mathit{Normal}(\mu_{subj[n]},\sigma)
 ## Group-Level Effects: 
 ## ~subj (Number of levels: 20) 
 ##               Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS
-## sd(Intercept)    15.12      2.48    11.28    21.08 1.01      456
+## sd(Intercept)    15.13      2.54    11.05    21.32 1.01      564
 ##               Tail_ESS
-## sd(Intercept)      698
+## sd(Intercept)      861
 ## 
 ## Population-Level Effects: 
 ##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept   102.08      3.33    95.65   108.55 1.01      522      675
+## Intercept   101.88      3.62    94.51   109.23 1.01      407      466
 ## 
 ## Family Specific Parameters: 
 ##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sigma     4.01      0.09     3.84     4.20 1.00     1642     2298
+## sigma     4.02      0.09     3.85     4.20 1.00     1809     2304
 ## 
 ## ...</code></pre>
 <p>In this output, <code>Intercept</code> corresponds to the posterior of <span class="math inline">\(\mu\)</span>, <code>sigma</code> to <span class="math inline">\(\sigma\)</span>, and <code>sd(Intercept)</code> to <span class="math inline">\(\tau\)</span>. There is more information in the <code>brms</code> object: we can also get the posteriors for each level of our group (i.e., for each subject). However, rather than estimating <span class="math inline">\(\mu_i\)</span>, <code>brms</code> estimates the adjustments to <span class="math inline">\(\mu\)</span>, <span class="math inline">\(u_i\)</span>, named <code>r_subj[i,Intercept]</code>, so that <span class="math inline">\(\mu_i = \mu + u_i\)</span>. See the code below.</p>
@@ -1534,8 +1618,8 @@ y_n \sim \mathit{Normal}(\mu_{subj[n]},\sigma)
 <span id="cb224-6"><a href="ch-hierarchical.html#cb224-6" aria-hidden="true"></a><span class="co"># Build the posterior estimate of mu_i</span></span>
 <span id="cb224-7"><a href="ch-hierarchical.html#cb224-7" aria-hidden="true"></a>mu_i_post &lt;-<span class="st"> </span>mu_post <span class="op">+</span><span class="st"> </span>u_i_post</span>
 <span id="cb224-8"><a href="ch-hierarchical.html#cb224-8" aria-hidden="true"></a><span class="kw">colMeans</span>(mu_i_post) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">unname</span>()</span></code></pre></div>
-<pre><code>##  [1]  91.8  96.3 123.2 101.0 102.0 126.4 107.0  80.4  90.3  93.5 118.9
-## [12] 104.5 106.0 101.0  92.8 126.5 107.7  71.4 110.3  93.0</code></pre>
+<pre><code>##  [1]  91.8  96.3 123.2 101.0 102.0 126.4 107.0  80.4  90.3  93.4 118.9
+## [12] 104.5 106.0 101.0  92.7 126.5 107.7  71.4 110.3  93.0</code></pre>
 <div class="sourceCode" id="cb226"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb226-1"><a href="ch-hierarchical.html#cb226-1" aria-hidden="true"></a><span class="co"># Compare with true values</span></span>
 <span id="cb226-2"><a href="ch-hierarchical.html#cb226-2" aria-hidden="true"></a>mu_i</span></code></pre></div>
 <pre><code>##  [1]  91.6  96.5 123.4 101.1 101.9 125.7 106.9  81.0  89.7  93.3 118.4
@@ -1574,11 +1658,11 @@ y_n \sim \mathit{Normal}(\mu,\sigma).
 <pre><code>## ...
 ## Population-Level Effects: 
 ##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept   100.15      0.13    99.90   100.39 1.00     3564     2669
+## Intercept   100.15      0.12    99.90   100.39 1.00     3355     2176
 ## 
 ## Family Specific Parameters: 
 ##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sigma     4.00      0.09     3.83     4.18 1.00     3604     2547
+## sigma     4.00      0.09     3.83     4.17 1.00     3038     2630
 ## 
 ## ...</code></pre>
 <p>The configuration of the complete pooling model is illustrated in Figure <a href="ch-hierarchical.html#fig:dags3">5.2</a>.</p>
@@ -1614,29 +1698,29 @@ y_n \sim \mathit{Normal}(\mu_{subj[n]},\sigma)
 <p>The summary shows now the 20 estimates of <span class="math inline">\(\mu_i\)</span> as <code>b_factorsubj</code> and <span class="math inline">\(\sigma\)</span>. (We ignore <code>lp__</code> and <code>lprior</code>.)</p>
 <div class="sourceCode" id="cb236"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb236-1"><a href="ch-hierarchical.html#cb236-1" aria-hidden="true"></a>fit_np <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">posterior_summary</span>()</span></code></pre></div>
 <pre><code>##                Estimate Est.Error     Q2.5    Q97.5
-## b_factorsubj1    156.23    0.5437   155.15   157.30
-## b_factorsubj2    176.74    0.5524   175.67   177.82
-## b_factorsubj3     94.41    0.5566    93.37    95.50
-## b_factorsubj4    183.08    0.5530   182.00   184.16
-## b_factorsubj5    145.87    0.5381   144.84   146.89
-## b_factorsubj6    191.11    0.5477   190.05   192.18
-## b_factorsubj7     67.07    0.5435    66.01    68.11
-## b_factorsubj8    152.43    0.5327   151.41   153.47
-## b_factorsubj9    129.10    0.5759   128.00   130.24
-## b_factorsubj10   119.75    0.5377   118.65   120.81
-## b_factorsubj11   195.12    0.5540   194.03   196.19
-## b_factorsubj12   150.11    0.5498   149.00   151.17
-## b_factorsubj13   172.43    0.5560   171.32   173.49
-## b_factorsubj14    95.43    0.5480    94.29    96.51
-## b_factorsubj15   110.17    0.5474   109.08   111.22
-## b_factorsubj16   115.26    0.5390   114.21   116.31
-## b_factorsubj17    78.51    0.5684    77.40    79.61
-## b_factorsubj18   125.62    0.5222   124.58   126.63
-## b_factorsubj19   175.19    0.5617   174.08   176.30
-## b_factorsubj20    81.15    0.5512    80.03    82.23
-## sigma              3.91    0.0862     3.74     4.08
-## lprior          -131.51    0.0108  -131.53  -131.49
-## lp__           -2911.79    3.2911 -2919.14 -2906.46</code></pre>
+## b_factorsubj1    156.23    0.5559   155.16   157.34
+## b_factorsubj2    176.73    0.5465   175.65   177.77
+## b_factorsubj3     94.40    0.5520    93.28    95.50
+## b_factorsubj4    183.08    0.5444   182.01   184.15
+## b_factorsubj5    145.88    0.5676   144.76   146.98
+## b_factorsubj6    191.10    0.5484   190.04   192.16
+## b_factorsubj7     67.05    0.5490    65.95    68.10
+## b_factorsubj8    152.43    0.5481   151.36   153.52
+## b_factorsubj9    129.12    0.5569   128.04   130.20
+## b_factorsubj10   119.74    0.5663   118.64   120.84
+## b_factorsubj11   195.12    0.5655   193.99   196.22
+## b_factorsubj12   150.11    0.5546   149.02   151.19
+## b_factorsubj13   172.41    0.5442   171.31   173.45
+## b_factorsubj14    95.42    0.5535    94.36    96.52
+## b_factorsubj15   110.17    0.5600   109.10   111.24
+## b_factorsubj16   115.25    0.5580   114.15   116.35
+## b_factorsubj17    78.52    0.5574    77.43    79.61
+## b_factorsubj18   125.61    0.5639   124.50   126.71
+## b_factorsubj19   175.20    0.5566   174.12   176.26
+## b_factorsubj20    81.14    0.5579    80.05    82.27
+## sigma              3.91    0.0885     3.74     4.09
+## lprior          -131.51    0.0109  -131.53  -131.49
+## lp__           -2912.04    3.3595 -2919.76 -2906.44</code></pre>
 <p>Unlike the hierarchical model, now there is no common distribution that generates the <span class="math inline">\(\mu_i\)</span> parameters. This is illustrated in Figure <a href="ch-hierarchical.html#fig:dags2">5.3</a>.</p>
 
 <div class="figure"><span style="display:block;" id="fig:dags2"></span>
@@ -1773,12 +1857,12 @@ FIGURE 5.5: Histogram of the N400 averages for every trial, overlaid is a densit
 <pre><code>## ...
 ## Population-Level Effects: 
 ##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept     3.66      0.22     3.23     4.10 1.00     3907     2776
-## c_cloze       2.27      0.55     1.19     3.33 1.00     4494     3163
+## Intercept     3.66      0.23     3.21     4.09 1.00     4067     2707
+## c_cloze       2.25      0.56     1.13     3.35 1.00     4376     2968
 ## 
 ## Family Specific Parameters: 
 ##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sigma    11.82      0.16    11.53    12.14 1.00     3885     2894
+## sigma    11.82      0.16    11.53    12.13 1.00     5295     3331
 ## 
 ## ...</code></pre>
 
@@ -1845,7 +1929,7 @@ The by-subject intercepts are indicated with <code>factor(subj)</code> and the b
 <pre><code>## # A tibble: 1 × 3
 ##    mean    lq    hq
 ##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1  2.18  1.21  3.19</code></pre>
+## 1  2.17  1.14  3.16</code></pre>
 <p>In Figure <a href="ch-hierarchical.html#fig:nopooling">5.7</a>, the 95% credible interval of this overall mean effect is plotted as two vertical lines together with the effect of cloze probability for each subject (ordered by effect size). Here, rather than using a plotting function from <code>brms</code>, we can extract the summary of by-subject effects, reorder them by magnitude, and then plot the summary with a custom plot using <code>ggplot2</code>.</p>
 <div class="sourceCode" id="cb255"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb255-1"><a href="ch-hierarchical.html#cb255-1" aria-hidden="true"></a><span class="co"># make a table of beta&#39;s by subject</span></span>
 <span id="cb255-2"><a href="ch-hierarchical.html#cb255-2" aria-hidden="true"></a>beta_by_subj &lt;-<span class="st"> </span><span class="kw">posterior_summary</span>(fit_N400_np,</span>
@@ -2347,8 +2431,8 @@ remains very similar to that of the model <code>fit_N400_sih</code>.</p>
 <pre><code>##           Estimate Est.Error  Q2.5 Q97.5
 ## b_c_cloze     2.31     0.695 0.924  3.63</code></pre>
 <div class="sourceCode" id="cb277"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb277-1"><a href="ch-hierarchical.html#cb277-1" aria-hidden="true"></a><span class="kw">posterior_summary</span>(fit_N400_s, <span class="dt">variable =</span> <span class="st">&quot;b_c_cloze&quot;</span>)</span></code></pre></div>
-<pre><code>##           Estimate Est.Error  Q2.5 Q97.5
-## b_c_cloze     2.28     0.668 0.971  3.61</code></pre>
+<pre><code>##           Estimate Est.Error Q2.5 Q97.5
+## b_c_cloze     2.29     0.658 1.04  3.61</code></pre>
 <p>Nonetheless, Figure <a href="ch-hierarchical.html#fig:postpreddensbysubj2">5.17</a> shows that the fit of the model with respect to the by-subject variability is much better than before. Furthermore, Figure <a href="ch-hierarchical.html#fig:postpredsumbysubj2">5.18</a> shows that the observed standard deviations for each subject are well inside the posterior predictive distributions. The code below produces Figure <a href="ch-hierarchical.html#fig:postpreddensbysubj2">5.17</a>.</p>
 
 <div class="sourceCode" id="cb279"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb279-1"><a href="ch-hierarchical.html#cb279-1" aria-hidden="true"></a><span class="kw">pp_check</span>(fit_N400_s,</span>
@@ -2574,39 +2658,39 @@ The different priors are:</p>
 <tbody>
 <tr class="odd">
 <td align="left"><span class="math inline">\(\mathit{Normal}(0, 0.001)\)</span></td>
-<td align="right"><span class="math inline">\(0.64\)</span></td>
-<td align="right"><span class="math inline">\(-1.54\)</span></td>
-<td align="right"><span class="math inline">\(2.76\)</span></td>
+<td align="right"><span class="math inline">\(0.67\)</span></td>
+<td align="right"><span class="math inline">\(-1.45\)</span></td>
+<td align="right"><span class="math inline">\(2.78\)</span></td>
 </tr>
 <tr class="even">
 <td align="left"><span class="math inline">\(\mathit{Normal}(0, 0.01)\)</span></td>
-<td align="right"><span class="math inline">\(30.13\)</span></td>
-<td align="right"><span class="math inline">\(17.40\)</span></td>
-<td align="right"><span class="math inline">\(42.12\)</span></td>
+<td align="right"><span class="math inline">\(30.12\)</span></td>
+<td align="right"><span class="math inline">\(17.69\)</span></td>
+<td align="right"><span class="math inline">\(42.27\)</span></td>
 </tr>
 <tr class="odd">
 <td align="left"><span class="math inline">\(\mathit{Normal}(0, 0.05)\)</span></td>
-<td align="right"><span class="math inline">\(41.59\)</span></td>
-<td align="right"><span class="math inline">\(28.07\)</span></td>
-<td align="right"><span class="math inline">\(55.51\)</span></td>
+<td align="right"><span class="math inline">\(41.66\)</span></td>
+<td align="right"><span class="math inline">\(27.61\)</span></td>
+<td align="right"><span class="math inline">\(55.38\)</span></td>
 </tr>
 <tr class="even">
 <td align="left"><span class="math inline">\(\mathit{Normal}(0, 0.1)\)</span></td>
-<td align="right"><span class="math inline">\(41.89\)</span></td>
-<td align="right"><span class="math inline">\(28.11\)</span></td>
-<td align="right"><span class="math inline">\(55.71\)</span></td>
+<td align="right"><span class="math inline">\(41.84\)</span></td>
+<td align="right"><span class="math inline">\(28.12\)</span></td>
+<td align="right"><span class="math inline">\(55.69\)</span></td>
 </tr>
 <tr class="odd">
 <td align="left"><span class="math inline">\(\mathit{Normal}(0, 1)\)</span></td>
-<td align="right"><span class="math inline">\(42.25\)</span></td>
-<td align="right"><span class="math inline">\(28.65\)</span></td>
-<td align="right"><span class="math inline">\(56.11\)</span></td>
+<td align="right"><span class="math inline">\(42.14\)</span></td>
+<td align="right"><span class="math inline">\(28.70\)</span></td>
+<td align="right"><span class="math inline">\(55.99\)</span></td>
 </tr>
 <tr class="even">
 <td align="left"><span class="math inline">\(\mathit{Normal}(0, 2)\)</span></td>
-<td align="right"><span class="math inline">\(42.27\)</span></td>
-<td align="right"><span class="math inline">\(28.56\)</span></td>
-<td align="right"><span class="math inline">\(56.30\)</span></td>
+<td align="right"><span class="math inline">\(42.13\)</span></td>
+<td align="right"><span class="math inline">\(28.46\)</span></td>
+<td align="right"><span class="math inline">\(55.90\)</span></td>
 </tr>
 </tbody>
 </table>
